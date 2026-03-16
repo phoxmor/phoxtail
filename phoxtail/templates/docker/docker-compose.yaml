@@ -1,0 +1,121 @@
+services:
+  web:
+    build:
+      target: {{ environment }}
+    image: {{ image_name }}
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+{% if environment == "development" %}
+    ports:
+      - "80:80"
+{% endif %}
+    depends_on:
+      - db
+{% if activate_booking %}
+      - redis
+{% endif %}
+
+  db:
+    image: postgres:{{ postgres_version }}
+    restart: always
+    env_file:
+      - ./.env
+{% if environment == "development" %}
+    ports:
+      - "5432:5432"
+{% endif %}
+    volumes:
+      - postgres_data:{{ pg_data_path }}
+      - ./db-backups:/db-backups
+
+{% if activate_booking %}
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  celery-worker:
+    image: {{ image_name }}
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    command: celery -A src worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    image: {{ image_name }}
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    command: celery -A src beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - db
+      - redis
+
+{% endif %}
+{% if environment == "development" %}
+  tailwind:
+    image: {{ image_name }}
+    volumes:
+      - .:/app
+    tty: true
+    command: ["python", "manage.py", "tailwind", "start"]
+    depends_on:
+      - web
+
+  docs:
+    image: {{ image_name }}
+    profiles: ["docs"]
+    working_dir: /app/docs
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: sh -c "mkdocs serve --dev-addr 0.0.0.0:8000"
+
+{% elif environment == "production" %}
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./static:/usr/share/nginx/html/static
+      - ./media:/usr/share/nginx/html/media
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    profiles: ["ssl"]
+    env_file:
+      - ./.env
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./static:/usr/share/nginx/html/static
+      - ./media:/usr/share/nginx/html/media
+    depends_on:
+      - nginx
+
+{% endif %}
+volumes:
+  postgres_data:
+{% if activate_booking %}
+  redis_data:
+{% endif %}

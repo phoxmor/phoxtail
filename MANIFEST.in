@@ -1,0 +1,9 @@
+include LICENSE
+include README.md
+recursive-include phoxtail/templates *
+prune phoxtail/tests
+prune phoxtail/docs
+prune docs-temp
+prune build
+exclude CLAUDE.md
+exclude uv.lock

@@ -1,0 +1,80 @@
+"""Main CLI entry point for Phoxtail."""
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+
+from phoxtail.commands import (
+    db,
+    docker,
+    env,
+    lint,
+    manage,
+    media,
+    nginx,
+    requirements,
+    ssl,
+    test,
+)
+from phoxtail.utils.config import _find_config_file
+
+app = typer.Typer(
+    name="phoxtail",
+    help="The engine behind every Phoxtail project.",
+    add_completion=True,
+    invoke_without_command=True,
+)
+console = Console()
+
+# Commands that don't require a phoxtail project.
+NO_PROJECT_COMMANDS = {"version"}
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    """The engine behind every Phoxtail project."""
+    if ctx.invoked_subcommand is None:
+        console.print(ctx.get_help())
+        raise typer.Exit()
+
+    if ctx.invoked_subcommand in NO_PROJECT_COMMANDS or ctx.resilient_parsing:
+        return
+
+    if _find_config_file() is None:
+        console.print(
+            Panel(
+                "No [bold]phoxtail.toml[/bold] found in this directory or any parent.\n"
+                "Run this command from the root of a Phoxtail project.",
+                title="[red]Not a Phoxtail project[/red]",
+                border_style="red",
+                expand=False,
+            )
+        )
+        raise typer.Exit(code=1)
+
+
+# Command groups
+app.add_typer(docker.app, name="docker", help="Docker lifecycle and configuration")
+app.add_typer(db.app, name="db", help="Database operations")
+app.add_typer(media.app, name="media", help="Media file management")
+app.add_typer(nginx.app, name="nginx", help="Nginx configuration")
+app.add_typer(env.app, name="env", help="Environment configuration")
+app.add_typer(requirements.app, name="requirements", help="Python requirements")
+app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
+
+# Top-level commands
+app.add_typer(manage.app, name="manage", help="Run Django management commands")
+app.add_typer(test.app, name="test", help="Run the test suite")
+app.add_typer(lint.app, name="lint", help="Run linting and formatting")
+
+
+@app.command()
+def version():
+    """Show the CLI version."""
+    from phoxtail import __version__
+
+    console.print(f"Phoxtail CLI v{__version__}", style="bold green")
+
+
+if __name__ == "__main__":
+    app()
