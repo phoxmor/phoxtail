@@ -63,7 +63,9 @@ app.add_typer(requirements.app, name="requirements", help="Python requirements")
 app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
 
 # Top-level commands
-app.add_typer(manage.app, name="manage", help="Run Django management commands")
+app.command(
+    context_settings={"allow_extra_args": True, "allow_interspersed_args": False}
+)(manage.manage)
 app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
 

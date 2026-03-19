@@ -56,18 +56,17 @@ class TestDockerRestart:
 
 
 class TestManage:
-    """Test manage callback directly — Typer's CliRunner doesn't support
-    allow_extra_args on callback-based sub-apps."""
+    """Test manage command by calling the function directly with proper args."""
 
-    def _make_ctx(self, args: list[str]):
+    def _make_ctx(self, extra_args: list[str] | None = None):
         ctx = MagicMock()
-        ctx.args = args
+        ctx.args = extra_args or []
         return ctx
 
     @patch("phoxtail.commands.manage.sys.exit")
     @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
     def test_passes_command_through(self, mock_call, mock_exit):
-        manage_fn(self._make_ctx(["createsuperuser"]))
+        manage_fn(self._make_ctx(), command="createsuperuser")
         cmd = mock_call.call_args[0][0]
         assert cmd == [
             "docker",
@@ -82,16 +81,91 @@ class TestManage:
 
     @patch("phoxtail.commands.manage.sys.exit")
     @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
-    def test_passes_args_through(self, mock_call, mock_exit):
-        manage_fn(self._make_ctx(["makemigrations", "app", "--dry-run"]))
+    def test_passes_extra_args_through(self, mock_call, mock_exit):
+        manage_fn(self._make_ctx(["--dry-run"]), command="makemigrations")
         cmd = mock_call.call_args[0][0]
-        assert cmd[-3:] == ["makemigrations", "app", "--dry-run"]
+        assert cmd == [
+            "docker",
+            "compose",
+            "run",
+            "--rm",
+            "web",
+            "python",
+            "manage.py",
+            "makemigrations",
+            "--dry-run",
+        ]
 
-    def test_no_args_exits_with_error(self):
+    @patch("phoxtail.commands.manage.sys.stdin")
+    def test_no_command_non_tty_exits_with_error(self, mock_stdin):
+        """Without a command and no TTY, interactive mode should fail."""
         from click.exceptions import Exit
 
+        mock_stdin.isatty.return_value = False
         with pytest.raises(Exit):
-            manage_fn(self._make_ctx([]))
+            manage_fn(self._make_ctx())
+
+    @patch("phoxtail.commands.manage.questionary")
+    @patch("phoxtail.commands.manage.sys.stdin")
+    @patch("phoxtail.commands.manage.sys.exit")
+    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.commands.manage.subprocess.run")
+    def test_interactive_mode_selects_command(
+        self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
+    ):
+        """Without a command, interactive mode fetches and presents choices."""
+        mock_stdin.isatty.return_value = True
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="[streams]\n    populate_streams\n    setup_streams_groups\n",
+        )
+        mock_questionary.autocomplete.return_value.ask.return_value = (
+            "[streams] populate_streams"
+        )
+
+        manage_fn(self._make_ctx())
+
+        cmd = mock_call.call_args[0][0]
+        assert cmd == [
+            "docker",
+            "compose",
+            "run",
+            "--rm",
+            "web",
+            "python",
+            "manage.py",
+            "populate_streams",
+        ]
+
+    @patch("phoxtail.commands.manage.questionary")
+    @patch("phoxtail.commands.manage.sys.stdin")
+    @patch("phoxtail.commands.manage.sys.exit")
+    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.commands.manage.subprocess.run")
+    def test_interactive_mode_accepts_raw_command_name(
+        self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
+    ):
+        """User types a valid command name without selecting from the list."""
+        mock_stdin.isatty.return_value = True
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="[django.core]\n    shell\n    showmigrations\n",
+        )
+        mock_questionary.autocomplete.return_value.ask.return_value = "shell"
+
+        manage_fn(self._make_ctx())
+
+        cmd = mock_call.call_args[0][0]
+        assert cmd == [
+            "docker",
+            "compose",
+            "run",
+            "--rm",
+            "web",
+            "python",
+            "manage.py",
+            "shell",
+        ]
 
 
 class TestTest:

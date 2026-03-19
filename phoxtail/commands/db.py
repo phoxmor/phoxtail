@@ -127,9 +127,7 @@ def _pull_single_cluster(
             capture_output=True,
             text=True,
         )
-        progress.update(
-            task, description=f"Downloading {cluster_name.upper()} dump..."
-        )
+        progress.update(task, description=f"Downloading {cluster_name.upper()} dump...")
         subprocess.run(
             [
                 "scp",
@@ -151,8 +149,7 @@ def _pull_single_cluster(
             progress.update(
                 task,
                 description=(
-                    f"Localizing {cluster_name.upper()} "
-                    f"hostnames to {target_domain}..."
+                    f"Localizing {cluster_name.upper()} hostnames to {target_domain}..."
                 ),
             )
             with open(local_dump_path) as f:
@@ -231,10 +228,7 @@ def pull(
                 )
 
             pulled = ", ".join(c.upper() for c in cluster_order)
-            console.print(
-                f"[green bold]✓ {pulled} data pulled"
-                " and loaded[/green bold]"
-            )
+            console.print(f"[green bold]✓ {pulled} data pulled and loaded[/green bold]")
         except subprocess.CalledProcessError as e:
             stderr = e.stderr if e.stderr else str(e)
             console.print(f"[red]Error:[/red] {stderr}")
