@@ -6,7 +6,7 @@ import sys
 import typer
 from rich.console import Console
 
-from phoxtail.utils.env import read_env_value
+from phoxtail.cli.utils.env import read_env_value
 
 app = typer.Typer()
 console = Console()

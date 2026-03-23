@@ -6,7 +6,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from phoxtail.utils.venv import check_uv_installed
+from phoxtail.cli.utils.venv import check_uv_installed
 
 app = typer.Typer()
 console = Console()

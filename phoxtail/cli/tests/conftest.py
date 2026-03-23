@@ -2,7 +2,7 @@
 
 import pytest
 
-from phoxtail.utils.config import load_config
+from phoxtail.cli.utils.config import load_config
 
 SAMPLE_TOML = """\
 [project]

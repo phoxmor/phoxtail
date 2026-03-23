@@ -9,9 +9,8 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.utils.config import get_image_prefix
-from phoxtail.utils.env import read_env_value
-from phoxtail.utils.templates import render_template
+from phoxtail.cli.utils.config import get_image_prefix
+from phoxtail.cli.utils.templates import render_template
 
 app = typer.Typer()
 create_app = typer.Typer()
@@ -19,7 +18,7 @@ app.add_typer(create_app, name="create", help="Create Docker-related files")
 console = Console()
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
 def up(
     ctx: typer.Context,
     detach: bool = typer.Option(
@@ -37,7 +36,7 @@ def up(
         phoxtail docker up
         phoxtail docker up --no-detach
         phoxtail docker up --build
-        phoxtail docker up -- --scale web=2
+        phoxtail docker up --scale web=2
     """
     cmd = ["docker", "compose", "up"]
     if detach:
@@ -48,7 +47,7 @@ def up(
     sys.exit(subprocess.call(cmd))
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
 def down(ctx: typer.Context) -> None:
     """Stop Docker services.
 
@@ -56,13 +55,13 @@ def down(ctx: typer.Context) -> None:
 
     Examples:
         phoxtail docker down
-        phoxtail docker down -- --volumes
+        phoxtail docker down --volumes
     """
     cmd = ["docker", "compose", "down", *ctx.args]
     sys.exit(subprocess.call(cmd))
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
 def restart(ctx: typer.Context) -> None:
     """Restart Docker services.
 
@@ -70,7 +69,7 @@ def restart(ctx: typer.Context) -> None:
 
     Examples:
         phoxtail docker restart
-        phoxtail docker restart -- web
+        phoxtail docker restart web
     """
     cmd = ["docker", "compose", "restart", *ctx.args]
     sys.exit(subprocess.call(cmd))
@@ -90,6 +89,17 @@ def _get_postgres_data_path(version: str) -> str:
     PostgreSQL 17 and below use /var/lib/postgresql/data.
     """
     return "/var/lib/postgresql" if int(version) >= 18 else "/var/lib/postgresql/data"
+
+
+def _get_phoxtail_source() -> str:
+    """Get the absolute path to the local phoxtail package directory.
+
+    Used to mount the local (unpublished) library apps into Docker
+    containers during development.
+    """
+    import phoxtail
+
+    return str(Path(phoxtail.__file__).resolve().parent)
 
 
 @create_app.command("dockerfile")
@@ -229,10 +239,8 @@ def compose(
     """Create a Docker Compose configuration file for development or production.
 
     Generates a docker-compose.yaml file with all required services:
-    - Development: web, db (PostgreSQL), tailwind, docs
+    - Development: web, db (PostgreSQL), docs
     - Production: web, db (PostgreSQL), nginx, certbot
-
-    When the booking system is enabled, also includes: redis, celery-worker, celery-beat
 
     Examples:
         phoxtail docker create compose
@@ -269,7 +277,7 @@ def compose(
         console.print("\n[bold]Docker Configuration:[/bold]")
         project_name = Prompt.ask(
             "Project name for Docker image",
-            default="phoxtail",
+            default=get_image_prefix(),
         )
 
     project_name = project_name.lower().strip().replace(" ", "-")
@@ -278,7 +286,7 @@ def compose(
         postgres_version = questionary.select(
             "Select PostgreSQL version:",
             choices=POSTGRES_VERSIONS,
-            default="17",
+            default="18",
         ).ask()
 
         if postgres_version is None:
@@ -291,27 +299,17 @@ def compose(
         )
         raise typer.Exit(1)
 
-    booking_env = read_env_value("FEATURE_ACTIVATE_BOOKING")
-    booking_default = booking_env is not None and booking_env.lower() == "true"
-    booking_hint = " [dim](detected from .env)[/dim]" if booking_default else ""
-    console.print(f"\n[bold]Booking System:{booking_hint}[/bold]")
-    activate_booking = Confirm.ask(
-        "Include Redis, Celery worker, and Celery beat"
-        " services for the booking system?",
-        default=booking_default,
-    )
-
     try:
-        content = render_template(
-            "docker/docker-compose.yaml",
-            {
-                "environment": env_lower,
-                "image_name": f"{IMAGE_PREFIX}/{project_name}:latest",
-                "postgres_version": postgres_version,
-                "pg_data_path": _get_postgres_data_path(postgres_version),
-                "activate_booking": activate_booking,
-            },
-        )
+        context = {
+            "environment": env_lower,
+            "image_name": f"{IMAGE_PREFIX}/{project_name}:latest",
+            "postgres_version": postgres_version,
+            "pg_data_path": _get_postgres_data_path(postgres_version),
+        }
+        if env_lower == "development":
+            context["phoxtail_source"] = _get_phoxtail_source()
+
+        content = render_template("docker/docker-compose.yaml", context)
         output.write_text(content)
         console.print(
             f"\n[green]✓[/green] Docker Compose file created: [bold]{output}[/bold]"
@@ -320,11 +318,6 @@ def compose(
         console.print(f"[dim]PostgreSQL version:[/dim] {postgres_version}")
         console.print(f"[dim]Environment:[/dim] {env_lower}")
 
-        if env_lower == "production":
-            console.print("\n[yellow]⚠[/yellow]  [bold]Production Setup Notes:[/bold]")
-            console.print("   • Ensure nginx.conf file is configured for your domain")
-            console.print("   • Create db-backups directory for database backups")
-            console.print("   • Run with --profile ssl to include certbot service")
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")
         raise typer.Exit(0)

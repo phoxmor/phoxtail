@@ -10,9 +10,13 @@ import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from phoxtail.utils.config import get_cluster_names, get_clusters, resolve_cluster_order
-from phoxtail.utils.docker import docker_db, docker_manage
-from phoxtail.utils.env import read_env_value
+from phoxtail.cli.utils.config import (
+    get_cluster_names,
+    get_clusters,
+    resolve_cluster_order,
+)
+from phoxtail.cli.utils.docker import docker_db, docker_manage
+from phoxtail.cli.utils.env import read_env_value
 
 app = typer.Typer()
 console = Console()

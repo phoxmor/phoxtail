@@ -1,8 +1,10 @@
 """Load project configuration from phoxtail.toml."""
 
 import copy
+import keyword
 import tomllib
 from functools import lru_cache
+from importlib.util import find_spec
 from pathlib import Path
 
 CONFIG_FILENAME = "phoxtail.toml"
@@ -59,6 +61,38 @@ def get_project_name() -> str:
 
 def get_image_prefix() -> str:
     return load_config()["project"]["image_prefix"]
+
+
+def validate_project_name(name: str) -> str | None:
+    """Validate a project name for use across Django, Celery, and Docker.
+
+    Mirrors Django's own startproject validation (isidentifier + module
+    conflict check) and adds a keyword check.  Returns None when the name
+    is valid, or an error message string explaining why it is not.
+    """
+    if not name:
+        return "Project name cannot be empty."
+
+    if not name.isidentifier():
+        return (
+            f"'{name}' is not a valid project name. It must start with a "
+            "letter or underscore and contain only letters, digits, and "
+            "underscores."
+        )
+
+    if keyword.iskeyword(name):
+        return f"'{name}' conflicts with a Python keyword."
+
+    try:
+        if find_spec(name) is not None:
+            return (
+                f"'{name}' conflicts with an existing Python module or "
+                "package and cannot be used as a project name."
+            )
+    except (ModuleNotFoundError, ValueError):
+        pass
+
+    return None
 
 
 def get_clusters() -> dict[str, dict]:

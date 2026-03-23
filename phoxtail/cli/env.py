@@ -8,7 +8,8 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.utils.templates import render_template
+from phoxtail.cli.utils.config import get_project_name
+from phoxtail.cli.utils.templates import render_template
 
 app = typer.Typer()
 console = Console()
@@ -41,7 +42,8 @@ def _prompt_common_config() -> dict:
     console.print("[green]✓[/green] Secure values generated\n")
 
     console.print("[bold]Project Configuration:[/bold]")
-    site_name = Prompt.ask("Site name", default="Phoxtail")
+    default_name = get_project_name().replace("_", " ").title()
+    site_name = Prompt.ask("Site name", default=default_name)
 
     console.print("\n[bold]Database Configuration:[/bold]")
     postgres_db = Prompt.ask("PostgreSQL database name", default="postgres")
@@ -70,13 +72,7 @@ def _prompt_development_env(output_file: Path) -> None:
     console.print("\n[bold cyan]Creating Development Environment File[/bold cyan]\n")
 
     context = _prompt_common_config()
-    context.update(
-        {
-            "allow_signup": Confirm.ask("Allow user signup?", default=True),
-            "activate_dashboard": Confirm.ask("Activate dashboard?", default=True),
-            "activate_booking": Confirm.ask("Activate booking?", default=True),
-        }
-    )
+    context["allow_signup"] = Confirm.ask("Allow user signup?", default=True)
 
     content = render_template("env/development.env", context)
     output_file.write_text(content)
@@ -146,13 +142,7 @@ def _prompt_production_env(output_file: Path) -> None:
             "Default from email", default=domain_email
         )
 
-    context.update(
-        {
-            "allow_signup": Confirm.ask("Allow user signup?", default=False),
-            "activate_dashboard": Confirm.ask("Activate dashboard?", default=False),
-            "activate_booking": Confirm.ask("Activate booking?", default=False),
-        }
-    )
+    context["allow_signup"] = Confirm.ask("Allow user signup?", default=False)
 
     content = render_template("env/production.env", context)
     output_file.write_text(content)

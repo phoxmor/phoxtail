@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from phoxtail.utils.docker import docker_db, docker_manage
+from phoxtail.cli.utils.docker import docker_db, docker_manage
 
 
 class TestDockerManage:
-    @patch("phoxtail.utils.docker.subprocess.run")
+    @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_builds_correct_command(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
@@ -28,7 +28,7 @@ class TestDockerManage:
             "--no-input",
         ]
 
-    @patch("phoxtail.utils.docker.subprocess.run")
+    @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_raises_on_failure_with_stderr(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=1, stdout="", stderr="relation does not exist"
@@ -37,7 +37,7 @@ class TestDockerManage:
             docker_manage("loaddata", "fixture.json")
         assert "relation does not exist" in exc_info.value.stderr
 
-    @patch("phoxtail.utils.docker.subprocess.run")
+    @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_capture_false_does_not_raise(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=1, stdout="", stderr=""
@@ -48,7 +48,7 @@ class TestDockerManage:
 
 
 class TestDockerDb:
-    @patch("phoxtail.utils.docker.subprocess.run")
+    @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_builds_correct_command(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=0, stdout="", stderr=""
@@ -65,7 +65,7 @@ class TestDockerDb:
             "pg_dump -h localhost",
         ]
 
-    @patch("phoxtail.utils.docker.subprocess.run")
+    @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_raises_on_failure_with_stderr(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(
             args=[], returncode=1, stdout="", stderr="connection refused"

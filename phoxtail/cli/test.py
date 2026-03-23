@@ -39,7 +39,7 @@ def test(
         phoxtail test -- booking/subscriptions/tests
     """
     if cli:
-        cmd = [sys.executable, "-m", "pytest", "phoxtail/tests/"]
+        cmd = [sys.executable, "-m", "pytest", "phoxtail/cli/tests/"]
         if coverage:
             cmd.extend(["--cov=phoxtail", "--cov-report=term-missing"])
         cmd.extend(ctx.args)

@@ -13,8 +13,6 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
     libjpeg62-turbo-dev \
     zlib1g-dev \
     libwebp-dev \
-    nodejs \
-    npm \
     gettext \
     graphviz \
     libgraphviz-dev \
@@ -30,8 +28,6 @@ WORKDIR /app
 FROM base AS development
 COPY . .
 CMD set -xe; \
-    python manage.py tailwind install && \
-    python manage.py makemigrations && \
     python manage.py migrate --noinput && \
     python manage.py runserver 0.0.0.0:{{ port }};
 
@@ -39,9 +35,6 @@ CMD set -xe; \
 FROM base AS production
 COPY . .
 CMD set -xe; \
-    python manage.py tailwind install && \
-    python manage.py tailwind build && \
     python manage.py collectstatic --no-input && \
-    python manage.py makemigrations && \
     python manage.py migrate --noinput && \
     gunicorn src.wsgi:application -w {{ gunicorn_workers }} -b :{{ port }};

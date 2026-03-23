@@ -1,8 +1,8 @@
-"""Tests for cli.commands.db hostname localization."""
+"""Tests for cli.db hostname localization."""
 
 import json
 
-from phoxtail.commands.db import _deep_localize, _localize_hostnames
+from phoxtail.cli.db import _deep_localize, _localize_hostnames
 
 
 class TestDeepLocalize:

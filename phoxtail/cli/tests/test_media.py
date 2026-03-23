@@ -1,6 +1,6 @@
-"""Tests for cli.commands.media."""
+"""Tests for cli.media."""
 
-from phoxtail.commands.media import _parse_rsync_stats
+from phoxtail.cli.media import _parse_rsync_stats
 
 
 class TestParseRsyncStats:

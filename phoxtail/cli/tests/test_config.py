@@ -2,7 +2,7 @@
 
 import pytest
 
-from phoxtail.utils.config import (
+from phoxtail.cli.utils.config import (
     _deep_merge,
     _topological_sort,
     get_cluster_names,
@@ -11,6 +11,7 @@ from phoxtail.utils.config import (
     get_project_name,
     load_config,
     resolve_cluster_order,
+    validate_project_name,
 )
 
 
@@ -94,6 +95,62 @@ class TestResolveClusterOrder:
     def test_unknown_cluster_raises(self):
         with pytest.raises(ValueError, match="Unknown cluster"):
             resolve_cluster_order("nonexistent")
+
+
+class TestValidateProjectName:
+    def test_valid_name(self):
+        assert validate_project_name("myproject") is None
+
+    def test_valid_name_with_underscores(self):
+        assert validate_project_name("my_project") is None
+
+    def test_valid_name_with_digits(self):
+        assert validate_project_name("project2") is None
+
+    def test_valid_name_leading_underscore(self):
+        assert validate_project_name("_private") is None
+
+    def test_empty_string(self):
+        assert validate_project_name("") is not None
+
+    def test_starts_with_digit(self):
+        assert "not a valid project name" in validate_project_name("2project")
+
+    def test_contains_hyphen(self):
+        assert "not a valid project name" in validate_project_name("my-project")
+
+    def test_contains_space(self):
+        assert "not a valid project name" in validate_project_name("my project")
+
+    def test_contains_dot(self):
+        assert "not a valid project name" in validate_project_name("my.project")
+
+    def test_python_keyword_class(self):
+        assert "Python keyword" in validate_project_name("class")
+
+    def test_python_keyword_import(self):
+        assert "Python keyword" in validate_project_name("import")
+
+    def test_python_keyword_for(self):
+        assert "Python keyword" in validate_project_name("for")
+
+    def test_conflicts_with_stdlib_os(self):
+        result = validate_project_name("os")
+        assert result is not None
+        assert "conflicts" in result
+
+    def test_conflicts_with_stdlib_json(self):
+        result = validate_project_name("json")
+        assert result is not None
+        assert "conflicts" in result
+
+    def test_conflicts_with_stdlib_sys(self):
+        result = validate_project_name("sys")
+        assert result is not None
+        assert "conflicts" in result
+
+    def test_does_not_conflict_with_novel_name(self):
+        assert validate_project_name("xyzzy_unique_name") is None
 
 
 class TestTopologicalSort:

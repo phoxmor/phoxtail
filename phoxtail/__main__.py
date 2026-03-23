@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from phoxtail.commands import (
+from phoxtail.cli import (
     db,
     docker,
     env,
@@ -16,7 +16,7 @@ from phoxtail.commands import (
     ssl,
     test,
 )
-from phoxtail.utils.config import _find_config_file
+from phoxtail.cli.utils.config import _find_config_file
 
 app = typer.Typer(
     name="phoxtail",

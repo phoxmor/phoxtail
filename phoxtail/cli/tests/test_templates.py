@@ -1,6 +1,6 @@
 """Tests for CLI template rendering."""
 
-from phoxtail.utils.templates import render_template
+from phoxtail.cli.utils.templates import render_template
 
 
 class TestDockerfileTemplate:
@@ -52,21 +52,16 @@ class TestDockerfileTemplate:
 
 
 class TestComposeTemplate:
-    def _render(self, environment="development", activate_booking=False):
-        return render_template(
-            "docker/docker-compose.yaml",
-            {
-                "environment": environment,
-                "image_name": "phoxmor/test:latest",
-                "postgres_version": "17",
-                "pg_data_path": "/var/lib/postgresql/data",
-                "activate_booking": activate_booking,
-            },
-        )
-
-    def test_dev_has_tailwind_service(self):
-        result = self._render("development")
-        assert "tailwind" in result
+    def _render(self, environment="development"):
+        context = {
+            "environment": environment,
+            "image_name": "phoxmor/test:latest",
+            "postgres_version": "17",
+            "pg_data_path": "/var/lib/postgresql/data",
+        }
+        if environment == "development":
+            context["phoxtail_source"] = "/opt/src/phoxtail"
+        return render_template("docker/docker-compose.yaml", context)
 
     def test_dev_has_docs_service(self):
         result = self._render("development")
@@ -82,51 +77,25 @@ class TestComposeTemplate:
         result = self._render("development")
         assert '"80:80"' in result
 
+    def test_dev_mounts_phoxtail_source(self):
+        result = self._render("development")
+        assert "/opt/src/phoxtail:/opt/phoxtail/phoxtail:ro" in result
+        assert "PYTHONPATH=/opt/phoxtail" in result
+
     def test_prod_has_nginx_and_certbot(self):
         result = self._render("production")
         assert "nginx:" in result
         assert "certbot" in result
 
-    def test_prod_does_not_have_tailwind(self):
+    def test_prod_does_not_have_docs(self):
         result = self._render("production")
-        assert "tailwind:" not in result
+        assert "docs:" not in result
+        assert "mkdocs" not in result
 
-    def test_booking_off_no_redis(self):
-        result = self._render("development", activate_booking=False)
-        assert "redis" not in result
-        assert "celery" not in result
-
-    def test_booking_on_has_redis_and_celery(self):
-        result = self._render("development", activate_booking=True)
-        assert "redis:" in result
-        assert "celery-worker:" in result
-        assert "celery-beat:" in result
-        assert "redis_data:" in result
-
-    def test_booking_on_web_depends_on_redis(self):
-        result = self._render("development", activate_booking=True)
-        # Find the web service section and check redis dependency
-        lines = result.split("\n")
-        in_web = False
-        in_depends = False
-        has_redis_dep = False
-        for line in lines:
-            if line.strip().startswith("web:"):
-                in_web = True
-            elif in_web and line.strip().startswith("depends_on:"):
-                in_depends = True
-            elif in_web and in_depends and "redis" in line:
-                has_redis_dep = True
-                break
-            elif (
-                in_web
-                and not line.startswith(" ")
-                and not line.startswith("\t")
-                and line.strip()
-            ):
-                if line.strip() != "web:" and ":" in line:
-                    break
-        assert has_redis_dep
+    def test_prod_does_not_mount_phoxtail(self):
+        result = self._render("production")
+        assert "/opt/phoxtail" not in result
+        assert "PYTHONPATH" not in result
 
     def test_image_name_rendered(self):
         result = self._render("development")
@@ -203,8 +172,6 @@ class TestEnvDevelopmentTemplate:
                 "postgres_user": "myuser",
                 "postgres_password": "mypass",
                 "allow_signup": True,
-                "activate_dashboard": False,
-                "activate_booking": True,
             },
         )
         assert "DJANGO_ENV=development" in result
@@ -212,8 +179,8 @@ class TestEnvDevelopmentTemplate:
         assert "SITE_NAME=My Site" in result
         assert "POSTGRES_DB=mydb" in result
         assert "FEATURE_ALLOW_SIGNUP=true" in result
-        assert "FEATURE_ACTIVATE_DASHBOARD=false" in result
-        assert "FEATURE_ACTIVATE_BOOKING=true" in result
+        assert "FEATURE_ACTIVATE_DASHBOARD" not in result
+        assert "FEATURE_ACTIVATE_BOOKING" not in result
 
 
 class TestEnvProductionTemplate:
@@ -230,8 +197,6 @@ class TestEnvProductionTemplate:
             "csrf_origins": "https://example.com",
             "use_smtp": use_smtp,
             "allow_signup": False,
-            "activate_dashboard": False,
-            "activate_booking": False,
         }
         if use_smtp:
             context.update(

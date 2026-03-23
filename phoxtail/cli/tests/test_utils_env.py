@@ -1,6 +1,6 @@
 """Tests for cli.utils.env."""
 
-from phoxtail.utils.env import read_env_value
+from phoxtail.cli.utils.env import read_env_value
 
 
 class TestReadEnvValue:

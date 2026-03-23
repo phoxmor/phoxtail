@@ -6,8 +6,8 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.utils.env import read_env_value
-from phoxtail.utils.templates import render_template
+from phoxtail.cli.utils.env import read_env_value
+from phoxtail.cli.utils.templates import render_template
 
 app = typer.Typer()
 create_app = typer.Typer()
@@ -33,26 +33,6 @@ def initial(
     console.print(f"[green]✓[/green] Initial nginx.conf created: [bold]{output}[/bold]")
     console.print("[dim]Purpose:[/dim] Let's Encrypt certificate retrieval")
 
-    console.print("\n[yellow]⚠[/yellow]  [bold]Next Steps:[/bold]")
-    console.print("   1. Start your Docker services with this nginx.conf")
-    console.print("   2. Run certbot to obtain SSL certificates:")
-    console.print(
-        "      [cyan]docker compose --profile ssl run"
-        " certbot certonly --webroot \\[/cyan]"
-    )
-    console.print(
-        "        [cyan]-w /var/www/certbot -d yourdomain.com"
-        " -d www.yourdomain.com \\[/cyan]"
-    )
-    console.print(
-        "        [cyan]--email your@email.com --agree-tos --no-eff-email[/cyan]"
-    )
-    console.print(
-        "   3. After certificates are obtained, generate production nginx.conf:"
-    )
-    console.print("      [cyan]phoxtail nginx create production[/cyan]")
-    console.print("   4. Reload nginx to use the new configuration:")
-    console.print("      [cyan]docker compose exec nginx nginx -s reload[/cyan]")
 
 
 @create_app.command("production")
@@ -117,8 +97,3 @@ def production(
     else:
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS, www → non-www")
 
-    console.print("\n[yellow]⚠[/yellow]  [bold]Next Steps:[/bold]")
-    console.print("   1. Test configuration:")
-    console.print("      [cyan]docker compose exec nginx nginx -t[/cyan]")
-    console.print("   2. Reload nginx to apply changes:")
-    console.print("      [cyan]docker compose exec nginx nginx -s reload[/cyan]")

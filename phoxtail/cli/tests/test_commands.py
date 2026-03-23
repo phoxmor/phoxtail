@@ -9,30 +9,30 @@ from unittest.mock import MagicMock, patch
 import pytest
 from typer.testing import CliRunner
 
-from phoxtail.commands.docker import app as docker_app
-from phoxtail.commands.lint import app as lint_app
-from phoxtail.commands.manage import manage as manage_fn
-from phoxtail.commands.ssl import app as ssl_app
-from phoxtail.commands.test import app as test_app
+from phoxtail.cli.docker import app as docker_app
+from phoxtail.cli.lint import app as lint_app
+from phoxtail.cli.manage import manage as manage_fn
+from phoxtail.cli.ssl import app as ssl_app
+from phoxtail.cli.test import app as test_app
 
 runner = CliRunner()
 
 
 class TestDockerUp:
-    @patch("phoxtail.commands.docker.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_default_runs_detached(self, mock_call):
         runner.invoke(docker_app, ["up"])
         cmd = mock_call.call_args[0][0]
         assert cmd == ["docker", "compose", "up", "-d"]
 
-    @patch("phoxtail.commands.docker.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_no_detach(self, mock_call):
         runner.invoke(docker_app, ["up", "--no-detach"])
         cmd = mock_call.call_args[0][0]
         assert "docker" in cmd
         assert "-d" not in cmd
 
-    @patch("phoxtail.commands.docker.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_build_flag(self, mock_call):
         runner.invoke(docker_app, ["up", "--build"])
         cmd = mock_call.call_args[0][0]
@@ -40,7 +40,7 @@ class TestDockerUp:
 
 
 class TestDockerDown:
-    @patch("phoxtail.commands.docker.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_basic(self, mock_call):
         runner.invoke(docker_app, ["down"])
         cmd = mock_call.call_args[0][0]
@@ -48,7 +48,7 @@ class TestDockerDown:
 
 
 class TestDockerRestart:
-    @patch("phoxtail.commands.docker.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_basic(self, mock_call):
         runner.invoke(docker_app, ["restart"])
         cmd = mock_call.call_args[0][0]
@@ -63,8 +63,8 @@ class TestManage:
         ctx.args = extra_args or []
         return ctx
 
-    @patch("phoxtail.commands.manage.sys.exit")
-    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.manage.sys.exit")
+    @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
     def test_passes_command_through(self, mock_call, mock_exit):
         manage_fn(self._make_ctx(), command="createsuperuser")
         cmd = mock_call.call_args[0][0]
@@ -79,8 +79,8 @@ class TestManage:
             "createsuperuser",
         ]
 
-    @patch("phoxtail.commands.manage.sys.exit")
-    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.manage.sys.exit")
+    @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
     def test_passes_extra_args_through(self, mock_call, mock_exit):
         manage_fn(self._make_ctx(["--dry-run"]), command="makemigrations")
         cmd = mock_call.call_args[0][0]
@@ -96,7 +96,7 @@ class TestManage:
             "--dry-run",
         ]
 
-    @patch("phoxtail.commands.manage.sys.stdin")
+    @patch("phoxtail.cli.manage.sys.stdin")
     def test_no_command_non_tty_exits_with_error(self, mock_stdin):
         """Without a command and no TTY, interactive mode should fail."""
         from click.exceptions import Exit
@@ -105,11 +105,11 @@ class TestManage:
         with pytest.raises(Exit):
             manage_fn(self._make_ctx())
 
-    @patch("phoxtail.commands.manage.questionary")
-    @patch("phoxtail.commands.manage.sys.stdin")
-    @patch("phoxtail.commands.manage.sys.exit")
-    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
-    @patch("phoxtail.commands.manage.subprocess.run")
+    @patch("phoxtail.cli.manage.questionary")
+    @patch("phoxtail.cli.manage.sys.stdin")
+    @patch("phoxtail.cli.manage.sys.exit")
+    @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.manage.subprocess.run")
     def test_interactive_mode_selects_command(
         self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
     ):
@@ -137,11 +137,11 @@ class TestManage:
             "populate_streams",
         ]
 
-    @patch("phoxtail.commands.manage.questionary")
-    @patch("phoxtail.commands.manage.sys.stdin")
-    @patch("phoxtail.commands.manage.sys.exit")
-    @patch("phoxtail.commands.manage.subprocess.call", return_value=0)
-    @patch("phoxtail.commands.manage.subprocess.run")
+    @patch("phoxtail.cli.manage.questionary")
+    @patch("phoxtail.cli.manage.sys.stdin")
+    @patch("phoxtail.cli.manage.sys.exit")
+    @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.manage.subprocess.run")
     def test_interactive_mode_accepts_raw_command_name(
         self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
     ):
@@ -169,27 +169,27 @@ class TestManage:
 
 
 class TestTest:
-    @patch("phoxtail.commands.test.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.test.subprocess.call", return_value=0)
     def test_default_runs_in_docker(self, mock_call):
         runner.invoke(test_app, [])
         cmd = mock_call.call_args[0][0]
         assert cmd == ["docker", "compose", "run", "--rm", "web", "pytest"]
 
-    @patch("phoxtail.commands.test.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.test.subprocess.call", return_value=0)
     def test_coverage_flag(self, mock_call):
         runner.invoke(test_app, ["--coverage"])
         cmd = mock_call.call_args[0][0]
         assert "--cov" in cmd
         assert "--cov-report=term-missing" in cmd
 
-    @patch("phoxtail.commands.test.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.test.subprocess.call", return_value=0)
     def test_cli_flag_runs_without_docker(self, mock_call):
         runner.invoke(test_app, ["--cli"])
         cmd = mock_call.call_args[0][0]
         assert "docker" not in cmd
-        assert "phoxtail/tests/" in cmd
+        assert "phoxtail/cli/tests/" in cmd
 
-    @patch("phoxtail.commands.test.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.test.subprocess.call", return_value=0)
     def test_cli_with_coverage(self, mock_call):
         runner.invoke(test_app, ["--cli", "--coverage"])
         cmd = mock_call.call_args[0][0]
@@ -198,7 +198,7 @@ class TestTest:
 
 
 class TestLint:
-    @patch("phoxtail.commands.lint.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.lint.subprocess.call", return_value=0)
     def test_default_runs_full_lint(self, mock_call):
         runner.invoke(lint_app, [])
         cmd = mock_call.call_args[0][0]
@@ -208,14 +208,14 @@ class TestLint:
         assert "ruff format" in shell_cmd
         assert "djlint" in shell_cmd
 
-    @patch("phoxtail.commands.lint.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.lint.subprocess.call", return_value=0)
     def test_no_fix(self, mock_call):
         runner.invoke(lint_app, ["--no-fix"])
         cmd = mock_call.call_args[0][0]
         shell_cmd = cmd[-1]
         assert "--fix" not in shell_cmd
 
-    @patch("phoxtail.commands.lint.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.lint.subprocess.call", return_value=0)
     def test_no_templates(self, mock_call):
         runner.invoke(lint_app, ["--no-templates"])
         cmd = mock_call.call_args[0][0]
@@ -224,8 +224,8 @@ class TestLint:
 
 
 class TestSslObtain:
-    @patch("phoxtail.commands.ssl.read_env_value")
-    @patch("phoxtail.commands.ssl.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.ssl.read_env_value")
+    @patch("phoxtail.cli.ssl.subprocess.call", return_value=0)
     def test_standard_cert(self, mock_call, mock_env):
         mock_env.side_effect = lambda k: {
             "DOMAIN": "example.com",
@@ -238,8 +238,8 @@ class TestSslObtain:
         assert "-d example.com" in shell_cmd
         assert "-d www.example.com" in shell_cmd
 
-    @patch("phoxtail.commands.ssl.read_env_value")
-    @patch("phoxtail.commands.ssl.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.ssl.read_env_value")
+    @patch("phoxtail.cli.ssl.subprocess.call", return_value=0)
     def test_wildcard_cert(self, mock_call, mock_env):
         mock_env.side_effect = lambda k: {
             "DOMAIN": "example.com",
@@ -251,14 +251,14 @@ class TestSslObtain:
         assert "--manual" in shell_cmd
         assert "-d *.example.com" in shell_cmd
 
-    @patch("phoxtail.commands.ssl.read_env_value", return_value=None)
+    @patch("phoxtail.cli.ssl.read_env_value", return_value=None)
     def test_missing_env_vars_errors(self, mock_env):
         result = runner.invoke(ssl_app, ["obtain"])
         assert result.exit_code != 0
 
 
 class TestSslRenew:
-    @patch("phoxtail.commands.ssl.subprocess.call", return_value=0)
+    @patch("phoxtail.cli.ssl.subprocess.call", return_value=0)
     def test_renews_and_reloads(self, mock_call):
         runner.invoke(ssl_app, ["renew"])
         assert mock_call.call_count == 2
