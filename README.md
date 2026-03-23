@@ -78,10 +78,11 @@ phoxtail/
   phoxtail/
     __init__.py         # Package version
     __main__.py         # CLI entry point (Typer app)
-    commands/           # Command modules
-    utils/              # Shared utilities (config, docker, env, templates)
-    templates/          # Jinja2 templates (Dockerfile, compose, nginx, env)
-    tests/              # Test suite
+    cli/                # CLI subsystem (commands, utilities, templates, tests)
+    core/               # Library app: shared infrastructure
+    design/             # Library app: design tokens
+    streams/            # Library app: schema-driven block system
+    project_template/   # Scaffold templates for `phoxtail hatch`
   pyproject.toml
   LICENSE
   README.md

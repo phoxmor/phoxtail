@@ -30,10 +30,24 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+engine = [
+    "django>=4.2",
+    "wagtail>=6.0",
+    "django-allauth>=0.60",
+    "django-htmx>=1.17.0",
+    "celery>=5.3",
+    "wagtail-color-panel>=0.4.0",
+    "pyyaml>=6.0",
+    "wagtailmedia>=0.15",
+    "modelcluster>=6.0",
+    "sorl-thumbnail>=12.10",
+]
 dev = [
     "pip-tools>=7.0.0",
     "pytest>=8.0.0",
+    "pytest-django>=4.8.0",
     "ruff>=0.4.0",
+    "phoxtail[engine]",
 ]
 
 [project.urls]
@@ -45,21 +59,29 @@ phoxtail = "phoxtail.__main__:app"
 
 [tool.setuptools.packages.find]
 include = ["phoxtail*"]
-exclude = ["phoxtail.tests*"]
+exclude = [
+    "phoxtail.cli.tests*",
+]
 
 [tool.setuptools.package-data]
-phoxtail = ["templates/**/*"]
+"phoxtail" = ["project_template/**/*"]
+"phoxtail.cli" = ["templates/**/*"]
+"phoxtail.core" = ["templates/**/*", "static/**/*"]
+"phoxtail.design" = ["management/data/**/*"]
+"phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-testpaths = ["phoxtail/tests"]
+testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/design/tests", "phoxtail/streams/tests"]
+DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+extend-exclude = ["*/migrations/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
