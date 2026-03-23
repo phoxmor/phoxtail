@@ -1,0 +1,64 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<div id="image-gallery-{{ block.id }}" class="ig-wrapper">
+    <div class="ig-grid">
+        {% for image in value.images %}
+            {% image image width-600 as thumb %}
+            {% image image width-1600 as full %}
+            <div class="ig-item"
+                 data-index="{{ forloop.counter0 }}"
+                 data-full-src="{{ full.url }}"
+                 data-alt="{{ image.title }}">
+                <img src="{{ thumb.url }}"
+                     alt="{{ image.title }}"
+                     class="ig-thumb"
+                     {% if forloop.counter > 6 %}loading="lazy"{% else %}loading="eager"{% endif %}>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="ig-modal"
+         aria-hidden="true"
+         role="dialog"
+         aria-label="Image viewer">
+        <div class="ig-modal-backdrop"></div>
+        <button class="ig-nav ig-nav--prev" type="button" aria-label="Previous image">
+            <svg width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </button>
+        <div class="ig-modal-stage">
+            <img class="ig-modal-image" src="" alt="" draggable="false">
+        </div>
+        <button class="ig-nav ig-nav--next" type="button" aria-label="Next image">
+            <svg width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+            </svg>
+        </button>
+        <button class="ig-close" type="button" aria-label="Close viewer">
+            <svg width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+        </button>
+        <div class="ig-counter" aria-live="polite"></div>
+    </div>
+</div>

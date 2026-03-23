@@ -1,0 +1,93 @@
+{% load static wagtailcore_tags wagtailuserbar wagtailimages_tags wagtailsettings_tags django_htmx %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        {% if settings.app.SiteConfig.favicon %}
+            {% image settings.app.SiteConfig.favicon max-32x32 as favicon_img %}
+            <link rel="icon"
+                  type="image/png"
+                  href="{{ favicon_img.url }}"
+                  media="(prefers-color-scheme: light)" />
+        {% endif %}
+        {% if settings.app.SiteConfig.favicon_dark %}
+            {% image settings.app.SiteConfig.favicon_dark max-32x32 as favicon_dark_img %}
+            <link rel="icon"
+                  type="image/png"
+                  href="{{ favicon_dark_img.url }}"
+                  media="(prefers-color-scheme: dark)" />
+        {% endif %}
+        {% if settings.app.SiteConfig.og_image %}
+            {% image settings.app.SiteConfig.og_image width-1200 as og_img %}
+            <meta property="og:image"
+                  content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}"
+                  media="(prefers-color-scheme: light)" />
+            <meta property="og:image:width" content="1200" />
+            <meta property="og:image:height" content="{{ og_img.height }}" />
+        {% endif %}
+        {% if settings.app.SiteConfig.og_image_dark %}
+            {% image settings.app.SiteConfig.og_image_dark width-1200 as og_dark_img %}
+            <meta property="og:image"
+                  content="{{ request.scheme }}://{{ request.get_host }}{{ og_dark_img.url }}"
+                  media="(prefers-color-scheme: dark)" />
+            <meta property="og:image:width" content="1200" />
+            <meta property="og:image:height" content="{{ og_dark_img.height }}" />
+        {% endif %}
+        <title>
+            {% block title %}
+                {% if page.seo_title %}
+                    {{ page.seo_title }}
+                {% else %}
+                    {{ page.title }}
+                {% endif %}
+            {% endblock %}
+            {% block title_suffix %}
+                {% wagtail_site as current_site %}
+                {% if current_site and current_site.site_name %}- {{ current_site.site_name }}{% endif %}
+            {% endblock %}
+        </title>
+        {% if page.search_description %}<meta name="description" content="{{ page.search_description }}" />{% endif %}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!-- Global App Stylesheets -->
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
+        <link rel="stylesheet" href="{% static 'app/css/main.css' %}" />
+        <!-- HTMX -->
+        <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+        {% django_htmx_script %}
+        <!-- Modal Media -->
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+        <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+        <!-- Core Widgets CSS -->
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+        <!-- Force All Links to Open in New Tab in Wagtail Preview Panel -->
+        {% if request.in_preview_panel %}<base target="_blank">{% endif %}
+        <!-- Swiper CSS -->
+        <link rel="stylesheet"
+              href="{% static 'phoxtail_core/swiper/swiper-bundle.min.css' %}" />
+        {% get_settings %}
+        <style>
+            :root {
+                {{ settings.app.SiteConfig.css_variables|safe }}
+            }
+            {{ settings.app.SiteConfig.font_face_declarations|safe }}
+        </style>
+        {% block extra_css %}{% endblock %}
+    </head>
+    <!-- Swiper JS -->
+    <script src="{% static 'phoxtail_core/swiper/swiper-bundle.min.js' %}"></script>
+    <body class="fw-body">
+        {% include "account/messages_static.html" %}
+        {% include "account/messages.html" %}
+        <main>
+            <!-- Modal Placeholder -->
+            <div id="core-modal-placeholder-wrapper"></div>
+            <!-- Content -->
+            {% block content %}{% endblock %}
+        </main>
+        <div>
+            <!-- Wagtail User Bar -->
+            {% wagtailuserbar 'bottom-left' %}
+        </div>
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>

@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if button_type == "link" %}
+    <a href="{{ url }}" class="auth-btn" {{ extra_attrs|safe }}>
+    {% else %}
+        <button type="{{ button_type|default:'submit' }}"
+                {% if form_id %}form="{{ form_id }}"{% endif %}
+                {% if button_id %}id="{{ button_id }}"{% endif %}
+                class="auth-btn"
+                {{ extra_attrs|safe }}>
+        {% endif %}
+        <div class="auth-btn-glow"></div>
+        <div class="auth-btn-inner">
+            {% if text_key %}
+                {% trans text_key %}
+            {% elif text %}
+                {{ text }}
+            {% endif %}
+        </div>
+        {% if button_type == "link" %}
+        </a>
+    {% else %}
+    </button>
+{% endif %}

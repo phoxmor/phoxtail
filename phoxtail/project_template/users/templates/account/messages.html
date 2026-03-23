@@ -1,0 +1,43 @@
+{% load phoxtail_design_tags %}
+{# account/messages.html — Message content only. #}
+{# Rendered inside #messages-container-wrapper. Safe to replace via OOB swaps. #}
+{# Requires account/messages_static.html to be included once on the page. #}
+{% if messages %}
+    <div id="messages-container" class="auth-toast-container">
+        <div class="auth-toast-list">
+            {% for message in messages %}
+                <div id="message-{{ forloop.counter }}"
+                     class="auth-toast auth-toast--hidden {% if 'error' in message.tags %}auth-toast--error{% elif 'success' in message.tags %}auth-toast--success{% elif 'warning' in message.tags %}auth-toast--warning{% else %}auth-toast--info{% endif %}">
+                    <div class="auth-toast-icon">
+                        {% if 'error' in message.tags %}
+                            {% icon "danger" %}
+                        {% elif 'success' in message.tags %}
+                            {% icon "check" %}
+                        {% elif 'warning' in message.tags %}
+                            {% icon "danger" %}
+                        {% else %}
+                            {% icon "info_cicle" %}
+                        {% endif %}
+                    </div>
+                    <div class="auth-toast-body">
+                        <span class="auth-toast-label">
+                            {% if 'error' in message.tags %}
+                                ERROR
+                            {% elif 'success' in message.tags %}
+                                SUCCESS
+                            {% elif 'warning' in message.tags %}
+                                WARNING
+                            {% else %}
+                                INFO
+                            {% endif %}
+                        </span>
+                        <p class="auth-toast-text">{{ message }}</p>
+                    </div>
+                    <div>
+                        <button onclick="dismissMessage(this)" class="auth-toast-dismiss">{% icon "close" %}</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

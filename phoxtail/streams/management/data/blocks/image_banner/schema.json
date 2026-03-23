@@ -1,0 +1,134 @@
+[
+  {
+    "type": "image_chooser_field",
+    "value": {
+      "name": "image",
+      "required": true,
+      "help_text": "Background image for the banner",
+      "icon": "image"
+    }
+  },
+  {
+    "type": "stream",
+    "value": {
+      "name": "slides",
+      "required": false,
+      "collapsed": true,
+      "help_text": "Add and reorder text slides for your image banner",
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "slide",
+            "blocks": [
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "supertitle",
+                  "required": false,
+                  "max_length": 100,
+                  "help_text": "Short, contextual text above the main title (e.g., Featured Content)",
+                  "icon": "title"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "title",
+                  "required": false,
+                  "max_length": 100,
+                  "help_text": "Main title for the slide",
+                  "icon": "title"
+                }
+              },
+              {
+                "type": "text_field",
+                "value": {
+                  "name": "subtitle",
+                  "required": false,
+                  "help_text": "Supporting text below the main title"
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "buttons",
+                  "required": false,
+                  "collapsed": true,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Button text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "page_chooser_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "Internal page to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "external_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": true,
+                              "help_text": "Button text"
+                            }
+                          },
+                          {
+                            "type": "url_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "External URL to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "min_num": 0,
+                  "max_num": 5
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

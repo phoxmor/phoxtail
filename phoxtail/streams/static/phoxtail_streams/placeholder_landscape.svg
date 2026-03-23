@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <!-- Background -->
+  <rect width="640" height="360" fill="#f3f4f6"/>
+
+  <!-- Border -->
+  <rect x="1" y="1" width="638" height="358" fill="none" stroke="#d1d5db" stroke-width="2" stroke-dasharray="8,4"/>
+
+  <!-- Image icon -->
+  <g transform="translate(270, 130)">
+    <!-- Frame -->
+    <rect x="0" y="0" width="100" height="80" rx="8" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+
+    <!-- Mountain -->
+    <polygon points="15,65 40,35 55,50 75,25 85,65" fill="#9ca3af"/>
+
+    <!-- Sun -->
+    <circle cx="25" cy="25" r="10" fill="#9ca3af"/>
+  </g>
+
+  <!-- Text -->
+  <text x="320" y="250" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#6b7280" text-anchor="middle">
+    Image Placeholder
+  </text>
+  <text x="320" y="275" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#9ca3af" text-anchor="middle">
+    16:9 Landscape
+  </text>
+</svg>

@@ -1,0 +1,21 @@
+[
+  {
+    "type": "list_field",
+    "value": {
+      "name": "images",
+      "required": true,
+      "help_text": "Add images to your gallery",
+      "icon": "image",
+      "blocks": [
+        {
+          "type": "image_chooser_field",
+          "value": {
+            "name": "image",
+            "required": true
+          }
+        }
+      ],
+      "min_num": 1
+    }
+  }
+]

@@ -1,0 +1,120 @@
+{% extends "account/base_entrance.html" %}
+{% load static allauth i18n app_tags %}
+{% block head_title %}
+    {% trans "Email Addresses" %}
+{% endblock head_title %}
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/email.css' %}">
+{% endblock %}
+{% block body %}
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-page-container">
+            <div class="auth-email-card">
+                <div class="auth-email-header">
+                    {% include "allauth/components/logo.html" %}
+                    <h1 class="auth-email-heading">{% trans "Email Addresses" %}</h1>
+                </div>
+                {% if emailaddresses %}
+                    <div class="auth-email-section">
+                        <p class="auth-email-desc">{% trans 'The following email addresses are associated with your account:' %}</p>
+                        {% url 'account_email' as email_url %}
+                        <form action="{{ email_url }}" method="post" class="auth-form">
+                            {% csrf_token %}
+                            <div class="auth-radio-list">
+                                {% for radio in emailaddress_radios %}
+                                    {% with emailaddress=radio.emailaddress %}
+                                        <div class="auth-radio-item">
+                                            <input type="radio"
+                                                   name="email"
+                                                   value="{{ emailaddress.email }}"
+                                                   id="{{ radio.id }}"
+                                                   class="auth-radio"
+                                                   {% if radio.checked %}checked{% endif %}>
+                                            <label for="{{ radio.id }}" class="auth-radio-label">
+                                                <span class="auth-radio-email">{{ emailaddress.email }}</span>
+                                                <div class="auth-badge-group">
+                                                    {% if emailaddress.verified %}
+                                                        <span class="auth-badge auth-badge--verified">{% translate "Verified" %}</span>
+                                                    {% else %}
+                                                        <span class="auth-badge auth-badge--unverified">{% translate "Unverified" %}</span>
+                                                    {% endif %}
+                                                    {% if emailaddress.primary %}
+                                                        <span class="auth-badge auth-badge--primary-email">{% translate "Primary" %}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                            <div class="auth-email-actions">
+                                <button type="submit"
+                                        name="action_primary"
+                                        class="auth-email-btn auth-email-btn--primary">
+                                    {% trans 'Make Primary' %}
+                                </button>
+                                <button type="submit"
+                                        name="action_send"
+                                        class="auth-email-btn auth-email-btn--secondary">
+                                    {% trans 'Re-send Verification' %}
+                                </button>
+                                <button type="submit"
+                                        name="action_remove"
+                                        class="auth-email-btn auth-email-btn--danger">{% trans 'Remove' %}</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="auth-email-section auth-email-section--bordered">
+                        <div class="auth-email-warn">{% include "account/snippets/warn_no_email.html" %}</div>
+                    </div>
+                {% endif %}
+                {% if can_add_email %}
+                    <div class="auth-email-section auth-email-section--bordered">
+                        <h2 class="auth-email-add-heading">{% trans "Add Email Address" %}</h2>
+                        {% url 'account_email' as action_url %}
+                        <form method="post" action="{{ action_url }}" class="auth-form">
+                            {% csrf_token %}
+                            {% for field in form %}
+                                {% if not field.is_hidden %}
+                                    <div class="auth-field">
+                                        <label for="{{ field.id_for_label }}" class="auth-label">
+                                            {{ field.label }}
+                                            {% if field.field.required %}<span class="auth-required">*</span>{% endif %}
+                                        </label>
+                                        <div class="auth-input-wrapper">
+                                            {{ field|add_class:"auth-input" }}
+                                            <div class="auth-input-glow"></div>
+                                            {% if field.errors %}
+                                                <div class="auth-errors-block">
+                                                    {% for error in field.errors %}
+                                                        <p class="auth-error">
+                                                            <span class="auth-error-dot"></span>
+                                                            {{ error }}
+                                                        </p>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    {{ field }}
+                                {% endif %}
+                            {% endfor %}
+                            <div class="auth-actions">
+                                <button type="submit" name="action_add" class="auth-btn">
+                                    <div class="auth-btn-glow"></div>
+                                    <div class="auth-btn-inner">{% trans "Add Email" %}</div>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock body %}

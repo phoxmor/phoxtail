@@ -1,0 +1,388 @@
+/* core/static/core/css/account/email.css */
+
+.auth-email-card {
+    background: white;
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.auth-email-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid rgb(var(--color-surface-200));
+}
+
+.auth-email-heading {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
+    margin: 0;
+}
+
+.auth-email-section {
+    padding: 1.5rem;
+}
+
+.auth-email-section--bordered {
+    border-top: 1px solid rgb(var(--color-surface-200));
+}
+
+.auth-email-desc {
+    color: rgb(var(--color-surface-600));
+    font-size: 0.875rem;
+    margin: 0 0 1rem;
+}
+
+.auth-radio-list > * + * {
+    margin-top: 0.75rem;
+}
+
+.auth-radio-item {
+    position: relative;
+}
+
+.auth-radio {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 1rem;
+    width: 1rem;
+    accent-color: rgb(var(--color-primary-600));
+    z-index: 10;
+}
+
+.auth-radio-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: white;
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 0.5rem;
+    padding: 1rem 1rem 1rem 3rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+    .auth-radio-label {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+.auth-radio-label:hover {
+    border-color: rgb(var(--color-surface-300));
+}
+
+.auth-radio:checked + .auth-radio-label {
+    border-color: rgb(var(--color-primary-500));
+    background: rgb(var(--color-primary-50) / 0.3);
+}
+
+.auth-radio-email {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-800));
+    word-break: break-all;
+    line-height: 1.25;
+}
+
+.auth-badge-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.auth-badge {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.auth-badge--verified {
+    color: rgb(var(--color-accent-700));
+    background: rgb(var(--color-accent-100));
+}
+
+.auth-badge--unverified {
+    color: rgb(var(--color-surface-700));
+    background: rgb(var(--color-surface-100));
+}
+
+.auth-badge--primary-email {
+    color: rgb(var(--color-primary-700));
+    background: rgb(var(--color-primary-100));
+}
+
+.auth-email-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+    .auth-email-actions {
+        flex-direction: row;
+    }
+}
+
+.auth-email-btn {
+    flex: 1;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    border: 1px solid transparent;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.auth-email-btn--primary {
+    background: rgb(var(--color-primary-600));
+    color: white;
+    border-color: rgb(var(--color-primary-600));
+}
+
+.auth-email-btn--primary:hover {
+    background: rgb(var(--color-primary-700));
+}
+
+.auth-email-btn--secondary {
+    background: white;
+    color: rgb(var(--color-surface-700));
+    border-color: rgb(var(--color-surface-300));
+}
+
+.auth-email-btn--secondary:hover {
+    background: rgb(var(--color-surface-50));
+}
+
+.auth-email-btn--danger {
+    background: white;
+    color: rgb(220, 38, 38);
+    border-color: rgb(var(--color-surface-300));
+}
+
+.auth-email-btn--danger:hover {
+    background: rgb(254, 242, 242);
+    border-color: rgb(252, 165, 165);
+}
+
+.auth-email-add-heading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
+    margin: 0 0 1rem;
+}
+
+.auth-email-input-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-700));
+    margin-bottom: 0.375rem;
+}
+
+.auth-email-input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(var(--color-surface-300));
+    background: white;
+    color: rgb(var(--color-surface-800));
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+    transition: all 0.2s ease;
+    outline: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+}
+
+.auth-email-input:focus {
+    border-color: rgb(var(--color-primary-500));
+    box-shadow: 0 0 0 3px rgb(var(--color-primary-500) / 0.2);
+}
+
+.auth-email-input--error {
+    border-color: rgb(239, 68, 68);
+}
+
+.auth-email-add-btn {
+    display: inline-block;
+    padding: 0.625rem 1.5rem;
+    background: rgb(var(--color-primary-600));
+    color: white;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    font-family: var(--font-family);
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgb(var(--color-primary-500) / 0.2);
+    margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+    .auth-email-add-btn {
+        width: auto;
+    }
+}
+
+.auth-email-add-btn:hover {
+    background: rgb(var(--color-primary-700));
+}
+
+.auth-email-form > * + * {
+    margin-top: 1rem;
+}
+
+.auth-email-warn {
+    background: rgb(254, 252, 232);
+    border: 1px solid rgb(253, 224, 71);
+    color: rgb(133, 77, 14);
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.auth-email-field-error {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgb(220, 38, 38);
+    margin-top: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .auth-email-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgb(var(--color-surface-700) / 0.3);
+    }
+
+    .auth-email-heading {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .auth-email-header {
+        border-bottom-color: rgb(var(--color-surface-700) / 0.3);
+    }
+
+    .auth-email-section--bordered {
+        border-top-color: rgb(var(--color-surface-700) / 0.3);
+    }
+
+    .auth-email-desc {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .auth-radio-label {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgb(var(--color-surface-600) / 0.5);
+    }
+
+    .auth-radio-label:hover {
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .auth-radio:checked + .auth-radio-label {
+        border-color: rgb(var(--color-primary-500));
+        background: rgb(var(--color-primary-950) / 0.3);
+    }
+
+    .auth-radio-email {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .auth-badge--verified {
+        color: rgb(var(--color-accent-300));
+        background: rgb(var(--color-accent-950) / 0.5);
+    }
+
+    .auth-badge--unverified {
+        color: rgb(var(--color-surface-400));
+        background: rgb(var(--color-surface-800));
+    }
+
+    .auth-badge--primary-email {
+        color: rgb(var(--color-primary-300));
+        background: rgb(var(--color-primary-950) / 0.5);
+    }
+
+    .auth-email-btn--primary {
+        background: rgb(var(--color-primary-500));
+        border-color: rgb(var(--color-primary-500));
+    }
+
+    .auth-email-btn--primary:hover {
+        background: rgb(var(--color-primary-400));
+    }
+
+    .auth-email-btn--secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgb(var(--color-surface-300));
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .auth-email-btn--secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .auth-email-btn--danger {
+        background: rgba(255, 255, 255, 0.05);
+        color: rgb(248, 113, 113);
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .auth-email-btn--danger:hover {
+        background: rgba(127, 29, 29, 0.2);
+        border-color: rgba(248, 113, 113, 0.3);
+    }
+
+    .auth-email-add-heading {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .auth-email-input-label {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .auth-email-input {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgb(var(--color-surface-500));
+        color: rgb(var(--color-surface-100));
+    }
+
+    .auth-email-input:focus {
+        border-color: rgb(var(--color-primary-500));
+        box-shadow: 0 0 0 3px rgb(var(--color-primary-500) / 0.15);
+    }
+
+    .auth-email-add-btn {
+        background: rgb(var(--color-primary-500));
+        box-shadow: 0 4px 6px -1px rgb(var(--color-primary-600) / 0.3);
+    }
+
+    .auth-email-add-btn:hover {
+        background: rgb(var(--color-primary-400));
+    }
+
+    .auth-email-warn {
+        background: rgba(133, 77, 14, 0.2);
+        border-color: rgba(253, 224, 71, 0.3);
+        color: rgb(253, 224, 71);
+    }
+
+    .auth-email-field-error {
+        color: rgb(248, 113, 113);
+    }
+}

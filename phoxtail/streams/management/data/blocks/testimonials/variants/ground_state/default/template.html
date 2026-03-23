@@ -1,0 +1,129 @@
+{% load wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+<div id="testimonials-{{ block.id }}" class="tm-wrapper">
+    <div class="tm-container">
+        <div class="tm-carousel-wrapper">
+            <div class="tm-carousel-viewport">
+                <div class="tm-grid">
+                    {% for block in value.reviews %}
+                        {% with review=block.value %}
+                            {% if review.avatar_image %}
+                                {% image review.avatar_image fill-120x120 as avatar %}
+                            {% endif %}
+                            <div class="tm-item"
+                                 data-index="{{ forloop.counter0 }}"
+                                 data-name="{{ review.name }}"
+                                 data-title="{{ review.title|default:'' }}"
+                                 data-rating="{{ review.rating|default:5 }}"
+                                 data-review="{{ review.review|escape }}"
+                                 data-avatar="{% if review.avatar_image %}{{ avatar.url }}{% endif %}"
+                                 tabindex="0">
+                                <div class="tm-card">
+                                    <div class="tm-quote-icon tm-quote-icon--top">
+                                        {% with class="tm-icon-lg" %}
+                                            {% icon "format_quote" %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="tm-card-content">
+                                        {% if review.avatar_image %}
+                                            <div class="tm-avatar">
+                                                <div class="tm-avatar-inner">
+                                                    <img src="{{ avatar.url }}"
+                                                         alt="{{ review.name }}'s avatar"
+                                                         class="tm-avatar-img"
+                                                         loading="lazy">
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        {% if review.rating %}
+                                            <div class="tm-rating"
+                                                 aria-label="Rating: {{ review.rating }} out of 5 stars">
+                                                {% for i in "12345"|make_list %}
+                                                    <div class="tm-star {% if i|add:0 <= review.rating|add:0 %}tm-star--active{% endif %}"
+                                                         aria-hidden="true">
+                                                        {% with class="tm-star-svg" %}
+                                                            {% icon "star_fill" %}
+                                                        {% endwith %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="tm-review-preview">
+                                            <blockquote class="tm-blockquote">
+                                                <p class="tm-text-clamp">"{{ review.review|striptags }}"</p>
+                                            </blockquote>
+                                        </div>
+                                    </div>
+                                    <div class="tm-card-footer">
+                                        <h3 class="tm-author-name">{{ review.name }}</h3>
+                                        {% if review.title %}<p class="tm-author-title">{{ review.title }}</p>{% endif %}
+                                    </div>
+                                    <div class="tm-quote-icon tm-quote-icon--bottom">
+                                        {% with class="tm-icon-sm tm-rotate-180" %}
+                                            {% icon "format_quote" %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="tm-pagination"
+                 aria-label="Carousel navigation"
+                 aria-hidden="true">
+                {% for block in value.reviews %}
+                    <button class="tm-dot {% if forloop.first %}tm-dot--active{% endif %}"
+                            type="button"
+                            aria-label="Go to testimonial {{ forloop.counter }}"
+                            data-index="{{ forloop.counter0 }}"></button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="tm-modal"
+         aria-hidden="true"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Review viewer">
+        <div class="tm-modal-backdrop"></div>
+        <button class="tm-nav tm-nav--prev"
+                type="button"
+                aria-label="Previous review">
+            {% with class="tm-nav-icon" %}
+                {% icon "chevron_left" %}
+            {% endwith %}
+        </button>
+        <div class="tm-modal-stage">
+            <div class="tm-modal-content">
+                <div class="tm-quote-icon tm-quote-icon--top">
+                    {% with class="tm-icon-lg" %}
+                        {% icon "format_quote" %}
+                    {% endwith %}
+                </div>
+                <div class="tm-modal-avatar"></div>
+                <div class="tm-modal-rating"></div>
+                <div class="tm-modal-review-text"></div>
+                <div class="tm-modal-author">
+                    <div class="tm-modal-author-name"></div>
+                    <div class="tm-modal-author-title"></div>
+                </div>
+                <div class="tm-quote-icon tm-quote-icon--bottom">
+                    {% with class="tm-icon-sm tm-rotate-180" %}
+                        {% icon "format_quote" %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        <button class="tm-nav tm-nav--next" type="button" aria-label="Next review">
+            {% with class="tm-nav-icon" %}
+                {% icon "chevron_right" %}
+            {% endwith %}
+        </button>
+        <button class="tm-close" type="button" aria-label="Close viewer">
+            {% with class="tm-close-icon" %}
+                {% icon "close" %}
+            {% endwith %}
+        </button>
+        <div class="tm-counter" aria-live="polite"></div>
+    </div>
+</div>

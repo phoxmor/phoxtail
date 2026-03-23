@@ -1,0 +1,9 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if form.errors %}
+    {% include "users/profile/partials/update_form.html" %}
+{% else %}
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder-wrapper"></div>
+    <div hx-swap-oob="innerHTML:#profile-content">{% include "users/profile/partials/user_info.html" %}</div>
+{% endif %}

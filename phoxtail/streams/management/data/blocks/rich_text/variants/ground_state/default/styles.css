@@ -1,0 +1,633 @@
+/* ─── Rich Text Block — Ground State ─────────────────────────────────────────
+   Scoped to: #rich-text-{{ block.id }}
+   Palette: neutral (surface), emerald (primary)
+   Typography system modelled on @tailwindcss/typography prose conventions
+   ─────────────────────────────────────────────────────────────────────────── */
+
+#rich-text-{{ block.id }} {
+    /* ── Prose semantic color tokens (neutral scale, light mode) ─────────── */
+    --rt-body:          var(--color-surface-700);
+    --rt-headings:      var(--color-surface-800);
+    --rt-lead:          var(--color-surface-600);
+    --rt-links:         var(--color-primary-600);
+    --rt-bold:          var(--color-surface-800);
+    --rt-counters:      var(--color-surface-500);
+    --rt-bullets:       var(--color-surface-400);
+    --rt-hr:            var(--color-surface-200);
+    --rt-quotes:        var(--color-surface-800);
+    --rt-quote-borders: var(--color-primary-300);
+    --rt-captions:      var(--color-surface-500);
+    --rt-code:          var(--color-surface-800);
+    --rt-pre-code:      var(--color-surface-200);
+    --rt-pre-bg:        var(--color-surface-800);
+    --rt-th-borders:    var(--color-surface-300);
+    --rt-td-borders:    var(--color-surface-200);
+
+    /* ── Wrapper ─────────────────────────────────────────────────────────── */
+    --rt-spacing-y: 2rem;
+    --rt-spacing-x: 1rem;
+
+    background-color: rgb(var(--color-surface-50));
+    padding: var(--rt-spacing-y) var(--rt-spacing-x);
+    font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+}
+
+/* ─── Dark Mode ───────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    #rich-text-{{ block.id }} {
+        --rt-body:          var(--color-surface-300);
+        --rt-headings:      var(--color-surface-50);
+        --rt-lead:          var(--color-surface-400);
+        --rt-links:         var(--color-primary-400);
+        --rt-bold:          var(--color-surface-50);
+        --rt-counters:      var(--color-surface-400);
+        --rt-bullets:       var(--color-surface-600);
+        --rt-hr:            var(--color-surface-700);
+        --rt-quotes:        var(--color-surface-100);
+        --rt-quote-borders: var(--color-primary-600);
+        --rt-captions:      var(--color-surface-400);
+        --rt-code:          var(--color-surface-50);
+        --rt-pre-code:      var(--color-surface-300);
+        --rt-pre-bg-raw:    0 0 0;
+        --rt-th-borders:    var(--color-surface-600);
+        --rt-td-borders:    var(--color-surface-700);
+
+        background-color: rgb(var(--color-surface-800));
+    }
+}
+
+/* ─── Responsive Spacing ─────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+    #rich-text-{{ block.id }} {
+        --rt-spacing-y: 4rem;
+        --rt-spacing-x: 2rem;
+    }
+}
+
+/* ─── Prose Container ────────────────────────────────────────────────────── */
+/* 65ch matches Tailwind's prose max-width exactly */
+#rich-text-{{ block.id }} .rt-prose {
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
+
+    /* Base: 1rem / line-height: 28/16 = 1.75 — matches prose base */
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgb(var(--rt-body));
+}
+
+/* ─── First/Last Child Margin Collapse ───────────────────────────────────── */
+/* Tailwind prose zeroes out orphan margins at container edges */
+#rich-text-{{ block.id }} .rt-prose > :first-child {
+    margin-top: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose > :last-child {
+    margin-bottom: 0;
+}
+
+/* ─── Lead paragraph ─────────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose .lead {
+    color: rgb(var(--rt-lead));
+    /* em(20, 16) = 1.25em, line-height: 32/20 = 1.6 */
+    font-size: 1.25em;
+    line-height: 1.6;
+    margin-top: 1.2em;
+    margin-bottom: 1.2em;
+}
+
+/* ─── Paragraphs ─────────────────────────────────────────────────────────── */
+/* em(20, 16) = 1.25em top and bottom */
+#rich-text-{{ block.id }} .rt-prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+/* ─── Links ──────────────────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose a {
+    color: rgb(var(--rt-links));
+    text-decoration: underline;
+    font-weight: var(--font-body-weight-medium, 500);
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    transition: color 200ms ease, opacity 200ms ease;
+}
+
+#rich-text-{{ block.id }} .rt-prose a:hover {
+    opacity: 0.8;
+}
+
+#rich-text-{{ block.id }} .rt-prose a:focus-visible {
+    outline: 2px solid rgb(var(--rt-links));
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* ─── Strong / Bold ──────────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose strong {
+    color: rgb(var(--rt-bold));
+    font-weight: var(--font-body-weight-semibold, 600);
+}
+
+/* Strong inside links/blockquotes/thead inherits color */
+#rich-text-{{ block.id }} .rt-prose a strong,
+#rich-text-{{ block.id }} .rt-prose blockquote strong,
+#rich-text-{{ block.id }} .rt-prose thead th strong {
+    color: inherit;
+}
+
+/* ─── Em / Italic ────────────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose em {
+    font-style: italic;
+}
+
+/* ─── Strikethrough ──────────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose s,
+#rich-text-{{ block.id }} .rt-prose del {
+    /* No dedicated prose variable — use muted body color */
+    color: rgb(var(--rt-lead));
+}
+
+/* ─── Superscript / Subscript ────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose sup,
+#rich-text-{{ block.id }} .rt-prose sub {
+    font-size: 0.75em;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+#rich-text-{{ block.id }} .rt-prose sup { top: -0.5em; }
+#rich-text-{{ block.id }} .rt-prose sub { bottom: -0.25em; }
+
+/* ─── Headings ───────────────────────────────────────────────────────────── */
+/* Descending weight hierarchy: h1=800, h2=700, h3/h4=600 */
+#rich-text-{{ block.id }} .rt-prose h1,
+#rich-text-{{ block.id }} .rt-prose h2,
+#rich-text-{{ block.id }} .rt-prose h3,
+#rich-text-{{ block.id }} .rt-prose h4,
+#rich-text-{{ block.id }} .rt-prose h5,
+#rich-text-{{ block.id }} .rt-prose h6 {
+    font-family: var(--font-heading);
+    color: rgb(var(--rt-headings));
+    text-wrap: balance;
+}
+
+#rich-text-{{ block.id }} .rt-prose h1 strong,
+#rich-text-{{ block.id }} .rt-prose h2 strong,
+#rich-text-{{ block.id }} .rt-prose h3 strong,
+#rich-text-{{ block.id }} .rt-prose h4 strong {
+    color: inherit;
+}
+
+/* h1: em(36,16)=2.25em, mt=0, mb=em(32,36)=0.889em, lh=40/36=1.111 */
+#rich-text-{{ block.id }} .rt-prose h1 {
+    font-size: 2.25em;
+    font-weight: var(--font-heading-weight-extrabold, 800);
+    line-height: 1.111;
+    margin-top: 0;
+    margin-bottom: 0.889em;
+    letter-spacing: -0.025em;
+}
+
+#rich-text-{{ block.id }} .rt-prose h1 strong {
+    font-weight: var(--font-heading-weight-black, 900);
+}
+
+/* h2: em(24,16)=1.5em, mt=em(48,24)=2em, mb=em(24,24)=1em, lh=32/24=1.333 */
+#rich-text-{{ block.id }} .rt-prose h2 {
+    font-size: 1.5em;
+    font-weight: var(--font-heading-weight-bold, 700);
+    line-height: 1.333;
+    margin-top: 2em;
+    margin-bottom: 1em;
+    letter-spacing: -0.025em;
+}
+
+#rich-text-{{ block.id }} .rt-prose h2 strong {
+    font-weight: var(--font-heading-weight-extrabold, 800);
+}
+
+/* h3: em(20,16)=1.25em, mt=em(32,20)=1.6em, mb=em(12,20)=0.6em, lh=32/20=1.6 */
+#rich-text-{{ block.id }} .rt-prose h3 {
+    font-size: 1.25em;
+    font-weight: var(--font-heading-weight-semibold, 600);
+    line-height: 1.6;
+    margin-top: 1.6em;
+    margin-bottom: 0.6em;
+    letter-spacing: -0.015em;
+}
+
+#rich-text-{{ block.id }} .rt-prose h3 strong {
+    font-weight: var(--font-heading-weight-bold, 700);
+}
+
+/* h4: same font-size as body (1em), mt=em(24,16)=1.5em, mb=em(8,16)=0.5em, lh=24/16=1.5 */
+#rich-text-{{ block.id }} .rt-prose h4 {
+    font-size: 1em;
+    font-weight: var(--font-heading-weight-semibold, 600);
+    line-height: 1.5;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+#rich-text-{{ block.id }} .rt-prose h4 strong {
+    font-weight: var(--font-heading-weight-bold, 700);
+}
+
+/* h5/h6: Tailwind intentionally omits these; we follow suit with minimal styles */
+#rich-text-{{ block.id }} .rt-prose h5 {
+    font-size: 0.875em;
+    font-weight: var(--font-heading-weight-semibold, 600);
+    line-height: 1.5;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: rgb(var(--rt-lead));
+}
+
+#rich-text-{{ block.id }} .rt-prose h6 {
+    font-size: 0.875em;
+    font-weight: var(--font-heading-weight-semibold, 600);
+    line-height: 1.5;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: rgb(var(--rt-lead));
+    font-style: italic;
+}
+
+/* ─── Heading followed by element: zero top margin on follower ───────────── */
+/* This eliminates double-spacing between heading and first content block */
+#rich-text-{{ block.id }} .rt-prose h2 + *,
+#rich-text-{{ block.id }} .rt-prose h3 + *,
+#rich-text-{{ block.id }} .rt-prose h4 + * {
+    margin-top: 0;
+}
+
+/* ─── Lists ──────────────────────────────────────────────────────────────── */
+/* ol/ul: em(20,16)=1.25em margin, em(26,16)=1.625em padding-start */
+#rich-text-{{ block.id }} .rt-prose ol,
+#rich-text-{{ block.id }} .rt-prose ul {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-inline-start: 1.625em;
+}
+
+#rich-text-{{ block.id }} .rt-prose ol {
+    list-style-type: decimal;
+}
+
+#rich-text-{{ block.id }} .rt-prose ul {
+    list-style-type: disc;
+}
+
+/* li: em(8,16)=0.5em */
+#rich-text-{{ block.id }} .rt-prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+/* ol > li: em(6,16)=0.375em padding-start */
+#rich-text-{{ block.id }} .rt-prose ol > li {
+    padding-inline-start: 0.375em;
+}
+
+/* ul > li: em(6,16)=0.375em padding-start */
+#rich-text-{{ block.id }} .rt-prose ul > li {
+    padding-inline-start: 0.375em;
+}
+
+/* Marker color split: counters vs bullets */
+#rich-text-{{ block.id }} .rt-prose ol > li::marker {
+    font-weight: 400;
+    color: rgb(var(--rt-counters));
+}
+
+#rich-text-{{ block.id }} .rt-prose ul > li::marker {
+    color: rgb(var(--rt-bullets));
+}
+
+/* Nested lists: em(12,16)=0.75em tighter margin */
+#rich-text-{{ block.id }} .rt-prose ul ul,
+#rich-text-{{ block.id }} .rt-prose ul ol,
+#rich-text-{{ block.id }} .rt-prose ol ul,
+#rich-text-{{ block.id }} .rt-prose ol ol {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+}
+
+/* Paragraphs inside list items: em(12,16)=0.75em */
+#rich-text-{{ block.id }} .rt-prose > ul > li p,
+#rich-text-{{ block.id }} .rt-prose > ol > li p {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+}
+
+/* First/last p inside a list item flush with item edges */
+#rich-text-{{ block.id }} .rt-prose > ul > li > p:first-child,
+#rich-text-{{ block.id }} .rt-prose > ol > li > p:first-child {
+    margin-top: 1.25em;
+}
+
+#rich-text-{{ block.id }} .rt-prose > ul > li > p:last-child,
+#rich-text-{{ block.id }} .rt-prose > ol > li > p:last-child {
+    margin-bottom: 1.25em;
+}
+
+/* ─── Horizontal Rule ────────────────────────────────────────────────────── */
+/* em(48,16) = 3em top/bottom — generous breathing room */
+#rich-text-{{ block.id }} .rt-prose hr {
+    border-color: rgb(var(--rt-hr));
+    border-top-width: 1px;
+    border-bottom: none;
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+/* Element after HR: strip its top margin so it doesn't double-space */
+#rich-text-{{ block.id }} .rt-prose hr + * {
+    margin-top: 0;
+}
+
+/* ─── Blockquotes ────────────────────────────────────────────────────────── */
+/* em(32,20)=1.6em margin, em(20,20)=1em padding-start */
+/* Tailwind uses border-inline-start (logical), italic, weight 500 */
+/* CSS quotes property for auto open/close curly quotes */
+#rich-text-{{ block.id }} .rt-prose blockquote {
+    font-weight: var(--font-body-weight-medium, 500);
+    font-style: italic;
+    color: rgb(var(--rt-quotes));
+    border-inline-start-width: 0.25rem;
+    border-inline-start-style: solid;
+    border-inline-start-color: rgb(var(--rt-quote-borders));
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-inline-start: 1em;
+}
+
+/* Opening/closing curly quotes via pseudo-elements */
+#rich-text-{{ block.id }} .rt-prose blockquote p:first-of-type::before {
+    content: open-quote;
+}
+
+#rich-text-{{ block.id }} .rt-prose blockquote p:last-of-type::after {
+    content: close-quote;
+}
+
+/* ─── Inline Code ────────────────────────────────────────────────────────── */
+/* Tailwind wraps inline code in backtick pseudo-elements */
+#rich-text-{{ block.id }} .rt-prose code {
+    color: rgb(var(--rt-code));
+    font-weight: var(--font-body-weight-semibold, 600);
+    font-size: 0.875em;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+}
+
+#rich-text-{{ block.id }} .rt-prose code::before {
+    content: "`";
+}
+
+#rich-text-{{ block.id }} .rt-prose code::after {
+    content: "`";
+}
+
+/* Code inside links/headings/blockquotes inherits color */
+#rich-text-{{ block.id }} .rt-prose a code,
+#rich-text-{{ block.id }} .rt-prose h1 code,
+#rich-text-{{ block.id }} .rt-prose h2 code,
+#rich-text-{{ block.id }} .rt-prose h3 code,
+#rich-text-{{ block.id }} .rt-prose h4 code,
+#rich-text-{{ block.id }} .rt-prose blockquote code {
+    color: inherit;
+}
+
+/* ─── Code Blocks (pre) ──────────────────────────────────────────────────── */
+/* em(14,16)=0.875em font, lh=24/14=1.714, mt/mb=em(24,14)=1.714em */
+#rich-text-{{ block.id }} .rt-prose pre {
+    color: rgb(var(--rt-pre-code));
+    background-color: rgb(var(--rt-pre-bg));
+    overflow-x: auto;
+    font-weight: 400;
+    font-size: 0.875em;
+    line-height: 1.714;
+    margin-top: 1.714em;
+    margin-bottom: 1.714em;
+    border-radius: 0.375rem;
+    padding-top: 0.857em;
+    padding-inline-end: 1.143em;
+    padding-bottom: 0.857em;
+    padding-inline-start: 1.143em;
+    font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+}
+
+/* pre > code: strip all inline-code treatments */
+#rich-text-{{ block.id }} .rt-prose pre code {
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0;
+    padding: 0;
+    font-weight: inherit;
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
+}
+
+#rich-text-{{ block.id }} .rt-prose pre code::before,
+#rich-text-{{ block.id }} .rt-prose pre code::after {
+    content: none;
+}
+
+/* ─── Images ─────────────────────────────────────────────────────────────── */
+/* em(32,16)=2em margin — Tailwind just sets margin, no border-radius by default */
+/* We add border-radius per Ground State image spec (0.75rem) */
+#rich-text-{{ block.id }} .rt-prose img {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    display: block;
+}
+
+/* ─── Figure / Figcaption ────────────────────────────────────────────────── */
+#rich-text-{{ block.id }} .rt-prose figure {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+#rich-text-{{ block.id }} .rt-prose figure > * {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+/* em(14,16)=0.875em, lh=20/14=1.429, mt=em(12,14)=0.857em */
+#rich-text-{{ block.id }} .rt-prose figcaption {
+    color: rgb(var(--rt-captions));
+    font-size: 0.875em;
+    line-height: 1.429;
+    margin-top: 0.857em;
+}
+
+/* ─── Tables ─────────────────────────────────────────────────────────────── */
+/* em(14,16)=0.875em, lh=24/14=1.714 */
+#rich-text-{{ block.id }} .rt-prose table {
+    width: 100%;
+    table-layout: auto;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.714;
+}
+
+#rich-text-{{ block.id }} .rt-prose thead {
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(var(--rt-th-borders));
+}
+
+#rich-text-{{ block.id }} .rt-prose thead th {
+    color: rgb(var(--rt-headings));
+    font-weight: var(--font-body-weight-semibold, 600);
+    vertical-align: bottom;
+    text-align: start;
+    padding-inline-end: 0.571em;
+    padding-bottom: 0.571em;
+    padding-inline-start: 0.571em;
+}
+
+#rich-text-{{ block.id }} .rt-prose thead th:first-child {
+    padding-inline-start: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose thead th:last-child {
+    padding-inline-end: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose tbody tr {
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(var(--rt-td-borders));
+}
+
+#rich-text-{{ block.id }} .rt-prose tbody tr:last-child {
+    border-bottom-width: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose tbody td {
+    vertical-align: baseline;
+    text-align: start;
+    padding-top: 0.571em;
+    padding-inline-end: 0.571em;
+    padding-bottom: 0.571em;
+    padding-inline-start: 0.571em;
+}
+
+#rich-text-{{ block.id }} .rt-prose tbody td:first-child {
+    padding-inline-start: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose tbody td:last-child {
+    padding-inline-end: 0;
+}
+
+#rich-text-{{ block.id }} .rt-prose tfoot {
+    border-top-width: 1px;
+    border-top-color: rgb(var(--rt-th-borders));
+}
+
+#rich-text-{{ block.id }} .rt-prose tfoot td {
+    vertical-align: top;
+}
+
+/* ─── Responsive type scale (prose-lg equivalent at md+) ─────────────────── */
+/* prose-lg: font-size=1.125rem, lh=32/18=1.778 — more breathing room */
+@media (min-width: 768px) {
+    #rich-text-{{ block.id }} .rt-prose {
+        font-size: 1.125rem;
+        line-height: 1.778;
+    }
+
+    /* Recalculate heading sizes at lg scale (em values are relative, so they
+       automatically scale — only the em-to-rem computed values shift) */
+
+    /* h1 at lg: em(48,18)=2.667em, mb=em(40,48)=0.833em, lh=48/48=1 */
+    #rich-text-{{ block.id }} .rt-prose h1 {
+        font-size: 2.667em;
+        line-height: 1;
+        margin-bottom: 0.833em;
+    }
+
+    /* h2 at lg: em(30,18)=1.667em, mt=em(56,30)=1.867em, mb=em(32,30)=1.067em, lh=40/30=1.333 */
+    #rich-text-{{ block.id }} .rt-prose h2 {
+        font-size: 1.667em;
+        margin-top: 1.867em;
+        margin-bottom: 1.067em;
+    }
+
+    /* h3 at lg: em(24,18)=1.333em, mt=em(40,24)=1.667em, mb=em(16,24)=0.667em, lh=36/24=1.5 */
+    #rich-text-{{ block.id }} .rt-prose h3 {
+        font-size: 1.333em;
+        line-height: 1.5;
+        margin-top: 1.667em;
+        margin-bottom: 0.667em;
+    }
+
+    /* h4 at lg: mt=em(32,18)=1.778em, mb=em(8,18)=0.444em, lh=28/18=1.556 */
+    #rich-text-{{ block.id }} .rt-prose h4 {
+        margin-top: 1.778em;
+        margin-bottom: 0.444em;
+        line-height: 1.556;
+    }
+
+    /* p at lg: em(24,18)=1.333em */
+    #rich-text-{{ block.id }} .rt-prose p {
+        margin-top: 1.333em;
+        margin-bottom: 1.333em;
+    }
+
+    /* blockquote at lg: mt/mb=em(40,24)=1.667em, padding=em(24,24)=1em */
+    #rich-text-{{ block.id }} .rt-prose blockquote {
+        margin-top: 1.667em;
+        margin-bottom: 1.667em;
+        padding-inline-start: 1em;
+    }
+
+    /* hr at lg: em(56,18)=3.111em */
+    #rich-text-{{ block.id }} .rt-prose hr {
+        margin-top: 3.111em;
+        margin-bottom: 3.111em;
+    }
+
+    /* lists at lg: em(24,18)=1.333em, padding=em(28,18)=1.556em */
+    #rich-text-{{ block.id }} .rt-prose ol,
+    #rich-text-{{ block.id }} .rt-prose ul {
+        margin-top: 1.333em;
+        margin-bottom: 1.333em;
+        padding-inline-start: 1.556em;
+    }
+
+    /* li at lg: em(12,18)=0.667em */
+    #rich-text-{{ block.id }} .rt-prose li {
+        margin-top: 0.667em;
+        margin-bottom: 0.667em;
+    }
+
+    /* figure at lg: em(32,18)=1.778em */
+    #rich-text-{{ block.id }} .rt-prose figure {
+        margin-top: 1.778em;
+        margin-bottom: 1.778em;
+    }
+
+    /* img at lg: em(32,18)=1.778em */
+    #rich-text-{{ block.id }} .rt-prose img {
+        margin-top: 1.778em;
+        margin-bottom: 1.778em;
+    }
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    #rich-text-{{ block.id }} .rt-prose a {
+        transition: none;
+    }
+}

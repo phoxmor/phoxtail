@@ -1,0 +1,22 @@
+/* core/static/core/css/wagtailadmin/home.css */
+
+.welcome-logo, .welcome-logo-light, .welcome-logo-dark {
+    max-height: 8rem !important;
+    width: auto;
+}
+
+.welcome-logo-dark, .welcome-logo-light {
+    display: none;
+}
+
+/* Default light/dark logos based on system setting (only used in "system" mode) */
+@media (prefers-color-scheme: dark) {
+    .welcome-logo-dark {
+        display: block;
+    }
+}
+@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+    .welcome-logo-light {
+        display: block;
+    }
+}

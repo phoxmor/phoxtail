@@ -1,0 +1,72 @@
+{% load events_tags tz %}
+{% get_weekly_schedule value.location as schedule %}
+<section id="bsched-{{ block.id }}" class="bsched-wrapper">
+    {% if schedule.time_slots %}
+        <div class="bsched-panel">
+            <div class="bsched-scroll">
+                <div class="bsched-table">
+                    <!-- Header row -->
+                    <div class="bsched-header-row">
+                        {% for day in schedule.week_structure %}
+                            <div class="bsched-day-header {% if day.is_today %}bsched-day-header--today{% endif %}">
+                                <h3 class="bsched-day-header__weekday">{{ day.weekday }}</h3>
+                                <p class="bsched-day-header__date">{{ day.day_display }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Time slot rows -->
+                    {% for time_slot in schedule.time_slots %}
+                        <div class="bsched-time-row">
+                            <div class="bsched-time-label">{{ time_slot.display }}</div>
+                            {% for day in schedule.week_structure %}
+                                <div class="bsched-cell {% if forloop.first %}bsched-cell--first{% endif %}">
+                                    {% for day_hour in day.hours %}
+                                        {% if day_hour.hour == time_slot.hour %}
+                                            {% for event_data in day_hour.events %}
+                                                {% with event=event_data.event %}
+                                                    <div class="bsched-chip-wrap">
+                                                        <div class="bsched-chip"
+                                                             {% if event.service.palette %}style="--chip-p-light-text: {{ event.service.palette.shades_rgb.600 }}; --chip-p-light-border: {{ event.service.palette.shades_rgb.500 }}; --chip-p-dark-text: {{ event.service.palette.shades_rgb.400 }};"{% endif %}>
+                                                            <div class="bsched-chip__service">
+                                                                <span>{{ event.service.name }}</span>
+                                                            </div>
+                                                            <div class="bsched-chip__row">
+                                                                <svg viewBox="0 0 24 24"
+                                                                     fill="none"
+                                                                     stroke="currentColor"
+                                                                     stroke-width="2"
+                                                                     stroke-linecap="round"
+                                                                     stroke-linejoin="round">
+                                                                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                                                                </svg>
+                                                                <span>{% timezone event.space.location.timezone %}{{ event.start_datetime|date:"H:i" }} - {{ event.end_datetime|date:"H:i" }}{% endtimezone %}</span>
+                                                            </div>
+                                                            <div class="bsched-chip__row">
+                                                                <svg viewBox="0 0 24 24"
+                                                                     fill="none"
+                                                                     stroke="currentColor"
+                                                                     stroke-width="2"
+                                                                     stroke-linecap="round"
+                                                                     stroke-linejoin="round">
+                                                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                                                </svg>
+                                                                <span>{{ event.space.name }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p class="bsched-empty">No events scheduled for this week.</p>
+    {% endif %}
+</section>

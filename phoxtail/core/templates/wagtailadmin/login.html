@@ -1,0 +1,28 @@
+{% extends "wagtailadmin/login.html" %}
+{% load static wagtailimages_tags wagtailsettings_tags %}
+{% block branding_login %}
+    <div class="logo-container">
+        {% get_settings %}
+        {% if settings.app.SiteConfig.logo_admin and settings.app.SiteConfig.logo_admin_dark %}
+            {% image settings.app.SiteConfig.logo_admin height-256 as logo_admin %}
+            {% image settings.app.SiteConfig.logo_admin_dark height-256 as logo_admin_dark %}
+            <img src="{{ logo_admin.file.url }}"
+                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                 class="logo-light" />
+            <img src="{{ logo_admin_dark.file.url }}"
+                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                 class="logo-dark" />
+        {% else %}
+            <img class="logo-light"
+                 src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}"
+                 alt="Phoxtail" />
+            <img class="logo-dark"
+                 src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}"
+                 alt="Phoxtail" />
+        {% endif %}
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'phoxtail_core/css/wagtailadmin/login.css' %}">
+{% endblock %}

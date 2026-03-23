@@ -1,0 +1,24 @@
+{% extends "wagtailadmin/admin_base.html" %}
+{% load static wagtailimages_tags wagtailsettings_tags %}
+{% block branding_favicon %}
+    {% get_settings %}
+    {% if settings.app.SiteConfig.favicon and settings.app.SiteConfig.favicon_dark %}
+        {% image settings.app.SiteConfig.favicon height-100 as favicon %}
+        {% image settings.app.SiteConfig.favicon_dark height-100 as favicon_dark %}
+        <link rel="shortcut icon"
+              href="{{ favicon.file.url }}"
+              media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <link rel="shortcut icon"
+              href="{{ favicon_dark.file.url }}"
+              media="(prefers-color-scheme: dark)" />
+    {% else %}
+        <link rel="shortcut icon"
+              type="image/svg+xml"
+              href="{% static 'phoxtail_core/phoxtail/logo/symbol-light.svg' %}"
+              media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <link rel="shortcut icon"
+              type="image/svg+xml"
+              href="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.svg' %}"
+              media="(prefers-color-scheme: dark)" />
+    {% endif %}
+{% endblock %}

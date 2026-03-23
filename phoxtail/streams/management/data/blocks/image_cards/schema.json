@@ -1,0 +1,123 @@
+[
+  {
+    "type": "stream",
+    "value": {
+      "name": "cards",
+      "required": false,
+      "collapsed": true,
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "card",
+            "collapsed": true,
+            "blocks": [
+              {
+                "type": "image_chooser_field",
+                "value": {
+                  "name": "image",
+                  "required": true,
+                  "help_text": "Card background image"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "title",
+                  "required": false,
+                  "max_length": 150,
+                  "help_text": "Card title"
+                }
+              },
+              {
+                "type": "text_field",
+                "value": {
+                  "name": "description",
+                  "required": false,
+                  "help_text": "A description for the card"
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "button",
+                  "required": false,
+                  "collapsed": true,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Button text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "page_chooser_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "Internal page to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "external_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": true,
+                              "help_text": "Button text"
+                            }
+                          },
+                          {
+                            "type": "url_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "External URL to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "min_num": 0
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "min_num": 0,
+      "max_num": 20
+    }
+  }
+]

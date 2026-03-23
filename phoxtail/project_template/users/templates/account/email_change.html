@@ -1,0 +1,126 @@
+{% extends "account/base_manage_email.html" %}
+{% load static i18n allauth app_tags %}
+{% block head_title %}
+    {% trans "Email Address" %}
+{% endblock head_title %}
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/email.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="auth-page">
+        <div class="auth-page-container">
+            <div class="auth-email-card">
+                <div class="auth-email-header">
+                    {% include "allauth/components/logo.html" %}
+                    <h1 class="auth-email-heading">{% trans "Email Address" %}</h1>
+                </div>
+                {% if not emailaddresses %}
+                    <div class="auth-email-section">
+                        <div class="auth-email-warn">{% include "account/snippets/warn_no_email.html" %}</div>
+                    </div>
+                {% endif %}
+                <div class="auth-email-section">
+                    <form class="auth-form" method="post" action="{% url 'account_email' %}">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <p class="auth-error">
+                                    <span class="auth-error-dot"></span>
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="auth-form > * + *">
+                            {% if current_emailaddress %}
+                                <div class="auth-field">
+                                    <label for="current_email" class="auth-label">{% trans "Current email" %}:</label>
+                                    <div class="auth-input-wrapper">
+                                        <input type="email"
+                                               id="current_email"
+                                               disabled
+                                               value="{{ current_emailaddress.email }}"
+                                               class="auth-input"
+                                               style="background: rgb(var(--color-surface-100) / 0.5);
+                                                      border-color: rgb(var(--color-surface-300) / 0.5)">
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if new_emailaddress %}
+                                <div class="auth-field">
+                                    <label for="new_email" class="auth-label">
+                                        {% if not current_emailaddress %}
+                                            {% trans "Current email" %}:
+                                        {% else %}
+                                            {% trans "Changing to" %}:
+                                        {% endif %}
+                                    </label>
+                                    <div class="auth-input-wrapper">
+                                        <input type="email"
+                                               id="new_email"
+                                               disabled
+                                               value="{{ new_emailaddress.email }}"
+                                               class="auth-input"
+                                               style="background: rgb(var(--color-surface-100) / 0.5);
+                                                      border-color: rgb(var(--color-surface-300) / 0.5)">
+                                    </div>
+                                    <p class="auth-subtitle auth-mt-6" style="text-align: left;">
+                                        {% blocktranslate %}Your email address is still pending verification.{% endblocktranslate %}
+                                    </p>
+                                    <div class="auth-email-actions">
+                                        <button type="submit"
+                                                form="pending-email"
+                                                name="action_send"
+                                                class="auth-email-btn auth-email-btn--secondary">
+                                            {% trans "Re-send Verification" %}
+                                        </button>
+                                        {% if current_emailaddress %}
+                                            <button type="submit"
+                                                    form="pending-email"
+                                                    name="action_remove"
+                                                    class="auth-email-btn auth-email-btn--danger">
+                                                {% trans "Cancel Change" %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="auth-field">
+                                <label for="{{ form.email.id_for_label }}" class="auth-label">
+                                    {% trans "Change to" %}:
+                                    {% if form.email.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    {{ form.email|add_class:"auth-input" }}
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.email.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.email.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>
+                                                    {{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="auth-actions">
+                            {% include "allauth/components/submit_button.html" with text_key="Change Email" button_type="submit" name="action_add" %}
+                        </div>
+                    </form>
+                    {% if new_emailaddress %}
+                        <form style="display: none"
+                              id="pending-email"
+                              method="post"
+                              action="{% url 'account_email' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

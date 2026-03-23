@@ -1,0 +1,34 @@
+/* core/static/core/css/wagtailadmin/login.css */
+
+/* Reuse some auth styles but scoped for wagtail admin if needed, 
+   or just use the same classes if we update the template to use them. */
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-height: 100px;
+    margin-bottom: 2rem;
+}
+
+.logo-dark, .logo-light {
+    max-height: 100px;
+    width: auto;
+}
+
+.logo-dark {
+    display: none;
+}
+
+.logo-light {
+    display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+    .logo-dark {
+        display: block;
+    }
+    .logo-light {
+        display: none;
+    }
+}

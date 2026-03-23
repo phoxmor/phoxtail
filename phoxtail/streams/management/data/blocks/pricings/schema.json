@@ -1,0 +1,188 @@
+[
+  {
+    "type": "stream",
+    "value": {
+      "name": "plans",
+      "required": false,
+      "collapsed": true,
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "plan",
+            "collapsed": true,
+            "blocks": [
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "name",
+                  "required": true,
+                  "max_length": 100,
+                  "help_text": "Name of the pricing plan (e.g., Hobby, Enterprise)"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "price",
+                  "required": true,
+                  "max_length": 50,
+                  "help_text": "Price of the plan (e.g., $29)"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "period",
+                  "required": false,
+                  "max_length": 50,
+                  "help_text": "Billing period (e.g., /month, /year)"
+                }
+              },
+              {
+                "type": "text_field",
+                "value": {
+                  "name": "description",
+                  "required": false,
+                  "help_text": "Brief description of the plan"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "tag",
+                  "required": false,
+                  "max_length": 20,
+                  "help_text": "A tag of the plan (e.g., Popular)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "is_highlighted",
+                  "required": false,
+                  "help_text": "Highlight this plan with colored design elements"
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "features",
+                  "required": false,
+                  "collapsed": true,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "feature",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "feature",
+                              "required": true,
+                              "max_length": 200,
+                              "help_text": "A single feature of the plan"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "is_enabled",
+                              "required": false,
+                              "help_text": "Enable or disable this feature (disabled features appear faded)"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "min_num": 0,
+                  "max_num": 50
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "buttons",
+                  "required": false,
+                  "collapsed": true,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Button text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "page_chooser_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "Internal page to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "external_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": true,
+                              "help_text": "Button text"
+                            }
+                          },
+                          {
+                            "type": "url_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "help_text": "External URL to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "min_num": 0,
+                  "max_num": 3
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "min_num": 0,
+      "max_num": 10
+    }
+  }
+]

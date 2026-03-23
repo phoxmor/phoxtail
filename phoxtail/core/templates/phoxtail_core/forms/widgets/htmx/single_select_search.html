@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}
+Single Select Search Widget
+============================
+A searchable single-select with two states: search bar or selected item display.
+
+Required context:
+    - field: The form field (SingleSelectSearchField or ModelChoiceField)
+    - search_url: URL for HTMX search endpoint
+
+Optional context:
+    - selected_item: Model instance or None (auto-derived from field if not provided)
+    - available_items: Queryset of available items (auto-derived from field if not provided)
+    - widget_id: Unique identifier (default: field.html_name)
+    - hx_include: Selector for additional form fields to include in requests
+    - show_label/show_help_text: Whether to show label/help (default: True)
+    - item_template: Path to template for rich dropdown item rendering (default: uses __str__)
+    - is_active: Whether the widget is interactive (default: active; pass False to deactivate)
+    - search_placeholder: Placeholder text for search input
+    - search_value: Current search query value
+{% endcomment %}
+{# Derive widget_id and item data from field if not provided #}
+{% with widget_id=widget_id|default:field.html_name selected_item=selected_item|default:field.selected_item available_items=available_items|default:field.available_items %}
+    <div id="{{ widget_id }}-widget" class="fw-sss-widget">
+        {# Label and Help Text #}
+        {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
+            <div class="fw-label-row">
+                {% if show_label != False %}
+                    <span class="fw-label">
+                        {{ label|default:field.label }}
+                        {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+                    </span>
+                {% else %}
+                    <span class="fw-label"></span>
+                {% endif %}
+                {% if show_help_text != False and help_text|default:field.help_text %}
+                    <span class="fw-help-wrapper">
+                        <button type="button" class="fw-help-btn" tabindex="0">?</button>
+                        <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+        {# Widget Container - errors inside so they clear on HTMX swap #}
+        <div id="{{ widget_id }}-container"
+             class="fw-widget-container{% if is_active == False or field.field.disabled %} fw-widget-container--inactive{% endif %}">
+            {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/input.html' %}
+            {% if field.errors %}
+                {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endwith %}

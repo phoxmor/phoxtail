@@ -1,0 +1,7 @@
+name: Related Blog Posts
+identifier: blog_related_posts
+description: Context-reader block that renders related blog posts beneath the current post. Reads the related_posts queryset injected by BlogPostPage.get_context(). Scoped to BlogPostPage only.
+icon: list-ul
+group: Blog
+page_types:
+  - blog.blogpostpage

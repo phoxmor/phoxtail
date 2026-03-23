@@ -1,0 +1,23 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth %}
+{% block head_title %}
+    {% trans "Sign Up Closed" %}
+{% endblock head_title %}
+{% block content %}
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-card-shimmer"></div>
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header" style="margin-bottom: 0;">
+                    <h1 class="auth-heading">{% trans "Sign Up Closed" %}</h1>
+                    <p class="auth-subtitle">{% trans "We are sorry, but the sign up is currently closed." %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,100 @@
+{% load static app_tags wagtailimages_tags wagtailsettings_tags %}
+{% get_settings %}
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Sign In</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/auth.css' %}">
+        <style>
+            :root {
+                {{ settings.app.SiteConfig.css_variables|safe }}
+            }
+            {{ settings.app.SiteConfig.font_face_declarations|safe }}
+        </style>
+    </head>
+    <body class="auth-body">
+        <div class="auth-bg"></div>
+        <div class="auth-bg-orbs">
+            <div class="auth-bg-orb auth-bg-orb--1"></div>
+            <div class="auth-bg-orb auth-bg-orb--2"></div>
+            <div class="auth-bg-orb auth-bg-orb--3"></div>
+            <div class="auth-bg-grid"></div>
+        </div>
+        <div class="auth-page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-card-shimmer"></div>
+                    {% include "allauth/components/logo.html" %}
+                    <div class="auth-header">
+                        <h1 class="auth-heading">Access Required</h1>
+                        <p class="auth-subtitle">
+                            Please enter your credentials to continue.
+                            {% if user.is_authenticated %}
+                                <br>
+                                <br>
+                                <span style="display: block;
+                                             font-size: 0.75rem;
+                                             color: rgb(var(--color-primary-700));
+                                             background: rgb(var(--color-primary-50) / 0.8);
+                                             padding: 0.5rem 0.75rem;
+                                             border-radius: 0.5rem;
+                                             border: 1px solid rgb(var(--color-primary-300) / 0.5)">
+                                    Please log in with an account that has access
+                                </span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form action="{{ action_url }}" method="POST" class="auth-form">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <p class="auth-error">
+                                    <span class="auth-error-dot"></span>
+                                    {{ error }}
+                                </p>
+                            {% endfor %}
+                        {% endif %}
+                        <div class="auth-field">
+                            <label for="{{ form.username.id_for_label }}" class="auth-label">
+                                Email Address
+                                {% if form.username.field.required %}<span class="auth-required">*</span>{% endif %}
+                            </label>
+                            <div class="auth-input-wrapper">
+                                {{ form.username|add_class:"auth-input" }}
+                                <div class="auth-input-glow"></div>
+                            </div>
+                        </div>
+                        <div class="auth-field">
+                            <label for="{{ form.password.id_for_label }}" class="auth-label">
+                                Password
+                                {% if form.password.field.required %}<span class="auth-required">*</span>{% endif %}
+                            </label>
+                            <div class="auth-input-wrapper">
+                                {{ form.password|add_class:"auth-input" }}
+                                <div class="auth-input-glow"></div>
+                                {% if form.password.errors %}
+                                    {% for error in form.password.errors %}
+                                        <p class="auth-error">
+                                            <span class="auth-error-dot"></span>
+                                            {{ error }}
+                                        </p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+                        <div class="auth-actions">
+                            <button type="submit" class="auth-btn">
+                                <div class="auth-btn-glow"></div>
+                                <div class="auth-btn-inner">Sign In</div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

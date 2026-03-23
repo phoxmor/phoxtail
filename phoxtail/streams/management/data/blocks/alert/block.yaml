@@ -1,0 +1,4 @@
+name: Alert
+identifier: alert
+description: An inline alert message for info, success, warning, or danger notices. Contained width, styled with semantic status colours.
+icon: warning

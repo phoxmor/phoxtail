@@ -1,0 +1,39 @@
+{% load static i18n wagtailimages_tags wagtailsettings_tags %}
+{% get_settings %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block head_title %}
+            {% endblock head_title %}
+        </title>
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/auth.css' %}">
+        <style>
+            :root {
+                {{ settings.app.SiteConfig.css_variables|safe }}
+            }
+            {{ settings.app.SiteConfig.font_face_declarations|safe }}
+        </style>
+        {% block extra_head %}
+        {% endblock extra_head %}
+    </head>
+    <body class="auth-body">
+        {% include "account/messages_static.html" %}
+        <div class="auth-bg"></div>
+        <div class="auth-bg-orbs">
+            <div class="auth-bg-orb auth-bg-orb--1"></div>
+            <div class="auth-bg-orb auth-bg-orb--2"></div>
+            <div class="auth-bg-orb auth-bg-orb--3"></div>
+            <div class="auth-bg-grid"></div>
+        </div>
+        {% block body %}
+            {% block content %}
+            {% endblock content %}
+        {% endblock body %}
+        {% block extra_body %}
+        {% endblock extra_body %}
+    </body>
+</html>

@@ -1,0 +1,664 @@
+/* Team Section wrapper */
+#team-section-{{ block.id }} {
+    --ts-gap: 1.5rem;
+    --ts-radius: 1rem;
+    --ts-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 3rem 1rem;
+    background-color: transparent;
+    font-family: var(--font-body, system-ui, sans-serif);
+}
+
+/* Container */
+#team-section-{{ block.id }} .ts-container {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* Carousel Wrapper & Viewport */
+#team-section-{{ block.id }} .ts-carousel-wrapper {
+    position: relative;
+}
+
+#team-section-{{ block.id }} .ts-carousel-wrapper.is-carousel .ts-carousel-viewport {
+    overflow: hidden;
+    padding: 1rem 0;
+    margin: -1rem 0;
+}
+
+#team-section-{{ block.id }} .is-carousel .ts-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    grid-template-columns: none;
+}
+
+/* Grid */
+#team-section-{{ block.id }} .ts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ts-gap);
+}
+
+@media (min-width: 768px) {
+    #team-section-{{ block.id }} .ts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
+}
+
+/* Item */
+#team-section-{{ block.id }} .ts-item {
+    cursor: pointer;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    outline: none;
+}
+
+#team-section-{{ block.id }} .is-carousel .ts-item {
+    flex: 0 0 100%;
+}
+
+@media (min-width: 768px) {
+    #team-section-{{ block.id }} .is-carousel .ts-item {
+        flex: 0 0 calc(50% - (var(--ts-gap) / 2));
+    }
+}
+
+@media (min-width: 1024px) {
+    #team-section-{{ block.id }} .is-carousel .ts-item {
+        flex: 0 0 calc(33.3333% - (var(--ts-gap) * 2 / 3));
+    }
+}
+
+#team-section-{{ block.id }} .ts-item:focus-visible .ts-card {
+    outline: 2px solid rgb(var(--color-primary-500));
+    outline-offset: 4px;
+}
+
+/* Pagination bullets */
+#team-section-{{ block.id }} .ts-pagination {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+#team-section-{{ block.id }} .ts-pagination.is-active {
+    display: flex;
+}
+
+#team-section-{{ block.id }} .ts-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 9999px;
+    background-color: rgb(var(--color-surface-300));
+    cursor: pointer;
+    transition: background-color 300ms var(--ts-ease), transform 300ms var(--ts-ease);
+}
+
+#team-section-{{ block.id }} .ts-dot:hover {
+    background-color: rgb(var(--color-surface-500));
+    transform: scale(1.25);
+}
+
+#team-section-{{ block.id }} .ts-dot:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-500));
+    outline-offset: 2px;
+}
+
+#team-section-{{ block.id }} .ts-dot--active {
+    background-color: rgb(var(--color-surface-800));
+    transform: scale(1.25);
+}
+
+/* Out-of-Modal Card */
+#team-section-{{ block.id }} .ts-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--ts-radius);
+    aspect-ratio: 3 / 4;
+    background-color: rgb(var(--color-surface-200));
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    isolation: isolate;
+    width: 100%;
+}
+
+#team-section-{{ block.id }} .ts-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    z-index: 2;
+}
+
+#team-section-{{ block.id }} .ts-card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: inherit;
+    transition: transform 500ms var(--ts-ease);
+    will-change: transform;
+}
+
+#team-section-{{ block.id }} .ts-card:hover .ts-card-image {
+    transform: scale(1.04);
+}
+
+#team-section-{{ block.id }} .ts-card-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.45) 50%, transparent 100%);
+    display: flex;
+    z-index: 1;
+}
+
+/* Card Layout */
+#team-section-{{ block.id }} .ts-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    width: 100%;
+    height: 100%;
+    justify-content: flex-end;
+    align-items: flex-start;
+    text-align: left;
+}
+
+#team-section-{{ block.id }} .ts-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+}
+
+#team-section-{{ block.id }} .ts-card-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+/* Card Text Elements */
+#team-section-{{ block.id }} .ts-card .ts-member-name {
+    font-family: var(--font-heading, system-ui, sans-serif);
+    font-weight: var(--font-heading-weight-bold, 700);
+    font-size: 1.375rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: white;
+    margin: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+#team-section-{{ block.id }} .ts-card .ts-member-role {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    color: rgb(var(--color-primary-400));
+    margin: 0;
+    font-weight: 500;
+}
+
+#team-section-{{ block.id }} .ts-card .ts-card-bio {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+    width: 100%;
+}
+
+#team-section-{{ block.id }} .ts-bio-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#team-section-{{ block.id }} .ts-card-bio p {
+    margin: 0;
+}
+
+/* Card Socials */
+#team-section-{{ block.id }} .ts-card .ts-card-social {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+#team-section-{{ block.id }} .ts-card .ts-social-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: background-color 250ms var(--ts-ease), border-color 250ms var(--ts-ease), transform 250ms var(--ts-ease);
+    text-decoration: none;
+    z-index: 2;
+}
+
+#team-section-{{ block.id }} .ts-card .ts-social-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+#team-section-{{ block.id }} .ts-card .ts-social-link:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
+}
+
+#team-section-{{ block.id }} .ts-card .ts-social-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    object-fit: contain;
+}
+
+/* Modal Overlay */
+#team-section-{{ block.id }} .ts-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 300ms var(--ts-ease), visibility 300ms var(--ts-ease);
+}
+
+#team-section-{{ block.id }} .ts-modal[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+}
+
+#team-section-{{ block.id }} .ts-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(var(--color-surface-950) / 0.9);
+}
+
+/* Modal Stage & Content */
+#team-section-{{ block.id }} .ts-modal-stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    #team-section-{{ block.id }} .ts-modal-stage {
+        padding: 3rem;
+    }
+}
+
+#team-section-{{ block.id }} .ts-modal-content {
+    background-color: rgb(var(--color-surface-50));
+    border-radius: var(--ts-radius);
+    padding: 2.5rem 2rem;
+    max-width: 40rem;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 300ms var(--ts-ease), opacity 300ms var(--ts-ease);
+}
+
+@media (min-width: 768px) {
+    #team-section-{{ block.id }} .ts-modal-content {
+        padding: 3.5rem;
+    }
+}
+
+#team-section-{{ block.id }} .ts-modal[aria-hidden="false"] .ts-modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Modal Text & Avatar Elements */
+#team-section-{{ block.id }} .ts-modal-avatar {
+    width: 7rem;
+    height: 7rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    overflow: hidden;
+    background-color: rgb(var(--color-surface-100));
+    border: 3px solid rgb(var(--color-surface-200));
+    margin-bottom: 1.5rem;
+    display: none;
+}
+
+#team-section-{{ block.id }} .ts-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#team-section-{{ block.id }} .ts-modal-name {
+    font-family: var(--font-heading, system-ui, sans-serif);
+    font-size: 1.5rem;
+    font-weight: var(--font-heading-weight-bold, 700);
+    color: rgb(var(--color-surface-900));
+    margin-bottom: 0.25rem;
+}
+
+#team-section-{{ block.id }} .ts-modal-role {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: rgb(var(--color-primary-600));
+    margin-bottom: 0.75rem;
+}
+
+#team-section-{{ block.id }} .ts-modal-bio {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgb(var(--color-surface-700));
+    text-align: left;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+#team-section-{{ block.id }} .ts-modal-bio p {
+    margin: 0 0 0.75rem 0;
+}
+
+#team-section-{{ block.id }} .ts-modal-bio p:last-child {
+    margin-bottom: 0;
+}
+
+/* Modal Socials (Dark in Light Mode) */
+#team-section-{{ block.id }} .ts-modal-social {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+#team-section-{{ block.id }} .ts-modal-social .ts-social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    background-color: rgb(var(--color-surface-700));
+    border: none;
+    transition: background-color 200ms var(--ts-ease), transform 200ms var(--ts-ease);
+    text-decoration: none;
+    z-index: 2;
+}
+
+#team-section-{{ block.id }} .ts-modal-social .ts-social-link:hover {
+    background-color: rgb(var(--color-surface-600));
+    transform: translateY(-2px);
+}
+
+#team-section-{{ block.id }} .ts-modal-social .ts-social-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    object-fit: contain;
+}
+
+/* === UNIFIED BUTTONS (Applies globally to Card & Modal) === */
+#team-section-{{ block.id }} .ts-card-button-wrap,
+#team-section-{{ block.id }} .ts-modal-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+#team-section-{{ block.id }} .ts-modal-buttons {
+    justify-content: center;
+    width: 100%;
+}
+
+#team-section-{{ block.id }} .ts-btn {
+    position: relative;
+    z-index: 2; /* Ensures they are clickable above the card overlay */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem; /* Matches Reference Variant */
+    font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
+    font-size: 0.875rem;
+    font-weight: var(--font-ui-weight-semibold, 600);
+    letter-spacing: 0.025em;
+    text-decoration: none;
+    border-radius: calc(infinity * 1px);
+    border: none;
+    cursor: pointer;
+    transition: background-color 200ms var(--ts-ease), transform 200ms var(--ts-ease), box-shadow 200ms var(--ts-ease);
+}
+
+#team-section-{{ block.id }} .ts-btn:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-500));
+    outline-offset: 2px;
+}
+
+#team-section-{{ block.id }} .ts-btn--primary {
+    background-color: rgb(var(--color-primary-600)); /* Matches Reference Variant */
+    color: white;
+}
+
+#team-section-{{ block.id }} .ts-btn--primary:hover {
+    background-color: rgb(var(--color-primary-700)); /* Matches Reference Variant */
+}
+
+/* Dark Mode Handlers */
+@media (prefers-color-scheme: dark) {
+    #team-section-{{ block.id }} .ts-dot {
+        background-color: rgb(var(--color-surface-600));
+    }
+    
+    #team-section-{{ block.id }} .ts-dot:hover {
+        background-color: rgb(var(--color-surface-400));
+    }
+    
+    #team-section-{{ block.id }} .ts-dot--active {
+        background-color: rgb(var(--color-surface-50));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-content {
+        background-color: rgb(var(--color-surface-800));
+        color: rgb(var(--color-surface-50));
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-avatar {
+        background-color: rgb(var(--color-surface-700));
+        border-color: rgb(var(--color-surface-600));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-name {
+        color: rgb(var(--color-surface-50));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-role {
+        color: rgb(var(--color-primary-400));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-bio {
+        color: rgb(var(--color-surface-300));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-social .ts-social-link {
+        background-color: rgb(var(--color-surface-700));
+    }
+    
+    #team-section-{{ block.id }} .ts-modal-social .ts-social-link:hover {
+        background-color: rgb(var(--color-surface-600));
+    }
+
+    /* Unified Dark Mode Buttons */
+    #team-section-{{ block.id }} .ts-btn--primary {
+        background-color: rgb(var(--color-primary-400));
+        color: rgb(var(--color-surface-950));
+    }
+    
+    #team-section-{{ block.id }} .ts-btn--primary:hover {
+        background-color: rgb(var(--color-primary-300));
+    }
+}
+
+/* Animations */
+#team-section-{{ block.id }} .ts-modal-content.ts-slide-left {
+    animation: ts-slide-out-left-{{ block.id }} 250ms var(--ts-ease) forwards;
+}
+
+#team-section-{{ block.id }} .ts-modal-content.ts-slide-right {
+    animation: ts-slide-out-right-{{ block.id }} 250ms var(--ts-ease) forwards;
+}
+
+#team-section-{{ block.id }} .ts-modal-content.ts-slide-in-left {
+    animation: ts-slide-in-left-{{ block.id }} 250ms var(--ts-ease) forwards;
+}
+
+#team-section-{{ block.id }} .ts-modal-content.ts-slide-in-right {
+    animation: ts-slide-in-right-{{ block.id }} 250ms var(--ts-ease) forwards;
+}
+
+@keyframes ts-slide-out-left-{{ block.id }} {
+    to { transform: translateX(-8%) scale(0.95); opacity: 0; }
+}
+
+@keyframes ts-slide-out-right-{{ block.id }} {
+    to { transform: translateX(8%) scale(0.95); opacity: 0; }
+}
+
+@keyframes ts-slide-in-left-{{ block.id }} {
+    from { transform: translateX(8%) scale(0.95); opacity: 0; }
+    to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes ts-slide-in-right-{{ block.id }} {
+    from { transform: translateX(-8%) scale(0.95); opacity: 0; }
+    to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    #team-section-{{ block.id }} .ts-card,
+    #team-section-{{ block.id }} .ts-card-image {
+        transition: none;
+    }
+    #team-section-{{ block.id }} .ts-modal,
+    #team-section-{{ block.id }} .ts-modal-content {
+        transition-duration: 0.01ms;
+    }
+    #team-section-{{ block.id }} .ts-modal-content.ts-slide-left,
+    #team-section-{{ block.id }} .ts-modal-content.ts-slide-right,
+    #team-section-{{ block.id }} .ts-modal-content.ts-slide-in-left,
+    #team-section-{{ block.id }} .ts-modal-content.ts-slide-in-right {
+        animation-duration: 0.01ms;
+    }
+}
+
+/* Modal Navigation controls */
+#team-section-{{ block.id }} .ts-nav,
+#team-section-{{ block.id }} .ts-close {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    transition: background 200ms var(--ts-ease), color 200ms var(--ts-ease);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+#team-section-{{ block.id }} .ts-nav {
+    width: 3rem;
+    height: 3rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#team-section-{{ block.id }} .ts-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    top: 1rem;
+    right: 1rem;
+}
+
+#team-section-{{ block.id }} .ts-nav:hover,
+#team-section-{{ block.id }} .ts-close:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+#team-section-{{ block.id }} .ts-nav:focus-visible,
+#team-section-{{ block.id }} .ts-close:focus-visible {
+    outline: 2px solid rgba(255,255,255,0.6);
+    outline-offset: 2px;
+}
+
+#team-section-{{ block.id }} .ts-nav--prev {
+    left: 1rem;
+}
+
+#team-section-{{ block.id }} .ts-nav--next {
+    right: 1rem;
+}
+
+#team-section-{{ block.id }} .ts-nav-icon,
+#team-section-{{ block.id }} .ts-close-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Counter */
+#team-section-{{ block.id }} .ts-counter {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-family: var(--font-ui, system-ui, sans-serif);
+    font-size: 0.8125rem;
+    font-weight: var(--font-ui-weight-medium, 500);
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.05em;
+    pointer-events: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #team-section-{{ block.id }} .ts-nav {
+        display: none;
+    }
+}

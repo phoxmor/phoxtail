@@ -1,0 +1,19 @@
+{% load wagtailcore_tags %}
+{% if block.value.items %}
+    <section id="cs-{{ block.id }}" aria-label="Contact information">
+        <div class="cs-inner">
+            {% for item_block in block.value.items %}
+                {% if item_block.block_type == 'item' %}
+                    {% with item=item_block.value link_type=item_block.value.type|lower %}
+                        <a href="{% if link_type == 'phone' or link_type == 'mobile' %}tel:{{ item.value|urlencode }}{% elif link_type == 'email' %}mailto:{{ item.value|urlencode }}{% elif link_type == 'address' %}https://www.google.com/maps/search/?api=1&query={{ item.value|urlencode }}{% endif %}"
+                           class="cs-row{% if forloop.first %} cs-row--first{% endif %}{% if forloop.last %} cs-row--last{% endif %}"
+                           {% if link_type == 'address' %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                            <span class="cs-row__label">{{ item.label }}</span>
+                            <span class="cs-row__value">{{ item.value }}</span>
+                        </a>
+                    {% endwith %}
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}

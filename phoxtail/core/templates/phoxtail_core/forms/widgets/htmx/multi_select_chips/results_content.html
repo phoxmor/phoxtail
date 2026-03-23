@@ -1,0 +1,33 @@
+{% load i18n phoxtail_design_tags %}
+{# Dropdown content - swapped separately from search input to preserve focus during search #}
+{# show_dropdown=False on initial render (hidden), True/unset during search (visible) #}
+<div id="{{ widget_id|default:field.html_name }}-dropdown"
+     class="fw-search-dropdown{% if show_dropdown == False %} fw-hidden{% endif %}">
+    {% if available_items %}
+        {% for item in available_items|slice:":20" %}
+            {% if not forloop.first %}<div class="fw-search-divider"></div>{% endif %}
+            <button type="button"
+                    class="fw-search-item"
+                    hx-get="{{ search_url }}"
+                    hx-include="#{{ widget_id|default:field.html_name }}-selected-values{% if hx_include %}, {{ hx_include }}{% endif %}"
+                    hx-vals='{"{{ widget_id|default:field.html_name }}_add": "{{ item.pk }}"}'
+                    hx-target="#{{ widget_id|default:field.html_name }}-compact-input"
+                    hx-swap="outerHTML">
+                <span class="fw-search-item-icon">{% icon "plus" %}</span>
+                {% if item_template %}
+                    {% include item_template with item=item %}
+                {% else %}
+                    <span class="fw-search-item-text">{{ item }}</span>
+                {% endif %}
+            </button>
+        {% endfor %}
+    {% else %}
+        <div class="fw-search-empty">
+            {% if search_value %}
+                {% trans "No matches found" %}
+            {% else %}
+                {% trans "No options available" %}
+            {% endif %}
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,86 @@
+{% load static app_tags wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+<div id="video-banner-{{ block.id }}" class="vb-wrapper">
+    {% if value.thumbnail %}
+        {% srcset_image value.thumbnail width-{768,1280,1920} class="vb-thumbnail" sizes="100vw" alt=value.thumbnail.title loading="eager" %}
+    {% endif %}
+    <video class="vb-video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="{{ value.file.url }}" type="{{ value.file.file.mime_type }}">
+        Your browser does not support the video tag.
+    </video>
+    {% if value.slides %}
+        <div class="vb-slides" aria-live="off">
+            {% for slide_block in value.slides %}
+                {% with slide=slide_block.value %}
+                    <div class="vb-slide {% if forloop.first %}vb-slide--active{% endif %}"
+                         role="group"
+                         aria-roledescription="slide"
+                         aria-label="Slide {{ forloop.counter }} of {{ value.slides|length }}"
+                         aria-labelledby="slide-heading-{{ forloop.counter }}-{{ block.id }}">
+                        <div class="vb-slide-inner">
+                            {% if slide.supertitle or slide.title or slide.subtitle or slide.buttons %}<div class="vb-overlay"></div>{% endif %}
+                            <div class="vb-content">
+                                {% if slide.supertitle %}<span class="vb-supertitle">{{ slide.supertitle }}</span>{% endif %}
+                                {% if slide.title %}
+                                    <h1 id="slide-heading-{{ forloop.counter }}-{{ block.id }}"
+                                        class="vb-title">{{ slide.title }}</h1>
+                                {% endif %}
+                                {% if slide.subtitle %}
+                                    <div class="vb-subtitle{% if slide.supertitle or slide.title %} vb-subtitle-spacing{% endif %}">
+                                        {{ slide.subtitle|linebreaks }}
+                                    </div>
+                                {% endif %}
+                                {% if slide.buttons %}
+                                    <div class="vb-buttons{% if slide.supertitle or slide.title or slide.subtitle %} vb-buttons-spacing{% endif %}">
+                                        {% for button_block in slide.buttons %}
+                                            {% if button_block.block_type == 'internal_link' %}
+                                                {% with button=button_block.value page=button_block.value.link.specific %}
+                                                    {% if not page.live %}
+                                                        {% if perms.wagtailadmin.access_admin %}
+                                                            <span class="vb-btn vb-btn--disabled">
+                                                                {{ button.label|default:page.title }}
+                                                                {% icon "cloud_off" class="vb-btn-icon" %}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% elif page.is_locked_for_references %}
+                                                        <span class="vb-btn vb-btn--disabled">
+                                                            {{ button.label|default:page.title }}
+                                                            {% icon "lock" class="vb-btn-icon" %}
+                                                        </span>
+                                                    {% else %}
+                                                        <a href="{{ page.url }}"
+                                                           class="vb-btn vb-btn--primary"
+                                                           {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                            {{ button.label|default:page.title }}
+                                                        </a>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% elif button_block.block_type == 'external_link' %}
+                                                {% with button=button_block.value %}
+                                                    <a href="{{ button.link }}"
+                                                       class="vb-btn vb-btn--primary"
+                                                       {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                        {{ button.label }}
+                                                    </a>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+        {% if value.slides|length > 1 %}
+            <nav class="vb-pagination" aria-label="Slide navigation">
+                {% for slide_block in value.slides %}
+                    <button class="vb-dot {% if forloop.first %}vb-dot--active{% endif %}"
+                            type="button"
+                            aria-label="Go to slide {{ forloop.counter }}"
+                            data-index="{{ forloop.counter0 }}"></button>
+                {% endfor %}
+            </nav>
+        {% endif %}
+    {% endif %}
+</div>

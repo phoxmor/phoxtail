@@ -1,0 +1,67 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<section id="image-cards-{{ block.id }}" class="ic-wrapper">
+    <div class="ic-container">
+        {% if value.cards %}
+            <div class="ic-carousel-wrapper">
+                <div class="ic-carousel-viewport">
+                    <div class="ic-grid">
+                        {% for card_block in value.cards %}
+                            {% with card=card_block.value %}
+                                <div class="ic-item" data-index="{{ forloop.counter0 }}">
+                                    <div class="ic-card">
+                                        {% image card.image fill-800x1000 as img %}
+                                        <img src="{{ img.url }}"
+                                             alt="{{ img.alt }}"
+                                             class="ic-card-image"
+                                             loading="lazy">
+                                        {% if card.title or card.description or card.button %}
+                                            <div class="ic-card-overlay">
+                                                <div class="ic-card-body">
+                                                    {% if card.title %}<h3 class="ic-card-title">{{ card.title }}</h3>{% endif %}
+                                                    {% if card.description %}<p class="ic-card-description">{{ card.description }}</p>{% endif %}
+                                                    {% if card.button %}
+                                                        <div class="ic-card-button-wrap">
+                                                            {% for btn_block in card.button %}
+                                                                {% if btn_block.block_type == 'internal_link' %}
+                                                                    {% with btn=btn_block.value %}
+                                                                        <a href="{{ btn.link.url }}"
+                                                                           class="ic-btn ic-btn--primary"
+                                                                           {% if btn.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                                            {{ btn.label|default:btn.link.title }}
+                                                                        </a>
+                                                                    {% endwith %}
+                                                                {% elif btn_block.block_type == 'external_link' %}
+                                                                    {% with btn=btn_block.value %}
+                                                                        <a href="{{ btn.link }}"
+                                                                           class="ic-btn ic-btn--primary"
+                                                                           {% if btn.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                                            {{ btn.label }}
+                                                                        </a>
+                                                                    {% endwith %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="ic-pagination"
+                     aria-label="Carousel navigation"
+                     aria-hidden="true">
+                    {% for card_block in value.cards %}
+                        <button class="ic-dot {% if forloop.first %}ic-dot--active{% endif %}"
+                                type="button"
+                                aria-label="Go to card {{ forloop.counter }}"
+                                data-index="{{ forloop.counter0 }}"></button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>

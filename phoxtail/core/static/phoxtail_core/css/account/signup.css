@@ -1,0 +1,74 @@
+/* core/static/core/css/account/signup.css */
+
+.auth-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .auth-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.auth-form-grid-full {
+    grid-column: 1 / -1;
+}
+
+.auth-error-box {
+    padding: 1rem;
+    background: rgb(254, 226, 226);
+    border-radius: 0.5rem;
+    border: 1px solid rgb(254, 202, 202);
+}
+
+.auth-error-box-content {
+    display: flex;
+    align-items: center;
+}
+
+.auth-error-box-icon {
+    height: 1.25rem;
+    width: 1.25rem;
+    color: rgb(239, 68, 68);
+    flex-shrink: 0;
+}
+
+.auth-error-box-text {
+    margin-left: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(153, 27, 27);
+}
+
+/* ========================================
+   AUTH PAGES – Phone field layout
+   ======================================== */
+.auth-phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.auth-phone-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .auth-error-box {
+        background: rgba(127, 29, 29, 0.3);
+        border-color: rgba(153, 27, 27, 0.3);
+    }
+
+    .auth-error-box-icon {
+        color: rgb(248, 113, 113);
+    }
+
+    .auth-error-box-text {
+        color: rgb(254, 202, 202);
+    }
+}

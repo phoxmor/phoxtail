@@ -1,0 +1,33 @@
+/* core/static/core/css/wagtailadmin/base.css */
+
+/* Symbol logo container styling */
+.symbol-logo-container {
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+/* Apply max height to all symbol logo images */
+.symbol-logo, .symbol-logo-light, .symbol-logo-dark {
+    width: 100% !important;
+    max-width: 8rem !important;
+    max-height: 8rem !important;
+}
+
+/* Hide both theme-specific symbol logos by default */
+.symbol-logo-dark, .symbol-logo-light {
+    display: none;
+}
+
+/* When system theme is active, use media queries */
+@media (prefers-color-scheme: dark) {
+    .symbol-logo-dark {
+        display: block;
+    }
+}
+@media (prefers-color-scheme: light), (prefers-color-scheme: no-preference) {
+    .symbol-logo-light {
+        display: block;
+    }
+}

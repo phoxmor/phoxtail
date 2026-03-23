@@ -1,0 +1,1 @@
+Ground state variant for Footer. A multi-section footer with logo, organized link columns, social media icons, bottom utility links, and copyright notice. Includes disabled states for unpublished/locked pages (visible to admins) and contact information blocks (phone, email, address) with appropriate semantic links. Responsive column layout that stacks on mobile.

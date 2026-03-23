@@ -1,0 +1,100 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% load app_tags %}
+{% block head_title %}
+    {% if title_ %}
+        {{ title_ }}
+    {% else %}
+        {% trans "Confirm Action" %}
+    {% endif %}
+{% endblock head_title %}
+{% block body %}
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-card-shimmer"></div>
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header">
+                    <h1 class="auth-heading">{{ title_ }}</h1>
+                    <p class="auth-subtitle">
+                        {% blocktranslate %}We've sent a code to {{ recipient }}. The code expires shortly, so please enter it soon.{% endblocktranslate %}
+                    </p>
+                </div>
+                <form class="auth-form"
+                      method="post"
+                      action="{{ action_url }}"
+                      tags="entrance,{{ extra_tags }}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <p class="auth-error">
+                                <span class="auth-error-dot"></span>
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    {% endif %}
+                    {% for field in form %}
+                        <div class="auth-field">
+                            <label for="{{ field.id_for_label }}" class="auth-label">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="auth-required">*</span>{% endif %}
+                            </label>
+                            <div class="auth-input-wrapper">
+                                <input type="{{ field.field.widget.input_type }}"
+                                       name="{{ field.html_name }}"
+                                       id="{{ field.id_for_label }}"
+                                       value="{{ field.value|default_if_none:'' }}"
+                                       class="auth-input{% if field.errors %} auth-input--error{% endif %}">
+                                <div class="auth-input-glow"></div>
+                                {% if field.errors %}
+                                    <div class="auth-errors-block">
+                                        {% for error in field.errors %}
+                                            <p class="auth-error">
+                                                <span class="auth-error-dot"></span>
+                                                {{ error }}
+                                            </p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {{ redirect_field }}
+                    <div class="auth-actions">
+                        {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" extra_attrs='tags="prominent,confirm,"' %}
+                    </div>
+                    {% if cancel_url %}
+                        <div class="auth-text-center">
+                            <a href="{{ cancel_url }}" class="auth-link" tags="link,cancel">{% translate "Cancel" %}</a>
+                        </div>
+                    {% else %}
+                        <div class="auth-text-center">
+                            <button type="submit"
+                                    form="logout-from-stage"
+                                    class="auth-link"
+                                    style="background: none;
+                                           border: none;
+                                           cursor: pointer;
+                                           font-family: var(--font-family);
+                                           font-size: inherit"
+                                    tags="link,cancel">{% translate "Cancel" %}</button>
+                        </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% if not cancel_url %}
+        <form id="logout-from-stage"
+              method="post"
+              action="{% url 'account_logout' %}"
+              class="auth-hidden">
+            <input type="hidden" name="next" value="{% url 'account_login' %}">
+            {% csrf_token %}
+        </form>
+    {% endif %}
+{% endblock body %}

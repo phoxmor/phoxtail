@@ -1,0 +1,63 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% block head_title %}
+    {% translate "Email Verification" %}
+{% endblock head_title %}
+{% block content %}
+    <div class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-6">
+            <h1 class="text-3xl font-extrabold text-center">{% translate "Enter Email Verification Code" %}</h1>
+            <p class="mt-4 text-sm text-center">
+                {% blocktranslate %}We’ve sent a code to
+            <a href="mailto:{{ email }}" class="text-red-500 hover:text-red-400">{{ email }}</a>. 
+            The code expires shortly, so please enter it soon.{% endblocktranslate %}
+            </p>
+            <form class="mt-8 space-y-6"
+                  method="post"
+                  action="{% url 'account_email_verification_sent' %}">
+                {% csrf_token %}
+                {{ redirect_field }}
+                <div class=" p-4 flex flex-col gap-4">
+                    {% for field in form %}
+                        {% if not field.is_hidden %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="sr-only">{{ field.label }}</label>
+                                <input type="{{ field.field.widget.input_type }}"
+                                       name="{{ field.html_name }}"
+                                       id="{{ field.id_for_label }}"
+                                       placeholder="{{ field.label }}"
+                                       class="w-full px-3 py-2 border focus:outline-none focus:ring-red-400 focus:border-red-400 focus:z-10 sm:text-sm">
+                                {{ field.errors }}
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="submit"
+                            class="py-2 px-4 w-full bg-red-500 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400">
+                        {% translate "Confirm" %}
+                    </button>
+                </div>
+            </form>
+            {% if cancel_url %}
+                <div class="text-center mt-4">
+                    <a href="{{ cancel_url }}" class="text-sm">{% translate "Cancel" %}</a>
+                </div>
+            {% else %}
+                <form id="logout-from-stage"
+                      method="post"
+                      action="{% url 'account_logout' %}"
+                      class="hidden">
+                    <input type="hidden" name="next" value="{% url 'account_login' %}">
+                    {% csrf_token %}
+                </form>
+                <div class="text-center mt-4">
+                    <button type="submit" form="logout-from-stage" class="text-sm">{% translate "Cancel" %}</button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

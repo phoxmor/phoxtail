@@ -1,0 +1,49 @@
+- name: Surface
+  identifier: surface
+  description: >-
+    The neutral palette for backgrounds, text, and borders.
+    In light mode, use lighter shades for backgrounds and darker shades for text.
+    In dark mode, use darker shades for surfaces and lighter shades for text.
+    Essential for establishing hierarchy without using brand colors.
+
+- name: Primary
+  identifier: primary
+  description: >-
+    The main brand color used for primary actions, buttons, and high-emphasis states.
+    Typically the most prominent color in the UI.
+
+- name: Secondary
+  identifier: secondary
+  description: >-
+    Supporting brand color for less prominent actions, toggle chips, and
+    secondary UI elements that need to be distinguished from the primary color.
+
+- name: Accent
+  identifier: accent
+  description: >-
+    A high-contrast color used sparingly for highlights, active states, and
+    elements that need to pop against the primary/secondary scheme.
+
+- name: Success
+  identifier: success
+  description: >-
+    Semantic color for positive states, completion, and 'safe' actions.
+    Usually a green-family palette.
+
+- name: Warning
+  identifier: warning
+  description: >-
+    Semantic color for cautionary states, pending actions, or non-critical
+    issues that require user attention. Usually an orange or yellow palette.
+
+- name: Destructive
+  identifier: destructive
+  description: >-
+    Semantic color for error states, dangerous actions (delete, remove),
+    and critical failures. Usually a red-family palette.
+
+- name: Info
+  identifier: info
+  description: >-
+    Semantic color for neutral-but-important information, helpful tips,
+    and system-level notifications. Usually a blue or cyan palette.

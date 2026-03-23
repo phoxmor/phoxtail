@@ -1,0 +1,250 @@
+/* Scoped styles for block {{ block.id }} */ 
+#image-cards-{{ block.id }} { 
+  --ic-ease: cubic-bezier(0.4, 0, 0.2, 1); 
+  padding: 2rem 1rem; 
+  background-color: rgb(var(--color-surface-50)); 
+  font-family: var(--font-body, system-ui, -apple-system, sans-serif); 
+} 
+
+#image-cards-{{ block.id }} .ic-container { 
+  max-width: 80rem; 
+  margin-left: auto; 
+  margin-right: auto; 
+} 
+
+/* ── Carousel wrapper ───────────────────────────────────────────────────── */ 
+#image-cards-{{ block.id }} .ic-carousel-wrapper { 
+  display: flex; 
+  flex-direction: column; 
+} 
+
+#image-cards-{{ block.id }} .ic-carousel-viewport { 
+  overflow: hidden; 
+} 
+
+#image-cards-{{ block.id }} .ic-grid { 
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 1.25rem; 
+} 
+
+/* When JS activates the carousel, items must sit in a single row */ 
+#image-cards-{{ block.id }} .ic-carousel-wrapper.is-carousel .ic-grid { 
+  display: flex; 
+  flex-wrap: nowrap; 
+  gap: 1.25rem; 
+} 
+
+#image-cards-{{ block.id }} .ic-carousel-wrapper.is-carousel .ic-item { 
+  flex: 0 0 calc(100% - 0px); 
+} 
+
+/* ── Card ────────────────────────────────────────────────────────────────── */ 
+#image-cards-{{ block.id }} .ic-item { 
+  min-width: 0; 
+} 
+
+#image-cards-{{ block.id }} .ic-card { 
+  position: relative; 
+  overflow: hidden; 
+  border-radius: 1rem; 
+  aspect-ratio: 3 / 4; 
+  background-color: transparent; 
+  transform: translateZ(0); 
+  backface-visibility: hidden; 
+  -webkit-mask-image: -webkit-radial-gradient(white, black); 
+  isolation: isolate; 
+} 
+
+#image-cards-{{ block.id }} .ic-card::after { 
+  content: ''; 
+  position: absolute; 
+  inset: 0; 
+  border-radius: inherit; 
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); 
+  pointer-events: none; 
+  z-index: 2; 
+} 
+
+#image-cards-{{ block.id }} .ic-card-image { 
+  position: absolute; 
+  inset: 0; 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  display: block; 
+  border-radius: inherit; 
+  transition: transform 500ms ease; 
+  will-change: transform; 
+} 
+
+#image-cards-{{ block.id }} .ic-card:hover .ic-card-image { 
+  transform: scale(1.04); 
+} 
+
+/* ── Overlay ─────────────────────────────────────────────────────────────── */ 
+#image-cards-{{ block.id }} .ic-card-overlay { 
+  position: absolute; 
+  inset: 0; 
+  border-radius: inherit; 
+  background: linear-gradient( to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.45) 45%, transparent 100% ); 
+  display: flex; 
+  align-items: flex-end; 
+  z-index: 1; 
+} 
+
+#image-cards-{{ block.id }} .ic-card-body { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.625rem; 
+  padding: 1.5rem; 
+  width: 100%; 
+} 
+
+#image-cards-{{ block.id }} .ic-card-title { 
+  font-family: var(--font-heading); 
+  font-weight: var(--font-heading-weight-bold, 700); 
+  font-size: 1.375rem; 
+  line-height: 1.25; 
+  letter-spacing: -0.01em; 
+  color: white; 
+  margin: 0; 
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); 
+} 
+
+#image-cards-{{ block.id }} .ic-card-description { 
+  font-size: 0.9375rem; 
+  line-height: 1.55; 
+  color: rgba(255, 255, 255, 0.85); 
+  margin: 0; 
+} 
+
+/* ── Button ──────────────────────────────────────────────────────────────── */ 
+#image-cards-{{ block.id }} .ic-card-button-wrap { 
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 0.75rem; 
+  margin-top: 0.25rem; 
+} 
+
+#image-cards-{{ block.id }} .ic-btn { 
+  display: inline-flex; 
+  align-items: center; 
+  padding: 0.75rem 1.5rem; 
+  font-family: var(--font-ui); 
+  font-weight: var(--font-ui-weight-semibold, 600); 
+  font-size: 0.875rem; 
+  letter-spacing: 0.025em; 
+  text-decoration: none; 
+  border-radius: calc(infinity * 1px); 
+  border: none; 
+  transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1); 
+  cursor: pointer; 
+} 
+
+#image-cards-{{ block.id }} .ic-btn:focus { 
+  outline: 2px solid rgb(var(--color-primary-500)); 
+  outline-offset: 2px; 
+} 
+
+#image-cards-{{ block.id }} .ic-btn--primary { 
+  background-color: rgb(var(--color-primary-600)); 
+  color: white; 
+} 
+
+#image-cards-{{ block.id }} .ic-btn--primary:hover { 
+  background-color: rgb(var(--color-primary-700)); 
+} 
+
+/* ── Pagination dots ─────────────────────────────────────────────────────── */ 
+#image-cards-{{ block.id }} .ic-pagination { 
+  display: none; 
+  justify-content: center; 
+  align-items: center; 
+  gap: 0.5rem; 
+  margin-top: 1.5rem; 
+} 
+
+#image-cards-{{ block.id }} .ic-pagination.is-active { 
+  display: flex; 
+} 
+
+#image-cards-{{ block.id }} .ic-dot { 
+  width: 0.5rem; 
+  height: 0.5rem; 
+  padding: 0; 
+  border: none; 
+  border-radius: 9999px; 
+  background-color: rgb(var(--color-surface-300)); 
+  cursor: pointer; 
+  transition: background-color 300ms var(--ic-ease), transform 300ms var(--ic-ease); 
+} 
+
+#image-cards-{{ block.id }} .ic-dot:hover { 
+  background-color: rgb(var(--color-surface-500)); 
+  transform: scale(1.25); 
+} 
+
+#image-cards-{{ block.id }} .ic-dot:focus-visible { 
+  outline: 2px solid rgb(var(--color-primary-500)); 
+  outline-offset: 2px; 
+} 
+
+#image-cards-{{ block.id }} .ic-dot--active { 
+  background-color: rgb(var(--color-surface-800)); 
+  transform: scale(1.25); 
+} 
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */ 
+@media (min-width: 640px) { 
+  #image-cards-{{ block.id }} .ic-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+  } 
+  #image-cards-{{ block.id }} .ic-carousel-wrapper.is-carousel .ic-item { 
+    flex: 0 0 calc(50% - 0.625rem); 
+  } 
+} 
+
+@media (min-width: 1024px) { 
+  #image-cards-{{ block.id }} { 
+    padding: 5rem 1rem; 
+  } 
+  #image-cards-{{ block.id }} .ic-grid { 
+    grid-template-columns: repeat(3, 1fr); 
+  } 
+  #image-cards-{{ block.id }} .ic-carousel-wrapper.is-carousel .ic-item { 
+    flex: 0 0 calc(33.333% - 0.834rem); 
+  } 
+} 
+
+/* ── Dark mode ───────────────────────────────────────────────────────────── */ 
+@media (prefers-color-scheme: dark) { 
+  #image-cards-{{ block.id }} { 
+    background-color: rgb(var(--color-surface-800)); 
+  } 
+  
+  #image-cards-{{ block.id }} .ic-dot { 
+    background-color: rgb(var(--color-surface-600)); 
+  } 
+  
+  #image-cards-{{ block.id }} .ic-dot:hover { 
+    background-color: rgb(var(--color-surface-400)); 
+  } 
+  
+  #image-cards-{{ block.id }} .ic-dot--active { 
+    background-color: rgb(var(--color-surface-50)); 
+  } 
+  
+  #image-cards-{{ block.id }} .ic-btn--primary {
+    background-color: rgb(var(--color-primary-400));
+    color: rgb(var(--color-surface-950));
+  }
+  
+  #image-cards-{{ block.id }} .ic-btn--primary:hover {
+    background-color: rgb(var(--color-primary-300));
+  }
+  
+  #image-cards-{{ block.id }} .ic-btn:focus {
+    outline-color: rgb(var(--color-primary-400));
+  }
+}

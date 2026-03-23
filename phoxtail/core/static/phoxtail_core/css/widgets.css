@@ -1,0 +1,868 @@
+/* core/css/widgets.css — Shared form widget styles
+   Prefix: fw- (form widget)
+   Used by: core/templates/core/forms/widgets/ */
+
+/* ── Field Wrapper ── */
+
+.fw-field {
+    display: block;
+}
+
+/* ── Label Row ── */
+
+.fw-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-700));
+    margin-bottom: 0.375rem;
+}
+
+.fw-label {
+    flex: 1;
+}
+
+.fw-required {
+    color: rgb(var(--color-destructive-500));
+}
+
+/* ── Help Tooltip ── */
+
+.fw-help-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.fw-help-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    line-height: 1;
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-500));
+    background-color: rgb(var(--color-surface-100));
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 50%;
+    cursor: help;
+    outline: none;
+    transition: background-color 150ms, color 150ms;
+}
+
+.fw-help-btn:hover,
+.fw-help-btn:focus {
+    background-color: rgb(var(--color-surface-200));
+    color: rgb(var(--color-surface-700));
+}
+
+.fw-help-btn:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-500));
+    outline-offset: 1px;
+}
+
+.fw-help-tooltip {
+    opacity: 0;
+    transform: scale(0.95);
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.5rem);
+    width: 12rem;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: rgb(var(--color-surface-700));
+    background-color: rgb(var(--color-surface-50));
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    pointer-events: none;
+    z-index: 50;
+    transition: opacity 150ms, transform 150ms;
+}
+
+.fw-help-wrapper:hover .fw-help-tooltip,
+.fw-help-wrapper:focus-within .fw-help-tooltip {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ── Input (text, date, time, datetime, number, textarea, select) ── */
+
+.fw-input {
+    display: block;
+    width: 100% !important;
+    padding: 0.5rem 0.75rem !important;
+    border: 1px solid rgb(var(--color-surface-300)) !important;
+    border-radius: 0.5rem !important;
+    background-color: rgb(var(--color-surface-50)) !important;
+    color: rgb(var(--color-surface-900)) !important;
+    font-size: 1rem !important;
+    outline: none !important;
+    transition: border-color 150ms, box-shadow 150ms;
+    box-sizing: border-box;
+}
+
+input.fw-input,
+select.fw-input {
+    height: 2.75rem !important;
+}
+
+select.fw-input {
+    cursor: pointer;
+}
+
+textarea.fw-input {
+    resize: vertical;
+}
+
+.fw-input:focus {
+    border-color: rgb(var(--color-primary-500)) !important;
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.25) !important;
+}
+
+.fw-input option {
+    background-color: rgb(var(--color-surface-50));
+    color: rgb(var(--color-surface-900));
+}
+
+/* ── Choice Input (custom checkbox / radio appearance) ── */
+
+.fw-choice-input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    flex-shrink: 0;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    border: 2px solid rgb(var(--color-surface-300)) !important;
+    background-color: rgb(var(--color-surface-50)) !important;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 150ms, border-color 150ms;
+}
+
+.fw-choice-input::before,
+.fw-choice-input::after {
+    display: none !important;
+    content: none !important;
+}
+
+.fw-choice-input--checkbox {
+    border-radius: 0.25rem !important;
+}
+
+.fw-choice-input--radio {
+    border-radius: 50% !important;
+}
+
+.fw-choice-input:checked {
+    background-color: rgb(var(--color-primary-600)) !important;
+    border-color: rgb(var(--color-primary-600)) !important;
+}
+
+.fw-choice-input:focus-visible {
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.4);
+}
+
+/* ── Choice Option Label (shared by single checkbox, multi-checkbox, radio) ── */
+
+.fw-choice-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(var(--color-surface-200));
+    background-color: rgb(var(--color-surface-50));
+    cursor: pointer;
+    min-width: 0;
+    transition: background-color 150ms;
+}
+
+.fw-choice-label:hover {
+    background-color: rgb(var(--color-surface-100));
+}
+
+/* Larger gap and padding for standalone single-checkbox */
+.fw-checkbox-label {
+    gap: 0.75rem;
+    padding: 0.75rem;
+}
+
+/* In single-checkbox context, the text container fills remaining space */
+.fw-checkbox-label .fw-choice-text {
+    flex: 1;
+}
+
+.fw-choice-text {
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-700));
+}
+
+/* Truncate text when inside a grid (multi-choice context) */
+.fw-checkbox-grid .fw-choice-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fw-choice-name {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-700));
+}
+
+.fw-choice-help {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: 0.75rem;
+    color: rgb(var(--color-surface-500));
+}
+
+/* ── Choice Grid ── */
+
+.fw-checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .fw-checkbox-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .fw-checkbox-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 7-column layout for weekday selection (Mon–Sun) */
+.fw-checkbox-grid--7col {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .fw-checkbox-grid--7col {
+        grid-template-columns: repeat(7, 1fr);
+    }
+}
+
+/* ── Password ── */
+
+.fw-password-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.fw-password-input {
+    padding-right: 2.75rem !important;
+}
+
+.fw-password-toggle {
+    position: absolute;
+    right: 0.625rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    color: rgb(var(--color-surface-400));
+    background: none;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    outline: none;
+    transition: color 150ms;
+    flex-shrink: 0;
+}
+
+.fw-password-toggle:hover {
+    color: rgb(var(--color-surface-600));
+}
+
+.fw-password-toggle:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-500));
+    outline-offset: 1px;
+}
+
+.fw-password-eye {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.fw-password-eye svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* ── Error Messages ── */
+
+.fw-error {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-destructive-600));
+}
+
+/* ── Hidden Utility ── */
+
+.fw-hidden {
+    display: none;
+}
+
+/* ── Widget Container (complex HTMX widgets) ── */
+
+.fw-widget-container {
+    position: relative;
+}
+
+.fw-widget-container--inactive {
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 300ms;
+}
+
+/* ── Toggle ── */
+
+.fw-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: border-color 300ms;
+}
+
+.fw-toggle-label:hover {
+    border-color: rgb(var(--color-primary-400));
+}
+
+.fw-toggle-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-700));
+}
+
+.fw-toggle-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.fw-toggle-input {
+    position: absolute;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    appearance: none !important;
+}
+
+.fw-toggle-track {
+    position: relative;
+    width: 2.75rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background-color: rgb(var(--color-surface-300));
+    transition: background-color 300ms;
+}
+
+.fw-toggle-track::before {
+    content: '';
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background-color: rgb(255 255 255);
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    transition: transform 300ms;
+}
+
+.fw-toggle-input:checked + .fw-toggle-track {
+    background-color: rgb(var(--color-primary-500));
+}
+
+.fw-toggle-input:checked + .fw-toggle-track::before {
+    transform: translateX(1.25rem);
+}
+
+/* ── Search Widget — Shared (single select search + multi select chips) ── */
+
+.fw-search-wrap {
+    position: relative;
+}
+
+.fw-search-icon-wrap {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    pointer-events: none;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.fw-search-icon {
+    display: block !important;
+    width: 1.25rem !important;
+    height: 1.25rem !important;
+    color: rgb(var(--color-surface-400));
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: color 150ms;
+}
+
+.fw-search-wrap:focus-within .fw-search-icon {
+    color: rgb(var(--color-primary-500));
+}
+
+.fw-search-input {
+    width: 100% !important;
+    padding: 0.75rem 1rem 0.75rem 2.5rem !important;
+    border: 1px solid rgb(var(--color-surface-300)) !important;
+    border-radius: 0.75rem !important;
+    background-color: rgb(var(--color-surface-50)) !important;
+    color: rgb(var(--color-surface-700)) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500;
+    outline: none;
+    transition: border-color 300ms, box-shadow 300ms;
+    box-sizing: border-box;
+}
+
+.fw-search-input::placeholder {
+    color: rgb(var(--color-surface-400));
+    font-weight: 400;
+}
+
+.fw-search-input:hover {
+    border-color: rgb(var(--color-primary-400));
+}
+
+.fw-search-input:focus {
+    border-color: rgb(var(--color-primary-500)) !important;
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.2) !important;
+}
+
+.fw-search-dropdown {
+    position: absolute;
+    z-index: 50;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    max-height: 15rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background-color: rgb(var(--color-surface-50));
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.fw-search-divider {
+    margin: 0 0.75rem;
+    border-top: 1px solid rgb(var(--color-surface-200));
+}
+
+.fw-search-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-700));
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 150ms;
+}
+
+.fw-search-item:hover {
+    background-color: rgb(var(--color-primary-50));
+}
+
+.fw-search-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.125rem;
+    color: rgb(var(--color-surface-600));
+    background-color: rgb(var(--color-surface-100));
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 50%;
+    transition: background-color 150ms;
+}
+
+.fw-search-item-icon svg {
+    width: 0.625rem;
+    height: 0.625rem;
+}
+
+.fw-search-item:hover .fw-search-item-icon {
+    background-color: rgb(var(--color-surface-200));
+}
+
+.fw-search-item-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.fw-search-empty {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-500));
+    font-style: italic;
+    text-align: center;
+}
+
+/* ── Single Select Search ── */
+
+.fw-sss-input {
+    position: relative;
+}
+
+.fw-sss-selected-wrap {
+    position: relative;
+}
+
+.fw-sss-clear-btn {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background-color: rgb(var(--color-surface-100));
+    color: rgb(var(--color-surface-600));
+    border: 1px solid rgb(var(--color-surface-300));
+    cursor: pointer;
+    transition: background-color 150ms;
+}
+
+.fw-sss-clear-btn svg {
+    width: 0.625rem;
+    height: 0.625rem;
+}
+
+.fw-sss-clear-btn:hover {
+    background-color: rgb(var(--color-surface-200));
+}
+
+.fw-sss-selected-display {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 0.75rem;
+    background-color: rgb(var(--color-surface-50));
+    color: rgb(var(--color-surface-700));
+    font-size: 0.875rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/* ── Multi Select Chips ── */
+
+.fw-msc-compact-input {
+    position: relative;
+}
+
+.fw-msc-chips {
+    margin-top: 0.75rem;
+    overflow: hidden;
+}
+
+.fw-msc-chip-divider {
+    border-top: 1px solid rgb(var(--color-surface-200));
+}
+
+.fw-msc-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-700));
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 150ms;
+}
+
+.fw-msc-chip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.125rem;
+    color: rgb(var(--color-surface-600));
+    background-color: rgb(var(--color-surface-100));
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 50%;
+    transition: background-color 150ms;
+}
+
+.fw-msc-chip-icon svg {
+    width: 0.625rem;
+    height: 0.625rem;
+}
+
+.fw-msc-chip:hover .fw-msc-chip-icon {
+    background-color: rgb(var(--color-surface-200));
+}
+
+.fw-msc-chip-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* ── Dark Mode ── */
+
+@media (prefers-color-scheme: dark) {
+    .fw-label-row {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .fw-help-btn {
+        color: rgb(var(--color-surface-400));
+        background-color: rgb(var(--color-surface-700));
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-help-btn:hover,
+    .fw-help-btn:focus {
+        background-color: rgb(var(--color-surface-600));
+        color: rgb(var(--color-surface-200));
+    }
+
+    .fw-help-tooltip {
+        color: rgb(var(--color-surface-200));
+        background-color: rgb(var(--color-surface-800));
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .fw-input {
+        border-color: rgb(var(--color-surface-700)) !important;
+        background-color: rgb(var(--color-surface-800) / 0.5) !important;
+        color: rgb(var(--color-surface-100)) !important;
+    }
+
+    .fw-input option {
+        background-color: rgb(var(--color-surface-800));
+        color: rgb(var(--color-surface-100));
+    }
+
+    .fw-input:focus {
+        border-color: rgb(var(--color-primary-600)) !important;
+        box-shadow: 0 0 0 2px rgb(var(--color-primary-600) / 0.25) !important;
+    }
+
+    .fw-choice-input {
+        border-color: rgb(var(--color-surface-600)) !important;
+        background-color: rgb(var(--color-surface-700)) !important;
+    }
+
+    .fw-choice-label {
+        border-color: rgb(var(--color-surface-700));
+        background-color: rgb(var(--color-surface-800) / 0.5);
+    }
+
+    .fw-choice-label:hover {
+        background-color: rgb(var(--color-surface-800));
+    }
+
+    .fw-choice-text,
+    .fw-choice-name {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .fw-choice-help {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .fw-error {
+        color: rgb(var(--color-destructive-400));
+    }
+
+    /* Toggle */
+    .fw-toggle-label {
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-toggle-label:hover {
+        border-color: rgb(var(--color-primary-500));
+    }
+
+    .fw-toggle-name {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .fw-toggle-track {
+        background-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-toggle-track::before {
+        background-color: rgb(var(--color-surface-100));
+    }
+
+    .fw-toggle-input:checked + .fw-toggle-track {
+        background-color: rgb(var(--color-primary-600));
+    }
+
+    /* Search — shared */
+    .fw-search-icon {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .fw-search-wrap:focus-within .fw-search-icon {
+        color: rgb(var(--color-primary-400));
+    }
+
+    .fw-search-input {
+        border-color: rgb(var(--color-surface-600)) !important;
+        background-color: rgb(var(--color-surface-800)) !important;
+        color: rgb(var(--color-surface-300)) !important;
+    }
+
+    .fw-search-input::placeholder {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .fw-search-input:hover {
+        border-color: rgb(var(--color-primary-500));
+    }
+
+    .fw-search-input:focus {
+        border-color: rgb(var(--color-primary-600)) !important;
+        box-shadow: 0 0 0 2px rgb(var(--color-primary-600) / 0.2) !important;
+    }
+
+    .fw-search-dropdown {
+        background-color: rgb(var(--color-surface-800));
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .fw-search-divider {
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .fw-search-item {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .fw-search-item:hover {
+        background-color: rgb(var(--color-primary-900) / 0.3);
+    }
+
+    .fw-search-item-icon {
+        color: rgb(var(--color-surface-300));
+        background-color: rgb(var(--color-surface-700));
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-search-item:hover .fw-search-item-icon {
+        background-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-search-empty {
+        color: rgb(var(--color-surface-400));
+    }
+
+    /* Single Select Search */
+    .fw-sss-clear-btn {
+        background-color: rgb(var(--color-surface-700));
+        color: rgb(var(--color-surface-300));
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-sss-clear-btn:hover {
+        background-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-sss-selected-display {
+        border-color: rgb(var(--color-surface-600));
+        background-color: rgb(var(--color-surface-800));
+        color: rgb(var(--color-surface-300));
+    }
+
+    /* Multi Select Chips */
+    .fw-msc-chip {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .fw-msc-chip-divider {
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .fw-msc-chip-icon {
+        color: rgb(var(--color-surface-300));
+        background-color: rgb(var(--color-surface-700));
+        border-color: rgb(var(--color-surface-600));
+    }
+
+    .fw-msc-chip:hover .fw-msc-chip-icon {
+        background-color: rgb(var(--color-surface-600));
+    }
+}

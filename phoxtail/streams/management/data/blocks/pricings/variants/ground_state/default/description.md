@@ -1,0 +1,1 @@
+Ground state variant for Pricing. A flexible pricing section displaying multiple plans as cards with features, tags, and call-to-action buttons. The most natural, self-evident rendering of the pricing structure.

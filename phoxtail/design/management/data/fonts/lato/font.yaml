@@ -1,0 +1,4 @@
+name: Lato
+description: A sanserif typeface family with classical proportions and a warm, humanist feel.
+category: sans-serif
+fallback_stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif

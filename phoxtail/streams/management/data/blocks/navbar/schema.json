@@ -1,0 +1,218 @@
+[
+  {
+    "type": "struct",
+    "value": {
+      "name": "branding",
+      "collapsed": true,
+      "help_text": "Navigation logos",
+      "blocks": [
+        {
+          "type": "image_chooser_field",
+          "value": {
+            "name": "logo",
+            "required": false,
+            "help_text": "Site logo"
+          }
+        },
+        {
+          "type": "image_chooser_field",
+          "value": {
+            "name": "logo_dark",
+            "required": false,
+            "help_text": "Site logo for dark mode"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "stream",
+    "value": {
+      "name": "links",
+      "required": false,
+      "collapsed": true,
+      "help_text": "Navigation links",
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "internal_link",
+            "icon": "doc-empty",
+            "blocks": [
+              {
+                "type": "page_chooser_field",
+                "value": {
+                  "name": "page",
+                  "required": true,
+                  "help_text": "Select a page"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": false,
+                  "help_text": "Link text (if empty, page title will be used)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "open_in_new_tab",
+                  "required": false,
+                  "help_text": "Open link in new tab"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "struct",
+          "value": {
+            "name": "external_link",
+            "icon": "link",
+            "blocks": [
+              {
+                "type": "url_field",
+                "value": {
+                  "name": "url",
+                  "required": true,
+                  "help_text": "External URL"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": false,
+                  "help_text": "Link text (if empty, URL will be used)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "open_in_new_tab",
+                  "required": false,
+                  "help_text": "Open link in new tab"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "struct",
+          "value": {
+            "name": "dropdown",
+            "icon": "arrow-down",
+            "blocks": [
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": true,
+                  "max_length": 50,
+                  "help_text": "Dropdown label"
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "items",
+                  "help_text": "Links inside this dropdown",
+                  "max_num": 20,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "icon": "doc-empty",
+                        "blocks": [
+                          {
+                            "type": "page_chooser_field",
+                            "value": {
+                              "name": "page",
+                              "required": true,
+                              "help_text": "Select a page"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Link text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "external_link",
+                        "icon": "link",
+                        "blocks": [
+                          {
+                            "type": "url_field",
+                            "value": {
+                              "name": "url",
+                              "required": true,
+                              "help_text": "External URL"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Link text (if empty, URL will be used)"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "separator",
+                        "icon": "horizontalrule",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "max_length": 50,
+                              "help_text": "Optional label for the separator. If empty, renders as a line."
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "max_num": 20
+    }
+  }
+]

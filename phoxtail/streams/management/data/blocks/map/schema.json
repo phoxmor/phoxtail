@@ -1,0 +1,10 @@
+[
+  {
+    "type": "raw_html_field",
+    "value": {
+      "name": "embed_code",
+      "required": true,
+      "help_text": "Paste the embed code from Google Maps or any other map provider."
+    }
+  }
+]

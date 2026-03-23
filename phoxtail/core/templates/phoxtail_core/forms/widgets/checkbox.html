@@ -1,0 +1,24 @@
+<div class="fw-field">
+    <label for="{{ field.id_for_label }}"
+           class="fw-choice-label fw-checkbox-label">
+        <input type="checkbox"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               {% if field.value %}checked{% endif %}
+               class="fw-choice-input fw-choice-input--checkbox"
+               {% if field.field.required %}required{% endif %}
+               {% if field.field.disabled %}disabled{% endif %}>
+        <div class="fw-choice-text">
+            <span class="fw-choice-name">
+                {{ label|default:field.label }}
+                {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+            </span>
+            {% if show_help_text != False and help_text|default:field.help_text %}
+                <p class="fw-choice-help">{{ help_text|default:field.help_text }}</p>
+            {% endif %}
+        </div>
+    </label>
+    {% if field.errors %}
+        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+    {% endif %}
+</div>

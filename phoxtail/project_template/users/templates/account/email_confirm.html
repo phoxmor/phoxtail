@@ -1,0 +1,68 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load account %}
+{% load allauth %}
+{% load app_tags %}
+{% block head_title %}
+    {% trans "Confirm Email Address" %}
+{% endblock head_title %}
+{% block body %}
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-card-shimmer"></div>
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header">
+                    <h1 class="auth-heading">{% trans "Confirm Email Address" %}</h1>
+                    {% if confirmation %}
+                        {% user_display confirmation.email_address.user as user_display %}
+                        {% if can_confirm %}
+                            <p class="auth-subtitle">
+                                {% blocktrans with email=confirmation.email_address.email user=user_display %}
+                                        Please confirm that
+                                        <a href="mailto:{{ email }}" class="auth-link">
+                                            {{ email }}
+                                        </a>
+                                        is an email address for user {{ user }}.
+                                {% endblocktrans %}
+                            </p>
+                            <form method="post"
+                                  action="{% url 'account_confirm_email' confirmation.key %}"
+                                  class="auth-form"
+                                  style="margin-top: 1.5rem;
+                                         width: 100%">
+                                {% csrf_token %}
+                                {{ redirect_field }}
+                                <div class="auth-actions">
+                                    {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" %}
+                                </div>
+                            </form>
+                        {% else %}
+                            <p class="auth-error"
+                               style="text-align: center;
+                                      max-width: 24rem;
+                                      line-height: 1.625">
+                                {% blocktrans with email=confirmation.email_address.email %}
+                                        Unable to confirm {{ email }} because it is already confirmed by a different account.
+                                {% endblocktrans %}
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        {% url 'account_email' as email_url %}
+                        <p class="auth-subtitle">
+                            {% blocktrans with email_url=email_url %}
+                                    This email confirmation link expired or is invalid. Please
+                                    <a href="{{ email_url }}" class="auth-link">
+                                        issue a new email confirmation request
+                                    </a>.
+                            {% endblocktrans %}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

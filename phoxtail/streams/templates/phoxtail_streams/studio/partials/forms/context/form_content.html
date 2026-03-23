@@ -1,0 +1,35 @@
+{% load i18n %}
+{% url 'studio:search_system_prompt' as search_system_prompt_url %}
+{% url 'studio:search_block' as search_block_url %}
+{% url 'studio:search_collection' as search_collection_url %}
+{% url 'studio:search_variant' as search_variant_url %}
+{% url 'studio:search_references' as search_references_url %}
+{# Include parent fields (all FK hidden inputs inside) AND references hidden inputs in all HTMX requests #}
+{% with form_include="#context-parent-fields, #references-selected-values" %}
+    <div class="stu-form-stack">
+        {# Parent fields container #}
+        <div id="context-parent-fields" class="stu-form-grid">
+            {{ form.workflow }}
+            <!-- System Prompt Selection -->
+            {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=form.system_prompt search_url=search_system_prompt_url hx_include=form_include %}
+            {% if form.workflow.value == 'create' %}
+                <!-- Block Selection (Create workflow) -->
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=form.block search_url=search_block_url hx_include=form_include %}
+                <!-- Collection Selection (Create workflow only - Edit derives from variant) -->
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=form.collection search_url=search_collection_url hx_include=form_include %}
+            {% else %}
+                <!-- Variant Selection (Edit workflow - collection derived from variant) -->
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=form.variant search_url=search_variant_url hx_include=form_include %}
+            {% endif %}
+        </div>
+        {# References - disabled until a collection is selected #}
+        <div id="references-container" class="stu-form-grid">
+            {% if form.collection.value %}
+                {% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips.html' with field=form.references search_url=search_references_url hx_include=form_include item_template="phoxtail_streams/studio/partials/forms/widgets/reference_item_display.html" %}
+            {% else %}
+                {% trans "Select a collection first..." as ref_placeholder %}
+                {% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips.html' with field=form.references search_url=search_references_url hx_include=form_include item_template="phoxtail_streams/studio/partials/forms/widgets/reference_item_display.html" is_active=False search_placeholder=ref_placeholder %}
+            {% endif %}
+        </div>
+    </div>
+{% endwith %}

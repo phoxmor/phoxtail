@@ -1,0 +1,57 @@
+{% load i18n phoxtail_design_tags %}
+{# Single select input: two mutually exclusive states - selected item display OR search bar #}
+{% with wid=widget_id|default:field.html_name %}
+    <div id="{{ wid }}-input" class="fw-sss-input">
+        {# Hidden input for form submission #}
+        <div id="{{ wid }}-selected-value" class="fw-hidden">
+            {% if selected_item and is_active != False %}
+                <input type="hidden"
+                       name="{{ field.html_name }}"
+                       value="{{ selected_item.pk }}">
+            {% endif %}
+        </div>
+        {% if selected_item and is_active != False %}
+            {# Selected state: display selected item with clear button in icon position #}
+            <div class="fw-sss-selected-wrap">
+                <button type="button"
+                        class="fw-sss-clear-btn"
+                        hx-get="{{ search_url }}"
+                        hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
+                        hx-vals='{"{{ wid }}_clear": "1"}'
+                        hx-target="#{{ wid }}-container"
+                        hx-swap="innerHTML">{% icon "close" %}</button>
+                <div class="fw-sss-selected-display">
+                    {% if item_template %}
+                        {% include item_template with item=selected_item %}
+                    {% else %}
+                        {{ selected_item }}
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            {# Unselected state: search bar with dropdown #}
+            <div class="fw-search-wrap">
+                <div class="fw-search-icon-wrap">{% icon "search" class="fw-search-icon" %}</div>
+                <input type="text"
+                       name="{{ wid }}_search"
+                       id="{{ wid }}-search-input"
+                       value="{{ search_value|default:'' }}"
+                       placeholder="{{ search_placeholder|default:_("Search...") }}"
+                       autocomplete="off"
+                       {% if is_active == False %}disabled{% endif %}
+                       class="fw-search-input"
+                       hx-get="{{ search_url }}"
+                       hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
+                       hx-target="#{{ wid }}-results"
+                       hx-swap="innerHTML"
+                       hx-trigger="input changed delay:300ms"
+                       onfocus="document.getElementById('{{ wid }}-dropdown').classList.remove('fw-hidden')"
+                       onblur="setTimeout(function(){document.getElementById('{{ wid }}-dropdown').classList.add('fw-hidden')}, 150)">
+            </div>
+            {# Results container - only this swaps during search #}
+            <div id="{{ wid }}-results">
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/results_content.html' with widget_id=wid show_dropdown=False %}
+            </div>
+        {% endif %}
+    </div>
+{% endwith %}

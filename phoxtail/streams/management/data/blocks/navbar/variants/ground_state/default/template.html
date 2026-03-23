@@ -1,0 +1,416 @@
+{% load wagtailcore_tags wagtailimages_tags app_tags thumbnail core_tags phoxtail_design_tags %}
+<nav id="nb-{{ block.id }}" class="nb-nav" aria-label="Main navigation">
+    <div class="nb-container">
+        {# Logo #}
+        <div class="nb-brand">
+            {% if value.branding.logo %}
+                {% image value.branding.logo height-96 as logo_img %}
+                <a href="/" class="nb-logo-link" aria-label="Home">
+                    <picture>
+                        {% if value.branding.logo_dark %}
+                            {% image value.branding.logo_dark height-96 as logo_dark_img %}
+                            <source srcset="{{ logo_dark_img.url }}" media="(prefers-color-scheme: dark)">
+                        {% endif %}
+                        <img src="{{ logo_img.url }}"
+                             alt="{{ value.branding.logo.title }}"
+                             class="nb-logo">
+                    </picture>
+                </a>
+            {% endif %}
+        </div>
+        {# Right Section: Links + Controls #}
+        <div class="nb-right">
+            {# Desktop Navigation Links #}
+            {% if value.links %}
+                <div class="nb-links-desktop">
+                    {% for link_block in value.links %}
+                        {% if link_block.block_type == 'internal_link' %}
+                            {% with link=link_block.value %}
+                                {% if link.page %}
+                                    {% pageurl link.page as page_url %}
+                                    {% with decoded_url=page_url|decode_url current_page=link.page.specific %}
+                                        {% if not current_page.live %}
+                                            {% if perms.wagtailadmin.access_admin %}
+                                                <span class="nb-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
+                                            {% endif %}
+                                        {% elif current_page.is_locked_for_references %}
+                                            <span class="nb-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
+                                        {% elif request.path == decoded_url %}
+                                            <a href="{{ page_url }}"
+                                               class="nb-link nb-link-active"
+                                               {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:current_page.title }}</a>
+                                        {% else %}
+                                            <a href="{{ page_url }}"
+                                               class="nb-link"
+                                               {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:current_page.title }}</a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endwith %}
+                        {% elif link_block.block_type == 'external_link' %}
+                            {% with link=link_block.value %}
+                                <a href="{{ link.url }}"
+                                   class="nb-link"
+                                   {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:link.url }}</a>
+                            {% endwith %}
+                        {% elif link_block.block_type == 'dropdown' %}
+                            {% with dd=link_block.value %}
+                                {% has_active_child dd.items request.path as is_active %}
+                                <div class="nb-dropdown">
+                                    <button type="button"
+                                            class="nb-link nb-dropdown-trigger{% if is_active %} nb-link-active{% endif %}"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        {{ dd.label }}
+                                        {% with class="nb-chevron" %}
+                                            {% icon "chevron_down" %}
+                                        {% endwith %}
+                                    </button>
+                                    {% if dd.items %}
+                                        <div class="nb-dropdown-pad"></div>
+                                        <div class="nb-dropdown-menu">
+                                            {% for item_block in dd.items %}
+                                                {% if item_block.block_type == 'internal_link' %}
+                                                    {% with item=item_block.value %}
+                                                        {% if item.page %}
+                                                            {% pageurl item.page as item_url %}
+                                                            {% with decoded_url=item_url|decode_url current_page=item.page.specific %}
+                                                                {% if not current_page.live %}
+                                                                    {% if perms.wagtailadmin.access_admin %}
+                                                                        <span class="nb-dropdown-link nb-link-disabled">{{ item.label|default:current_page.title }}</span>
+                                                                    {% endif %}
+                                                                {% elif current_page.is_locked_for_references %}
+                                                                    <span class="nb-dropdown-link nb-link-disabled">{{ item.label|default:current_page.title }}</span>
+                                                                {% elif request.path == decoded_url %}
+                                                                    <a href="{{ item_url }}"
+                                                                       class="nb-dropdown-link nb-dropdown-link-active"
+                                                                       {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:current_page.title }}</a>
+                                                                {% else %}
+                                                                    <a href="{{ item_url }}"
+                                                                       class="nb-dropdown-link"
+                                                                       {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:current_page.title }}</a>
+                                                                {% endif %}
+                                                            {% endwith %}
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% elif item_block.block_type == 'external_link' %}
+                                                    {% with item=item_block.value %}
+                                                        <a href="{{ item.url }}"
+                                                           class="nb-dropdown-link"
+                                                           {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:item.url }}</a>
+                                                    {% endwith %}
+                                                {% elif item_block.block_type == 'separator' %}
+                                                    <div class="nb-separator" role="separator">
+                                                        {% if item_block.value.label %}<span class="nb-separator-label">{{ item_block.value.label }}</span>{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {# Divider between links and controls #}
+                <div class="nb-divider"></div>
+            {% endif %}
+            {# Controls: user, language, mobile toggle #}
+            <div class="nb-controls">
+                {# User Controls #}
+                {% if user.is_authenticated %}
+                    <div class="nb-user-dropdown">
+                        {% if user.avatar %}
+                            {% thumbnail user.avatar "80x80" crop="center" as avatar %}
+                                <button type="button"
+                                        class="nb-ctrl-btn nb-user-btn nb-user-avatar"
+                                        aria-label="User Menu"
+                                        style="background-image: url('{{ avatar.url }}')"></button>
+                            {% endthumbnail %}
+                        {% else %}
+                            <button type="button" class="nb-ctrl-btn nb-user-btn" aria-label="User Menu">
+                                {% with class="nb-icon" %}
+                                    {% icon "person" %}
+                                {% endwith %}
+                            </button>
+                        {% endif %}
+                        <div class="nb-hoverfill"></div>
+                        <div class="nb-user-menu">
+                            {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+                            {% if is_dashboard_enabled %}
+                                {% url 'dashboard:index' as dashboard_path %}
+                                <a href="{{ dashboard_path }}"
+                                   class="nb-user-link{% if request.path == dashboard_path %} nb-user-link-active{% endif %}">
+                                    {% with class="nb-icon" %}
+                                        {% icon "browse" %}
+                                    {% endwith %}
+                                    <span>Dashboard</span>
+                                </a>
+                                {% url 'dashboard:users:profile' as profile_path %}
+                                <a href="{{ profile_path }}"
+                                   class="nb-user-link{% if request.path == profile_path %} nb-user-link-active{% endif %}">
+                                    {% with class="nb-icon" %}
+                                        {% icon "profile" %}
+                                    {% endwith %}
+                                    <span>Profile</span>
+                                </a>
+                            {% endif %}
+                            {% if perms.wagtailadmin.access_admin %}
+                                {% url 'wagtailadmin_home' as admin_path %}
+                                <a href="{{ admin_path }}"
+                                   class="nb-user-link{% if request.path == admin_path %} nb-user-link-active{% endif %}">
+                                    {% with class="nb-icon" %}
+                                        {% icon "settings" %}
+                                    {% endwith %}
+                                    <span>Admin</span>
+                                </a>
+                            {% endif %}
+                            <div class="nb-user-divider"></div>
+                            <form method="post" action="{% url 'account_logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nb-user-link nb-user-link-danger">
+                                    {% with class="nb-icon" %}
+                                        {% icon "signout" %}
+                                    {% endwith %}
+                                    <span>Sign out</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="nb-auth-btns">
+                        <a href="{% url 'account_login' %}" class="nb-ctrl-btn nb-login-btn">
+                            {% with class="nb-icon-sm" %}
+                                {% icon "signin" %}
+                            {% endwith %}
+                            <span>Log In</span>
+                        </a>
+                        <a href="{% url 'account_signup' %}" class="nb-ctrl-btn nb-signup-btn">
+                            {% with class="nb-icon-sm" %}
+                                {% icon "person_add" %}
+                            {% endwith %}
+                            <span>Sign Up</span>
+                        </a>
+                    </div>
+                {% endif %}
+                {# Language Switcher #}
+                {% if page and page.get_translations.live %}
+                    <div class="nb-lang-dropdown">
+                        <button type="button" class="nb-ctrl-btn nb-lang-btn" aria-label="Language">
+                            <span>{{ page.locale.language_code }}</span>
+                        </button>
+                        <div class="nb-hoverfill"></div>
+                        <div class="nb-lang-menu">
+                            {% for translation in page.get_translations.live %}
+                                <a href="{% pageurl translation %}"
+                                   rel="alternate"
+                                   hreflang="{{ translation.locale.language_code }}"
+                                   class="nb-lang-link">
+                                    <span>{{ translation.locale.language_name_local }}</span>
+                                    <span class="nb-lang-code-sm">{{ translation.locale.language_code }}</span>
+                                </a>
+                            {% endfor %}
+                            {% if page.is_translatable %}
+                                <div class="nb-lang-footer">{{ page.get_translations.live.count }} languages available</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                {# Mobile Menu Toggle #}
+                <button class="nb-toggle"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    {% with class="nb-icon" %}
+                        {% icon "menu" %}
+                    {% endwith %}
+                </button>
+            </div>
+        </div>
+    </div>
+    {# Mobile Sidebar #}
+    <div class="nb-backdrop"></div>
+    <div class="nb-sidebar">
+        <div class="nb-sidebar-header">
+            {% if value.branding.logo %}
+                <div class="nb-brand">
+                    {% image value.branding.logo height-96 as sidebar_logo %}
+                    <a href="/" class="nb-logo-link" aria-label="Home">
+                        <picture>
+                            {% if value.branding.logo_dark %}
+                                {% image value.branding.logo_dark height-96 as sidebar_logo_dark %}
+                                <source srcset="{{ sidebar_logo_dark.url }}"
+                                        media="(prefers-color-scheme: dark)">
+                            {% endif %}
+                            <img src="{{ sidebar_logo.url }}"
+                                 alt="{{ value.branding.logo.title }}"
+                                 class="nb-logo">
+                        </picture>
+                    </a>
+                </div>
+            {% endif %}
+            <button class="nb-sidebar-close" aria-label="Close" type="button">
+                {% with class="nb-icon" %}
+                    {% icon "close" %}
+                {% endwith %}
+            </button>
+        </div>
+        <div class="nb-sidebar-nav">
+            {# Sidebar Navigation Links #}
+            {% if value.links %}
+                <div class="nb-sidebar-links">
+                    {% for link_block in value.links %}
+                        {% if link_block.block_type == 'internal_link' %}
+                            {% with link=link_block.value %}
+                                {% if link.page %}
+                                    {% pageurl link.page as page_url %}
+                                    {% with decoded_url=page_url|decode_url current_page=link.page.specific %}
+                                        {% if not current_page.live %}
+                                            {% if perms.wagtailadmin.access_admin %}
+                                                <span class="nb-sidebar-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
+                                            {% endif %}
+                                        {% elif current_page.is_locked_for_references %}
+                                            <span class="nb-sidebar-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
+                                        {% elif request.path == decoded_url %}
+                                            <a href="{{ page_url }}"
+                                               class="nb-sidebar-link nb-sidebar-link-active"
+                                               {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:current_page.title }}</a>
+                                        {% else %}
+                                            <a href="{{ page_url }}"
+                                               class="nb-sidebar-link"
+                                               {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:current_page.title }}</a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endwith %}
+                        {% elif link_block.block_type == 'external_link' %}
+                            {% with link=link_block.value %}
+                                <a href="{{ link.url }}"
+                                   class="nb-sidebar-link"
+                                   {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ link.label|default:link.url }}</a>
+                            {% endwith %}
+                        {% elif link_block.block_type == 'dropdown' %}
+                            {% with dd=link_block.value %}
+                                {% has_active_child dd.items request.path as is_active %}
+                                <div class="nb-accordion">
+                                    <button type="button"
+                                            class="nb-sidebar-link nb-accordion-trigger{% if is_active %} nb-sidebar-link-active{% endif %}">
+                                        <span>{{ dd.label }}</span>
+                                        {% if is_active %}
+                                            {% with class="nb-accordion-chevron nb-rotated" %}
+                                                {% icon "chevron_down" %}
+                                            {% endwith %}
+                                        {% else %}
+                                            {% with class="nb-accordion-chevron" %}
+                                                {% icon "chevron_down" %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </button>
+                                    <div class="nb-accordion-content{% if is_active %} nb-expanded{% endif %}">
+                                        {% for item_block in dd.items %}
+                                            {% if item_block.block_type == 'internal_link' %}
+                                                {% with item=item_block.value %}
+                                                    {% if item.page %}
+                                                        {% pageurl item.page as item_url %}
+                                                        {% with decoded_url=item_url|decode_url current_page=item.page.specific %}
+                                                            {% if not current_page.live %}
+                                                                {% if perms.wagtailadmin.access_admin %}
+                                                                    <span class="nb-sidebar-sublink nb-link-disabled">{{ item.label|default:current_page.title }}</span>
+                                                                {% endif %}
+                                                            {% elif current_page.is_locked_for_references %}
+                                                                <span class="nb-sidebar-sublink nb-link-disabled">{{ item.label|default:current_page.title }}</span>
+                                                            {% elif request.path == decoded_url %}
+                                                                <a href="{{ item_url }}"
+                                                                   class="nb-sidebar-sublink nb-sidebar-link-active"
+                                                                   {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:current_page.title }}</a>
+                                                            {% else %}
+                                                                <a href="{{ item_url }}"
+                                                                   class="nb-sidebar-sublink"
+                                                                   {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:current_page.title }}</a>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% elif item_block.block_type == 'external_link' %}
+                                                {% with item=item_block.value %}
+                                                    <a href="{{ item.url }}"
+                                                       class="nb-sidebar-sublink"
+                                                       {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label|default:item.url }}</a>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {# Sidebar User Section #}
+            {% if user.is_authenticated %}
+                <div class="nb-sidebar-section">
+                    {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+                    {% if is_dashboard_enabled %}
+                        {% url 'dashboard:index' as dashboard_path %}
+                        <a href="{{ dashboard_path }}"
+                           class="nb-sidebar-link{% if request.path == dashboard_path %} nb-sidebar-link-active{% endif %}">
+                            {% with class="nb-icon" %}
+                                {% icon "browse" %}
+                            {% endwith %}
+                            <span>Dashboard</span>
+                        </a>
+                        {% url 'dashboard:users:profile' as profile_path %}
+                        <a href="{{ profile_path }}"
+                           class="nb-sidebar-link{% if request.path == profile_path %} nb-sidebar-link-active{% endif %}">
+                            {% with class="nb-icon" %}
+                                {% icon "profile" %}
+                            {% endwith %}
+                            <span>Profile</span>
+                        </a>
+                    {% endif %}
+                    {% if perms.wagtailadmin.access_admin %}
+                        {% url 'wagtailadmin_home' as admin_path %}
+                        <a href="{{ admin_path }}"
+                           class="nb-sidebar-link{% if request.path == admin_path %} nb-sidebar-link-active{% endif %}">
+                            {% with class="nb-icon" %}
+                                {% icon "settings" %}
+                            {% endwith %}
+                            <span>Admin</span>
+                        </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="nb-sidebar-link nb-sidebar-link-danger">
+                            {% with class="nb-icon" %}
+                                {% icon "signout" %}
+                            {% endwith %}
+                            <span>Sign out</span>
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="nb-sidebar-auth">
+                    <a href="{% url 'account_login' %}"
+                       class="nb-sidebar-auth-btn nb-login-btn">
+                        {% with class="nb-icon-sm" %}
+                            {% icon "signin" %}
+                        {% endwith %}
+                        <span>Log In</span>
+                    </a>
+                    <a href="{% url 'account_signup' %}"
+                       class="nb-sidebar-auth-btn nb-signup-btn">
+                        {% with class="nb-icon-sm" %}
+                            {% icon "person_add" %}
+                        {% endwith %}
+                        <span>Sign Up</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+<div id="nb-spacer-{{ block.id }}" aria-hidden="true"></div>
+{# Scroll to Top Button #}
+<button id="nb-scroll-top-{{ block.id }}"
+        class="nb-scroll-top"
+        aria-label="Scroll to top"
+        title="Back to top">{% icon "chevron_line_up" class="nb-scroll-top-icon" %}</button>

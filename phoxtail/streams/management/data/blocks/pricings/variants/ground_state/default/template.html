@@ -1,0 +1,104 @@
+{% load wagtailcore_tags phoxtail_design_tags %}
+<!-- Pricing Section -->
+{% if value.plans %}
+    <div id="pricings-{{ block.id }}" class="pricing-wrapper">
+        <div class="pricing-container">
+            {% for plan_block in value.plans %}
+                {% with plan=plan_block.value %}
+                    <div class="pricing-card {% if plan.is_highlighted %}pricing-card-highlighted{% else %}pricing-card-default{% endif %}">
+                        {% if plan.tag %}
+                            <div class="pricing-tag-wrapper">
+                                <span class="pricing-tag {% if plan.is_highlighted %}pricing-tag-highlighted{% else %}pricing-tag-default{% endif %}">
+                                    {{ plan.tag }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        <div class="pricing-header {% if plan.tag %}pricing-header-with-tag{% endif %}">
+                            <div class="pricing-header-content">
+                                <h3 class="pricing-name {% if plan.is_highlighted %}pricing-name-highlighted{% endif %}">{{ plan.name }}</h3>
+                                <div class="pricing-price-wrapper">
+                                    <span class="pricing-price">{{ plan.price }}</span>
+                                    {% if plan.period %}<span class="pricing-period">{{ plan.period }}</span>{% endif %}
+                                </div>
+                                {% if plan.description %}<p class="pricing-description">{{ plan.description }}</p>{% endif %}
+                            </div>
+                        </div>
+                        <div class="pricing-content">
+                            {% if plan.features %}
+                                <ul role="list" class="pricing-features">
+                                    {% for feature_block in plan.features %}
+                                        {% with feature=feature_block.value %}
+                                            <li class="pricing-feature {% if not feature.is_enabled %}pricing-feature-disabled{% endif %}">
+                                                <div class="pricing-feature-icon">
+                                                    {% if feature.is_enabled %}
+                                                        <div class="pricing-icon pricing-icon-enabled {% if plan.is_highlighted %}pricing-icon-highlighted{% endif %}">
+                                                            {% with class="pricing-icon-svg" %}
+                                                                {% icon "check" %}
+                                                            {% endwith %}
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="pricing-icon pricing-icon-disabled">
+                                                            {% with class="pricing-icon-svg" %}
+                                                                {% icon "close" %}
+                                                            {% endwith %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <span class="pricing-feature-text {% if not feature.is_enabled %}pricing-feature-text-disabled{% endif %}">
+                                                    {{ feature.feature }}
+                                                </span>
+                                            </li>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            {% if plan.buttons %}
+                                <div class="pricing-button-wrapper">
+                                    <div class="pricing-button-container">
+                                        {% for button_block in plan.buttons %}
+                                            {% if button_block.block_type == 'internal_link' %}
+                                                {% with button=button_block.value current_page=button_block.value.link.specific %}
+                                                    {% if not current_page.live %}
+                                                        {% if perms.wagtailadmin.access_admin %}
+                                                            <span class="pricing-btn pricing-btn-disabled">
+                                                                {{ button.label|default:current_page.title }}
+                                                                {% with class="pricing-btn-icon" %}
+                                                                    {% icon "cloud_off" %}
+                                                                {% endwith %}
+                                                            </span>
+                                                        {% endif %}
+                                                    {% elif current_page.is_locked_for_references %}
+                                                        <span class="pricing-btn pricing-btn-disabled">
+                                                            {{ button.label|default:current_page.title }}
+                                                            {% with class="pricing-btn-icon" %}
+                                                                {% icon "lock" %}
+                                                            {% endwith %}
+                                                        </span>
+                                                    {% else %}
+                                                        <a href="{{ button.link.url }}"
+                                                           class="pricing-btn {% if plan.is_highlighted %}pricing-btn-highlighted{% endif %}"
+                                                           {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                            {{ button.label|default:current_page.title }}
+                                                        </a>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% elif button_block.block_type == 'external_link' %}
+                                                {% with button=button_block.value %}
+                                                    <a href="{{ button.link }}"
+                                                       class="pricing-btn {% if plan.is_highlighted %}pricing-btn-highlighted{% endif %}"
+                                                       {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                        {{ button.label }}
+                                                    </a>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

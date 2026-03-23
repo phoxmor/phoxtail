@@ -1,0 +1,49 @@
+[
+  {
+    "type": "stream",
+    "value": {
+      "name": "items",
+      "required": false,
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "item",
+            "blocks": [
+              {
+                "type": "choice_field",
+                "value": {
+                  "name": "type",
+                  "required": true,
+                  "help_text": "Type of contact information",
+                  "choices": [
+                    {"value": "phone", "label": "Phone"},
+                    {"value": "mobile", "label": "Mobile"},
+                    {"value": "email", "label": "Email"},
+                    {"value": "address", "label": "Address"}
+                  ]
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": true,
+                  "help_text": "Display label (e.g., Main Office, Customer Support)"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "value",
+                  "required": true,
+                  "help_text": "The contact value: phone number, email address, or postal address"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

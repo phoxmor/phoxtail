@@ -1,0 +1,37 @@
+[
+  {
+    "type": "choice_field",
+    "value": {
+      "name": "status",
+      "label": "Status",
+      "required": true,
+      "default": "info",
+      "help_text": "Alert type — controls colour and icon",
+      "choices": [
+        {"value": "info", "label": "Info"},
+        {"value": "success", "label": "Success"},
+        {"value": "warning", "label": "Warning"},
+        {"value": "danger", "label": "Danger"}
+      ]
+    }
+  },
+  {
+    "type": "char_field",
+    "value": {
+      "name": "title",
+      "label": "Title",
+      "required": true,
+      "max_length": 100,
+      "help_text": "Bold heading for the alert"
+    }
+  },
+  {
+    "type": "text_field",
+    "value": {
+      "name": "message",
+      "label": "Message",
+      "required": true,
+      "help_text": "Main alert message"
+    }
+  }
+]

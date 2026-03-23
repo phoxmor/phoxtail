@@ -1,0 +1,54 @@
+{% extends "account/base_reauthenticate.html" %}
+{% load allauth i18n app_tags static %}
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/auth.css' %}">
+{% endblock %}
+{% block reauthenticate_content %}
+    <p class="auth-subtitle auth-text-center auth-mt-6">{% blocktranslate %}Enter your password:{% endblocktranslate %}</p>
+    <form class="auth-form"
+          method="post"
+          action="{% url 'account_reauthenticate' %}">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="auth-error">
+                    <span class="auth-error-dot"></span>
+                    {{ error }}
+                </p>
+            {% endfor %}
+        {% endif %}
+        <div>
+            {% for field in form %}
+                {% if not field.is_hidden %}
+                    <div class="auth-field">
+                        <label for="{{ field.id_for_label }}" class="auth-label">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="auth-required">*</span>{% endif %}
+                        </label>
+                        <div class="auth-input-wrapper">
+                            {{ field|add_class:"auth-input" }}
+                            <div class="auth-input-glow"></div>
+                            {% if field.errors %}
+                                <div class="auth-errors-block">
+                                    {% for error in field.errors %}
+                                        <p class="auth-error">
+                                            <span class="auth-error-dot"></span>
+                                            {{ error }}
+                                        </p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endfor %}
+        </div>
+        {{ redirect_field }}
+        <div class="auth-actions">
+            {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" %}
+        </div>
+    </form>
+{% endblock %}

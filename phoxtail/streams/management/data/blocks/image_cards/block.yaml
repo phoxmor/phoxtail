@@ -1,0 +1,4 @@
+name: Image Cards
+identifier: image_cards
+description: A carousel of full-bleed image cards with optional title, description, and call-to-action buttons overlaid on the image.
+icon: image

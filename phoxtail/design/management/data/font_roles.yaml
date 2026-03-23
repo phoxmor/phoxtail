@@ -1,0 +1,23 @@
+- name: Heading
+  identifier: heading
+  description: >-
+    For titles, subtitles, and expressive headlines.
+    Supports high personality or display-oriented typefaces.
+
+- name: Body
+  identifier: body
+  description: >-
+    For main reading content, paragraphs, and long text.
+    Prioritizes legibility and consistent rhythm across various sizes.
+
+- name: UI
+  identifier: ui
+  description: >-
+    For functional interface elements like buttons, labels, and navigation.
+    Optimized for quick scanning and clarity at smaller sizes.
+
+- name: Monospace
+  identifier: mono
+  description: >-
+    For code blocks, technical data, and tabular information.
+    Fixed-width characters ensure alignment and technical precision.

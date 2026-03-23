@@ -1,0 +1,518 @@
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.db.models import Q
+from django.template import Context, Template
+from django.utils.translation import gettext_lazy as _
+from modelcluster.fields import ParentalKey
+from modelcluster.models import ClusterableModel
+from wagtail.fields import StreamField
+from wagtail.models import Orderable
+from wagtail.search import index
+
+from phoxtail.core.mixins import TimestampMixin
+from phoxtail.streams.blocks.schema import (
+    BlockQuoteSchemaBlock,
+    BooleanSchemaBlock,
+    CharSchemaBlock,
+    ChoiceSchemaBlock,
+    DateSchemaBlock,
+    DateTimeSchemaBlock,
+    DecimalSchemaBlock,
+    DocumentChooserSchemaBlock,
+    EmailSchemaBlock,
+    EmbedSchemaBlock,
+    FloatSchemaBlock,
+    ImageChooserSchemaBlock,
+    ImageSchemaBlock,
+    IntegerSchemaBlock,
+    ListFieldSchemaBlock,
+    ListStructSchemaBlock,
+    MultipleChoiceSchemaBlock,
+    PageChooserSchemaBlock,
+    RawHTMLSchemaBlock,
+    RegexSchemaBlock,
+    RichTextSchemaBlock,
+    SnippetChooserSchemaBlock,
+    StreamSchemaBlock,
+    StructSchemaBlock,
+    TextSchemaBlock,
+    TimeSchemaBlock,
+    URLSchemaBlock,
+    VideoChooserSchemaBlock,
+)
+from phoxtail.streams.fields import SharedBlockStreamField
+from phoxtail.streams.utils import _page_content_type_choices
+
+
+class Block(index.Indexed, Orderable, ClusterableModel):
+    """Defines a StreamField block type that can have multiple template variations"""
+
+    name = models.CharField(max_length=255, unique=True, help_text=_("Display name"))
+    identifier = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text=_("Unique identifier (e.g., 'header_section', 'simple_hero')"),
+    )
+    description = models.TextField(
+        help_text=_("Description of this block's purpose and use case"),
+    )
+    icon = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_(
+            "Wagtail icon name for this block "
+            "(e.g., 'image', 'doc-full', 'media'). "
+            "Displayed in the block chooser."
+        ),
+    )
+    group = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_(
+            "Group label shown in the block chooser "
+            "(e.g., 'Blog', 'Media'). "
+            "Leave empty for no grouping."
+        ),
+    )
+    is_shared = models.BooleanField(
+        default=False,
+        help_text=_(
+            "If checked, this block's content is defined once per site/locale "
+            "(in Shared Blocks) and shared across pages. "
+            "In page editors, only the variant chooser will be shown."
+        ),
+    )
+    page_types = models.ManyToManyField(
+        "contenttypes.ContentType",
+        blank=True,
+        related_name="+",
+        verbose_name=_("Page Types"),
+        limit_choices_to=_page_content_type_choices,
+        help_text=_(
+            "Restrict this block to specific page types. "
+            "Leave empty to make it available on all pages."
+        ),
+    )
+    schema = StreamField(
+        [
+            # Text Fields
+            ("char_field", CharSchemaBlock()),
+            ("text_field", TextSchemaBlock()),
+            ("email_field", EmailSchemaBlock()),
+            ("url_field", URLSchemaBlock()),
+            ("blockquote_field", BlockQuoteSchemaBlock()),
+            ("raw_html_field", RawHTMLSchemaBlock()),
+            # Numeric Fields
+            ("integer_field", IntegerSchemaBlock()),
+            ("float_field", FloatSchemaBlock()),
+            ("decimal_field", DecimalSchemaBlock()),
+            # Boolean
+            ("boolean_field", BooleanSchemaBlock()),
+            # Date/Time
+            ("date_field", DateSchemaBlock()),
+            ("time_field", TimeSchemaBlock()),
+            ("datetime_field", DateTimeSchemaBlock()),
+            # Rich Content
+            ("rich_text_field", RichTextSchemaBlock()),
+            # Advanced
+            ("regex_field", RegexSchemaBlock()),
+            ("choice_field", ChoiceSchemaBlock()),
+            ("multiple_choice_field", MultipleChoiceSchemaBlock()),
+            # Choosers
+            ("page_chooser_field", PageChooserSchemaBlock()),
+            ("document_chooser_field", DocumentChooserSchemaBlock()),
+            ("image_chooser_field", ImageChooserSchemaBlock()),
+            ("image_field", ImageSchemaBlock()),
+            ("snippet_chooser_field", SnippetChooserSchemaBlock()),
+            ("video_chooser_field", VideoChooserSchemaBlock()),
+            # Embed
+            ("embed_field", EmbedSchemaBlock()),
+            # Structures
+            ("struct", StructSchemaBlock()),
+            ("list_field", ListFieldSchemaBlock()),
+            ("list_struct", ListStructSchemaBlock()),
+            ("stream", StreamSchemaBlock()),
+        ],
+        use_json_field=True,
+        blank=True,
+        help_text=_(
+            "Define the structure of this block using "
+            "field schema blocks, nested structures, "
+            "lists, and streams"
+        ),
+        collapsed=True,
+    )
+    search_fields = [
+        index.AutocompleteField("name"),
+        index.AutocompleteField("identifier"),
+        index.SearchField("name"),
+        index.SearchField("identifier"),
+        index.SearchField("description"),
+        index.FilterField("is_shared"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = _("Block")
+        verbose_name_plural = _("Blocks")
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def default_variant(self):
+        return self.variants.filter(is_default=True).first()
+
+
+class VariantCollection(index.Indexed, ClusterableModel):
+    """Collection of BlockVariant instances sharing common design principles"""
+
+    name = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=_("Collection name (e.g., 'Material Design', 'Minimalist')"),
+    )
+    identifier = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text=_("Unique identifier (e.g., 'material_design_3')"),
+    )
+    description = models.TextField(
+        help_text=_("Short description of this collection's purpose"),
+    )
+    template = models.TextField(
+        blank=True,
+        default="",
+        help_text=_(
+            "DTL template for design guidelines. "
+            "Use {{ settings.app.SiteConfig }} "
+            "to access site-wide design tokens."
+        ),
+    )
+
+    search_fields = [
+        index.AutocompleteField("name"),
+        index.AutocompleteField("identifier"),
+        index.SearchField("name"),
+        index.SearchField("identifier"),
+        index.SearchField("description"),
+    ]
+
+    class Meta:
+        verbose_name = _("Collection")
+        verbose_name_plural = _("Collections")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def render(self) -> str:
+        """Render template with self as context"""
+        if not self.template:
+            return ""
+        from phoxtail.design.models import FontRole, PaletteRole
+
+        context = {
+            "object": self,
+            "palette_roles": PaletteRole.objects.all(),
+            "font_roles": FontRole.objects.all(),
+        }
+
+        return Template(self.template).render(Context(context))
+
+
+class BlockVariant(index.Indexed, models.Model):
+    """Variant for a specific Block within a Collection"""
+
+    block = ParentalKey(Block, on_delete=models.CASCADE, related_name="variants")
+    collection = models.ForeignKey(
+        VariantCollection,
+        on_delete=models.CASCADE,
+        related_name="variants",
+        help_text=_("The collection this variant belongs to"),
+    )
+    name = models.CharField(
+        max_length=255,
+        help_text=_(
+            "Variant name for identification (e.g., 'Centered', 'With Background')"
+        ),
+    )
+    identifier = models.CharField(
+        max_length=100,
+        help_text=_(
+            "Identifier for this variant (e.g., 'centered_dark', 'split_layout')"
+        ),
+    )
+    description = models.TextField(
+        help_text=_(
+            "Design rationale and approach. Explain why "
+            "this variant exists and what makes it "
+            "different."
+        ),
+    )
+    is_default = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Whether this is the default variant for its "
+            "block. Only one default per block."
+        ),
+    )
+
+    # Template fields (split from single 'code' field)
+    html = models.TextField(
+        default="",
+        help_text=_("HTML template with DTL/Jinja2 tags."),
+    )
+    css = models.TextField(
+        blank=True,
+        default="",
+        help_text=_("CSS styles for this variant."),
+    )
+    javascript = models.TextField(
+        blank=True,
+        default="",
+        help_text=_("JavaScript code for this variant."),
+    )
+    preview_image = models.ForeignKey(
+        "wagtailimages.Image",
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Optional preview screenshot of this variant."),
+    )
+
+    search_fields = [
+        index.FilterField("id"),
+        index.AutocompleteField("name"),
+        index.AutocompleteField("identifier"),
+        index.SearchField("name"),
+        index.SearchField("identifier"),
+        index.SearchField("description"),
+        index.RelatedFields(
+            "block",
+            [
+                index.SearchField("name"),
+                index.AutocompleteField("name"),
+            ],
+        ),
+        index.FilterField("block"),
+        index.RelatedFields(
+            "collection",
+            [
+                index.SearchField("name"),
+                index.AutocompleteField("name"),
+            ],
+        ),
+        index.FilterField("collection_id"),
+    ]
+
+    class Meta:
+        verbose_name = _("Variant")
+        verbose_name_plural = _("Variants")
+        ordering = ["block__name", "collection__name", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["block", "collection", "identifier"],
+                name="unique_block_collection_variant_identifier",
+            ),
+            models.UniqueConstraint(
+                fields=["block"],
+                condition=Q(is_default=True),
+                name="unique_default_variant_per_block",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.block.name} | {self.name} ({self.collection.name})"
+
+
+class BlockSystemPrompt(index.Indexed, TimestampMixin, models.Model):
+    """Reusable template for generating AI system prompts for blocks"""
+
+    name = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text=_("Display name for this system prompt template"),
+    )
+    identifier = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text=_("Unique identifier (e.g., 'variant_generator')"),
+    )
+    description = models.TextField(
+        help_text=_("What this system prompt template is used for"),
+    )
+    template = models.TextField(
+        help_text=_(
+            "System prompt template using Django Template "
+            "Language. Available context: {{ block }}, "
+            "{{ collection }}, {{ variant }}, "
+            "{{ references }}. variant is None for "
+            "creation tasks, references is a list "
+            "(may be empty)"
+        )
+    )
+
+    # Auto-computed categorization (cached for performance)
+    _requires_variant = models.BooleanField(
+        default=False,
+        editable=False,
+        db_index=True,
+        help_text=_(
+            "Auto-detected: Does this template use the variant context variable?"
+        ),
+    )
+
+    search_fields = [
+        index.AutocompleteField("name"),
+        index.SearchField("name"),
+        index.SearchField("description"),
+        index.FilterField("_requires_variant"),
+    ]
+
+    class Meta:
+        verbose_name = _("System Prompt")
+        verbose_name_plural = _("System Prompts")
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        """Auto-detect variant requirement before saving."""
+        self._requires_variant = self._detect_variant_usage()
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        """Validate template syntax."""
+        from django.core.exceptions import ValidationError
+        from django.template import TemplateSyntaxError
+
+        super().clean()
+        try:
+            Template(self.template)
+        except TemplateSyntaxError as e:
+            raise ValidationError({"template": f"Invalid Django template syntax: {e}"})
+
+    def _detect_variant_usage(self) -> bool:
+        """
+        Check if template uses 'variant' context variable.
+        Only checks VariableNode instances ({{ variant.* }}).
+        """
+        try:
+            from django.template import TemplateSyntaxError
+            from django.template.base import VariableNode
+
+            compiled = Template(self.template)
+            variable_nodes = compiled.nodelist.get_nodes_by_type(VariableNode)
+
+            for node in variable_nodes:
+                # node.filter_expression.token is the full expression
+                # e.g., "variant.html|safe" or "block.name"
+                token = node.filter_expression.token
+
+                # Extract root variable (before dot and filter)
+                root_var = token.split("|")[0].split(".")[0].strip()
+
+                if root_var == "variant":
+                    return True
+
+            return False
+
+        except TemplateSyntaxError:
+            return False
+
+    def render(self, block, collection, variant=None, references=None) -> str:
+        """Render the system prompt with context."""
+        context = Context(
+            {
+                "block": block,
+                "collection": collection,
+                "variant": variant,
+                "references": references or [],
+            }
+        )
+        return Template(self.template).render(context)
+
+
+class SharedBlock(index.Indexed, TimestampMixin, models.Model):
+    """
+    Site-scoped content for shared blocks.
+
+    When a Block has is_shared=True, its content is filled once here
+    (per site+locale) and shared across all pages. In page StreamFields,
+    editors only see a variant chooser — the content comes from this model.
+    """
+
+    block = models.ForeignKey(
+        Block,
+        on_delete=models.CASCADE,
+        related_name="shared_blocks",
+        limit_choices_to={"is_shared": True},
+        help_text=_("The shared block this content belongs to."),
+    )
+    site = models.ForeignKey(
+        "wagtailcore.Site",
+        on_delete=models.CASCADE,
+        related_name="shared_blocks",
+    )
+    locale = models.ForeignKey(
+        "wagtailcore.Locale",
+        on_delete=models.CASCADE,
+        related_name="shared_blocks",
+    )
+    content = SharedBlockStreamField
+
+    search_fields = [
+        index.FilterField("block"),
+        index.FilterField("site"),
+        index.FilterField("locale"),
+        index.RelatedFields(
+            "block",
+            [
+                index.SearchField("name"),
+                index.AutocompleteField("name"),
+            ],
+        ),
+    ]
+
+    class Meta:
+        verbose_name = _("Shared Block")
+        verbose_name_plural = _("Shared Blocks")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["block", "site", "locale"],
+                name="unique_shared_block",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.block.name} ({self.site} / {self.locale})"
+
+    def clean(self):
+        super().clean()
+        # Ensure the block FK points to a shared block
+        if self.block_id and not self.block.is_shared:
+            raise ValidationError(
+                {
+                    "block": (
+                        "Only blocks with 'is_shared' enabled can have shared content."
+                    )
+                }
+            )
+        # Ensure the content block type matches the block FK
+        if self.content and len(self.content) > 0:
+            content_block_type = self.content[0].block_type
+            if content_block_type != self.block.identifier:
+                raise ValidationError(
+                    {
+                        "content": (
+                            f"Content block type "
+                            f"'{content_block_type}' does "
+                            f"not match the selected block "
+                            f"'{self.block.identifier}'."
+                        )
+                    }
+                )

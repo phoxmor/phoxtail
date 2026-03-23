@@ -1,0 +1,29 @@
+[
+  {
+    "type": "rich_text_field",
+    "value": {
+      "name": "content",
+      "required": true,
+      "help_text": "Rich text content with formatting",
+      "features": [
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "bold",
+        "italic",
+        "ol",
+        "ul",
+        "hr",
+        "link",
+        "document-link",
+        "blockquote",
+        "superscript",
+        "subscript",
+        "strikethrough"
+      ]
+    }
+  }
+]

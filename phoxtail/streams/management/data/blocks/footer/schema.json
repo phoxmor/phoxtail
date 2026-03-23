@@ -1,0 +1,320 @@
+[
+  {
+    "type": "struct",
+    "value": {
+      "name": "branding",
+      "collapsed": true,
+      "help_text": "Footer logos",
+      "blocks": [
+        {
+          "type": "image_chooser_field",
+          "value": {
+            "name": "logo",
+            "required": false,
+            "help_text": "Footer logo"
+          }
+        },
+        {
+          "type": "image_chooser_field",
+          "value": {
+            "name": "logo_dark",
+            "required": false,
+            "help_text": "Footer logo for dark mode"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "stream",
+    "value": {
+      "name": "sections",
+      "required": false,
+      "collapsed": true,
+      "help_text": "Footer link sections (e.g., Company, Resources, Support)",
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "section",
+            "icon": "list-ul",
+            "blocks": [
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "title",
+                  "required": true,
+                  "max_length": 50,
+                  "help_text": "Section title"
+                }
+              },
+              {
+                "type": "stream",
+                "value": {
+                  "name": "items",
+                  "help_text": "Links in this section",
+                  "max_num": 20,
+                  "blocks": [
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "page_link",
+                        "icon": "doc-empty",
+                        "blocks": [
+                          {
+                            "type": "page_chooser_field",
+                            "value": {
+                              "name": "page",
+                              "required": true,
+                              "help_text": "Select a page"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Link text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "external_link",
+                        "icon": "link",
+                        "blocks": [
+                          {
+                            "type": "url_field",
+                            "value": {
+                              "name": "url",
+                              "required": true,
+                              "help_text": "External URL"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Link text (if empty, URL will be used)"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "contact_item",
+                        "icon": "info-circle",
+                        "blocks": [
+                          {
+                            "type": "choice_field",
+                            "value": {
+                              "name": "type",
+                              "required": true,
+                              "choices": [
+                                {"value": "phone", "label": "Phone"},
+                                {"value": "mobile", "label": "Mobile"},
+                                {"value": "email", "label": "Email"},
+                                {"value": "address", "label": "Address"}
+                              ],
+                              "help_text": "Type of contact information"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": true,
+                              "help_text": "Display label"
+                            }
+                          },
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "value",
+                              "required": true,
+                              "help_text": "Contact value (phone number, email, address)"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "struct",
+    "value": {
+      "name": "social_media",
+      "collapsed": true,
+      "help_text": "Social media section",
+      "blocks": [
+        {
+          "type": "char_field",
+          "value": {
+            "name": "title",
+            "required": false,
+            "max_length": 100,
+            "help_text": "Title displayed above social media icons"
+          }
+        },
+        {
+          "type": "stream",
+          "value": {
+            "name": "links",
+            "required": false,
+            "help_text": "Social media links with icons",
+            "blocks": [
+              {
+                "type": "struct",
+                "value": {
+                  "name": "social_link",
+                  "icon": "link",
+                  "blocks": [
+                    {
+                      "type": "image_chooser_field",
+                      "value": {
+                        "name": "icon",
+                        "required": true,
+                        "help_text": "Social media icon"
+                      }
+                    },
+                    {
+                      "type": "image_chooser_field",
+                      "value": {
+                        "name": "icon_dark",
+                        "required": false,
+                        "help_text": "Social media icon for dark mode"
+                      }
+                    },
+                    {
+                      "type": "url_field",
+                      "value": {
+                        "name": "link",
+                        "required": true,
+                        "help_text": "Social media URL"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "stream",
+    "value": {
+      "name": "bottom_links",
+      "required": false,
+      "collapsed": true,
+      "help_text": "Links at the bottom of the footer (e.g., Privacy Policy, Terms)",
+      "blocks": [
+        {
+          "type": "struct",
+          "value": {
+            "name": "page_link",
+            "icon": "doc-empty",
+            "blocks": [
+              {
+                "type": "page_chooser_field",
+                "value": {
+                  "name": "page",
+                  "required": true,
+                  "help_text": "Select a page"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": false,
+                  "help_text": "Link text (if empty, page title will be used)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "open_in_new_tab",
+                  "required": false,
+                  "help_text": "Open link in new tab"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "struct",
+          "value": {
+            "name": "external_link",
+            "icon": "link",
+            "blocks": [
+              {
+                "type": "url_field",
+                "value": {
+                  "name": "url",
+                  "required": true,
+                  "help_text": "External URL"
+                }
+              },
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": false,
+                  "help_text": "Link text (if empty, URL will be used)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "open_in_new_tab",
+                  "required": false,
+                  "help_text": "Open link in new tab"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "type": "char_field",
+    "value": {
+      "name": "copyright",
+      "required": false,
+      "max_length": 255,
+      "help_text": "Copyright text (e.g., 2024 Company Name)"
+    }
+  }
+]

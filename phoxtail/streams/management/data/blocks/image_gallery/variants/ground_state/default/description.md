@@ -1,0 +1,1 @@
+Ground state variant for Image Gallery. A responsive masonry-style grid with 2 columns on small screens and 3 on large screens. Clicking an image opens a simple full-screen modal overlay for viewing at full size.

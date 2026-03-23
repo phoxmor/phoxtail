@@ -1,0 +1,5 @@
+name: Booking Schedule
+identifier: booking_schedule
+description: Displays a read-only weekly schedule grid for a chosen location. Shows confirmed events for the current week organised by day and time. Available on all page types.
+icon: date
+group: Events

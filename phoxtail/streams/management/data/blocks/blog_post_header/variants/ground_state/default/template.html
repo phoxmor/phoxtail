@@ -1,0 +1,70 @@
+{% load thumbnail wagtailimages_tags phoxtail_design_tags %}
+<header id="bph-{{ block.id }}" class="bph-wrapper">
+    <div class="bph-container">
+        {% if page.tags.all %}
+            <div class="bph-tags" aria-label="Tags">
+                {% for tag in page.tags.all %}<span class="bph-tag">{{ tag }}</span>{% endfor %}
+            </div>
+        {% endif %}
+        <h1 class="bph-title">{{ page.title }}</h1>
+        {% if page.intro %}<p class="bph-intro">{{ page.intro }}</p>{% endif %}
+        {% if page.preview_image %}
+            <div class="bph-preview-image-wrap">{% image page.preview_image width-800 class="bph-preview-img" %}</div>
+        {% endif %}
+        <div class="bph-meta">
+            {% if page.author %}
+                <div class="bph-author">
+                    <div class="bph-avatar">
+                        {% if page.author.user.avatar %}
+                            {% thumbnail page.author.user.avatar "80x80" crop="center" as avatar %}
+                                <img src="{{ avatar.url }}"
+                                     alt="{{ page.author.user.get_full_name }}"
+                                     class="bph-avatar-img">
+                            {% endthumbnail %}
+                        {% else %}
+                            <div class="bph-avatar-fallback">
+                                <span class="bph-avatar-initials">
+                                    {{ page.author.user.first_name|default:''|slice:":1" }}{{ page.author.user.last_name|default:''|slice:":1" }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <span class="bph-author-name">
+                        {{ page.author.user.get_full_name|default:page.author.user.username }}
+                        {% if page.author.title %}<span class="bph-author-title">| {{ page.author.title }}</span>{% endif %}
+                    </span>
+                </div>
+            {% endif %}
+            {% if not page.hide_dates %}
+                {% with pub_date=page.first_published_at_override|default:page.first_published_at %}
+                    {% if pub_date %}
+                        <time class="bph-date" datetime="{{ pub_date|date:'Y-m-d' }}">
+                            {% with class="bph-meta-icon" %}
+                                {% icon "publish" %}
+                            {% endwith %}
+                            <span>{{ pub_date|date:"M d, Y" }}</span>
+                        </time>
+                        {% with updated_date=page.last_published_at_override|default:page.last_published_at %}
+                            {% if updated_date != pub_date %}
+                                <time class="bph-date" datetime="{{ updated_date|date:'Y-m-d' }}">
+                                    {% with class="bph-meta-icon" %}
+                                        {% icon "published_with_changes" %}
+                                    {% endwith %}
+                                    <span>{{ updated_date|date:"M d, Y" }}</span>
+                                </time>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            {% if page.read_mins %}
+                <span class="bph-read-mins">
+                    {% with class="bph-meta-icon" %}
+                        {% icon "schedule" %}
+                    {% endwith %}
+                    <span>{{ page.read_mins }} min read</span>
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</header>

@@ -1,0 +1,348 @@
+/* Scoped styles for video banner {{ block.id }} */
+
+#video-banner-{{ block.id }} {
+    --vb-transition-duration: 800ms;
+    --vb-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    height: 55vh;
+    min-height: 320px;
+    font-family: var(--font-body, system-ui, -apple-system, sans-serif);
+}
+
+/* Thumbnail Image */
+#video-banner-{{ block.id }} .vb-thumbnail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/* Video Background */
+#video-banner-{{ block.id }} .vb-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+/* Slides Container */
+#video-banner-{{ block.id }} .vb-slides {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+/* Individual Slide */
+#video-banner-{{ block.id }} .vb-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity var(--vb-transition-duration) var(--vb-transition-easing),
+        visibility var(--vb-transition-duration) var(--vb-transition-easing);
+}
+
+#video-banner-{{ block.id }} .vb-slide--active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Slide Inner */
+#video-banner-{{ block.id }} .vb-slide-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+}
+
+/* Gradient Overlay */
+#video-banner-{{ block.id }} .vb-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.5),
+        rgba(0, 0, 0, 0.25) 30%,
+        rgba(0, 0, 0, 0.1) 70%,
+        transparent
+    );
+    z-index: 1;
+}
+
+/* Content Container */
+#video-banner-{{ block.id }} .vb-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 80rem;
+    margin: 0 auto;
+}
+
+/* Content Elements — staggered entrance */
+#video-banner-{{ block.id }} .vb-slide .vb-supertitle,
+#video-banner-{{ block.id }} .vb-slide .vb-title,
+#video-banner-{{ block.id }} .vb-slide .vb-subtitle,
+#video-banner-{{ block.id }} .vb-slide .vb-buttons {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition:
+        opacity var(--vb-transition-duration) var(--vb-transition-easing),
+        transform var(--vb-transition-duration) var(--vb-transition-easing);
+}
+
+#video-banner-{{ block.id }} .vb-slide--active .vb-supertitle {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 200ms;
+}
+
+#video-banner-{{ block.id }} .vb-slide--active .vb-title {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 350ms;
+}
+
+#video-banner-{{ block.id }} .vb-slide--active .vb-subtitle {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 500ms;
+}
+
+#video-banner-{{ block.id }} .vb-slide--active .vb-buttons {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 650ms;
+}
+
+/* Supertitle */
+#video-banner-{{ block.id }} .vb-supertitle {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    line-height: 1.75rem;
+    font-weight: var(--font-ui-weight-bold, 700);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: white;
+}
+
+/* Title */
+#video-banner-{{ block.id }} .vb-title {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    line-height: 1.1;
+    font-weight: var(--font-heading-weight-bold, 700);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    color: white;
+    margin: 0;
+}
+
+/* Subtitle */
+#video-banner-{{ block.id }} .vb-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    max-width: 65ch;
+}
+
+#video-banner-{{ block.id }} .vb-subtitle-spacing {
+    margin-top: 0.5rem;
+}
+
+#video-banner-{{ block.id }} .vb-subtitle p {
+    margin: 0;
+}
+
+#video-banner-{{ block.id }} .vb-subtitle p + p {
+    margin-top: 0.5rem;
+}
+
+/* Buttons Container */
+#video-banner-{{ block.id }} .vb-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+#video-banner-{{ block.id }} .vb-buttons-spacing {
+    margin-top: 1.5rem;
+}
+
+/* Button — shared base */
+#video-banner-{{ block.id }} .vb-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.75rem;
+    border-radius: calc(infinity * 1px);
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    font-weight: var(--font-ui-weight-semibold, 600);
+    letter-spacing: 0.025em;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background-color 250ms var(--vb-transition-easing),
+        border-color 250ms var(--vb-transition-easing),
+        box-shadow 250ms var(--vb-transition-easing);
+}
+
+/* Button — Primary
+   Soft translucent fill with a luminous border —
+   reads as frosted glass without backdrop-filter,
+   so it's completely immune to parent opacity transitions. */
+#video-banner-{{ block.id }} .vb-btn--primary {
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+#video-banner-{{ block.id }} .vb-btn--primary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+#video-banner-{{ block.id }} .vb-btn--primary:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+#video-banner-{{ block.id }} .vb-btn--primary:active {
+    background-color: rgba(255, 255, 255, 0.25);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Button — Disabled */
+#video-banner-{{ block.id }} .vb-btn--disabled {
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+#video-banner-{{ block.id }} .vb-btn-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+/* Pagination */
+#video-banner-{{ block.id }} .vb-pagination {
+    position: absolute;
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#video-banner-{{ block.id }} .vb-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 9999px;
+    background-color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition:
+        background-color 300ms cubic-bezier(0.4, 0, 0.2, 1),
+        transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#video-banner-{{ block.id }} .vb-dot:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+    transform: scale(1.25);
+}
+
+#video-banner-{{ block.id }} .vb-dot:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.6);
+    outline-offset: 2px;
+}
+
+#video-banner-{{ block.id }} .vb-dot--active {
+    background-color: white;
+    transform: scale(1.25);
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    #video-banner-{{ block.id }} .vb-slide-inner {
+        padding: 3rem;
+    }
+
+    #video-banner-{{ block.id }} .vb-title {
+        font-size: 3.75rem;
+    }
+
+    #video-banner-{{ block.id }} .vb-subtitle {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+
+    #video-banner-{{ block.id }} .vb-btn {
+        padding: 0.75rem 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    #video-banner-{{ block.id }} .vb-title {
+        font-size: 4.5rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    #video-banner-{{ block.id }} .vb-title {
+        font-size: 5.5rem;
+    }
+
+    #video-banner-{{ block.id }} .vb-subtitle {
+        font-size: 1.5rem;
+        line-height: 2rem;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    #video-banner-{{ block.id }} .vb-slide {
+        transition-duration: 0.01ms;
+    }
+
+    #video-banner-{{ block.id }} .vb-slide .vb-supertitle,
+    #video-banner-{{ block.id }} .vb-slide .vb-title,
+    #video-banner-{{ block.id }} .vb-slide .vb-subtitle,
+    #video-banner-{{ block.id }} .vb-slide .vb-buttons {
+        transition-duration: 0.01ms;
+        transition-delay: 0ms;
+        transform: none;
+    }
+}

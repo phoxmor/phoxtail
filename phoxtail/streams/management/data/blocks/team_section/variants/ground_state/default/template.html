@@ -1,0 +1,133 @@
+{% load wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+<div id="team-section-{{ block.id }}" class="ts-wrapper">
+    <div class="ts-container">
+        <div class="ts-carousel-wrapper">
+            <div class="ts-carousel-viewport">
+                <div class="ts-grid">
+                    {% for member_block in value.members %}
+                        {% with member=member_block.value %}
+                            {% if member.avatar_image %}
+                                {% image member.avatar_image fill-800x1000 as avatar %}
+                            {% endif %}
+                            <div class="ts-item"
+                                 data-index="{{ forloop.counter0 }}"
+                                 data-name="{{ member.name }}"
+                                 data-role="{{ member.role|default:'' }}"
+                                 data-avatar="{% if member.avatar_image %}{{ avatar.url }}{% endif %}"
+                                 tabindex="0">
+                                <div class="ts-card">
+                                    {% if member.avatar_image %}
+                                        <img src="{{ avatar.url }}"
+                                             alt="{{ member.name }}"
+                                             class="ts-card-image"
+                                             loading="lazy">
+                                    {% endif %}
+                                    <div class="ts-card-overlay">
+                                        <div class="ts-card-body">
+                                            <div class="ts-card-header">
+                                                <h3 class="ts-member-name">{{ member.name }}</h3>
+                                                {% if member.role %}<p class="ts-member-role">{{ member.role }}</p>{% endif %}
+                                            </div>
+                                            {# Wrappers are unconditionally rendered to guarantee JS can find them. Wagtail handles the empty loops safely. #}
+                                            <div class="ts-card-social">
+                                                {% for social_block in member.social_media %}
+                                                    {% with social=social_block.value %}
+                                                        {% if social.icon %}
+                                                            {% image social.icon width-32 as si %}
+                                                        {% endif %}
+                                                        <a href="{{ social.link }}"
+                                                           target="_blank"
+                                                           rel="noopener noreferrer"
+                                                           class="ts-social-link"
+                                                           aria-label="Social Link">
+                                                            {% if social.icon %}
+                                                                <img src="{{ si.url }}"
+                                                                     alt="Social link"
+                                                                     class="ts-social-icon"
+                                                                     loading="lazy">
+                                                            {% endif %}
+                                                        </a>
+                                                    {% endwith %}
+                                                {% endfor %}
+                                            </div>
+                                            {% if member.bio %}<div class="ts-card-bio ts-bio-clamp">{{ member.bio|richtext }}</div>{% endif %}
+                                            <div class="ts-card-footer">
+                                                <div class="ts-card-button-wrap">
+                                                    {% for btn_block in member.buttons %}
+                                                        {% if btn_block.block_type == 'internal_link' %}
+                                                            {% with btn=btn_block.value %}
+                                                                <a href="{{ btn.link.url }}"
+                                                                   class="ts-btn ts-btn--primary"
+                                                                   {% if btn.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                                                                    {{ btn.label|default:btn.link.title }}
+                                                                </a>
+                                                            {% endwith %}
+                                                        {% elif btn_block.block_type == 'external_link' %}
+                                                            {% with btn=btn_block.value %}
+                                                                <a href="{{ btn.link }}"
+                                                                   class="ts-btn ts-btn--primary"
+                                                                   {% if btn.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                                                                    {{ btn.label }}
+                                                                </a>
+                                                            {% endwith %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="ts-pagination"
+                 aria-label="Carousel navigation"
+                 aria-hidden="true">
+                {% for member_block in value.members %}
+                    <button class="ts-dot {% if forloop.first %}ts-dot--active{% endif %}"
+                            type="button"
+                            aria-label="Go to team member {{ forloop.counter }}"
+                            data-index="{{ forloop.counter0 }}"></button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {# Modal #}
+    <div class="ts-modal"
+         aria-hidden="true"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Team member profile">
+        <div class="ts-modal-backdrop"></div>
+        <button class="ts-nav ts-nav--prev"
+                type="button"
+                aria-label="Previous member">
+            {% with class="ts-nav-icon" %}
+                {% icon "chevron_left" %}
+            {% endwith %}
+        </button>
+        <div class="ts-modal-stage">
+            <div class="ts-modal-content">
+                <div class="ts-modal-avatar"></div>
+                <div class="ts-modal-name"></div>
+                <div class="ts-modal-role"></div>
+                <div class="ts-modal-social"></div>
+                <div class="ts-modal-bio"></div>
+                <div class="ts-modal-buttons"></div>
+            </div>
+        </div>
+        <button class="ts-nav ts-nav--next" type="button" aria-label="Next member">
+            {% with class="ts-nav-icon" %}
+                {% icon "chevron_right" %}
+            {% endwith %}
+        </button>
+        <button class="ts-close" type="button" aria-label="Close viewer">
+            {% with class="ts-close-icon" %}
+                {% icon "close" %}
+            {% endwith %}
+        </button>
+        <div class="ts-counter" aria-live="polite"></div>
+    </div>
+</div>

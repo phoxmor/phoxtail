@@ -1,0 +1,1 @@
+Ground state variant for Video Banner. A video background banner with carousel slides, text overlays with parallax effects, and call-to-action buttons. The most natural, self-evident rendering of the video banner structure.

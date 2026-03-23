@@ -1,0 +1,30 @@
+<div class="fw-field">
+    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-label-row">
+            {% if show_label != False %}
+                <label for="{{ field.id_for_label }}" class="fw-label">
+                    {{ label|default:field.label }}
+                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+                </label>
+            {% else %}
+                <span class="fw-label"></span>
+            {% endif %}
+            {% if show_help_text != False and help_text|default:field.help_text %}
+                <span class="fw-help-wrapper">
+                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
+                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+    <input type="{{ input_type|default:field.field.widget.input_type }}"
+           name="{{ field.html_name }}"
+           id="{{ field.id_for_label }}"
+           value="{% if field.value.year %}{{ field.value|date:'Y-m-d' }}{% else %}{{ field.value|default:'' }}{% endif %}"
+           class="fw-input"
+           {% if field.field.required %}required{% endif %}
+           {% if field.field.disabled %}disabled{% endif %}>
+    {% if field.errors %}
+        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+    {% endif %}
+</div>

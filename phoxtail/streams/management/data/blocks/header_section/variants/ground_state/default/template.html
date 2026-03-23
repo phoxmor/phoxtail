@@ -1,0 +1,64 @@
+{% load wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+{% if block.value.text.supertitle or block.value.text.title or block.value.text.subtitle %}
+    <section id="hs-{{ block.id }}" class="hs-wrapper">
+        <div class="hs-container">
+            <div class="hs-layout {% if block.value.image.image %}hs-layout--with-image{% endif %}">
+                {# Image Section #}
+                {% if block.value.image.image %}
+                    {% image block.value.image.image width-1200 as img %}
+                    <div class="hs-image-container">
+                        <div class="hs-image-frame {% if img.width > img.height %}hs-landscape{% elif img.width < img.height %}hs-portrait{% else %}hs-square{% endif %}"
+                             style="background-image: url('{{ img.url }}');
+                                    {{ img.background_position_style }}"
+                             role="img"
+                             aria-label="{{ block.value.image.image.title }}"></div>
+                    </div>
+                {% endif %}
+                {# Content Section #}
+                <div class="hs-content">
+                    {% if block.value.text.supertitle %}<span class="hs-supertitle">{{ block.value.text.supertitle }}</span>{% endif %}
+                    {% if block.value.text.title %}<h1 class="hs-title">{{ block.value.text.title }}</h1>{% endif %}
+                    {% if block.value.text.subtitle %}<div class="hs-subtitle">{{ block.value.text.subtitle|linebreaks }}</div>{% endif %}
+                    {# Buttons Stream #}
+                    {% if block.value.buttons %}
+                        <div class="hs-actions">
+                            {% for button_block in block.value.buttons %}
+                                {% if button_block.block_type == 'internal_link' %}
+                                    {% with button=button_block.value page=button_block.value.link.specific %}
+                                        {% if not page.live %}
+                                            {% if perms.wagtailadmin.access_admin %}
+                                                <span class="hs-btn hs-btn--disabled">
+                                                    {{ button.label|default:page.title }}
+                                                    {% icon "cloud_off" class="hs-icon" %}
+                                                </span>
+                                            {% endif %}
+                                        {% elif page.is_locked_for_references %}
+                                            <span class="hs-btn hs-btn--disabled">
+                                                {{ button.label|default:page.title }}
+                                                {% icon "lock" class="hs-icon" %}
+                                            </span>
+                                        {% else %}
+                                            <a href="{{ page.url }}"
+                                               class="hs-btn hs-btn--primary"
+                                               {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                {{ button.label|default:page.title }}
+                                            </a>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% elif button_block.block_type == 'external_link' %}
+                                    {% with button=button_block.value %}
+                                        <a href="{{ button.link }}"
+                                           class="hs-btn hs-btn--primary"
+                                           {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                            {{ button.label }}
+                                        </a>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endif %}

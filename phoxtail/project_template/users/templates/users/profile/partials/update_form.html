@@ -1,0 +1,279 @@
+{% load app_tags thumbnail phoxtail_design_tags %}
+<div class="dash-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="dash-drawer-content" onclick="event.stopPropagation()">
+        <div class="usr-drawer-scroll">
+            <!-- Header -->
+            <div class="dash-drawer-header">
+                <div class="dash-drawer-title-row">
+                    <h2 class="dash-drawer-title">Edit Profile</h2>
+                    <button class="dash-icon-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="dash-icon-btn__icon">{% icon "close" %}</span>
+                    </button>
+                </div>
+                <div class="dash-drawer-subtitle">
+                    <span class="dash-info-item__icon">{% icon "user" %}</span>
+                    <span>Update your personal information</span>
+                </div>
+            </div>
+            <!-- Content -->
+            <div class="dash-drawer-body">
+                <!-- Avatar Preview -->
+                <div class="dash-mb-6 dash-avatar-section">
+                    <div id="avatar-preview-initials"
+                         class="dash-avatar-initials{% if user.avatar %} dash-hidden{% endif %}">
+                        {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
+                    </div>
+                    {% if user.avatar %}
+                        {% thumbnail user.avatar "256x256" crop="center" as avatar %}
+                            <img id="avatar-preview-image"
+                                 class="dash-avatar"
+                                 src="{{ avatar.url }}"
+                                 alt="{{ user.get_full_name }}">
+                        {% endthumbnail %}
+                    {% else %}
+                        <img id="avatar-preview-image"
+                             class="dash-avatar dash-hidden"
+                             src=""
+                             alt="{{ user.get_full_name }}">
+                    {% endif %}
+                    <h2 class="dash-profile-name">{{ user.get_full_name }}</h2>
+                    <span class="dash-profile-handle">@{{ user.username }}</span>
+                </div>
+                <form method="POST"
+                      enctype="multipart/form-data"
+                      class="dash-form-grid"
+                      hx-post="{% url 'dashboard:users:profile_update' %}"
+                      hx-target="#core-modal-placeholder"
+                      hx-swap="innerHTML">
+                    {% csrf_token %}
+                    {{ form.media }}
+                    <div class="dash-form-grid dash-form-grid-2">
+                        <div class="dash-form-group">
+                            <label for="{{ form.first_name.id_for_label }}" class="dash-label">
+                                First Name
+                                {% if form.first_name.field.required %}<span class="dash-required">*</span>{% endif %}
+                            </label>
+                            {{ form.first_name|add_class:"dash-input" }}
+                            {% if form.first_name.errors %}
+                                <p class="dash-error-text">
+                                    {% for error in form.first_name.errors %}
+                                        {{ error }}
+                                        {% if not forloop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="dash-form-group">
+                            <label for="{{ form.last_name.id_for_label }}" class="dash-label">
+                                Last Name
+                                {% if form.last_name.field.required %}<span class="dash-required">*</span>{% endif %}
+                            </label>
+                            {{ form.last_name|add_class:"dash-input" }}
+                            {% if form.last_name.errors %}
+                                <p class="dash-error-text">
+                                    {% for error in form.last_name.errors %}
+                                        {{ error }}
+                                        {% if not forloop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="dash-form-grid dash-form-grid-2">
+                        <div class="dash-form-group">
+                            <label for="{{ form.born_at.id_for_label }}" class="dash-label">
+                                Date of Birth
+                                {% if form.born_at.field.required %}<span class="dash-required">*</span>{% endif %}
+                            </label>
+                            {{ form.born_at|add_class:"dash-input" }}
+                            {% if form.born_at.errors %}
+                                <p class="dash-error-text">
+                                    {% for error in form.born_at.errors %}
+                                        {{ error }}
+                                        {% if not forloop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="dash-form-group">
+                            <label for="{{ form.gender.id_for_label }}" class="dash-label">
+                                Gender
+                                {% if form.gender.field.required %}<span class="dash-required">*</span>{% endif %}
+                            </label>
+                            {{ form.gender|add_class:"dash-input" }}
+                            {% if form.gender.errors %}
+                                <p class="dash-error-text">
+                                    {% for error in form.gender.errors %}
+                                        {{ error }}
+                                        {% if not forloop.last %}<br>{% endif %}
+                                    {% endfor %}
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="dash-form-group">
+                        <label for="{{ form.phone_number.id_for_label }}" class="dash-label">
+                            Phone Number
+                            {% if form.phone_number.field.required %}<span class="dash-required">*</span>{% endif %}
+                        </label>
+                        {{ form.phone_number|add_class:"dash-input" }}
+                        {% if form.phone_number.errors %}
+                            <p class="dash-error-text">
+                                {% for error in form.phone_number.errors %}
+                                    {{ error }}
+                                    {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="dash-form-group">
+                        <label for="{{ form.country.id_for_label }}" class="dash-label">
+                            Country
+                            {% if form.country.field.required %}<span class="dash-required">*</span>{% endif %}
+                        </label>
+                        {{ form.country|add_class:"dash-input" }}
+                        {% if form.country.errors %}
+                            <p class="dash-error-text">
+                                {% for error in form.country.errors %}
+                                    {{ error }}
+                                    {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="dash-form-group">
+                        <label for="{{ form.avatar.id_for_label }}" class="dash-label">
+                            Avatar
+                            {% if form.avatar.field.required %}<span class="dash-required">*</span>{% endif %}
+                        </label>
+                        <input type="file"
+                               name="{{ form.avatar.name }}"
+                               id="{{ form.avatar.id_for_label }}"
+                               accept="image/*"
+                               onchange="previewAvatar(event)"
+                               class="dash-file-input">
+                        {% if user.avatar %}
+                            <label class="dash-checkbox-group">
+                                <input type="checkbox"
+                                       name="{{ form.avatar.name }}-clear"
+                                       id="avatar-clear-checkbox"
+                                       onchange="handleClearAvatar(event)"
+                                       class="dash-checkbox">
+                                <span class="dash-label">Clear current avatar</span>
+                            </label>
+                        {% endif %}
+                        {% if form.avatar.errors %}
+                            <p class="dash-error-text">
+                                {% for error in form.avatar.errors %}
+                                    {{ error }}
+                                    {% if not forloop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </p>
+                        {% endif %}
+                    </div>
+                    {% if form.non_field_errors %}
+                        <div class="dash-error-box">
+                            <h3 class="dash-error-box__title">Please correct the errors below:</h3>
+                            <ul class="dash-error-box__list">
+                                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <!-- Hidden submit button for form -->
+                    <button type="submit"
+                            id="profile-form-submit-dash-hidden"
+                            class="dash-hidden">Submit</button>
+                </form>
+            </div>
+            <!-- Footer with action buttons -->
+            <div class="usr-drawer-footer">
+                <button class="dash-btn dash-btn--primary"
+                        onclick="document.getElementById('profile-form-submit-dash-hidden').click()"
+                        type="button">Save Changes</button>
+                <button class="dash-btn dash-btn--outline"
+                        onclick="closeModal()"
+                        type="button">Cancel</button>
+            </div>
+        </div>
+        <!-- usr-drawer-scroll -->
+    </div>
+</div>
+<script>
+(function() {
+    const previewImage = document.getElementById('avatar-preview-image');
+    const originalAvatarSrc = previewImage?.getAttribute('src') || '';
+    const hasOriginalAvatar = !!originalAvatarSrc;
+
+    window.previewAvatar = function(event) {
+        const file = event.target.files[0];
+        const previewInitials = document.getElementById('avatar-preview-initials');
+        const clearCheckbox = document.getElementById('avatar-clear-checkbox');
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            const img = new Image();
+
+            reader.onload = function(e) {
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxSize = 512;
+
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxSize) {
+                            height *= maxSize / width;
+                            width = maxSize;
+                        }
+                    } else {
+                        if (height > maxSize) {
+                            width *= maxSize / height;
+                            height = maxSize;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
+                    previewImage.classList.remove('dash-hidden');
+                    if (previewInitials) {
+                        previewInitials.classList.add('dash-hidden');
+                    }
+                    if (clearCheckbox) {
+                        clearCheckbox.checked = false;
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.handleClearAvatar = function(event) {
+        const previewInitials = document.getElementById('avatar-preview-initials');
+        const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
+
+        if (event.target.checked) {
+            previewImage.classList.add('dash-hidden');
+            previewInitials.classList.remove('dash-hidden');
+            fileInput.value = '';
+        } else {
+            if (hasOriginalAvatar) {
+                previewImage.src = originalAvatarSrc;
+                previewImage.classList.remove('dash-hidden');
+                previewInitials.classList.add('dash-hidden');
+            }
+        }
+    };
+})();
+</script>

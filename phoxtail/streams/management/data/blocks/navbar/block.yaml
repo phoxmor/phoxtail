@@ -1,0 +1,5 @@
+name: Navbar
+identifier: navbar
+description: Site-wide navigation bar with branding (logos, favicons, Open Graph images), admin branding, navigation links (page links, external links, dropdowns with separators), user controls, language switcher, and responsive mobile sidebar. Shared across all pages of a site.
+icon: page-header
+is_shared: true

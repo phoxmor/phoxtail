@@ -1,0 +1,40 @@
+{% load wagtailimages_tags wagtailsettings_tags %}
+{% get_settings %}
+{% if settings.app.SiteConfig.logo %}
+    <div class="auth-logo-wrapper">
+        {% image settings.app.SiteConfig.logo height-256 as logo %}
+        {% if settings.app.SiteConfig.logo_dark %}
+            {% image settings.app.SiteConfig.logo_dark height-256 as logo_dark %}
+        {% endif %}
+        {% if settings.app.SiteConfig.site.root_page.url %}
+            <a href="{{ settings.app.SiteConfig.site.root_page.url }}"
+               class="auth-logo-link">
+                <picture>
+                    {% if logo_dark %}
+                        <source srcset="{{ logo_dark.file.url }}"
+                                media="(prefers-color-scheme: dark)" />
+                    {% endif %}
+                    <img src="{{ logo.file.url }}"
+                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         class="auth-logo-img" />
+                </picture>
+            </a>
+        {% else %}
+            <picture>
+                {% if logo_dark %}
+                    <source srcset="{{ logo_dark.file.url }}"
+                            media="(prefers-color-scheme: dark)" />
+                {% endif %}
+                <img src="{{ logo.file.url }}"
+                     alt="{{ settings.app.SiteConfig.logo.title }}"
+                     class="auth-logo-img" />
+            </picture>
+        {% endif %}
+    </div>
+    <div class="auth-logo-divider">
+        <div class="auth-logo-divider-laser">
+            <div class="auth-logo-divider-glow"></div>
+            <div class="auth-logo-divider-core"></div>
+        </div>
+    </div>
+{% endif %}

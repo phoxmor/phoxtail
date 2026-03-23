@@ -1,0 +1,4 @@
+name: Rich Text
+identifier: rich_text
+description: Rich text editor with full formatting capabilities including headings, lists, links, and text styling
+icon: wysiwyg

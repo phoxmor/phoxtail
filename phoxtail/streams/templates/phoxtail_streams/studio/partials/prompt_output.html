@@ -1,0 +1,24 @@
+{% load i18n phoxtail_design_tags %}
+{% if rendered_prompt %}
+    <!-- Sticky Header Bar -->
+    <div class="stu-prompt-bar">
+        <span class="stu-prompt-label">System Prompt</span>
+        <button type="button"
+                id="copy-btn"
+                class="stu-copy-btn"
+                onclick="copyPromptToClipboard()">
+            {% with class="" %}
+                {% icon "content_copy" %}
+            {% endwith %}
+            {% trans "Copy" %}
+        </button>
+    </div>
+    <!-- Scrollable Content Area with Hidden Scrollbars -->
+    <div id="prompt-content-text" class="stu-prompt-content">{{ rendered_prompt }}</div>
+{% else %}
+    <div class="stu-empty">
+        <!-- Animated placeholder shown when no prompt is rendered -->
+        {% include 'phoxtail_streams/studio/partials/quantum_waves.html' %}
+        <p class="stu-empty-text">{% trans "Configure your workflow to generate the system prompt" %}</p>
+    </div>
+{% endif %}

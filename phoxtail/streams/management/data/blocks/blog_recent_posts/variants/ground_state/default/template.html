@@ -1,0 +1,70 @@
+{% load wagtailcore_tags wagtailimages_tags thumbnail blog_tags %}
+{% get_recent_blog_posts value.blog_index value.count|default:3 as recent_posts %}
+{% if recent_posts %}
+    <section id="brp-{{ block.id }}" class="brp-wrapper">
+        <div class="brp-container">
+            <div class="brp-grid">
+                {% for object in recent_posts %}
+                    <article class="brp-card">
+                        <a href="{% pageurl object %}" class="brp-card-link">
+                            {% if object.preview_image %}
+                                <div class="brp-card-image-wrap">{% image object.preview_image fill-800x450 class="brp-card-img" %}</div>
+                            {% endif %}
+                            <div class="brp-card-body">
+                                {% if object.tags.all %}
+                                    <div class="brp-card-tags">
+                                        {% for tag in object.tags.all %}<span class="brp-card-tag">{{ tag.name }}</span>{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="brp-card-meta">
+                                    <time class="brp-card-date"
+                                          datetime="{{ object.first_published_at|date:'Y-m-d' }}">
+                                        {{ object.first_published_at|date:"M d, Y" }}
+                                    </time>
+                                    {% if object.read_mins %}
+                                        <span class="brp-card-meta-separator">&middot;</span>
+                                        <span class="brp-card-read-time">
+                                            <svg class="brp-card-icon"
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 fill="none"
+                                                 viewBox="0 0 24 24"
+                                                 stroke-width="2"
+                                                 stroke="currentColor"
+                                                 aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            {{ object.read_mins }} min read
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h2 class="brp-card-title">{{ object.title }}</h2>
+                                <p class="brp-card-intro">{{ object.intro }}</p>
+                                {% if object.author %}
+                                    <div class="brp-card-author">
+                                        {% if object.author.user.avatar %}
+                                            {% thumbnail object.author.user.avatar "100x100" scale="width" as avatar %}
+                                                <img src="{{ avatar.url }}"
+                                                     alt="{{ object.author.user.get_full_name }}"
+                                                     class="brp-card-avatar-img">
+                                            {% endthumbnail %}
+                                        {% else %}
+                                            <div class="brp-card-avatar-fallback">
+                                                <span class="brp-card-avatar-initials">
+                                                    {{ object.author.user.first_name|default:''|slice:":1" }}{{ object.author.user.last_name|default:''|slice:":1" }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                        <div class="brp-card-author-info">
+                                            <p class="brp-card-author-name">{{ object.author.user.get_full_name|default:object.author.user.username }}</p>
+                                            {% if object.author.title %}<p class="brp-card-author-title">{{ object.author.title }}</p>{% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endif %}

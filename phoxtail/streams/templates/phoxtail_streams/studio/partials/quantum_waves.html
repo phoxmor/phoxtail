@@ -1,0 +1,356 @@
+<!-- AI Quantum Waves Container -->
+<div class="quantum-waves-container">
+    <!-- The quantum field background -->
+    <div class="quantum-field"></div>
+    <!-- Wave layers - each with different frequencies -->
+    <svg class="quantum-svg"
+         viewBox="0 0 400 200"
+         preserveAspectRatio="xMidYMid meet">
+        <defs>
+        <!-- Gradient for waves -->
+        <linearGradient id="wave-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="rgba(139, 92, 246, 0)" />
+        <stop offset="20%" stop-color="rgba(139, 92, 246, 0.6)" />
+        <stop offset="50%" stop-color="rgba(168, 85, 247, 0.8)" />
+        <stop offset="80%" stop-color="rgba(139, 92, 246, 0.6)" />
+        <stop offset="100%" stop-color="rgba(139, 92, 246, 0)" />
+        </linearGradient>
+        <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="rgba(99, 102, 241, 0)" />
+        <stop offset="25%" stop-color="rgba(99, 102, 241, 0.5)" />
+        <stop offset="50%" stop-color="rgba(129, 140, 248, 0.7)" />
+        <stop offset="75%" stop-color="rgba(99, 102, 241, 0.5)" />
+        <stop offset="100%" stop-color="rgba(99, 102, 241, 0)" />
+        </linearGradient>
+        <linearGradient id="wave-gradient-3" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="rgba(192, 132, 252, 0)" />
+        <stop offset="30%" stop-color="rgba(192, 132, 252, 0.4)" />
+        <stop offset="50%" stop-color="rgba(216, 180, 254, 0.6)" />
+        <stop offset="70%" stop-color="rgba(192, 132, 252, 0.4)" />
+        <stop offset="100%" stop-color="rgba(192, 132, 252, 0)" />
+        </linearGradient>
+        <!-- Glow filter -->
+        <filter id="wave-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+        <feMerge>
+        <feMergeNode in="coloredBlur" />
+        <feMergeNode in="SourceGraphic" />
+        </feMerge>
+        </filter>
+        </defs>
+        <!-- Background subtle wave -->
+        <path class="quantum-wave wave-bg" stroke="url(#wave-gradient-3)" fill="none" stroke-width="1.5" opacity="0.5" />
+        <!-- Middle wave -->
+        <path class="quantum-wave wave-mid" stroke="url(#wave-gradient-2)" fill="none" stroke-width="2" filter="url(#wave-glow)" />
+        <!-- Front wave - most prominent -->
+        <path class="quantum-wave wave-front" stroke="url(#wave-gradient-1)" fill="none" stroke-width="2.5" filter="url(#wave-glow)" />
+        <!-- Quantum particles along the waves -->
+        <g class="quantum-particles">
+        <circle class="q-particle p1" r="3" fill="rgba(168, 85, 247, 0.9)" />
+        <circle class="q-particle p2" r="2.5" fill="rgba(129, 140, 248, 0.8)" />
+        <circle class="q-particle p3" r="2" fill="rgba(192, 132, 252, 0.7)" />
+        <circle class="q-particle p4" r="2" fill="rgba(139, 92, 246, 0.8)" />
+        <circle class="q-particle p5" r="1.5" fill="rgba(216, 180, 254, 0.6)" />
+        </g>
+    </svg>
+    <!-- Central resonance point -->
+    <div class="resonance-core">
+        <div class="resonance-ring r1"></div>
+        <div class="resonance-ring r2"></div>
+        <div class="resonance-ring r3"></div>
+        <div class="resonance-dot"></div>
+    </div>
+</div>
+<style>
+    .quantum-waves-container {
+        position: relative;
+        width: 320px;
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .quantum-field {
+        position: absolute;
+        inset: -20px;
+        background: radial-gradient(
+            ellipse at center,
+            rgba(139, 92, 246, 0.08) 0%,
+            rgba(99, 102, 241, 0.04) 40%,
+            transparent 70%
+        );
+        border-radius: 50%;
+        animation: field-pulse 4s ease-in-out infinite;
+    }
+
+    .quantum-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .quantum-wave {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    /* Resonance core in the center */
+    .resonance-core {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+    }
+
+    .resonance-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        transform: translate(-50%, -50%);
+    }
+
+    .resonance-ring.r1 {
+        width: 40px;
+        height: 40px;
+        animation: resonance-expand 3s ease-out infinite;
+    }
+
+    .resonance-ring.r2 {
+        width: 40px;
+        height: 40px;
+        animation: resonance-expand 3s ease-out infinite 1s;
+    }
+
+    .resonance-ring.r3 {
+        width: 40px;
+        height: 40px;
+        animation: resonance-expand 3s ease-out infinite 2s;
+    }
+
+    .resonance-dot {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 8px;
+        height: 8px;
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.9), rgba(139, 92, 246, 0.7));
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        animation: dot-pulse 2s ease-in-out infinite;
+    }
+
+    /* Quantum particles */
+    .q-particle {
+        filter: url(#wave-glow);
+    }
+
+    /* Keyframes */
+    @keyframes field-pulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    @keyframes resonance-expand {
+        0% {
+            width: 8px;
+            height: 8px;
+            opacity: 0.8;
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+        100% {
+            width: 80px;
+            height: 80px;
+            opacity: 0;
+            border-color: rgba(139, 92, 246, 0);
+        }
+    }
+
+    @keyframes dot-pulse {
+        0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.8);
+        }
+    }
+
+    /* Deep sea timing - everything moves slower */
+    .quantum-field {
+        animation-duration: 8s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .resonance-ring.r1 {
+        animation-duration: 6s;
+        animation-timing-function: cubic-bezier(0.25, 0, 0.2, 1);
+    }
+
+    .resonance-ring.r2 {
+        animation-duration: 6s;
+        animation-delay: 2s;
+        animation-timing-function: cubic-bezier(0.25, 0, 0.2, 1);
+    }
+
+    .resonance-ring.r3 {
+        animation-duration: 6s;
+        animation-delay: 4s;
+        animation-timing-function: cubic-bezier(0.25, 0, 0.2, 1);
+    }
+
+    .resonance-dot {
+        animation-duration: 4s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Dark mode enhancements */
+    @media (prefers-color-scheme: dark) {
+        .quantum-field {
+            background: radial-gradient(
+                ellipse at center,
+                rgba(139, 92, 246, 0.12) 0%,
+                rgba(99, 102, 241, 0.06) 40%,
+                transparent 70%
+            );
+        }
+
+        .resonance-dot {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.7);
+        }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        .quantum-wave,
+        .quantum-field,
+        .resonance-ring,
+        .resonance-dot,
+        .q-particle {
+            animation: none !important;
+        }
+        .resonance-ring { opacity: 0.3; width: 50px; height: 50px; }
+    }
+</style>
+<script>
+    (function() {
+        const svg = document.querySelector('.quantum-svg');
+        if (!svg) return;
+
+        const width = 400;
+        const height = 200;
+        const centerY = height / 2;
+
+        // Wave configuration - deep sea: slower, gentler movements
+        const waves = [
+            { el: svg.querySelector('.wave-bg'), amplitude: 12, frequency: 0.012, speed: 0.006, phase: 0 },
+            { el: svg.querySelector('.wave-mid'), amplitude: 20, frequency: 0.015, speed: 0.008, phase: 2 },
+            { el: svg.querySelector('.wave-front'), amplitude: 28, frequency: 0.013, speed: 0.01, phase: 4 }
+        ];
+
+        // Particle configuration - drifting slowly like deep sea creatures
+        const particles = [
+            { el: svg.querySelector('.p1'), wave: 2, position: 0.5, speed: 0.002 },
+            { el: svg.querySelector('.p2'), wave: 1, position: 0.3, speed: 0.0015 },
+            { el: svg.querySelector('.p3'), wave: 0, position: 0.7, speed: 0.0018 },
+            { el: svg.querySelector('.p4'), wave: 2, position: 0.2, speed: 0.0022 },
+            { el: svg.querySelector('.p5'), wave: 1, position: 0.8, speed: 0.0012 }
+        ];
+
+        let time = 0;
+        let lastTime = 0;
+
+        function generateWavePath(wave, t) {
+            const points = [];
+            const segments = 100;
+
+            for (let i = 0; i <= segments; i++) {
+                const x = (i / segments) * width;
+                const normalizedX = (x - width / 2) / (width / 2);
+
+                // Gaussian envelope - waves fade at edges
+                const envelope = Math.exp(-normalizedX * normalizedX * 2);
+
+                // Multiple sine waves for organic feel - gentler, more fluid
+                const y = centerY + envelope * (
+                    Math.sin(x * wave.frequency + t + wave.phase) * wave.amplitude * 0.6 +
+                    Math.sin(x * wave.frequency * 1.3 + t * 0.8 + wave.phase) * wave.amplitude * 0.3 +
+                    Math.sin(x * wave.frequency * 0.7 + t * 0.5 + wave.phase) * wave.amplitude * 0.1
+                );
+
+                points.push(i === 0 ? `M ${x},${y}` : `L ${x},${y}`);
+            }
+
+            return points.join(' ');
+        }
+
+        function getPointOnWave(wave, normalizedPos, t) {
+            const x = normalizedPos * width;
+            const normalizedX = (x - width / 2) / (width / 2);
+            const envelope = Math.exp(-normalizedX * normalizedX * 2);
+
+            const y = centerY + envelope * (
+                Math.sin(x * wave.frequency + t + wave.phase) * wave.amplitude * 0.6 +
+                Math.sin(x * wave.frequency * 1.3 + t * 0.8 + wave.phase) * wave.amplitude * 0.3 +
+                Math.sin(x * wave.frequency * 0.7 + t * 0.5 + wave.phase) * wave.amplitude * 0.1
+            );
+
+            return { x, y };
+        }
+
+        function animate(currentTime) {
+            // Smooth delta time for consistent motion
+            const deltaTime = lastTime ? (currentTime - lastTime) / 1000 : 0.016;
+            lastTime = currentTime;
+
+            // Deep sea time dilation - everything moves ~3x slower
+            time += deltaTime * 0.35;
+
+            // Update wave paths
+            waves.forEach(wave => {
+                if (wave.el) {
+                    wave.el.setAttribute('d', generateWavePath(wave, time * wave.speed * 100));
+                }
+            });
+
+            // Update particles
+            particles.forEach(particle => {
+                particle.position += particle.speed;
+                if (particle.position > 1) particle.position = 0;
+
+                const wave = waves[particle.wave];
+                const point = getPointOnWave(wave, particle.position, time * wave.speed * 100);
+
+                if (particle.el) {
+                    particle.el.setAttribute('cx', point.x);
+                    particle.el.setAttribute('cy', point.y);
+
+                    // Fade particles at edges
+                    const normalizedX = (point.x - width / 2) / (width / 2);
+                    const opacity = Math.exp(-normalizedX * normalizedX * 3);
+                    particle.el.setAttribute('opacity', opacity);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Check for reduced motion preference
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            requestAnimationFrame(animate);
+        } else {
+            // Static state for reduced motion
+            waves.forEach(wave => {
+                if (wave.el) {
+                    wave.el.setAttribute('d', generateWavePath(wave, 0));
+                }
+            });
+        }
+    })();
+</script>

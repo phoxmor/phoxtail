@@ -1,0 +1,44 @@
+<div class="fw-field">
+    {% if show_label != False %}
+        <label class="fw-toggle-label">
+            <span class="fw-toggle-name">{{ label|default:field.label }}</span>
+            <!-- Toggle Switch -->
+            <div class="fw-toggle-wrapper">
+                <input type="checkbox"
+                       name="{{ field.html_name }}"
+                       id="{{ field.id_for_label }}"
+                       {% if field.value %}checked{% endif %}
+                       class="fw-toggle-input"
+                       {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                       {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                       {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+                       {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+                       {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+                       {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
+                       {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+                       {% if field.field.disabled %}disabled{% endif %}>
+                <div class="fw-toggle-track"></div>
+            </div>
+        </label>
+    {% else %}
+        <!-- Standalone toggle without label wrapper -->
+        <div class="fw-toggle-wrapper">
+            <input type="checkbox"
+                   name="{{ field.html_name }}"
+                   id="{{ field.id_for_label }}"
+                   {% if field.value %}checked{% endif %}
+                   class="fw-toggle-input"
+                   {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                   {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                   {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+                   {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+                   {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+                   {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
+                   {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+            <div class="fw-toggle-track"></div>
+        </div>
+    {% endif %}
+    {% if field.errors %}
+        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+    {% endif %}
+</div>

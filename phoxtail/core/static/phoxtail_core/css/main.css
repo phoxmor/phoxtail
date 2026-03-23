@@ -1,0 +1,211 @@
+/* core/css/main.css */
+
+/* ========================================
+   Minimal Reset
+   (Replaces browser defaults)
+   ======================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+img,
+video {
+    display: block;
+    max-width: 100%;
+}
+
+/* ========================================
+   Icon Size Utilities
+   ======================================== */
+.icon-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+.icon-md {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.icon-lg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.icon-xl {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+/* ========================================
+   CSS Custom Properties – Fallback Defaults
+   (Overridden by SiteConfig inline <style>)
+   ======================================== */
+:root {
+    /* Surface palette – neutral */
+    --color-surface-50: 250 250 250;
+    --color-surface-100: 245 245 245;
+    --color-surface-200: 229 229 229;
+    --color-surface-300: 212 212 212;
+    --color-surface-400: 163 163 163;
+    --color-surface-500: 115 115 115;
+    --color-surface-600: 82 82 82;
+    --color-surface-700: 64 64 64;
+    --color-surface-800: 38 38 38;
+    --color-surface-900: 23 23 23;
+    --color-surface-950: 10 10 10;
+
+    /* Primary palette – emerald */
+    --color-primary-50: 236 253 245;
+    --color-primary-100: 209 250 229;
+    --color-primary-200: 167 243 208;
+    --color-primary-300: 110 231 183;
+    --color-primary-400: 52 211 153;
+    --color-primary-500: 16 185 129;
+    --color-primary-600: 5 150 105;
+    --color-primary-700: 4 120 87;
+    --color-primary-800: 6 95 70;
+    --color-primary-900: 6 78 59;
+    --color-primary-950: 2 44 34;
+
+    /* Secondary palette – teal */
+    --color-secondary-50: 240 253 250;
+    --color-secondary-100: 204 251 241;
+    --color-secondary-200: 153 246 228;
+    --color-secondary-300: 94 234 212;
+    --color-secondary-400: 45 212 191;
+    --color-secondary-500: 20 184 166;
+    --color-secondary-600: 13 148 136;
+    --color-secondary-700: 15 118 110;
+    --color-secondary-800: 17 94 89;
+    --color-secondary-900: 19 78 74;
+    --color-secondary-950: 4 47 46;
+
+    /* Accent palette – indigo */
+    --color-accent-50: 238 242 255;
+    --color-accent-100: 224 231 255;
+    --color-accent-200: 199 210 254;
+    --color-accent-300: 165 180 252;
+    --color-accent-400: 129 140 248;
+    --color-accent-500: 99 102 241;
+    --color-accent-600: 79 70 229;
+    --color-accent-700: 67 56 202;
+    --color-accent-800: 55 48 163;
+    --color-accent-900: 49 46 129;
+    --color-accent-950: 30 27 75;
+
+    /* Success palette – green */
+    --color-success-50: 240 253 244;
+    --color-success-100: 220 252 231;
+    --color-success-200: 187 247 208;
+    --color-success-300: 134 239 172;
+    --color-success-400: 74 222 128;
+    --color-success-500: 34 197 94;
+    --color-success-600: 22 163 74;
+    --color-success-700: 21 128 61;
+    --color-success-800: 22 101 52;
+    --color-success-900: 20 83 45;
+    --color-success-950: 5 46 22;
+
+    /* Warning palette – amber */
+    --color-warning-50: 255 251 235;
+    --color-warning-100: 254 243 199;
+    --color-warning-200: 253 230 138;
+    --color-warning-300: 252 211 77;
+    --color-warning-400: 251 191 36;
+    --color-warning-500: 245 158 11;
+    --color-warning-600: 217 119 6;
+    --color-warning-700: 180 83 9;
+    --color-warning-800: 146 64 14;
+    --color-warning-900: 120 53 15;
+    --color-warning-950: 69 26 3;
+
+    /* Destructive palette – red */
+    --color-destructive-50: 254 242 242;
+    --color-destructive-100: 254 226 226;
+    --color-destructive-200: 254 202 202;
+    --color-destructive-300: 252 165 165;
+    --color-destructive-400: 248 113 113;
+    --color-destructive-500: 239 68 68;
+    --color-destructive-600: 220 38 38;
+    --color-destructive-700: 185 28 28;
+    --color-destructive-800: 153 27 27;
+    --color-destructive-900: 127 29 29;
+    --color-destructive-950: 69 10 10;
+
+    /* Info palette – blue */
+    --color-info-50: 239 246 255;
+    --color-info-100: 219 234 254;
+    --color-info-200: 191 219 254;
+    --color-info-300: 147 197 253;
+    --color-info-400: 96 165 250;
+    --color-info-500: 59 130 246;
+    --color-info-600: 37 99 235;
+    --color-info-700: 29 78 216;
+    --color-info-800: 30 64 175;
+    --color-info-900: 30 58 138;
+    --color-info-950: 23 37 84;
+
+    /* Typography - Base Stack */
+    --font-family: system-ui, -apple-system, sans-serif;
+    --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Typography - Semantic Roles (Falls back to base stack) */
+    --font-heading: var(--font-family);
+    --font-body: var(--font-family);
+    --font-ui: var(--font-family);
+    --font-mono: var(--font-family-mono);
+
+    /* Typography - Semantic Weight Slots (Overrides browser faux-weights) */
+    --font-weight-thin: 100;
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+
+    /* Role-specific weight slots (Default to semantic slots) */
+    /* Handled dynamically by SiteConfig mapping if custom font is used */
+    --font-heading-weight-thin: var(--font-weight-thin);
+    --font-heading-weight-light: var(--font-weight-light);
+    --font-heading-weight-regular: var(--font-weight-regular);
+    --font-heading-weight-medium: var(--font-weight-medium);
+    --font-heading-weight-semibold: var(--font-weight-semibold);
+    --font-heading-weight-bold: var(--font-weight-bold);
+    --font-heading-weight-extrabold: var(--font-weight-extrabold);
+    --font-heading-weight-black: var(--font-weight-black);
+
+    --font-body-weight-thin: var(--font-weight-thin);
+    --font-body-weight-light: var(--font-weight-light);
+    --font-body-weight-regular: var(--font-weight-regular);
+    --font-body-weight-medium: var(--font-weight-medium);
+    --font-body-weight-semibold: var(--font-weight-semibold);
+    --font-body-weight-bold: var(--font-weight-bold);
+    --font-body-weight-extrabold: var(--font-weight-extrabold);
+    --font-body-weight-black: var(--font-weight-black);
+
+    /* Theme-aware card background */
+    --auth-card-bg: rgb(var(--color-surface-50) / 0.8);
+}
+
+body {
+    background-color: rgb(var(--color-surface-50));
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --auth-card-bg: rgb(var(--color-surface-50) / 0.05);
+    }
+
+    body {
+        background-color: rgb(var(--color-surface-800));
+    }
+}

@@ -1,0 +1,21 @@
+[
+  {
+    "type": "page_chooser_field",
+    "value": {
+      "name": "blog_index",
+      "required": true,
+      "help_text": "Select the Blog Index page to pull recent posts from.",
+      "page_type": "blog.blogindexpage"
+    }
+  },
+  {
+    "type": "integer_field",
+    "value": {
+      "name": "count",
+      "required": false,
+      "help_text": "Number of posts to display (default: 3).",
+      "min_value": 1,
+      "max_value": 12
+    }
+  }
+]

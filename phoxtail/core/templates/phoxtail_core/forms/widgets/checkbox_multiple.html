@@ -1,0 +1,43 @@
+<div class="fw-field">
+    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-label-row">
+            {% if show_label != False %}
+                <span class="fw-label">
+                    {{ label|default:field.label }}
+                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+                </span>
+            {% else %}
+                <span class="fw-label"></span>
+            {% endif %}
+            {% if show_help_text != False and help_text|default:field.help_text %}
+                <span class="fw-help-wrapper">
+                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
+                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="fw-checkbox-grid {{ grid_modifier }}">
+        {% for checkbox in field %}
+            <label for="{{ checkbox.id_for_label }}" class="fw-choice-label">
+                <input type="checkbox"
+                       name="{{ field.html_name }}"
+                       id="{{ checkbox.id_for_label }}"
+                       value="{{ checkbox.data.value }}"
+                       {% if checkbox.data.selected %}checked{% endif %}
+                       class="fw-choice-input fw-choice-input--checkbox"
+                       {% if field.field.disabled %}disabled{% endif %}>
+                <span class="fw-choice-text">
+                    {% if label_slice_index %}
+                        {{ checkbox.choice_label|slice:label_slice_index }}
+                    {% else %}
+                        {{ checkbox.choice_label }}
+                    {% endif %}
+                </span>
+            </label>
+        {% endfor %}
+    </div>
+    {% if field.errors %}
+        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+    {% endif %}
+</div>

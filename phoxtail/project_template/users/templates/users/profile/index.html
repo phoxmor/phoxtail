@@ -1,0 +1,30 @@
+{% extends "dashboard/index.html" %}
+{% load static thumbnail phoxtail_design_tags %}
+{% block head_title %}
+    Profile
+{% endblock head_title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'users/css/profile.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <div class="dash-section">
+        <!-- Header -->
+        <div class="dash-container dash-mb-6 dash-mt-4">
+            <div class="dash-page-header">
+                <h1 class="dash-page-header__title">Profile</h1>
+                <p class="dash-page-header__subtitle">
+                    {% icon "person" %}
+                    <span>Manage your personal information and account settings</span>
+                </p>
+            </div>
+        </div>
+        <!-- Profile Content -->
+        <div class="dash-container">
+            <div class="dash-page-content">
+                <div id="profile-content" class="dash-columns dash-columns--divided">
+                    {% include "users/profile/partials/user_info.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

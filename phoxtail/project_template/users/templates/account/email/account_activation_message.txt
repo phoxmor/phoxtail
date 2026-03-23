@@ -1,0 +1,14 @@
+Hi {{ user.first_name }},
+
+Welcome! We've created your account and you're ready to get started.
+
+To activate your account and set your password, click the link below:
+
+{{ activation_url }}
+
+This link is valid for 3 days. After that, you can always request a new one
+from the login page using "Forgot password?".
+
+If you have any questions, feel free to reach out.
+
+— The Team

@@ -1,0 +1,37 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailimages_tags wagtailsettings_tags %}
+{% block branding_logo %}
+    <div class="symbol-logo-container">
+        {% get_settings %}
+        {% if settings.app.SiteConfig.symbol_admin and settings.app.SiteConfig.symbol_admin_dark %}
+            {% image settings.app.SiteConfig.symbol_admin height-256 as symbol_admin %}
+            {% image settings.app.SiteConfig.symbol_admin_dark height-256 as symbol_admin_dark %}
+            {% with request.user.wagtail_userprofile.theme as theme %}
+                {% if theme == "light" %}
+                    <img src="{{ symbol_admin.url }}"
+                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         class="symbol-logo" />
+                {% elif theme == "dark" %}
+                    <img src="{{ symbol_admin_dark.url }}"
+                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         class="symbol-logo" />
+                {% else %}
+                    <img src="{{ symbol_admin.url }}"
+                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         class="symbol-logo-light" />
+                    <img src="{{ symbol_admin_dark.url }}"
+                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         class="symbol-logo-dark" />
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.png' %}"
+                 alt="Phoxtail"
+                 class="symbol-logo" />
+        {% endif %}
+    </div>
+{% endblock %}
+{% block css %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/wagtailadmin/base.css' %}">
+{% endblock %}

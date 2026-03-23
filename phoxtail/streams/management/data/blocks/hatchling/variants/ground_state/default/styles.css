@@ -1,0 +1,393 @@
+/* ── Layout & Base Styles ── */
+#hl-{{ block.id }}.hl-page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%; /* Full-bleed pattern */
+    background-color: rgb(var(--color-surface-50));
+    overflow: hidden;
+    font-family: var(--font-body);
+    transition: background-color 0.3s ease;
+}
+
+/* ── Top Bar ── */
+#hl-{{ block.id }} .hl-top-bar {
+    width: 100%; /* Full-bleed pattern */
+    padding: 0 1rem;
+    height: 60px;
+    border-bottom: 1px solid rgba(var(--color-primary-500), 0.1);
+    display: flex;
+    align-items: center;
+    background-color: rgb(var(--color-surface-50));
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    font-family: var(--font-ui);
+    color: rgb(var(--color-surface-900));
+}
+
+#hl-{{ block.id }} .hl-top-bar-inner {
+    max-width: 1280px; /* Container width pattern */
+    margin: 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#hl-{{ block.id }} .hl-logo {
+    display: flex;
+    align-items: center;
+}
+
+#hl-{{ block.id }} .hl-logo-img {
+    height: 1.75rem;
+    width: auto;
+}
+
+#hl-{{ block.id }} .hl-logo-dark {
+    display: none;
+}
+
+#hl-{{ block.id }} .hl-version-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: rgb(var(--color-primary-700));
+    background: rgb(var(--color-primary-100));
+    border: 1px solid rgb(var(--color-primary-200));
+    border-radius: 9999px;
+}
+
+/* ── Main Content Area ── */
+#hl-{{ block.id }} .hl-content {
+    flex-grow: 1;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 1rem 3rem; /* Adjusted for top bar */
+    max-width: 65ch; /* Prose width pattern for readability */
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ── Embers Particle System ── */
+#hl-{{ block.id }} .hl-embers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+#hl-{{ block.id }} .hl-ember {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+    animation: hl-rise-{{ block.id }} linear infinite;
+    box-shadow: 0 0 8px currentColor;
+}
+
+@keyframes hl-rise-{{ block.id }} {
+    0% { opacity: 0; transform: translateY(0) scale(1); }
+    15% { opacity: 1; }
+    80% { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(-100vh) scale(0.2); }
+}
+
+/* ── Phoenix Container & Hover Float ── */
+#hl-{{ block.id }} .hl-phoenix-wrap {
+    width: 200px;
+    height: 220px;
+    margin-bottom: 2rem;
+    animation: hl-breathe-{{ block.id }} 4s ease-in-out infinite;
+    filter: drop-shadow(0 12px 24px rgba(var(--color-primary-500), 0.25));
+}
+
+#hl-{{ block.id }} .hl-phoenix {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+@keyframes hl-breathe-{{ block.id }} {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ── SVG Internal Animations ── */
+#hl-{{ block.id }} .hl-flame {
+    transform-origin: center bottom;
+}
+
+#hl-{{ block.id }} .hl-flame-l { animation: hl-sway-l-{{ block.id }} 3s ease-in-out infinite; }
+#hl-{{ block.id }} .hl-flame-c { animation: hl-sway-c-{{ block.id }} 3.5s ease-in-out infinite; }
+#hl-{{ block.id }} .hl-flame-r { animation: hl-sway-r-{{ block.id }} 3s ease-in-out infinite 0.5s; }
+
+@keyframes hl-sway-l-{{ block.id }} {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(-4deg) scale(1.05); }
+}
+
+@keyframes hl-sway-c-{{ block.id }} {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.08); }
+}
+
+@keyframes hl-sway-r-{{ block.id }} {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(4deg) scale(1.05); }
+}
+
+#hl-{{ block.id }} .hl-crest {
+    transform-origin: 100px 46px;
+    animation: hl-crest-flicker-{{ block.id }} 2.5s ease-in-out infinite;
+}
+
+@keyframes hl-crest-flicker-{{ block.id }} {
+    0%, 100% { transform: rotate(0deg) scaleY(1); }
+    50% { transform: rotate(2deg) scaleY(1.05); }
+}
+
+#hl-{{ block.id }} .hl-wing-l {
+    transform-origin: 65px 145px;
+    animation: hl-flutter-l-{{ block.id }} 4s ease-in-out infinite;
+}
+
+#hl-{{ block.id }} .hl-wing-r {
+    transform-origin: 135px 145px;
+    animation: hl-flutter-r-{{ block.id }} 4s ease-in-out infinite;
+}
+
+@keyframes hl-flutter-l-{{ block.id }} {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-8deg); }
+}
+
+@keyframes hl-flutter-r-{{ block.id }} {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(8deg); }
+}
+
+/* ── Eye Animations ── */
+#hl-{{ block.id }} .hl-eyes-wrap {
+    transform-origin: 100px 88px;
+}
+
+#hl-{{ block.id }} .hl-eye {
+    transform-origin: center;
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#hl-{{ block.id }} .hl-eyes-wrap.is-blinking .hl-eye {
+    transform: scaleY(0.1);
+}
+
+/* ── Typography & Buttons ── */
+#hl-{{ block.id }} .hl-title {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight-bold);
+    color: rgb(var(--color-surface-900));
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+#hl-{{ block.id }} .hl-subtitle {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+    font-family: var(--font-body);
+    font-weight: var(--font-body-weight-regular);
+    color: rgb(var(--color-surface-500));
+    margin: 0 0 2rem;
+    line-height: 1.5;
+}
+
+#hl-{{ block.id }} .hl-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-family: var(--font-ui);
+    font-weight: var(--font-ui-weight-semibold);
+    color: rgb(var(--color-surface-50));
+    background-color: rgb(var(--color-primary-500));
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(var(--color-primary-500), 0.2);
+}
+
+#hl-{{ block.id }} .hl-cta:hover {
+    background-color: rgb(var(--color-primary-600));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(var(--color-primary-600), 0.3);
+}
+
+#hl-{{ block.id }} .hl-cta-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+}
+
+/* ── Bottom Section ── */
+#hl-{{ block.id }} .hl-bottom {
+    width: 100%; /* Full-bleed pattern */
+    padding: 2.5rem 1rem 1.5rem;
+    background-color: rgb(var(--color-surface-50));
+    border-top: 1px solid rgba(var(--color-primary-500), 0.1);
+}
+
+#hl-{{ block.id }} .hl-bottom-inner {
+    max-width: 1280px; /* Container width pattern */
+    margin: 0 auto;
+    width: 100%;
+}
+
+#hl-{{ block.id }} .hl-useful-links {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    #hl-{{ block.id }} .hl-useful-links {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+#hl-{{ block.id }} .hl-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    text-align: center;
+    background-color: rgb(var(--color-surface-50));
+    border-radius: 1rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(var(--color-primary-500), 0.05);
+}
+
+#hl-{{ block.id }} .hl-link-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -2px rgba(var(--color-primary-500), 0.05);
+    background-color: rgba(var(--color-primary-500), 0.02);
+}
+
+#hl-{{ block.id }} .hl-link-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    color: rgb(var(--color-primary-500));
+}
+
+#hl-{{ block.id }} .hl-link-svg {
+    width: 2rem;
+    height: 2rem;
+}
+
+#hl-{{ block.id }} .hl-link-title {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: var(--font-heading-weight-medium);
+    color: rgb(var(--color-surface-900));
+    margin: 0 0 0.5rem;
+}
+
+#hl-{{ block.id }} .hl-link-desc {
+    font-size: 0.9375rem;
+    color: rgb(var(--color-surface-600));
+    line-height: 1.5;
+    font-weight: var(--font-body-weight-regular);
+}
+
+/* ── Dark Mode Overrides ── */
+@media (prefers-color-scheme: dark) {
+    #hl-{{ block.id }}.hl-page,
+    #hl-{{ block.id }} .hl-top-bar,
+    #hl-{{ block.id }} .hl-bottom {
+        background-color: rgb(var(--color-surface-900));
+    }
+
+    #hl-{{ block.id }} .hl-top-bar {
+        border-bottom-color: rgba(var(--color-primary-400), 0.1);
+        color: rgb(var(--color-surface-50));
+    }
+
+    #hl-{{ block.id }} .hl-logo {
+        color: rgb(var(--color-primary-400));
+    }
+
+    #hl-{{ block.id }} .hl-logo-light {
+        display: none;
+    }
+
+    #hl-{{ block.id }} .hl-logo-dark {
+        display: inline;
+    }
+
+    #hl-{{ block.id }} .hl-version-info {
+        background: rgb(var(--color-primary-900) / 0.4);
+        color: rgb(var(--color-primary-300));
+        border-color: rgb(var(--color-primary-700));
+    }
+
+    #hl-{{ block.id }} .hl-title,
+    #hl-{{ block.id }} .hl-link-title {
+        color: rgb(var(--color-surface-50));
+    }
+
+    #hl-{{ block.id }} .hl-subtitle {
+        color: rgb(var(--color-surface-400));
+    }
+
+    #hl-{{ block.id }} .hl-bottom {
+        border-top-color: rgba(var(--color-primary-400), 0.1);
+    }
+
+    #hl-{{ block.id }} .hl-link-card {
+        border-color: rgba(var(--color-primary-400), 0.05);
+        background-color: rgb(var(--color-surface-900));
+    }
+
+    #hl-{{ block.id }} .hl-link-card:hover {
+        background-color: rgba(var(--color-primary-400), 0.02);
+        box-shadow: 0 6px 16px -2px rgba(var(--color-primary-400), 0.05);
+    }
+
+    #hl-{{ block.id }} .hl-link-icon {
+        color: rgb(var(--color-primary-400));
+    }
+
+    #hl-{{ block.id }} .hl-link-desc {
+        color: rgb(var(--color-surface-300));
+    }
+
+    #hl-{{ block.id }} .hl-cta {
+        background-color: rgb(var(--color-primary-400));
+        color: rgb(var(--color-surface-900));
+        box-shadow: 0 4px 6px -1px rgba(var(--color-primary-400), 0.2);
+    }
+
+    #hl-{{ block.id }} .hl-cta:hover {
+        background-color: rgb(var(--color-primary-300));
+        box-shadow: 0 6px 12px -2px rgba(var(--color-primary-300), 0.3);
+    }
+}

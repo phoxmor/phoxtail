@@ -1,0 +1,1 @@
+Ground state variant for Contact Section. A responsive two-column grid of clickable contact cards, each displaying an icon, label, and contact value with animated hover effects and a bottom accent bar.

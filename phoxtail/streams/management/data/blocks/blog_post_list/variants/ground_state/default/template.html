@@ -1,0 +1,259 @@
+{% load core_tags wagtailcore_tags wagtailimages_tags thumbnail i18n %}
+<section id="bpl-{{ block.id }}"
+         class="bpl-wrapper"
+         data-bpl-id="{{ block.id }}">
+    {% if paginator.paginator.count > 0 %}
+        <div class="bpl-search-section">
+            <div class="bpl-container">
+                <div class="bpl-search-row">
+                    <div class="bpl-search-input-wrap">
+                        <div class="bpl-search-icon-slot">
+                            <div id="bpl-icon-{{ block.id }}"
+                                 class="bpl-search-icon{% if search_query %} bpl-hidden{% endif %}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 -960 960 960"
+                                     fill="currentColor"
+                                     class="bpl-icon"
+                                     aria-hidden="true">
+                                    <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z" />
+                                </svg>
+                            </div>
+                            <button type="button"
+                                    id="bpl-clear-{{ block.id }}"
+                                    class="bpl-clear-btn{% if not search_query %} bpl-hidden{% endif %}">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 -960 960 960"
+                                     fill="currentColor"
+                                     class="bpl-icon"
+                                     aria-hidden="true">
+                                    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <input type="text"
+                               name="q"
+                               id="bpl-input-{{ block.id }}"
+                               maxlength="255"
+                               value="{{ search_query }}"
+                               placeholder="Search..."
+                               autocomplete="off"
+                               hx-get="{{ request.path }}"
+                               hx-target="#bpl-posts-{{ block.id }}"
+                               hx-trigger="keyup changed delay:300ms"
+                               hx-indicator="#bpl-loading-{{ block.id }}"
+                               hx-swap="outerHTML"
+                               hx-select="#bpl-posts-{{ block.id }}"
+                               hx-select-oob="#bpl-pagination-{{ block.id }},#bpl-results-{{ block.id }}"
+                               class="bpl-search-input">
+                        <span id="bpl-results-{{ block.id }}" class="bpl-results-count">
+                            {% blocktrans count counter=paginator.paginator.count %}
+                                {{ counter }} result
+                            {% plural %}
+                                {{ counter }} results
+                            {% endblocktrans %}
+                        </span>
+                    </div>
+                    <div id="bpl-loading-{{ block.id }}" class="bpl-loading htmx-indicator">
+                        <svg class="bpl-loading-spinner"
+                             xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="bpl-loading-track"></circle>
+                            <path fill="currentColor" class="bpl-loading-fill" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span class="bpl-loading-text">Searching&hellip;</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="bpl-posts-section">
+        <div class="bpl-container">
+            <div id="bpl-posts-{{ block.id }}">
+                <div class="bpl-grid">
+                    {% for object in paginator %}
+                        <article class="bpl-card">
+                            <a href="{% pageurl object %}" class="bpl-card-link">
+                                {% if object.preview_image %}
+                                    <div class="bpl-card-image-wrap">{% image object.preview_image fill-800x450 class="bpl-card-img" %}</div>
+                                {% endif %}
+                                <div class="bpl-card-body">
+                                    {% if object.tags.all %}
+                                        <div class="bpl-card-tags">
+                                            {% for tag in object.tags.all %}<span class="bpl-card-tag">{{ tag.name }}</span>{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="bpl-card-meta">
+                                        <time class="bpl-card-date"
+                                              datetime="{{ object.first_published_at|date:'Y-m-d' }}">
+                                            {{ object.first_published_at|date:"M d, Y" }}
+                                        </time>
+                                        {% if object.read_mins %}
+                                            <span class="bpl-card-meta-sep">&middot;</span>
+                                            <span class="bpl-card-read-time">
+                                                <svg class="bpl-card-icon"
+                                                     xmlns="http://www.w3.org/2000/svg"
+                                                     fill="none"
+                                                     viewBox="0 0 24 24"
+                                                     stroke-width="2"
+                                                     stroke="currentColor"
+                                                     aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {{ object.read_mins }} min read
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <h2 class="bpl-card-title">{{ object.title }}</h2>
+                                    <p class="bpl-card-intro">{{ object.intro }}</p>
+                                    {% if object.author %}
+                                        <div class="bpl-card-author">
+                                            {% if object.author.user.avatar %}
+                                                {% thumbnail object.author.user.avatar "100x100" scale="width" as avatar %}
+                                                    <img src="{{ avatar.url }}"
+                                                         alt="{{ object.author.user.get_full_name }}"
+                                                         class="bpl-card-avatar-img">
+                                                {% endthumbnail %}
+                                            {% else %}
+                                                <div class="bpl-card-avatar-fallback">
+                                                    <span class="bpl-card-avatar-initials">
+                                                        {{ object.author.user.first_name|default:''|slice:":1" }}{{ object.author.user.last_name|default:''|slice:":1" }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="bpl-card-author-info">
+                                                <p class="bpl-card-author-name">{{ object.author.user.get_full_name|default:object.author.user.username }}</p>
+                                                {% if object.author.title %}<p class="bpl-card-author-title">{{ object.author.title }}</p>{% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </article>
+                    {% empty %}
+                        <div class="bpl-empty">
+                            <div class="bpl-empty-icon-wrap">
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 -960 960 960"
+                                     fill="currentColor"
+                                     class="bpl-empty-icon"
+                                     aria-hidden="true">
+                                    <path d="M80-160v-80h800v80H80Zm80-160v-320h80v320h-80Zm160 0v-480h80v480h-80Zm160 0v-480h80v480h-80Zm280 0L600-600l70-40 160 280-70 40Z" />
+                                </svg>
+                            </div>
+                            <h3 class="bpl-empty-title">
+                                {% if search_query %}
+                                    No posts found
+                                {% else %}
+                                    No blog posts yet
+                                {% endif %}
+                            </h3>
+                            <p class="bpl-empty-text">
+                                {% if search_query %}
+                                    Try adjusting your search terms.
+                                {% else %}
+                                    Check back soon for new blog posts!
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if paginator.paginator.count > 0 %}
+        <div class="bpl-pagination-section">
+            <div class="bpl-container">
+                <div id="bpl-pagination-{{ block.id }}">
+                    {% if paginator.paginator.num_pages > 1 %}
+                        {% get_proper_page_range paginator.paginator paginator.number as page_range %}
+                        <nav class="bpl-paginator-nav" aria-label="Pagination">
+                            {% if paginator.has_previous %}
+                                <button class="bpl-page-btn bpl-page-prev"
+                                        hx-get="?page={{ paginator.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                                        hx-target="#bpl-posts-{{ block.id }}"
+                                        hx-indicator="#bpl-loading-{{ block.id }}"
+                                        hx-swap="outerHTML"
+                                        hx-select="#bpl-posts-{{ block.id }}"
+                                        hx-select-oob="#bpl-pagination-{{ block.id }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         class="bpl-page-arrow"
+                                         aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    Previous
+                                </button>
+                            {% else %}
+                                <div class="bpl-page-btn bpl-page-prev bpl-page-btn--disabled"
+                                     aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         class="bpl-page-arrow">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    Previous
+                                </div>
+                            {% endif %}
+                            <div class="bpl-page-numbers">
+                                {% for page_num in page_range %}
+                                    {% if page_num == '...' %}
+                                        <span class="bpl-page-ellipsis">{{ page_num }}</span>
+                                    {% elif paginator.number == page_num %}
+                                        <span class="bpl-page-btn bpl-page-btn--active">{{ page_num }}</span>
+                                    {% else %}
+                                        <button class="bpl-page-btn"
+                                                hx-get="?page={{ page_num }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                                                hx-target="#bpl-posts-{{ block.id }}"
+                                                hx-indicator="#bpl-loading-{{ block.id }}"
+                                                hx-swap="outerHTML"
+                                                hx-select="#bpl-posts-{{ block.id }}"
+                                                hx-select-oob="#bpl-pagination-{{ block.id }}">{{ page_num }}</button>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="bpl-page-mobile">Page {{ paginator.number }} of {{ paginator.paginator.num_pages }}</div>
+                            {% if paginator.has_next %}
+                                <button class="bpl-page-btn bpl-page-next"
+                                        hx-get="?page={{ paginator.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                                        hx-target="#bpl-posts-{{ block.id }}"
+                                        hx-indicator="#bpl-loading-{{ block.id }}"
+                                        hx-swap="outerHTML"
+                                        hx-select="#bpl-posts-{{ block.id }}"
+                                        hx-select-oob="#bpl-pagination-{{ block.id }}">
+                                    Next
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         class="bpl-page-arrow"
+                                         aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            {% else %}
+                                <div class="bpl-page-btn bpl-page-next bpl-page-btn--disabled"
+                                     aria-hidden="true">
+                                    Next
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24"
+                                         class="bpl-page-arrow">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</section>

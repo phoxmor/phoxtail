@@ -1,0 +1,192 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<footer id="ft-{{ block.id }}" class="ft-root" role="contentinfo">
+    <div class="ft-container">
+        {# Top Region: Brand/Social Column + Link Sections Grid #}
+        <div class="ft-main">
+            {# Left Column: Branding & Social #}
+            <div class="ft-brand-col">
+                {# Logo #}
+                {% if value.branding.logo %}
+                    <div class="ft-logo-wrapper">
+                        <a href="/" class="ft-logo-link" aria-label="Home">
+                            {% image value.branding.logo width-400 format-webp as logo_img %}
+                            <picture>
+                                {% if value.branding.logo_dark %}
+                                    {% image value.branding.logo_dark width-400 format-webp as logo_dark_img %}
+                                    <source srcset="{{ logo_dark_img.url }}" media="(prefers-color-scheme: dark)">
+                                {% endif %}
+                                <img src="{{ logo_img.url }}"
+                                     alt="{{ value.branding.logo.title }}"
+                                     class="ft-logo"
+                                     loading="lazy">
+                            </picture>
+                        </a>
+                    </div>
+                {% endif %}
+                {# Social Media #}
+                {% if value.social_media.links %}
+                    <div class="ft-social">
+                        {% if value.social_media.title %}<p class="ft-social-heading">{{ value.social_media.title }}</p>{% endif %}
+                        <div class="ft-social-list">
+                            {% for link_block in value.social_media.links %}
+                                {% with link=link_block.value %}
+                                    {% if link.icon %}
+                                        <a href="{{ link.link }}"
+                                           class="ft-social-link"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           aria-label="{{ link.icon.title }}">
+                                            {% image link.icon fill-48x48 as icon_img %}
+                                            <picture>
+                                                {% if link.icon_dark %}
+                                                    {% image link.icon_dark fill-48x48 as icon_dark_img %}
+                                                    <source srcset="{{ icon_dark_img.url }}" media="(prefers-color-scheme: dark)">
+                                                {% endif %}
+                                                <img src="{{ icon_img.url }}"
+                                                     alt=""
+                                                     class="ft-social-icon"
+                                                     aria-hidden="true"
+                                                     loading="lazy">
+                                            </picture>
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            {# Right Region: Navigation Sections #}
+            {% if value.sections %}
+                <nav class="ft-nav-grid" aria-label="Footer Navigation">
+                    {% for section_block in value.sections %}
+                        {% with section=section_block.value %}
+                            <div class="ft-nav-col">
+                                {% if section.title %}<h2 class="ft-nav-title">{{ section.title }}</h2>{% endif %}
+                                {% if section.items %}
+                                    <ul class="ft-nav-list">
+                                        {% for item_block in section.items %}
+                                            {# Internal Page Link #}
+                                            {% if item_block.block_type == 'page_link' %}
+                                                {% with item=item_block.value %}
+                                                    {% if item.page %}
+                                                        {% with current_page=item.page.specific %}
+                                                            <li class="ft-nav-item">
+                                                                {% if not current_page.live %}
+                                                                    {% if perms.wagtailadmin.access_admin %}
+                                                                        <span class="ft-link ft-link--disabled"
+                                                                              title="Page not live (visible to admin)">
+                                                                            {{ item.label|default:current_page.title }}
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% elif current_page.is_locked_for_references %}
+                                                                    <span class="ft-link ft-link--disabled" title="Page locked">{{ item.label|default:current_page.title }}</span>
+                                                                {% else %}
+                                                                    <a href="{% pageurl item.page %}"
+                                                                       class="ft-link"
+                                                                       {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                                        {{ item.label|default:current_page.title }}
+                                                                    </a>
+                                                                {% endif %}
+                                                            </li>
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                {% endwith %}
+                                                {# External URL #}
+                                            {% elif item_block.block_type == 'external_link' %}
+                                                {% with item=item_block.value %}
+                                                    <li class="ft-nav-item">
+                                                        <a href="{{ item.url }}"
+                                                           class="ft-link"
+                                                           {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                            {{ item.label|default:item.url }}
+                                                        </a>
+                                                    </li>
+                                                {% endwith %}
+                                                {# Contact Info Block #}
+                                            {% elif item_block.block_type == 'contact_item' %}
+                                                {% with item=item_block.value %}
+                                                    <li class="ft-nav-item ft-info-item">
+                                                        {% if item.type == 'phone' or item.type == 'mobile' %}
+                                                            <a href="tel:{{ item.value }}" class="ft-info-link">
+                                                                <span class="ft-info-label">{{ item.label }}</span>
+                                                                <span class="ft-info-value">{{ item.value }}</span>
+                                                            </a>
+                                                        {% elif item.type == 'email' %}
+                                                            <a href="mailto:{{ item.value }}" class="ft-info-link">
+                                                                <span class="ft-info-label">{{ item.label }}</span>
+                                                                <span class="ft-info-value">{{ item.value }}</span>
+                                                            </a>
+                                                        {% else %}
+                                                            <div class="ft-info-static">
+                                                                <span class="ft-info-label">{{ item.label }}</span>
+                                                                <span class="ft-info-value">{{ item.value }}</span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </li>
+                                                {% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+                        {% endwith %}
+                    {% endfor %}
+                </nav>
+            {% endif %}
+        </div>
+        {# Divider #}
+        <div class="ft-divider" role="separator"></div>
+        {# Bottom Region: Copyright & Legal Links #}
+        <div class="ft-bottom">
+            {% if value.copyright %}
+                <div class="ft-copyright">
+                    <p>&copy; {{ value.copyright }}</p>
+                </div>
+            {% endif %}
+            {% if value.bottom_links %}
+                <ul class="ft-legal-list">
+                    {% for link_block in value.bottom_links %}
+                        {% if link_block.block_type == 'page_link' %}
+                            {% with link=link_block.value %}
+                                {% if link.page %}
+                                    {% with current_page=link.page.specific %}
+                                        {% if not current_page.live %}
+                                            {% if perms.wagtailadmin.access_admin %}
+                                                <li>
+                                                    <span class="ft-legal-link ft-link--disabled">{{ link.label|default:current_page.title }}</span>
+                                                </li>
+                                            {% endif %}
+                                        {% elif current_page.is_locked_for_references %}
+                                            <li>
+                                                <span class="ft-legal-link ft-link--disabled">{{ link.label|default:current_page.title }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li>
+                                                <a href="{% pageurl link.page %}"
+                                                   class="ft-legal-link"
+                                                   {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                    {{ link.label|default:current_page.title }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endwith %}
+                        {% elif link_block.block_type == 'external_link' %}
+                            {% with link=link_block.value %}
+                                <li>
+                                    <a href="{{ link.url }}"
+                                       class="ft-legal-link"
+                                       {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                        {{ link.label|default:link.url }}
+                                    </a>
+                                </li>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+</footer>
