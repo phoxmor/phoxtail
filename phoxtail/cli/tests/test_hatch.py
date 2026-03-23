@@ -194,9 +194,9 @@ class TestHatchCommand:
             app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        # 1 compile + 4 config + 2 superuser (migrate, createsuperuser)
-        # + 1 docker-compose-down + 1 launch = 9
-        assert mock_run.call_count == 9
+        # 1 compile + 4 config + 3 superuser (migrate, createsuperuser,
+        # verify_email) + 1 docker-compose-down + 1 launch = 10
+        assert mock_run.call_count == 10
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -218,12 +218,13 @@ class TestHatchCommand:
         assert calls[2][-3:] == ["docker", "create", "dockerfile"]
         assert calls[3][-4:] == ["docker", "create", "compose", "development"]
         assert calls[4][-3:] == ["nginx", "create", "initial"]
-        # Superuser step: migrate, createsuperuser
+        # Superuser step: migrate, createsuperuser, verify_email
         assert calls[5][-2:] == ["manage", "migrate"]
         assert calls[6][-2:] == ["manage", "createsuperuser"]
+        assert calls[7][-3:] == ["manage", "verify_email", "--all-superusers"]
         # Cleanup + launch
-        assert calls[7] == ["docker", "compose", "down"]
-        assert calls[8][-3:] == ["docker", "up", "--build"]
+        assert calls[8] == ["docker", "compose", "down"]
+        assert calls[9][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -237,7 +238,7 @@ class TestHatchCommand:
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # Last call should include --no-detach
-        assert calls[8][-4:] == ["docker", "up", "--build", "--no-detach"]
+        assert calls[9][-4:] == ["docker", "up", "--build", "--no-detach"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -269,6 +270,53 @@ class TestHatchCommand:
         assert calls[1][-3:] == ["env", "create", "production"]
         assert calls[3][-4:] == ["docker", "create", "compose", "production"]
         assert calls[4][-3:] == ["nginx", "create", "production"]
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_wizard_superuser_verifies_email(
+        self, mock_q, mock_run, tmp_path, monkeypatch
+    ):
+        """verify_email --all-superusers is called after createsuperuser succeeds."""
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_q.select.return_value.ask.return_value = "development"
+
+        # Accept wizard, skip first 4 config steps, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        # compile + migrate + createsuperuser + verify_email + docker-compose-down
+        assert any("verify_email" in c and "--all-superusers" in c for c in calls)
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_wizard_superuser_failure_skips_verify_email(
+        self, mock_q, mock_run, tmp_path, monkeypatch
+    ):
+        """verify_email is NOT called when createsuperuser fails."""
+        monkeypatch.chdir(tmp_path)
+        mock_q.select.return_value.ask.return_value = "development"
+
+        # migrate succeeds, createsuperuser fails
+        def side_effect(args, **kwargs):
+            from unittest.mock import MagicMock
+
+            result = MagicMock()
+            cmd = args if isinstance(args, list) else [args]
+            if "createsuperuser" in cmd:
+                result.returncode = 1
+            else:
+                result.returncode = 0
+                result.stderr = ""
+            return result
+
+        mock_run.side_effect = side_effect
+
+        # Accept wizard, skip first 4 config steps, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert not any("verify_email" in c for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")

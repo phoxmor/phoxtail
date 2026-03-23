@@ -259,9 +259,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=4, pause=prev_failed
     )
     console.print("  Create an admin superuser account\n")
-    if Confirm.ask(
-        "  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True
-    ):
+    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
         # Migrate first — the user table must exist before createsuperuser
         with console.status("  [bold cyan]Preparing database…[/bold cyan]"):
             migrate_result = subprocess.run(
@@ -281,6 +279,8 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         else:
             console.print()
             if _run_step(target_dir, ["manage", "createsuperuser"]):
+                # Verify the superuser's email in allauth automatically
+                _run_step(target_dir, ["manage", "verify_email", "--all-superusers"])
                 steps["superuser"] = "done"
                 prev_failed = False
             else:
@@ -321,9 +321,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         prev_failed = False
 
     # Show final state
-    _clear_and_show_progress(
-        project_name, steps, details, pause=prev_failed
-    )
+    _clear_and_show_progress(project_name, steps, details, pause=prev_failed)
 
     return steps
 
@@ -382,9 +380,7 @@ def hatch(
 
         # Copy template files with placeholder replacement
         target_dir.mkdir(parents=True, exist_ok=True)
-        with console.status(
-            f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"
-        ):
+        with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             file_count = _copy_template(project_name, target_dir)
 
             # Generate requirements.in from template
@@ -419,8 +415,7 @@ def hatch(
         console.print(
             Panel(
                 f"[green]Project '{project_name}' created[/green] "
-                f"at [bold]{target_dir}[/bold]"
-                + req_note,
+                f"at [bold]{target_dir}[/bold]" + req_note,
                 border_style="green",
                 expand=False,
             )
@@ -441,7 +436,9 @@ def hatch(
         failed_steps = []
 
         def _check(
-            key: str, cmd: str, note: str = "",
+            key: str,
+            cmd: str,
+            note: str = "",
         ) -> None:
             status = wizard_steps.get(key)
             hint = f"\n    [dim]{note}[/dim]" if note else ""
@@ -450,18 +447,26 @@ def hatch(
             elif status != "done":
                 next_steps.append(f"  • [cyan]{cmd}[/cyan]{hint}")
 
-        _check("env", "phoxtail env create",
-               "generate .env configuration")
-        _check("dockerfile", "phoxtail docker create dockerfile",
-               "generate Dockerfile")
-        _check("compose", "phoxtail docker create compose",
-               "generate docker-compose.yaml")
-        _check("nginx", "phoxtail nginx create initial",
-               "optional — only needed for production-like setups")
-        _check("superuser", "phoxtail manage createsuperuser",
-               "create an admin superuser account")
-        _check("docker_up", "phoxtail docker up --build",
-               "build images and start the application")
+        _check("env", "phoxtail env create", "generate .env configuration")
+        _check("dockerfile", "phoxtail docker create dockerfile", "generate Dockerfile")
+        _check(
+            "compose", "phoxtail docker create compose", "generate docker-compose.yaml"
+        )
+        _check(
+            "nginx",
+            "phoxtail nginx create initial",
+            "optional — only needed for production-like setups",
+        )
+        _check(
+            "superuser",
+            "phoxtail manage createsuperuser",
+            "create an admin superuser account",
+        )
+        _check(
+            "docker_up",
+            "phoxtail docker up --build",
+            "build images and start the application",
+        )
 
         # Assemble next steps
         all_steps = [
