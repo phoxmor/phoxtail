@@ -1,20 +1,18 @@
 {% load wagtailcore_tags wagtailimages_tags static phoxtail_design_tags %}
+
 <div id="hl-{{ block.id }}" class="hl-page">
     <div class="hl-top-bar">
         <div class="hl-top-bar-inner">
             <span class="hl-logo">
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}"
-                     alt="Phoxtail"
-                     class="hl-logo-img hl-logo-light" />
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}"
-                     alt="Phoxtail"
-                     class="hl-logo-img hl-logo-dark" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="hl-logo-img hl-logo-light" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="hl-logo-img hl-logo-dark" />
             </span>
             <span class="hl-version-info">
                 v{% phoxtail_version %}
             </span>
         </div>
     </div>
+
     <div class="hl-embers" data-hl-embers></div>
 
     <div class="hl-content">
@@ -42,31 +40,23 @@
                         <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgb(var(--color-primary-900))" flood-opacity="0.15"/>
                     </filter>
                 </defs>
-
                 <circle cx="100" cy="120" r="90" fill="url(#hl-glow-g-{{ block.id }})"/>
-
                 <g class="hl-flames">
                     <path class="hl-flame hl-flame-l" d="M75,150 C50,120 60,80 85,60 C75,90 90,110 95,140 Z" fill="rgb(var(--color-accent-500))" opacity="0.6"/>
                     <path class="hl-flame hl-flame-c" d="M100,160 C80,110 90,60 100,40 C110,60 120,110 100,160 Z" fill="rgb(var(--color-secondary-500))" opacity="0.7"/>
                     <path class="hl-flame hl-flame-r" d="M125,150 C150,120 140,80 115,60 C125,90 110,110 105,140 Z" fill="rgb(var(--color-accent-500))" opacity="0.6"/>
                 </g>
-
                 <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#hl-body-g-{{ block.id }})"/>
-
                 <path class="hl-wing hl-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-primary-600))"/>
                 <path class="hl-wing hl-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-primary-600))"/>
-
                 <circle cx="100" cy="88" r="44" fill="url(#hl-body-g-{{ block.id }})"/>
-
                 <g class="hl-crest">
                     <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="rgb(var(--color-accent-500))"/>
                     <path d="M100,44 C105,15 120,5 120,5 C115,20 108,35 104,46 Z" fill="rgb(var(--color-primary-500))"/>
                     <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="rgb(var(--color-secondary-300))"/>
                 </g>
-
                 <circle cx="70" cy="102" r="11" fill="url(#hl-cheek-g-{{ block.id }})"/>
                 <circle cx="130" cy="102" r="11" fill="url(#hl-cheek-g-{{ block.id }})"/>
-
                 <g class="hl-eyes-wrap" data-hl-eyes-wrap>
                     <g class="hl-eye" data-hl-eye="left">
                         <circle cx="78" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
@@ -85,9 +75,7 @@
                         </g>
                     </g>
                 </g>
-
                 <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-primary-700))"/>
-
                 <path class="hl-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#hl-shell-g-{{ block.id }})" filter="url(#hl-shadow-{{ block.id }})"/>
             </svg>
         </div>
@@ -99,7 +87,6 @@
                 Your phoenix has hatched
             {% endif %}
         </h1>
-
         <p class="hl-subtitle">
             {% if block.value.subtitle %}
                 {{ block.value.subtitle }}
@@ -107,7 +94,6 @@
                 Start building something beautiful
             {% endif %}
         </p>
-
         <a href="/admin/" class="hl-cta">
             {% icon "dashboard" class="hl-cta-icon" %}
             <span class="hl-cta-label">

@@ -4,7 +4,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    width: 100%; /* Full-bleed pattern */
+    width: 100%;
     background-color: rgb(var(--color-surface-50));
     overflow: hidden;
     font-family: var(--font-body);
@@ -13,13 +13,13 @@
 
 /* ── Top Bar ── */
 #hl-{{ block.id }} .hl-top-bar {
-    width: 100%; /* Full-bleed pattern */
+    width: 100%;
     padding: 0 1rem;
     height: 60px;
+    background: transparent;
     border-bottom: 1px solid rgba(var(--color-primary-500), 0.1);
     display: flex;
     align-items: center;
-    background-color: rgb(var(--color-surface-50));
     position: absolute;
     top: 0;
     left: 0;
@@ -29,7 +29,7 @@
 }
 
 #hl-{{ block.id }} .hl-top-bar-inner {
-    max-width: 1280px; /* Container width pattern */
+    max-width: 1280px;
     margin: 0 auto;
     width: 100%;
     display: flex;
@@ -65,6 +65,22 @@
     border-radius: 9999px;
 }
 
+/* ── Embers Particle System ── */
+#hl-{{ block.id }} .hl-embers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#hl-{{ block.id }} .hl-ember {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+
 /* ── Main Content Area ── */
 #hl-{{ block.id }} .hl-content {
     flex-grow: 1;
@@ -75,33 +91,10 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 80px 1rem 3rem; /* Adjusted for top bar */
-    max-width: 65ch; /* Prose width pattern for readability */
+    padding: 80px 1rem 3rem;
+    max-width: 65ch;
     width: 100%;
     margin: 0 auto;
-}
-
-/* ── Embers Particle System ── */
-#hl-{{ block.id }} .hl-embers {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-}
-
-#hl-{{ block.id }} .hl-ember {
-    position: absolute;
-    border-radius: 50%;
-    opacity: 0;
-    animation: hl-rise-{{ block.id }} linear infinite;
-    box-shadow: 0 0 8px currentColor;
-}
-
-@keyframes hl-rise-{{ block.id }} {
-    0% { opacity: 0; transform: translateY(0) scale(1); }
-    15% { opacity: 1; }
-    80% { opacity: 0.8; }
-    100% { opacity: 0; transform: translateY(-100vh) scale(0.2); }
 }
 
 /* ── Phoenix Container & Hover Float ── */
@@ -129,9 +122,17 @@
     transform-origin: center bottom;
 }
 
-#hl-{{ block.id }} .hl-flame-l { animation: hl-sway-l-{{ block.id }} 3s ease-in-out infinite; }
-#hl-{{ block.id }} .hl-flame-c { animation: hl-sway-c-{{ block.id }} 3.5s ease-in-out infinite; }
-#hl-{{ block.id }} .hl-flame-r { animation: hl-sway-r-{{ block.id }} 3s ease-in-out infinite 0.5s; }
+#hl-{{ block.id }} .hl-flame-l {
+    animation: hl-sway-l-{{ block.id }} 3s ease-in-out infinite;
+}
+
+#hl-{{ block.id }} .hl-flame-c {
+    animation: hl-sway-c-{{ block.id }} 3.5s ease-in-out infinite;
+}
+
+#hl-{{ block.id }} .hl-flame-r {
+    animation: hl-sway-r-{{ block.id }} 3s ease-in-out infinite 0.5s;
+}
 
 @keyframes hl-sway-l-{{ block.id }} {
     0%, 100% { transform: rotate(0deg) scale(1); }
@@ -217,10 +218,11 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem 0.75rem 1.25rem;
-    font-size: 1rem;
+    padding: 0.625rem 1.5rem 0.625rem 1.25rem;
+    font-size: 0.875rem;
     font-family: var(--font-ui);
-    font-weight: var(--font-ui-weight-semibold);
+    font-weight: var(--font-ui-weight-bold);
+    letter-spacing: 0.03em;
     color: rgb(var(--color-surface-50));
     background-color: rgb(var(--color-primary-500));
     border-radius: 9999px;
@@ -243,14 +245,16 @@
 
 /* ── Bottom Section ── */
 #hl-{{ block.id }} .hl-bottom {
-    width: 100%; /* Full-bleed pattern */
+    width: 100%;
     padding: 2.5rem 1rem 1.5rem;
-    background-color: rgb(var(--color-surface-50));
+    background-color: transparent;
     border-top: 1px solid rgba(var(--color-primary-500), 0.1);
+    position: relative;
+    z-index: 1;
 }
 
 #hl-{{ block.id }} .hl-bottom-inner {
-    max-width: 1280px; /* Container width pattern */
+    max-width: 1280px;
     margin: 0 auto;
     width: 100%;
 }
@@ -268,23 +272,24 @@
     }
 }
 
+/* ── Refined Link Cards ── */
 #hl-{{ block.id }} .hl-link-card {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 1.5rem;
     text-align: center;
-    background-color: rgb(var(--color-surface-50));
-    border-radius: 1rem;
     text-decoration: none;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(var(--color-primary-500), 0.05);
+    border-radius: 0.75rem;
+    background-color: transparent;
+    border: 1px solid rgb(var(--color-surface-200));
+    transition: all 0.3s ease;
 }
 
 #hl-{{ block.id }} .hl-link-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px -2px rgba(var(--color-primary-500), 0.05);
-    background-color: rgba(var(--color-primary-500), 0.02);
+    transform: translateY(-4px);
+    border-color: rgb(var(--color-primary-300));
+    background-color: rgba(var(--color-surface-100), 0.5);
 }
 
 #hl-{{ block.id }} .hl-link-icon {
@@ -293,14 +298,16 @@
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border-radius: 50%;
+    border-radius: 9999px; /* Fully rounded */
     margin-bottom: 1rem;
     color: rgb(var(--color-primary-500));
+    background-color: rgb(var(--color-surface-100)); /* Subtle surface palette color */
+    transition: background-color 0.3s ease;
 }
 
 #hl-{{ block.id }} .hl-link-svg {
-    width: 2rem;
-    height: 2rem;
+    width: 1.75rem; /* slightly smaller to fit well within the new background circle */
+    height: 1.75rem;
 }
 
 #hl-{{ block.id }} .hl-link-title {
@@ -321,8 +328,7 @@
 /* ── Dark Mode Overrides ── */
 @media (prefers-color-scheme: dark) {
     #hl-{{ block.id }}.hl-page,
-    #hl-{{ block.id }} .hl-top-bar,
-    #hl-{{ block.id }} .hl-bottom {
+    #hl-{{ block.id }} {
         background-color: rgb(var(--color-surface-900));
     }
 
@@ -363,17 +369,18 @@
     }
 
     #hl-{{ block.id }} .hl-link-card {
-        border-color: rgba(var(--color-primary-400), 0.05);
-        background-color: rgb(var(--color-surface-900));
+        background-color: transparent;
+        border-color: rgb(var(--color-surface-700));
     }
 
     #hl-{{ block.id }} .hl-link-card:hover {
-        background-color: rgba(var(--color-primary-400), 0.02);
-        box-shadow: 0 6px 16px -2px rgba(var(--color-primary-400), 0.05);
+        border-color: rgb(var(--color-primary-600));
+        background-color: rgba(var(--color-surface-800), 0.5);
     }
 
     #hl-{{ block.id }} .hl-link-icon {
         color: rgb(var(--color-primary-400));
+        background-color: rgb(var(--color-surface-800)); /* Subtle dark surface palette */
     }
 
     #hl-{{ block.id }} .hl-link-desc {
