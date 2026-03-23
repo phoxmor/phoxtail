@@ -1,0 +1,39 @@
+# Framework
+Django
+wagtail
+
+# Django extensions
+django-environ
+django-allauth
+django-htmx
+django-countries[pyuca]
+django-phonenumber-field[phonenumbers]
+django-celery-beat
+django-timezone-field
+sorl-thumbnail
+babel
+
+# Wagtail extensions
+wagtailmedia
+wagtail-color-panel
+
+# Database
+psycopg[binary]
+
+# Task queue
+celery
+redis
+
+# Production server
+gunicorn
+brotli
+
+# Utilities
+python-dateutil
+fonttools
+pyyaml
+
+# Development
+django-browser-reload
+django-extensions
+pygraphviz

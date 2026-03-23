@@ -8,6 +8,7 @@ from phoxtail.cli import (
     db,
     docker,
     env,
+    hatch,
     lint,
     manage,
     media,
@@ -27,7 +28,7 @@ app = typer.Typer(
 console = Console()
 
 # Commands that don't require a phoxtail project.
-NO_PROJECT_COMMANDS = {"version"}
+NO_PROJECT_COMMANDS = {"version", "hatch"}
 
 
 @app.callback(invoke_without_command=True)
@@ -68,6 +69,7 @@ app.command(
 )(manage.manage)
 app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
+app.command()(hatch.hatch)
 
 
 @app.command()
