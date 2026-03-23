@@ -184,18 +184,19 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_runs_all_five_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
+    def test_wizard_runs_all_six_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + 4 config steps + launch(y) + detach(y) = 7 prompts
+        # Accept wizard + 4 config steps + superuser(y) + launch(y) + detach(y)
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        # 1 compile + 5 wizard steps = 6 subprocess calls
-        assert mock_run.call_count == 6
+        # 1 compile + 4 config + 2 superuser (migrate, createsuperuser)
+        # + 1 docker-compose-down + 1 launch = 9
+        assert mock_run.call_count == 9
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -206,19 +207,23 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + detach(y)
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\n")
+        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
         assert calls[0][-2:] == ["requirements", "compile"]
-        # Wizard steps
+        # Config wizard steps
         assert calls[1][-3:] == ["env", "create", "development"]
         assert calls[2][-3:] == ["docker", "create", "dockerfile"]
         assert calls[3][-4:] == ["docker", "create", "compose", "development"]
         assert calls[4][-3:] == ["nginx", "create", "initial"]
-        # Launch detached (no --no-detach flag)
-        assert calls[5][-3:] == ["docker", "up", "--build"]
+        # Superuser step: migrate, createsuperuser
+        assert calls[5][-2:] == ["manage", "migrate"]
+        assert calls[6][-2:] == ["manage", "createsuperuser"]
+        # Cleanup + launch
+        assert calls[7] == ["docker", "compose", "down"]
+        assert calls[8][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -227,27 +232,27 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + launch(y) + detach(n) = foreground
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\nn\n")
+        # Accept wizard + all steps + superuser(y) + launch(y) + detach(n) = foreground
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # Last call should include --no-detach
-        assert calls[5][-4:] == ["docker", "up", "--build", "--no-detach"]
+        assert calls[8][-4:] == ["docker", "up", "--build", "--no-detach"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_launch_detached_shows_link(
+    def test_wizard_launch_detached_shows_ready(
         self, mock_q, mock_run, tmp_path, monkeypatch
     ):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + launch(y) + detach(y)
+        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
         )
-        assert "http://localhost" in result.output
+        assert "is ready!" in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -258,7 +263,7 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "production"
 
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert calls[1][-3:] == ["env", "create", "production"]
@@ -272,8 +277,9 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard prompt, then skip all 5 steps
-        result = runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\nn\n")
+        # Accept wizard prompt, then skip all 6 steps
+        skip_all = "y\n" + "n\n" * 6
+        result = runner.invoke(app, ["hatch", "myproject"], input=skip_all)
         assert result.exit_code == 0
         # Only the requirements compile call (no wizard steps)
         assert mock_run.call_count == 1
@@ -287,16 +293,14 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + detach(y)
+        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        done_section = result.output.split("Done")[-1]
-        # Completed steps should NOT appear as next steps
-        assert "phoxtail env create" not in done_section
-        assert "phoxtail nginx create" not in done_section
-        assert "docker up --build" not in done_section
+        # All steps completed — should show "is ready!" and no next-steps panel
+        assert "is ready!" in result.output
+        assert "Next steps" not in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     def test_wizard_declined(self, mock_run, tmp_path, monkeypatch):

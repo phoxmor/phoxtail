@@ -19,6 +19,80 @@ console = Console()
 PLACEHOLDER = "{{ phoxtail_project_name }}"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 
+# Wizard step definitions: (key, label)
+WIZARD_STEPS = [
+    ("env", "Environment"),
+    ("dockerfile", "Dockerfile"),
+    ("compose", "Docker Compose"),
+    ("nginx", "Nginx"),
+    ("superuser", "Create Superuser"),
+    ("docker_up", "Launch App"),
+]
+
+# Status icons
+_ICONS = {
+    "done": "[green]✓[/green]",
+    "failed": "[red]✗[/red]",
+    "skipped": "[dim]⏭[/dim]",
+    "current": "[bold cyan]▸[/bold cyan]",
+    "pending": "[dim]○[/dim]",
+}
+
+
+def _step_status_line(index: int, label: str, status: str, detail: str = "") -> str:
+    icon = _ICONS[status]
+    num = f"{index + 1}."
+    suffix = f"  [dim]{detail}[/dim]" if detail else ""
+    if status == "current":
+        return f"  {icon} [bold]{num} {label}[/bold]{suffix}"
+    return f"  {icon} {num} {label}{suffix}"
+
+
+def _render_progress(
+    project_name: str,
+    steps: dict[str, str],
+    details: dict[str, str],
+    current_index: int | None = None,
+) -> Panel:
+    """Build the progress panel showing all wizard steps."""
+    lines = []
+    for i, (key, label) in enumerate(WIZARD_STEPS):
+        if key in steps:
+            status = steps[key]
+        elif current_index is not None and i == current_index:
+            status = "current"
+        else:
+            status = "pending"
+        lines.append(_step_status_line(i, label, status, details.get(key, "")))
+
+    return Panel(
+        "\n".join(lines),
+        title=f"[bold cyan]Hatching '{project_name}'[/bold cyan]",
+        border_style="cyan",
+        expand=False,
+    )
+
+
+def _clear_and_show_progress(
+    project_name: str,
+    steps: dict[str, str],
+    details: dict[str, str],
+    current_index: int | None = None,
+    pause: bool = False,
+) -> None:
+    """Clear the terminal and redraw the progress panel.
+
+    If pause=True (previous step failed), waits so the user can read
+    the subprocess output before clearing.
+    """
+    if pause:
+        console.print()
+        console.input("[dim]Press Enter to continue...[/dim]")
+    console.clear()
+    console.print()
+    console.print(_render_progress(project_name, steps, details, current_index))
+    console.print()
+
 
 def _copy_template(project_name: str, target_dir: Path) -> int:
     """Copy project_template into target_dir, replacing placeholders.
@@ -67,15 +141,10 @@ def _run_step(target_dir: Path, args: list[str]) -> bool:
         [sys.executable, "-m", "phoxtail", *args],
         cwd=target_dir,
     )
-    if result.returncode != 0:
-        console.print(
-            f"  [yellow]⚠[/yellow]  Command exited with code {result.returncode}"
-        )
-        return False
-    return True
+    return result.returncode == 0
 
 
-def _run_wizard(target_dir: Path) -> set[str]:
+def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
     """Walk the user through optional post-scaffold setup steps.
 
     Each step invokes an existing phoxtail CLI command as a subprocess
@@ -85,17 +154,13 @@ def _run_wizard(target_dir: Path) -> set[str]:
     The environment type (development/production) is asked once and
     reused across steps that need it.
 
-    Returns a set of completed step names for the summary panel.
+    Returns a dict mapping step keys to their status ("done"/"skipped"/"failed").
     """
-    console.print(
-        Panel(
-            "The setup wizard will walk you through configuring your new project.\n"
-            "Each step is optional — skip any and run the commands later.",
-            title="[bold cyan]Project Setup[/bold cyan]",
-            border_style="cyan",
-            expand=False,
-        )
-    )
+    steps: dict[str, str] = {}  # key -> "done" | "skipped" | "failed"
+    details: dict[str, str] = {}  # key -> detail text
+
+    # Show initial progress with all steps pending
+    _clear_and_show_progress(project_name, steps, details, current_index=None)
 
     # Ask environment type once — reused by env create and docker compose
     environment = questionary.select(
@@ -104,81 +169,163 @@ def _run_wizard(target_dir: Path) -> set[str]:
     ).ask()
     if environment is None:
         console.print("[dim]Cancelled.[/dim]")
-        return set()
+        return {}
 
     nginx_sub = "initial" if environment == "development" else "production"
+    prev_failed = False
 
-    completed = set()
-
-    # Step 1: Environment
-    console.print("\n[bold]Step 1/5: Environment[/bold]")
-    console.print(f"  Generate {environment} .env configuration")
+    # --- Step 1: Environment ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=0, pause=prev_failed
+    )
+    console.print(f"  Generate [bold]{environment}[/bold] .env configuration\n")
     if Confirm.ask(
         f"  Run [cyan]phoxtail env create {environment}[/cyan]?", default=True
     ):
-        console.print()
         if _run_step(target_dir, ["env", "create", environment]):
-            completed.add("env")
+            steps["env"] = "done"
+            details["env"] = environment
+            prev_failed = False
+        else:
+            steps["env"] = "failed"
+            details["env"] = "command failed"
+            prev_failed = True
     else:
-        console.print("  [dim]Skipped.[/dim]")
+        steps["env"] = "skipped"
+        prev_failed = False
 
-    # Step 2: Dockerfile
-    console.print("\n[bold]Step 2/5: Dockerfile[/bold]")
-    console.print("  Generate Dockerfile")
+    # --- Step 2: Dockerfile ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=1, pause=prev_failed
+    )
+    console.print("  Generate Dockerfile\n")
     if Confirm.ask(
         "  Run [cyan]phoxtail docker create dockerfile[/cyan]?", default=True
     ):
-        console.print()
         if _run_step(target_dir, ["docker", "create", "dockerfile"]):
-            completed.add("dockerfile")
+            steps["dockerfile"] = "done"
+            prev_failed = False
+        else:
+            steps["dockerfile"] = "failed"
+            details["dockerfile"] = "command failed"
+            prev_failed = True
     else:
-        console.print("  [dim]Skipped.[/dim]")
+        steps["dockerfile"] = "skipped"
+        prev_failed = False
 
-    # Step 3: docker-compose.yaml
-    console.print("\n[bold]Step 3/5: Docker Compose[/bold]")
-    console.print(f"  Generate {environment} docker-compose.yaml")
+    # --- Step 3: Docker Compose ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=2, pause=prev_failed
+    )
+    console.print(f"  Generate [bold]{environment}[/bold] docker-compose.yaml\n")
     if Confirm.ask(
         f"  Run [cyan]phoxtail docker create compose {environment}[/cyan]?",
         default=True,
     ):
-        console.print()
         if _run_step(target_dir, ["docker", "create", "compose", environment]):
-            completed.add("compose")
+            steps["compose"] = "done"
+            details["compose"] = environment
+            prev_failed = False
+        else:
+            steps["compose"] = "failed"
+            details["compose"] = "command failed"
+            prev_failed = True
     else:
-        console.print("  [dim]Skipped.[/dim]")
+        steps["compose"] = "skipped"
+        prev_failed = False
 
-    # Step 4: Nginx
-    console.print("\n[bold]Step 4/5: Nginx[/bold]")
-    console.print(f"  Generate {nginx_sub} nginx.conf")
+    # --- Step 4: Nginx ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=3, pause=prev_failed
+    )
+    console.print(f"  Generate [bold]{nginx_sub}[/bold] nginx.conf\n")
     if Confirm.ask(
         f"  Run [cyan]phoxtail nginx create {nginx_sub}[/cyan]?", default=True
     ):
-        console.print()
         if _run_step(target_dir, ["nginx", "create", nginx_sub]):
-            completed.add("nginx")
+            steps["nginx"] = "done"
+            details["nginx"] = nginx_sub
+            prev_failed = False
+        else:
+            steps["nginx"] = "failed"
+            details["nginx"] = "command failed"
+            prev_failed = True
     else:
-        console.print("  [dim]Skipped.[/dim]")
+        steps["nginx"] = "skipped"
+        prev_failed = False
 
-    # Step 5: Launch app
-    console.print("\n[bold]Step 5/5: Launch App[/bold]")
-    console.print("  Build images and start the application")
+    # --- Step 5: Create Superuser ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=4, pause=prev_failed
+    )
+    console.print("  Create an admin superuser account\n")
+    if Confirm.ask(
+        "  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True
+    ):
+        # Migrate first — the user table must exist before createsuperuser
+        with console.status("  [bold cyan]Preparing database…[/bold cyan]"):
+            migrate_result = subprocess.run(
+                [sys.executable, "-m", "phoxtail", "manage", "migrate"],
+                cwd=target_dir,
+                capture_output=True,
+                text=True,
+            )
+            migrate_ok = migrate_result.returncode == 0
+        if not migrate_ok:
+            console.print("  [red]Database migration failed.[/red]")
+            if migrate_result.stderr:
+                console.print(f"  [dim]{migrate_result.stderr.strip()}[/dim]")
+            steps["superuser"] = "failed"
+            details["superuser"] = "migration failed"
+            prev_failed = True
+        else:
+            console.print()
+            if _run_step(target_dir, ["manage", "createsuperuser"]):
+                steps["superuser"] = "done"
+                prev_failed = False
+            else:
+                steps["superuser"] = "failed"
+                details["superuser"] = "command failed"
+                prev_failed = True
+        # Clean up containers started by docker compose run (e.g. db)
+        subprocess.run(
+            ["docker", "compose", "down"],
+            cwd=target_dir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    else:
+        steps["superuser"] = "skipped"
+        prev_failed = False
+
+    # --- Step 6: Launch App ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=5, pause=prev_failed
+    )
+    console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
         detach = Confirm.ask("  Run in background (detached)?", default=False)
-        console.print()
         args = ["docker", "up", "--build"]
         if not detach:
             args.append("--no-detach")
         if _run_step(target_dir, args):
-            completed.add("docker_up")
-            if detach:
-                console.print(
-                    "\n  [green]✓[/green] App is running at "
-                    "[bold cyan]http://localhost[/bold cyan]"
-                )
+            steps["docker_up"] = "done"
+            details["docker_up"] = "detached" if detach else "foreground"
+            prev_failed = False
+        else:
+            steps["docker_up"] = "failed"
+            details["docker_up"] = "command failed"
+            prev_failed = True
     else:
-        console.print("  [dim]Skipped.[/dim]")
+        steps["docker_up"] = "skipped"
+        prev_failed = False
 
-    return completed
+    # Show final state
+    _clear_and_show_progress(
+        project_name, steps, details, pause=prev_failed
+    )
+
+    return steps
 
 
 def hatch(
@@ -231,79 +378,120 @@ def hatch(
         shutil.rmtree(target_dir)
 
     try:
-        console.print(
-            f"\n[bold cyan]Hatching project [white]'{project_name}'"
-            "[/white]...[/bold cyan]\n"
-        )
+        console.print()
 
         # Copy template files with placeholder replacement
         target_dir.mkdir(parents=True, exist_ok=True)
-        file_count = _copy_template(project_name, target_dir)
+        with console.status(
+            f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"
+        ):
+            file_count = _copy_template(project_name, target_dir)
 
-        # Generate requirements.in from template
-        requirements_in = render_template("requirements/requirements.in", {})
-        (target_dir / "requirements.in").write_text(requirements_in, encoding="utf-8")
-        file_count += 1
-
-        # Compile requirements.in → requirements.txt
-        console.print("[dim]Compiling requirements.in → requirements.txt...[/dim]")
-        if _run_step(target_dir, ["requirements", "compile"]):
-            console.print("[green]✓[/green] Requirements compiled successfully\n")
-        else:
-            # Fallback: copy requirements.in as requirements.txt
-            console.print(
-                "[yellow]⚠[/yellow]  Could not compile requirements. "
-                "Run [cyan]phoxtail requirements compile[/cyan] manually.\n"
+            # Generate requirements.in from template
+            requirements_in = render_template("requirements/requirements.in", {})
+            (target_dir / "requirements.in").write_text(
+                requirements_in, encoding="utf-8"
             )
-            shutil.copy2(
-                target_dir / "requirements.in",
-                target_dir / "requirements.txt",
-            )
+            file_count += 1
 
-        console.print(
-            f"[green]✓[/green] Scaffolded {file_count} files into "
-            f"[bold]{target_dir}[/bold]\n"
+            # Compile requirements.in → requirements.txt (quiet — no user interaction)
+            compiled = subprocess.run(
+                [sys.executable, "-m", "phoxtail", "requirements", "compile"],
+                cwd=target_dir,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if compiled.returncode != 0:
+                shutil.copy2(
+                    target_dir / "requirements.in",
+                    target_dir / "requirements.txt",
+                )
+
+        # Summary
+        req_note = (
+            ""
+            if compiled.returncode == 0
+            else (
+                "\n[yellow]⚠[/yellow] requirements not compiled"
+                " — run [cyan]phoxtail requirements compile[/cyan]"
+            )
         )
+        console.print(
+            Panel(
+                f"[green]Project '{project_name}' created[/green] "
+                f"at [bold]{target_dir}[/bold]"
+                + req_note,
+                border_style="green",
+                expand=False,
+            )
+        )
+        console.print()
 
         # Run the setup wizard unless --no-wizard
-        completed = set()
+        wizard_steps: dict[str, str] = {}
         if not no_wizard:
             run_wizard = Confirm.ask(
                 "Would you like to run the setup wizard?", default=True
             )
             if run_wizard:
-                completed = _run_wizard(target_dir)
+                wizard_steps = _run_wizard(project_name, target_dir)
 
-        # Build context-aware next steps
+        # Build context-aware next steps — separate skipped from failed
         next_steps = []
-        if "env" not in completed:
-            next_steps.append(
-                "  • Run [cyan]phoxtail env create[/cyan] to generate .env"
-            )
-        if "dockerfile" not in completed or "compose" not in completed:
-            next_steps.append(
-                "  • Run [cyan]phoxtail docker create dockerfile[/cyan] "
-                "and [cyan]compose[/cyan]"
-            )
-        if "nginx" not in completed:
-            next_steps.append(
-                "  • Run [cyan]phoxtail nginx create initial[/cyan] for nginx"
-            )
-        if "docker_up" not in completed:
-            next_steps.append(
-                "  • Run [cyan]phoxtail docker up --build[/cyan] to launch the app"
-            )
+        failed_steps = []
 
-        console.print(
-            Panel(
-                f"[green]Project '{project_name}' is ready![/green]\n\n"
-                f"  cd {target_dir}\n\n"
-                "Next steps:\n" + "\n".join(next_steps),
-                title="[bold green]Done[/bold green]",
-                border_style="green",
-                expand=False,
+        def _check(
+            key: str, cmd: str, note: str = "",
+        ) -> None:
+            status = wizard_steps.get(key)
+            hint = f"\n    [dim]{note}[/dim]" if note else ""
+            if status == "failed":
+                failed_steps.append(f"  • [cyan]{cmd}[/cyan]{hint}")
+            elif status != "done":
+                next_steps.append(f"  • [cyan]{cmd}[/cyan]{hint}")
+
+        _check("env", "phoxtail env create",
+               "generate .env configuration")
+        _check("dockerfile", "phoxtail docker create dockerfile",
+               "generate Dockerfile")
+        _check("compose", "phoxtail docker create compose",
+               "generate docker-compose.yaml")
+        _check("nginx", "phoxtail nginx create initial",
+               "optional — only needed for production-like setups")
+        _check("superuser", "phoxtail manage createsuperuser",
+               "create an admin superuser account")
+        _check("docker_up", "phoxtail docker up --build",
+               "build images and start the application")
+
+        # Assemble next steps
+        all_steps = [
+            f"  • [cyan]cd {target_dir}[/cyan]"
+            "\n    [dim]navigate to the project directory[/dim]"
+        ]
+        if failed_steps:
+            all_steps.append("")
+            all_steps.append("  [bold red]Failed (retry):[/bold red]")
+            all_steps.extend(failed_steps)
+        if next_steps:
+            all_steps.extend(next_steps)
+
+        if not failed_steps and not next_steps:
+            console.print(
+                Panel(
+                    f"[green]'{project_name}' is ready![/green]",
+                    border_style="green",
+                    expand=False,
+                )
             )
-        )
+        else:
+            border = "yellow" if failed_steps else "green"
+            console.print(
+                Panel(
+                    "[bold]Next steps:[/bold]\n" + "\n".join(all_steps),
+                    border_style=border,
+                    expand=False,
+                )
+            )
 
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")
