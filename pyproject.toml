@@ -30,6 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+docs = [
+    "zensical>=0.0.28",
+]
 engine = [
     "django>=4.2",
     "wagtail>=6.0",
@@ -39,7 +42,6 @@ engine = [
     "wagtail-color-panel>=0.4.0",
     "pyyaml>=6.0",
     "wagtailmedia>=0.15",
-    "modelcluster>=6.0",
     "sorl-thumbnail>=12.10",
 ]
 dev = [
@@ -47,7 +49,7 @@ dev = [
     "pytest>=8.0.0",
     "pytest-django>=4.8.0",
     "ruff>=0.4.0",
-    "phoxtail[engine]",
+    "phoxtail[engine,docs]",
 ]
 
 [project.urls]
@@ -64,7 +66,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"phoxtail" = ["project_template/**/*"]
+"phoxtail" = ["project_template/**/*", "docs/**/*"]
 "phoxtail.cli" = ["templates/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.design" = ["management/data/**/*"]

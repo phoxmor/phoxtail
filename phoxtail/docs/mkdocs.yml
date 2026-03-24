@@ -1,0 +1,86 @@
+site_name: Phoxtail
+site_url: http://localhost:8000
+docs_dir: docs
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+      - Quick Start: getting-started/quickstart.md
+      - Deployment: getting-started/deployment.md
+
+  - CLI:
+      - Overview: cli/overview.md
+      - Configuration Reference: cli/configuration.md
+
+  - Engine:
+      - Core:
+          - Permissions: engine/core/permissions.md
+          - Modal System: engine/core/modal.md
+      - Design:
+          - Design Tokens Architecture: engine/design/design-tokens-architecture.md
+      - Streams:
+          - Dynamic Blocks Architecture: engine/streams/dynamic-blocks-architecture.md
+          - Shared Blocks Architecture: engine/streams/shared-blocks-architecture.md
+          - Block Patterns: engine/streams/block-patterns.md
+          - Block Migration Guide: engine/streams/block-migration-guide.md
+          - Studio Architecture: engine/streams/studio-architecture.md
+          - Performance: engine/streams/performance.md
+          - Widgets:
+              - Multi Select Chips: engine/streams/multi-select-chips-widget.md
+              - Single Select Search: engine/streams/single-select-search-widget.md
+
+  - Patterns:
+      - Testing: patterns/testing.md
+      - Service Layer:
+          - Subscriptions: patterns/service-layer-subscriptions.md
+          - Reservations: patterns/service-layer-reservations.md
+          - Events: patterns/service-layer-events.md
+          - Users: patterns/service-layer-users.md
+
+  - Apps:
+      - Dashboard Registration: apps/dashboard/registration.md
+
+  - Internal:
+      - Package Vision: internal/package-vision.md
+      - Publishing Guide: internal/publishing-guide.md
+      - CLI Testing: internal/testing.md
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true

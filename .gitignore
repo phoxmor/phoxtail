@@ -32,9 +32,10 @@ htmlcov/
 CLAUDE.md
 
 # --------------------
-# Temporary working docs
+# Docs build output
 # --------------------
-/docs-temp/
+phoxtail/docs/site/
+phoxtail/docs/.cache/
 
 # --------------------
 # Lock files
