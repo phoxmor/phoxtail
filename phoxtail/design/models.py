@@ -223,7 +223,7 @@ class PaletteRole(index.Indexed, models.Model):
         return self.name
 
 
-class Palette(index.Indexed, UUIDMixin, TimestampMixin, models.Model):
+class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model):
     """A color palette with shades from 50 to 950"""
 
     title = models.CharField(
@@ -252,10 +252,9 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, models.Model):
         index.AutocompleteField("title"),
     ]
 
-    class Meta:
+    class Meta(Orderable.Meta):
         verbose_name = _("Palette")
         verbose_name_plural = _("Palettes")
-        ordering = ["title"]
 
     def __str__(self):
         return self.title

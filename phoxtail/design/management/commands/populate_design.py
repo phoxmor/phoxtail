@@ -122,9 +122,21 @@ class Command(BaseCommand):
 
         created_count = 0
         skipped_count = 0
+        sort_order = 0
 
         for group_dir in groups:
-            palette_files = sorted(group_dir.glob("*.yaml"))
+            # Use order.yaml if present, otherwise alphabetical
+            order_file = group_dir / "order.yaml"
+            if order_file.exists():
+                ordered_names = yaml.safe_load(order_file.read_text())
+                palette_files = [
+                    group_dir / f"{name}.yaml"
+                    for name in ordered_names
+                    if (group_dir / f"{name}.yaml").exists()
+                ]
+            else:
+                palette_files = sorted(group_dir.glob("*.yaml"))
+
             if not palette_files:
                 self.stdout.write(
                     self.style.WARNING(f"  No yaml files found in {group_dir.name}/")
@@ -141,6 +153,7 @@ class Command(BaseCommand):
                     title=palette_name,
                     defaults={
                         "description": shades.pop("description", ""),
+                        "sort_order": sort_order,
                         "shade_50": shades["50"],
                         "shade_100": shades["100"],
                         "shade_200": shades["200"],
@@ -154,6 +167,7 @@ class Command(BaseCommand):
                         "shade_950": shades["950"],
                     },
                 )
+                sort_order += 1
                 if created:
                     self.stdout.write(
                         self.style.SUCCESS(f"    Created palette: {palette_name}")

@@ -53,6 +53,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Palette',
             fields=[
+                ('sort_order', models.IntegerField(blank=True, editable=False, null=True)),
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, unique=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
@@ -74,7 +75,8 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'Palette',
                 'verbose_name_plural': 'Palettes',
-                'ordering': ['title'],
+                'ordering': ['sort_order'],
+                'abstract': False,
             },
             bases=(modelsearch.index.Indexed, models.Model),
         ),
