@@ -20,7 +20,8 @@ class SitePage(Page):
         default=False,
         verbose_name=_("Lock References"),
         help_text=_(
-            "If checked, links to this page will appear disabled on the website and won't redirect."
+            "If checked, links to this page will appear disabled on the website"
+            " and won't redirect."
         ),
     )
     template = "app/pages/page.html"
@@ -87,7 +88,8 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         blank=True,
         verbose_name=_("Open Graph Image"),
         help_text=_(
-            "Image displayed when sharing on social media in light mode. Recommended size: 1200x630px"
+            "Image displayed when sharing on social media in light mode."
+            " Recommended size: 1200x630px"
         ),
     )
     og_image_dark = models.ForeignKey(
@@ -98,7 +100,8 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         blank=True,
         verbose_name=_("Open Graph Image (Dark)"),
         help_text=_(
-            "Image displayed when sharing on social media in dark mode. Recommended size: 1200x630px"
+            "Image displayed when sharing on social media in dark mode."
+            " Recommended size: 1200x630px"
         ),
     )
 
@@ -172,7 +175,8 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
                         ],
                         heading=_("Favicon"),
                         help_text=_(
-                            "Favicons are small icons displayed in browser tabs and bookmarks."
+                            "Favicons are small icons displayed in browser"
+                            " tabs and bookmarks."
                         ),
                     ),
                 ],
@@ -187,7 +191,8 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
                         ],
                         heading=_("Open Graph"),
                         help_text=_(
-                            "Open Graph images are displayed when your site is shared on social media platforms."
+                            "Open Graph images are displayed when your site is"
+                            " shared on social media platforms."
                         ),
                     ),
                 ],
@@ -222,7 +227,8 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
                         label=_("Palette"),
                         heading=_("Color Palettes"),
                         help_text=_(
-                            "Assign palettes to semantic roles (e.g. surface, primary, accent)."
+                            "Assign palettes to semantic roles"
+                            " (e.g. surface, primary, accent)."
                         ),
                     ),
                 ],

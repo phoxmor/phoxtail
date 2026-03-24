@@ -58,8 +58,6 @@ def _check_app_references(page_types_config: list, schema: list) -> list[str]:
     def _scan_schema(fields):
         for field in fields:
             value = field.get("value", {}) if isinstance(field, dict) else {}
-            field_type = field.get("type", "") if isinstance(field, dict) else ""
-
             for key in ("page_type", "target_model"):
                 ref = value.get(key)
                 if ref and "." in ref:

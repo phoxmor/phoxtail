@@ -37,32 +37,24 @@ class Command(BaseCommand):
 
         if not email:
             self.stderr.write(
-                self.style.ERROR(
-                    "Provide an email address or use --all-superusers."
-                )
+                self.style.ERROR("Provide an email address or use --all-superusers.")
             )
             sys.exit(1)
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            self.stderr.write(
-                self.style.ERROR(f"No user found with email: {email}")
-            )
+            self.stderr.write(self.style.ERROR(f"No user found with email: {email}"))
             sys.exit(1)
 
         self._verify_user(user)
 
     def _verify_superusers(self):
         """Verify all superuser emails."""
-        superusers = User.objects.filter(
-            is_superuser=True
-        ).exclude(email="")
+        superusers = User.objects.filter(is_superuser=True).exclude(email="")
         if not superusers.exists():
             self.stderr.write(
-                self.style.WARNING(
-                    "No superusers with email addresses found."
-                )
+                self.style.WARNING("No superusers with email addresses found.")
             )
             return
 
@@ -80,12 +72,8 @@ class Command(BaseCommand):
             email_address.verified = True
             email_address.primary = True
             email_address.save(update_fields=["verified", "primary"])
-            self.stdout.write(
-                self.style.SUCCESS(f"Verified: {user.email}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Verified: {user.email}"))
         elif created:
-            self.stdout.write(
-                self.style.SUCCESS(f"Verified: {user.email}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Verified: {user.email}"))
         else:
             self.stdout.write(f"Already verified: {user.email}")

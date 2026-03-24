@@ -70,10 +70,7 @@ def _load_command():
     import importlib
     import sys
 
-    mod_path = (
-        "phoxtail.project_template.users"
-        ".management.commands.verify_email"
-    )
+    mod_path = "phoxtail.project_template.users.management.commands.verify_email"
     sys.modules.pop(mod_path, None)
     mod = importlib.import_module(mod_path)
     return mod.Command
@@ -150,9 +147,7 @@ class TestVerifyEmailDirect:
 
         assert email_obj.verified is True
         assert email_obj.primary is True
-        email_obj.save.assert_called_once_with(
-            update_fields=["verified", "primary"]
-        )
+        email_obj.save.assert_called_once_with(update_fields=["verified", "primary"])
         assert "Verified: admin@example.com" in cmd.stdout.getvalue()
 
     def test_no_email_no_flag_exits(self, _stub_django):

@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import webbrowser
 from pathlib import Path
 
 import typer
@@ -63,6 +64,9 @@ def docs(
     ctx: typer.Context,
     port: int = typer.Option(8000, "--port", "-p", help="Port to serve on"),
     host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to"),
+    open_browser: bool = typer.Option(
+        True, "--open/--no-open", "-o", help="Open in browser after starting"
+    ),
 ):
     """Serve the Phoxtail documentation locally.
 
@@ -71,6 +75,7 @@ def docs(
 
     Examples:
         phoxtail docs
+        phoxtail docs --no-open
         phoxtail docs --port 9000
         phoxtail docs build
         phoxtail docs build --clean
@@ -83,6 +88,9 @@ def docs(
 
     _check_zensical()
     _check_docs_exist(mkdocs_yml)
+
+    if open_browser:
+        webbrowser.open(f"http://{host}:{port}")
 
     subprocess.run(
         [

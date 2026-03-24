@@ -69,7 +69,7 @@ class SignupForm(AllauthSignupForm):
     phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"))
 
     def save(self, request):
-        user = super(SignupForm, self).save(request)
+        user = super().save(request)
         user.gender = self.cleaned_data["gender"]
         user.born_at = self.cleaned_data["born_at"]
         user.country = self.cleaned_data["country"]

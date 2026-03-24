@@ -53,7 +53,10 @@ def cover(img):
         horz = int((focal_point.x * 100) // img.width)
         vert = int((focal_point.y * 100) // img.height)
 
-    return f"position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: {horz}% {vert}%;"
+    return (
+        f"position: absolute; width: 100%; height: 100%; object-fit: cover;"
+        f" object-position: {horz}% {vert}%;"
+    )
 
 
 @register.filter(name="get_filename_from_path")
@@ -131,7 +134,8 @@ def extract_src_from_embed_code(embed_code: str) -> str:
 @register.filter
 def is_youtube_embed(embed_code: str) -> bool:
     """
-    Template tag that extracts the src attribute from an embed code and checks if it's from YouTube.
+    Template tag that extracts the src attribute from an embed code and checks
+    if it's from YouTube.
 
     Args:
         embed_code (str): The HTML embed code containing a src attribute
@@ -148,7 +152,8 @@ def is_youtube_embed(embed_code: str) -> bool:
 @register.filter
 def is_google_maps_embed(embed_code: str) -> bool:
     """
-    Template tag that extracts the src attribute from an embed code and checks if it's from Google Maps.
+    Template tag that extracts the src attribute from an embed code and checks
+    if it's from Google Maps.
 
     Args:
         embed_code (str): The HTML embed code containing a src attribute
@@ -314,7 +319,10 @@ def gallery_responsive_config(
 ):
     """
     Processes gallery images and column configurations for different screen sizes.
-    Usage: {% gallery_responsive_config block.value.images columns_small=block.value.columns_small columns_medium=block.value.columns_medium columns_large=block.value.columns_large as gallery_data %}
+    Usage: {% gallery_responsive_config block.value.images  # noqa: E501
+        columns_small=block.value.columns_small
+        columns_medium=block.value.columns_medium
+        columns_large=block.value.columns_large as gallery_data %}
     """
     if not images:
         return {

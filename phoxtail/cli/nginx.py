@@ -34,7 +34,6 @@ def initial(
     console.print("[dim]Purpose:[/dim] Let's Encrypt certificate retrieval")
 
 
-
 @create_app.command("production")
 def production(
     domain: str | None = typer.Option(None, "--domain", "-d"),
@@ -96,4 +95,3 @@ def production(
         )
     else:
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS, www → non-www")
-

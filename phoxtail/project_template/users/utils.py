@@ -1,18 +1,17 @@
 from datetime import date
-from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 
-def get_age_time_delta(birth_date: Optional[date]) -> Optional[relativedelta]:
+def get_age_time_delta(birth_date: date | None) -> relativedelta | None:
     if birth_date:
         today = timezone.now().date()
         return relativedelta(today, birth_date)
     return None
 
 
-def get_age_display(birth_date: Optional[date]) -> Optional[str]:
+def get_age_display(birth_date: date | None) -> str | None:
     age = get_age_time_delta(birth_date)
     if age is None:
         return None

@@ -18,7 +18,13 @@ app.add_typer(create_app, name="create", help="Create Docker-related files")
 console = Console()
 
 
-@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
+@app.command(
+    context_settings={
+        "allow_extra_args": True,
+        "allow_interspersed_args": False,
+        "ignore_unknown_options": True,
+    }
+)
 def up(
     ctx: typer.Context,
     detach: bool = typer.Option(
@@ -47,7 +53,13 @@ def up(
     sys.exit(subprocess.call(cmd))
 
 
-@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
+@app.command(
+    context_settings={
+        "allow_extra_args": True,
+        "allow_interspersed_args": False,
+        "ignore_unknown_options": True,
+    }
+)
 def down(ctx: typer.Context) -> None:
     """Stop Docker services.
 
@@ -61,7 +73,13 @@ def down(ctx: typer.Context) -> None:
     sys.exit(subprocess.call(cmd))
 
 
-@app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False, "ignore_unknown_options": True})
+@app.command(
+    context_settings={
+        "allow_extra_args": True,
+        "allow_interspersed_args": False,
+        "ignore_unknown_options": True,
+    }
+)
 def restart(ctx: typer.Context) -> None:
     """Restart Docker services.
 
