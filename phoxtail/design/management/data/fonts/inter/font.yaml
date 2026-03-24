@@ -1,4 +1,0 @@
-name: Inter
-description: A versatile sans-serif typeface designed for computer screens with a tall x-height to aid readability at small sizes.
-category: sans-serif
-fallback_stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif

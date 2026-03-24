@@ -5,13 +5,8 @@ Auto-discovers and imports:
 - Palettes from data/palettes/<group>/<name>.yaml (one file per palette)
 - Palette roles from data/palette_roles.yaml (semantic color roles)
 - Font families from data/fonts/<font-identifier>/
-  (directory with font.yaml and font files)
+  (directory with font.yaml and WOFF2 font files)
 - Font roles from data/font_roles.yaml (semantic typography roles)
-
-Font auto-conversion:
-- Automatically converts TTF/OTF files to WOFF2
-- Detects weight/style from font metadata
-- Requires: pip install fonttools brotli
 
 Usage:
     python manage.py populate_design                       # Import all entities
@@ -19,7 +14,6 @@ Usage:
     python manage.py populate_design --only=palette_roles
     python manage.py populate_design --only=fonts
     python manage.py populate_design --only=font_roles
-    python manage.py populate_design --only=fonts --keep-originals
 """
 
 from pathlib import Path
@@ -57,36 +51,8 @@ WEIGHT_NAME_MAP = {
 }
 
 
-def get_font_metadata(font_path: Path) -> dict:
-    """Extract weight and style from font file metadata using fontTools."""
-    try:
-        from fontTools.ttLib import TTFont
-
-        font = TTFont(font_path)
-
-        weight = 400
-        if "OS/2" in font:
-            weight = font["OS/2"].usWeightClass
-
-        style = "normal"
-        if "OS/2" in font:
-            fs_selection = font["OS/2"].fsSelection
-            if fs_selection & 1:
-                style = "italic"
-        elif "head" in font:
-            mac_style = font["head"].macStyle
-            if mac_style & 2:
-                style = "italic"
-
-        font.close()
-        return {"weight": weight, "style": style}
-
-    except Exception:
-        return parse_weight_style_from_filename(font_path.stem)
-
-
 def parse_weight_style_from_filename(filename: str) -> dict:
-    """Parse weight and style from filename as fallback."""
+    """Parse weight and style from filename."""
     weight = 400
     style = "normal"
 
@@ -106,20 +72,6 @@ def parse_weight_style_from_filename(filename: str) -> dict:
     return {"weight": weight, "style": style}
 
 
-def convert_to_woff2(input_path: Path, output_path: Path) -> bool:
-    """Convert a font file to WOFF2 format."""
-    try:
-        from fontTools.ttLib import TTFont
-
-        font = TTFont(input_path)
-        font.flavor = "woff2"
-        font.save(output_path)
-        font.close()
-        return True
-    except Exception:
-        return False
-
-
 class Command(BaseCommand):
     help = "Populates all design entities from data files"
 
@@ -129,11 +81,6 @@ class Command(BaseCommand):
             choices=["palettes", "palette_roles", "fonts", "font_roles", "all"],
             default="all",
             help="Import only specific entity type",
-        )
-        parser.add_argument(
-            "--keep-originals",
-            action="store_true",
-            help="Keep original TTF/OTF files after conversion to WOFF2",
         )
 
     def handle(self, *args, **options):
@@ -146,7 +93,7 @@ class Command(BaseCommand):
             self.import_palette_roles()
 
         if only in ("all", "fonts"):
-            self.import_fonts(options["keep_originals"])
+            self.import_fonts()
 
         if only in ("all", "font_roles"):
             self.import_font_roles()
@@ -273,19 +220,9 @@ class Command(BaseCommand):
             )
         )
 
-    def import_fonts(self, keep_originals=False):
-        """Import font families from data/fonts/ directories."""
+    def import_fonts(self):
+        """Import font families from data/fonts/ directories (pre-built WOFF2)."""
         self.stdout.write(self.style.SUCCESS("Importing font families..."))
-
-        try:
-            import fontTools  # noqa: F401
-        except ImportError:
-            self.stdout.write(
-                self.style.ERROR(
-                    "fonttools is required. Install with: pip install fonttools brotli"
-                )
-            )
-            return
 
         fonts_dir = DATA_DIR / "fonts"
         if not fonts_dir.exists():
@@ -305,7 +242,6 @@ class Command(BaseCommand):
         skipped_families = 0
         created_weights = 0
         skipped_weights = 0
-        converted_files = 0
 
         for font_dir in sorted(font_dirs):
             metadata_file = font_dir / "font.yaml"
@@ -359,56 +295,18 @@ class Command(BaseCommand):
                 )
                 skipped_families += 1
 
-            font_files = []
-            for ext in ["*.ttf", "*.otf", "*.TTF", "*.OTF"]:
-                font_files.extend(font_dir.glob(ext))
-
-            woff2_files = list(font_dir.glob("*.woff2")) + list(
-                font_dir.glob("*.WOFF2")
+            woff2_files = sorted(
+                list(font_dir.glob("*.woff2")) + list(font_dir.glob("*.WOFF2"))
             )
 
-            if not font_files and not woff2_files:
+            if not woff2_files:
                 self.stdout.write(
-                    self.style.WARNING(f"  No font files found in {font_dir.name}/")
+                    self.style.WARNING(f"  No WOFF2 files found in {font_dir.name}/")
                 )
                 continue
 
-            for font_file in font_files:
-                woff2_path = font_file.with_suffix(".woff2")
-
-                if woff2_path.exists():
-                    self.stdout.write(
-                        f"    {woff2_path.name} already exists, skipping conversion"
-                    )
-                    if woff2_path not in woff2_files:
-                        woff2_files.append(woff2_path)
-                    continue
-
-                self.stdout.write(f"    Converting {font_file.name} to WOFF2...")
-
-                if convert_to_woff2(font_file, woff2_path):
-                    original_size = font_file.stat().st_size
-                    new_size = woff2_path.stat().st_size
-                    reduction = (1 - new_size / original_size) * 100
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"      {original_size:,} -> {new_size:,} bytes "
-                            f"({reduction:.1f}% smaller)"
-                        )
-                    )
-                    woff2_files.append(woff2_path)
-                    converted_files += 1
-
-                    if not keep_originals:
-                        font_file.unlink()
-                        self.stdout.write(f"      Deleted original {font_file.name}")
-                else:
-                    self.stdout.write(
-                        self.style.ERROR(f"      Failed to convert {font_file.name}")
-                    )
-
-            for woff2_file in sorted(woff2_files):
-                font_meta = get_font_metadata(woff2_file)
+            for woff2_file in woff2_files:
+                font_meta = parse_weight_style_from_filename(woff2_file.stem)
                 weight_value = font_meta["weight"]
                 style = font_meta["style"]
 
@@ -458,10 +356,6 @@ class Command(BaseCommand):
                 f"Font weights: {created_weights} created, {skipped_weights} skipped"
             )
         )
-        if converted_files:
-            self.stdout.write(
-                self.style.SUCCESS(f"Files converted to WOFF2: {converted_files}")
-            )
 
     def import_font_roles(self):
         """Import semantic font roles from data/font_roles.yaml."""

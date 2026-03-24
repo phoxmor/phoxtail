@@ -1,4 +1,0 @@
-name: Open Sans
-description: A humanist sans-serif typeface designed for legibility across print, web, and mobile interfaces.
-category: sans-serif
-fallback_stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif

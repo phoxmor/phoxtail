@@ -26,11 +26,9 @@ redis
 
 # Production server
 gunicorn
-brotli
 
 # Utilities
 python-dateutil
-fonttools
 pyyaml
 
 # Development

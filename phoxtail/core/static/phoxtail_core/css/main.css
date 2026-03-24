@@ -48,109 +48,117 @@ video {
    (Overridden by SiteConfig inline <style>)
    ======================================== */
 :root {
-    /* Surface palette – neutral */
-    --color-surface-50: 250 250 250;
-    --color-surface-100: 245 245 245;
-    --color-surface-200: 229 229 229;
-    --color-surface-300: 212 212 212;
-    --color-surface-400: 163 163 163;
-    --color-surface-500: 115 115 115;
-    --color-surface-600: 82 82 82;
-    --color-surface-700: 64 64 64;
-    --color-surface-800: 38 38 38;
-    --color-surface-900: 23 23 23;
-    --color-surface-950: 10 10 10;
+    /* Surface palette – Vaulted Ash */
+    /* The cold, quiet stone where secrets are kept, and the inevitable gray dust that remains when the cycle completes itself. */
+    --color-surface-50: 248 248 250;
+    --color-surface-100: 240 241 245;
+    --color-surface-200: 225 226 234;
+    --color-surface-300: 200 203 214;
+    --color-surface-400: 160 165 184;
+    --color-surface-500: 116 122 146;
+    --color-surface-600: 88 94 116;
+    --color-surface-700: 65 70 89;
+    --color-surface-800: 43 47 64;
+    --color-surface-900: 26 29 43;
+    --color-surface-950: 12 14 22;
 
-    /* Primary palette – emerald */
-    --color-primary-50: 236 253 245;
-    --color-primary-100: 209 250 229;
-    --color-primary-200: 167 243 208;
-    --color-primary-300: 110 231 183;
-    --color-primary-400: 52 211 153;
-    --color-primary-500: 16 185 129;
-    --color-primary-600: 5 150 105;
-    --color-primary-700: 4 120 87;
-    --color-primary-800: 6 95 70;
-    --color-primary-900: 6 78 59;
-    --color-primary-950: 2 44 34;
+    /* Primary palette – Midnight Mandate */
+    /* The heavy, almost royal weight of absolute conviction. It is the color of deep twilight plotting and ancient, unwavering service. */
+    --color-primary-50: 245 243 255;
+    --color-primary-100: 237 232 255;
+    --color-primary-200: 219 208 254;
+    --color-primary-300: 193 172 253;
+    --color-primary-400: 161 126 251;
+    --color-primary-500: 124 79 245;
+    --color-primary-600: 101 48 226;
+    --color-primary-700: 82 36 196;
+    --color-primary-800: 63 28 150;
+    --color-primary-900: 43 19 104;
+    --color-primary-950: 24 10 58;
 
-    /* Secondary palette – teal */
-    --color-secondary-50: 240 253 250;
-    --color-secondary-100: 204 251 241;
-    --color-secondary-200: 153 246 228;
-    --color-secondary-300: 94 234 212;
-    --color-secondary-400: 45 212 191;
-    --color-secondary-500: 20 184 166;
-    --color-secondary-600: 13 148 136;
-    --color-secondary-700: 15 118 110;
-    --color-secondary-800: 17 94 89;
-    --color-secondary-900: 19 78 74;
-    --color-secondary-950: 4 47 46;
+    /* Secondary palette – Saline Alchemy */
+    /* A strange, high-chroma vibration. It represents the unnatural purity of a curative drop, or the bleeding edge of a radical ideology. */
+    --color-secondary-50: 253 242 251;
+    --color-secondary-100: 252 229 248;
+    --color-secondary-200: 249 201 240;
+    --color-secondary-300: 245 160 227;
+    --color-secondary-400: 238 108 207;
+    --color-secondary-500: 224 64 184;
+    --color-secondary-600: 192 36 150;
+    --color-secondary-700: 152 28 118;
+    --color-secondary-800: 113 22 88;
+    --color-secondary-900: 76 15 60;
+    --color-secondary-950: 42 8 33;
 
-    /* Accent palette – indigo */
-    --color-accent-50: 238 242 255;
-    --color-accent-100: 224 231 255;
-    --color-accent-200: 199 210 254;
-    --color-accent-300: 165 180 252;
-    --color-accent-400: 129 140 248;
-    --color-accent-500: 99 102 241;
-    --color-accent-600: 79 70 229;
-    --color-accent-700: 67 56 202;
-    --color-accent-800: 55 48 163;
-    --color-accent-900: 49 46 129;
-    --color-accent-950: 30 27 75;
+    /* Accent palette – Sovereign's Spark */
+    /* The gilded threat. It is the heavy plumage of a creature older than kings, and the brief, illuminating hiss that threatens to unseat them. */
+    --color-accent-50: 255 251 235;
+    --color-accent-100: 254 243 199;
+    --color-accent-200: 253 229 138;
+    --color-accent-300: 251 210 78;
+    --color-accent-400: 247 189 30;
+    --color-accent-500: 222 160 7;
+    --color-accent-600: 184 123 5;
+    --color-accent-700: 142 91 8;
+    --color-accent-800: 104 66 11;
+    --color-accent-900: 69 44 12;
+    --color-accent-950: 37 23 6;
 
-    /* Success palette – green */
-    --color-success-50: 240 253 244;
-    --color-success-100: 220 252 231;
-    --color-success-200: 187 247 208;
-    --color-success-300: 134 239 172;
-    --color-success-400: 74 222 128;
-    --color-success-500: 34 197 94;
-    --color-success-600: 22 163 74;
-    --color-success-700: 21 128 61;
-    --color-success-800: 22 101 52;
-    --color-success-900: 20 83 45;
-    --color-success-950: 5 46 22;
+    /* Success palette – Perpetual Return */
+    /* The quiet resilience of life insisting on itself. An effigy reclaimed by moss; a fledgling rising from the cinders. */
+    --color-success-50: 240 250 244;
+    --color-success-100: 219 245 228;
+    --color-success-200: 179 233 200;
+    --color-success-300: 124 216 163;
+    --color-success-400: 66 193 120;
+    --color-success-500: 30 165 88;
+    --color-success-600: 21 133 68;
+    --color-success-700: 18 104 54;
+    --color-success-800: 15 77 41;
+    --color-success-900: 11 52 28;
+    --color-success-950: 6 28 15;
 
-    /* Warning palette – amber */
-    --color-warning-50: 255 251 235;
-    --color-warning-100: 254 243 199;
-    --color-warning-200: 253 230 138;
-    --color-warning-300: 252 211 77;
-    --color-warning-400: 251 191 36;
-    --color-warning-500: 245 158 11;
-    --color-warning-600: 217 119 6;
-    --color-warning-700: 180 83 9;
-    --color-warning-800: 146 64 14;
-    --color-warning-900: 120 53 15;
-    --color-warning-950: 69 26 3;
+    /* Warning palette – Whispering Fuse */
+    /* The creeping amber of caution. It is the glowing ember that has not yet caught, requiring close attention before the paradigm shifts. */
+    --color-warning-50: 255 250 235;
+    --color-warning-100: 255 241 198;
+    --color-warning-200: 255 224 136;
+    --color-warning-300: 255 200 68;
+    --color-warning-400: 255 173 26;
+    --color-warning-500: 232 144 5;
+    --color-warning-600: 192 112 4;
+    --color-warning-700: 146 82 7;
+    --color-warning-800: 107 60 11;
+    --color-warning-900: 71 40 12;
+    --color-warning-950: 38 21 6;
 
-    /* Destructive palette – red */
+    /* Destructive palette – Treasonous Bloom */
+    /* The violent end of an era. The flame that consumes the old body, and the brutal reality of an executioner's final say. */
     --color-destructive-50: 254 242 242;
     --color-destructive-100: 254 226 226;
-    --color-destructive-200: 254 202 202;
-    --color-destructive-300: 252 165 165;
-    --color-destructive-400: 248 113 113;
-    --color-destructive-500: 239 68 68;
-    --color-destructive-600: 220 38 38;
-    --color-destructive-700: 185 28 28;
-    --color-destructive-800: 153 27 27;
-    --color-destructive-900: 127 29 29;
-    --color-destructive-950: 69 10 10;
+    --color-destructive-200: 253 196 196;
+    --color-destructive-300: 250 152 152;
+    --color-destructive-400: 245 96 96;
+    --color-destructive-500: 229 45 45;
+    --color-destructive-600: 192 26 26;
+    --color-destructive-700: 150 21 21;
+    --color-destructive-800: 110 17 17;
+    --color-destructive-900: 74 13 13;
+    --color-destructive-950: 40 7 7;
 
-    /* Info palette – blue */
-    --color-info-50: 239 246 255;
-    --color-info-100: 219 234 254;
-    --color-info-200: 191 219 254;
-    --color-info-300: 147 197 253;
-    --color-info-400: 96 165 250;
-    --color-info-500: 59 130 246;
-    --color-info-600: 37 99 235;
-    --color-info-700: 29 78 216;
-    --color-info-800: 30 64 175;
-    --color-info-900: 30 58 138;
-    --color-info-950: 23 37 84;
+    /* Info palette – Stoic Above */
+    /* The cold, indifferent night sky of late autumn. The high, crisp altitudes far removed from the turbulent schemes of men. */
+    --color-info-50: 240 245 255;
+    --color-info-100: 224 235 254;
+    --color-info-200: 187 213 253;
+    --color-info-300: 136 184 251;
+    --color-info-400: 79 148 247;
+    --color-info-500: 38 114 236;
+    --color-info-600: 24 88 204;
+    --color-info-700: 19 68 165;
+    --color-info-800: 15 51 123;
+    --color-info-900: 11 35 84;
+    --color-info-950: 6 19 46;
 
     /* Typography - Base Stack */
     --font-family: system-ui, -apple-system, sans-serif;

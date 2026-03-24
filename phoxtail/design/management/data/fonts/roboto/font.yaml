@@ -1,4 +1,0 @@
-name: Roboto
-description: Google's signature font family featuring friendly and open curves with a mechanical skeleton.
-category: sans-serif
-fallback_stack: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif
