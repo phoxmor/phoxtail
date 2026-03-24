@@ -25,9 +25,14 @@ WIZARD_STEPS = [
     ("dockerfile", "Dockerfile"),
     ("compose", "Docker Compose"),
     ("nginx", "Nginx"),
+    ("migrate", "Migrate Database"),
+    ("stream_engine", "Stream Engine"),
     ("superuser", "Create Superuser"),
     ("docker_up", "Launch App"),
 ]
+
+# Steps that require a migrated database
+_NEEDS_MIGRATION = {"stream_engine", "superuser"}
 
 # Status icons
 _ICONS = {
@@ -144,6 +149,38 @@ def _run_step(target_dir: Path, args: list[str]) -> bool:
     return result.returncode == 0
 
 
+def _ensure_migrated(
+    target_dir: Path,
+    steps: dict[str, str],
+    details: dict[str, str],
+) -> bool:
+    """Ensure the database is migrated, prompting if the migrate step was skipped.
+
+    Returns True if the database is migrated (either previously or just now).
+    """
+    if steps.get("migrate") == "done":
+        return True
+
+    if steps.get("migrate") == "failed":
+        console.print("  [red]Database migration previously failed.[/red]")
+        if not Confirm.ask("  Retry migration now?", default=True):
+            return False
+
+    # Migration was skipped or needs retry — offer to run it
+    if steps.get("migrate") == "skipped":
+        console.print("  [yellow]This step requires a migrated database.[/yellow]")
+        if not Confirm.ask("  Run migration now?", default=True):
+            return False
+
+    if _run_step(target_dir, ["manage", "migrate"]):
+        steps["migrate"] = "done"
+        return True
+
+    steps["migrate"] = "failed"
+    details["migrate"] = "command failed"
+    return False
+
+
 def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
     """Walk the user through optional post-scaffold setup steps.
 
@@ -254,27 +291,67 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["nginx"] = "skipped"
         prev_failed = False
 
-    # --- Step 5: Create Superuser ---
+    # --- Step 5: Migrate Database ---
     _clear_and_show_progress(
         project_name, steps, details, current_index=4, pause=prev_failed
     )
+    console.print("  Apply database migrations\n")
+    if Confirm.ask("  Run [cyan]phoxtail manage migrate[/cyan]?", default=True):
+        if _run_step(target_dir, ["manage", "migrate"]):
+            steps["migrate"] = "done"
+            prev_failed = False
+        else:
+            steps["migrate"] = "failed"
+            details["migrate"] = "command failed"
+            prev_failed = True
+    else:
+        steps["migrate"] = "skipped"
+        prev_failed = False
+
+    # --- Step 6: Stream Engine ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=5, pause=prev_failed
+    )
+    console.print("  Populate design tokens and stream blocks\n")
+    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
+        if not _ensure_migrated(target_dir, steps, details):
+            steps["stream_engine"] = "failed"
+            details["stream_engine"] = "migration required"
+            prev_failed = True
+        else:
+            # Run populate_design first (streams depend on design tokens)
+            console.print()
+            console.print("  [bold]Populating design tokens…[/bold]")
+            design_ok = _run_step(target_dir, ["manage", "populate_design"])
+            if design_ok:
+                console.print("  [bold]Populating stream blocks…[/bold]")
+                streams_ok = _run_step(target_dir, ["manage", "populate_streams"])
+            else:
+                streams_ok = False
+
+            if design_ok and streams_ok:
+                steps["stream_engine"] = "done"
+                prev_failed = False
+            else:
+                steps["stream_engine"] = "failed"
+                if not design_ok:
+                    details["stream_engine"] = "populate_design failed"
+                else:
+                    details["stream_engine"] = "populate_streams failed"
+                prev_failed = True
+    else:
+        steps["stream_engine"] = "skipped"
+        prev_failed = False
+
+    # --- Step 7: Create Superuser ---
+    _clear_and_show_progress(
+        project_name, steps, details, current_index=6, pause=prev_failed
+    )
     console.print("  Create an admin superuser account\n")
     if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
-        # Migrate first — the user table must exist before createsuperuser
-        with console.status("  [bold cyan]Preparing database…[/bold cyan]"):
-            migrate_result = subprocess.run(
-                [sys.executable, "-m", "phoxtail", "manage", "migrate"],
-                cwd=target_dir,
-                capture_output=True,
-                text=True,
-            )
-            migrate_ok = migrate_result.returncode == 0
-        if not migrate_ok:
-            console.print("  [red]Database migration failed.[/red]")
-            if migrate_result.stderr:
-                console.print(f"  [dim]{migrate_result.stderr.strip()}[/dim]")
+        if not _ensure_migrated(target_dir, steps, details):
             steps["superuser"] = "failed"
-            details["superuser"] = "migration failed"
+            details["superuser"] = "migration required"
             prev_failed = True
         else:
             console.print()
@@ -298,9 +375,9 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["superuser"] = "skipped"
         prev_failed = False
 
-    # --- Step 6: Launch App ---
+    # --- Step 8: Launch App ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=5, pause=prev_failed
+        project_name, steps, details, current_index=7, pause=prev_failed
     )
     console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
@@ -456,6 +533,16 @@ def hatch(
             "nginx",
             "phoxtail nginx create initial",
             "optional — only needed for production-like setups",
+        )
+        _check(
+            "migrate",
+            "phoxtail manage migrate",
+            "apply database migrations",
+        )
+        _check(
+            "stream_engine",
+            "phoxtail manage populate_design && phoxtail manage populate_streams",
+            "populate design tokens and stream blocks",
         )
         _check(
             "superuser",

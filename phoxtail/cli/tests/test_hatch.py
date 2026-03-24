@@ -184,19 +184,21 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_runs_all_six_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
+    def test_wizard_runs_all_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + 4 config steps + superuser(y) + launch(y) + detach(y)
+        # Accept wizard + 4 config + migrate(y) + stream_engine(y)
+        # + superuser(y) + launch(y) + detach(y) = 10 y's
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        # 1 compile + 4 config + 3 superuser (migrate, createsuperuser,
-        # verify_email) + 1 docker-compose-down + 1 launch = 10
-        assert mock_run.call_count == 10
+        # 1 compile + 4 config + 1 migrate + 2 populate (design + streams)
+        # + 2 superuser (createsuperuser + verify_email)
+        # + 1 docker-compose-down + 1 launch = 12
+        assert mock_run.call_count == 12
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -208,7 +210,9 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+        )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
@@ -218,13 +222,17 @@ class TestHatchCommand:
         assert calls[2][-3:] == ["docker", "create", "dockerfile"]
         assert calls[3][-4:] == ["docker", "create", "compose", "development"]
         assert calls[4][-3:] == ["nginx", "create", "initial"]
-        # Superuser step: migrate, createsuperuser, verify_email
+        # Migrate
         assert calls[5][-2:] == ["manage", "migrate"]
-        assert calls[6][-2:] == ["manage", "createsuperuser"]
-        assert calls[7][-3:] == ["manage", "verify_email", "--all-superusers"]
+        # Stream Engine: populate_design then populate_streams
+        assert calls[6][-2:] == ["manage", "populate_design"]
+        assert calls[7][-2:] == ["manage", "populate_streams"]
+        # Superuser: createsuperuser + verify_email
+        assert calls[8][-2:] == ["manage", "createsuperuser"]
+        assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
         # Cleanup + launch
-        assert calls[8] == ["docker", "compose", "down"]
-        assert calls[9][-3:] == ["docker", "up", "--build"]
+        assert calls[10] == ["docker", "compose", "down"]
+        assert calls[11][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -233,12 +241,14 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + superuser(y) + launch(y) + detach(n) = foreground
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\nn\n")
+        # Accept wizard + all steps + superuser(y) + launch(y) + detach(n)
+        runner.invoke(
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\nn\n"
+        )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # Last call should include --no-detach
-        assert calls[9][-4:] == ["docker", "up", "--build", "--no-detach"]
+        assert calls[-1][-4:] == ["docker", "up", "--build", "--no-detach"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -251,7 +261,7 @@ class TestHatchCommand:
 
         # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert "is ready!" in result.output
 
@@ -264,7 +274,9 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "production"
 
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+        )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert calls[1][-3:] == ["env", "create", "production"]
@@ -281,11 +293,11 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip first 4 config steps, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\n")
+        # Accept wizard, skip first 4 config steps, accept migrate,
+        # skip stream_engine, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
-        # compile + migrate + createsuperuser + verify_email + docker-compose-down
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
@@ -312,8 +324,9 @@ class TestHatchCommand:
 
         mock_run.side_effect = side_effect
 
-        # Accept wizard, skip first 4 config steps, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\n")
+        # Accept wizard, skip first 4 config steps, accept migrate,
+        # skip stream_engine, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert not any("verify_email" in c for c in calls)
@@ -325,8 +338,8 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard prompt, then skip all 6 steps
-        skip_all = "y\n" + "n\n" * 6
+        # Accept wizard prompt, then skip all 8 steps
+        skip_all = "y\n" + "n\n" * 8
         result = runner.invoke(app, ["hatch", "myproject"], input=skip_all)
         assert result.exit_code == 0
         # Only the requirements compile call (no wizard steps)
@@ -343,7 +356,7 @@ class TestHatchCommand:
 
         # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
         # All steps completed — should show "is ready!" and no next-steps panel
@@ -376,3 +389,77 @@ class TestHatchCommand:
         req_txt = (tmp_path / "myproject" / "requirements.txt").read_text()
         assert "Django" in req_txt
         assert "gunicorn" in req_txt
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_stream_engine_runs_design_then_streams(
+        self, mock_q, mock_run, tmp_path, monkeypatch
+    ):
+        """Stream Engine runs populate_design before populate_streams."""
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_q.select.return_value.ask.return_value = "development"
+
+        # Accept wizard, skip 4 config, accept migrate, accept stream_engine,
+        # skip superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        # Find populate commands
+        design_idx = next(i for i, c in enumerate(calls) if "populate_design" in c)
+        streams_idx = next(i for i, c in enumerate(calls) if "populate_streams" in c)
+        assert design_idx < streams_idx
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_stream_engine_skips_streams_on_design_failure(
+        self, mock_q, mock_run, tmp_path, monkeypatch
+    ):
+        """If populate_design fails, populate_streams is not attempted."""
+        monkeypatch.chdir(tmp_path)
+        mock_q.select.return_value.ask.return_value = "development"
+
+        def side_effect(args, **kwargs):
+            from unittest.mock import MagicMock
+
+            result = MagicMock()
+            cmd = args if isinstance(args, list) else [args]
+            if "populate_design" in cmd:
+                result.returncode = 1
+            else:
+                result.returncode = 0
+                result.stderr = ""
+            return result
+
+        mock_run.side_effect = side_effect
+
+        # Accept wizard, skip 4 config, accept migrate, accept stream_engine,
+        # skip superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert any("populate_design" in c for c in calls)
+        assert not any("populate_streams" in c for c in calls)
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_ensure_migrated_prompts_when_skipped(
+        self, mock_q, mock_run, tmp_path, monkeypatch
+    ):
+        """Stream Engine prompts to migrate if migrate step was skipped."""
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_q.select.return_value.ask.return_value = "development"
+
+        # Accept wizard, skip 4 config, SKIP migrate, accept stream_engine,
+        # accept _ensure_migrated prompt, skip superuser, skip launch
+        runner.invoke(
+            app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\nn\ny\ny\nn\nn\n"
+        )
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        # Migration should have been triggered by _ensure_migrated
+        assert any("migrate" in c for c in calls)
+        # And populate commands should have run
+        assert any("populate_design" in c for c in calls)
+        assert any("populate_streams" in c for c in calls)
