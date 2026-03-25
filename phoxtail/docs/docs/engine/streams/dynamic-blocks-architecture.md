@@ -184,15 +184,17 @@ class BlockSystemPrompt(TimestampMixin, models.Model):
 - **name**: Human-readable name for the system prompt template (unique)
 - **identifier**: Unique identifier used in code (e.g., 'variant_generator')
 - **description**: Explains when and how this prompt template should be used
-- **template**: DTL template with access to `{{ block }}` and `{{ collection }}` context variables
+- **template**: DTL template with access to `{{ block }}`, `{{ collection }}`, `{{ variant }}`, and `{{ references }}` context variables. All variables are always provided; `references` is a list (may be empty).
 
 **Key Method:**
 ```python
-def render(self, block, collection) -> str:
-    """Render the system prompt template with block and collection context"""
+def render(self, variant=None, collection=None, references=None) -> str:
+    """Render the system prompt template. block is derived from variant.block."""
     context = Context({
-        "block": block,
+        "block": variant.block if variant else None,
         "collection": collection,
+        "variant": variant,
+        "references": references or [],
     })
     return Template(self.template).render(context)
 ```
@@ -675,10 +677,10 @@ Identifier: {{ block.identifier }}
 - {{ item.block_type }}: {{ item.value.name }}{% if item.value.help_text %} ({{ item.value.help_text }}){% endif %}
 {% endfor %}
 
-## Ground State (Reference):
-{% if block.default_variant %}```html
-{{ block.default_variant.html }}
-```{% endif %}
+## Reference Variant: {{ variant.name }}
+```html
+{{ variant.html }}
+```
 
 ## Design Collection: {{ collection.name }}
 {{ collection.description }}
@@ -686,23 +688,26 @@ Identifier: {{ block.identifier }}
 ## Design Tokens
 {{ collection.render }}
 
-## Requirements:
-- Use Django Template Language syntax
-- Access fields via {{ value.field_name }}
-- For lists, use {% for item in value.list_name %}...{% endfor %}
-- Return separate HTML, CSS, and JavaScript sections
-- Follow the collection's design principles strictly
-- Use the provided color palette CSS variables (e.g., rgb(var(--color-primary-500)))
-- Use the specified font families with appropriate weights
+{% if references %}
+## Reference Variants
+{% for ref in references %}
+### {{ ref.block.name }} | {{ ref.name }}
+{{ ref.description }}
+{% endfor %}
+{% endif %}
 ```
 
 **Using BlockSystemPrompt:**
 ```python
 # Fetch the appropriate system prompt template
-system_prompt = BlockSystemPrompt.objects.get(name="variant_generator")
+system_prompt = BlockSystemPrompt.objects.get(identifier="variant_generator")
 
-# Render with block and collection context
-rendered_prompt = system_prompt.render(block=block, collection=collection)
+# Render with variant and collection context (block derived from variant.block)
+rendered_prompt = system_prompt.render(
+    variant=variant,
+    collection=collection,
+    references=reference_variants,
+)
 
 # Use rendered_prompt as the system message for AI
 ```
@@ -716,18 +721,16 @@ rendered_prompt = system_prompt.render(block=block, collection=collection)
 ### AI Workflow
 
 ```
-1. User clicks "Generate Variant with AI" for a Block
-2. User selects target Collection (or creates new one)
-3. System fetches appropriate BlockSystemPrompt template
-4. System renders prompt with Block and Collection context:
-   - Block.schema → available fields and structure
-   - Block.default_variant.html/css/javascript → ground state reference templates
-   - Collection.description → design guidelines
-   - Collection.render() → design tokens (palettes, fonts) as CSS values
-5. Rendered system prompt sent to AI with user's request
-6. AI returns new template code (HTML, CSS, JavaScript)
-7. Creates BlockVariant linked to both Block and Collection
-8. User can preview, edit, save
+1. User opens Stream Studio
+2. Selects a SystemPrompt, Variant, Collection (auto-populated), and optional References
+3. System renders the prompt template with context:
+   - block (from variant.block) → schema, available fields and structure
+   - variant → reference HTML/CSS/JS implementation
+   - collection → design guidelines + rendered design tokens (palettes, fonts)
+   - references → other variants as design inspiration
+4. User copies rendered system prompt to external AI
+5. AI returns new template code (HTML, CSS, JavaScript)
+6. User creates/updates BlockVariant with AI output
 ```
 
 ---
@@ -965,7 +968,7 @@ Share/import blocks between projects or from community.
 
 | File | Purpose |
 |------|---------|
-| `streams/models.py` | Block, VariantCollection, CollectionPalette, CollectionFontFamily, BlockVariant, and BlockSystemPrompt models |
+| `streams/models.py` | Block, VariantCollection, BlockVariant, BlockSystemPrompt, and SharedBlock models |
 | `streams/blocks/factory.py` | Dynamic block class generation |
 | `streams/blocks/base.py` | BlockVariantStructBlock base class |
 | `streams/blocks/schema.py` | Meta-blocks for schema definition |

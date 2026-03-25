@@ -45,6 +45,7 @@ nav:
       - Package Vision: internal/package-vision.md
       - Publishing Guide: internal/publishing-guide.md
       - CLI Testing: internal/testing.md
+      - Studio Refactor Plan: internal/studio-refactor-plan.md
 
 theme:
   name: material
