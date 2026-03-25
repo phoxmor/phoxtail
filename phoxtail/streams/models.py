@@ -349,27 +349,15 @@ class BlockSystemPrompt(index.Indexed, TimestampMixin, models.Model):
             "System prompt template using Django Template "
             "Language. Available context: {{ block }}, "
             "{{ collection }}, {{ variant }}, "
-            "{{ references }}. variant is None for "
-            "creation tasks, references is a list "
-            "(may be empty)"
+            "{{ references }}. All variables are always "
+            "provided. references is a list (may be empty)."
         )
-    )
-
-    # Auto-computed categorization (cached for performance)
-    _requires_variant = models.BooleanField(
-        default=False,
-        editable=False,
-        db_index=True,
-        help_text=_(
-            "Auto-detected: Does this template use the variant context variable?"
-        ),
     )
 
     search_fields = [
         index.AutocompleteField("name"),
         index.SearchField("name"),
         index.SearchField("description"),
-        index.FilterField("_requires_variant"),
     ]
 
     class Meta:
@@ -379,11 +367,6 @@ class BlockSystemPrompt(index.Indexed, TimestampMixin, models.Model):
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        """Auto-detect variant requirement before saving."""
-        self._requires_variant = self._detect_variant_usage()
-        super().save(*args, **kwargs)
 
     def clean(self):
         """Validate template syntax."""
@@ -396,39 +379,14 @@ class BlockSystemPrompt(index.Indexed, TimestampMixin, models.Model):
         except TemplateSyntaxError as e:
             raise ValidationError({"template": f"Invalid Django template syntax: {e}"})
 
-    def _detect_variant_usage(self) -> bool:
+    def render(self, variant=None, collection=None, references=None) -> str:
+        """Render the system prompt with context.
+
+        block is derived from variant.block — never passed directly.
         """
-        Check if template uses 'variant' context variable.
-        Only checks VariableNode instances ({{ variant.* }}).
-        """
-        try:
-            from django.template import TemplateSyntaxError
-            from django.template.base import VariableNode
-
-            compiled = Template(self.template)
-            variable_nodes = compiled.nodelist.get_nodes_by_type(VariableNode)
-
-            for node in variable_nodes:
-                # node.filter_expression.token is the full expression
-                # e.g., "variant.html|safe" or "block.name"
-                token = node.filter_expression.token
-
-                # Extract root variable (before dot and filter)
-                root_var = token.split("|")[0].split(".")[0].strip()
-
-                if root_var == "variant":
-                    return True
-
-            return False
-
-        except TemplateSyntaxError:
-            return False
-
-    def render(self, block, collection, variant=None, references=None) -> str:
-        """Render the system prompt with context."""
         context = Context(
             {
-                "block": block,
+                "block": variant.block if variant else None,
                 "collection": collection,
                 "variant": variant,
                 "references": references or [],

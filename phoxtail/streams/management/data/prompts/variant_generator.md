@@ -116,25 +116,25 @@ The schema below defines all available fields. Pay attention to:
 
 ---
 
-## Ground State (Reference Implementation)
+## Reference Implementation
 
-{% if block.default_variant %}Study this ground state implementation carefully. You MUST preserve all DTL rendering logic (conditionals, loops, type checks, filters) while changing only the visual design.
+{% if variant %}Study this reference implementation carefully. You MUST preserve all DTL rendering logic (conditionals, loops, type checks, filters) while changing only the visual design.
 
 ### HTML Template
 ```django
-{{ block.default_variant.html|minify }}
+{{ variant.html|minify }}
 ```
 
 ### CSS
-{% if block.default_variant.css %}```css
-{{ block.default_variant.css|minify }}
-```{% else %}No CSS provided. The ground state relies on utility classes or inline styles. Your variant should include properly scoped CSS.{% endif %}
+{% if variant.css %}```css
+{{ variant.css|minify }}
+```{% else %}No CSS provided. The reference relies on utility classes or inline styles. Your variant should include properly scoped CSS.{% endif %}
 
 ### JavaScript
-{% if block.default_variant.javascript %}```javascript
-{{ block.default_variant.javascript|minify }}
-```{% else %}No JavaScript provided. The ground state has no client-side interactivity. Only add JavaScript if your variant requires it.{% endif %}
-{% else %}No ground state variant available for this block. Create your variant based solely on the field schema above and the design collection guidelines below.{% endif %}
+{% if variant.javascript %}```javascript
+{{ variant.javascript|minify }}
+```{% else %}No JavaScript provided. The reference has no client-side interactivity. Only add JavaScript if your variant requires it.{% endif %}
+{% else %}No reference variant available. Create your variant based solely on the field schema above and the design collection guidelines below.{% endif %}
 
 ---
 

@@ -314,40 +314,6 @@
     padding: 1.5rem;
 }
 
-/* --- Workflow tabs (modal_content.html) --- */
-.stu-workflow-tabs {
-    display: flex;
-    gap: 0.5rem;
-    background: rgb(var(--color-surface-100));
-    border-radius: 0.75rem;
-    padding: 0.25rem;
-    margin-bottom: 1.5rem;
-}
-
-.stu-workflow-tab {
-    flex: 1;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    color: rgb(var(--color-surface-600));
-    background: transparent;
-    border: none;
-    cursor: pointer;
-}
-
-.stu-workflow-tab:hover {
-    color: rgb(var(--color-surface-900));
-}
-
-.stu-workflow-tab--active {
-    background: white;
-    color: rgb(var(--color-surface-900));
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
 /* --- Form layout (form_content.html) --- */
 .stu-form-stack {
     display: flex;
@@ -491,24 +457,6 @@
 
     .stu-modal-close-btn:focus {
         box-shadow: 0 0 0 2px rgb(var(--color-surface-500) / 0.5);
-    }
-
-    /* Workflow tabs */
-    .stu-workflow-tabs {
-        background: rgb(var(--color-surface-800));
-    }
-
-    .stu-workflow-tab {
-        color: rgb(var(--color-surface-400));
-    }
-
-    .stu-workflow-tab:hover {
-        color: rgb(var(--color-surface-100));
-    }
-
-    .stu-workflow-tab--active {
-        background: rgb(var(--color-surface-700));
-        color: rgb(var(--color-surface-100));
     }
 
     /* Reference item */

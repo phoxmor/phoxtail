@@ -15,7 +15,6 @@ from .models import (
 from .permissions import StreamsViewSet
 from .views import (
     BlockVariantChooserViewSet,
-    StudioSearchBlockView,
     StudioSearchCollectionView,
     StudioSearchReferencesView,
     StudioSearchSystemPromptView,
@@ -199,11 +198,6 @@ class StudioViewSet(StreamsViewSet):
                 "search/system-prompt/",
                 StudioSearchSystemPromptView.as_view(),
                 name="search_system_prompt",
-            ),
-            path(
-                "search/block/",
-                StudioSearchBlockView.as_view(),
-                name="search_block",
             ),
             path(
                 "search/collection/",

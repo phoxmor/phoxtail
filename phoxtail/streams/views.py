@@ -17,7 +17,6 @@ from wagtail.snippets.widgets import AdminSnippetChooser
 
 from phoxtail.core.views import MultiSelectChipsSearchView, SingleSelectSearchView
 
-from .constants import WORKFLOW_CHOICES
 from .forms import StudioContextForm
 from .models import Block, BlockVariant
 from .permissions import StreamsPermissionMixin, streams_permission_required
@@ -189,13 +188,12 @@ class BlockVariantChooserBlock(SnippetChooserBlock):
 
 
 def _get_studio_form(request):
-    workflow = request.GET.get("workflow", WORKFLOW_CHOICES.CREATE)
-    form_fields = ("system_prompt", "block", "variant", "collection", "references")
+    form_fields = ("system_prompt", "variant", "collection", "references")
     has_form_data = any(request.GET.get(k) for k in form_fields)
     if has_form_data:
         return StudioContextForm(request.GET)
     else:
-        return StudioContextForm(initial={"workflow": workflow})
+        return StudioContextForm()
 
 
 @streams_permission_required("access_stream_studio")
@@ -232,11 +230,9 @@ def studio_apply_context_view(request):
 
 def _studio_form_state_context(form):
     return {
-        "workflow_value": form["workflow"].value(),
         "system_prompt_value": form["system_prompt"].value(),
-        "block_value": form["block"].value(),
-        "collection_value": form["collection"].value(),
         "variant_value": form["variant"].value(),
+        "collection_value": form["collection"].value(),
         "rendered_prompt": (form.get_rendered_prompt() if form.is_bound else None),
     }
 
@@ -256,14 +252,6 @@ class StudioSearchSystemPromptView(_StudioSingleSelectBase):
     oob_response_template = (
         "phoxtail_streams/studio/partials/forms/"
         "widgets/system_prompt_search_response.html"
-    )
-
-
-class StudioSearchBlockView(_StudioSingleSelectBase):
-    field_name = "block"
-    search_url_name = "studio:search_block"
-    oob_response_template = (
-        "phoxtail_streams/studio/partials/forms/widgets/block_search_response.html"
     )
 
 
@@ -297,7 +285,7 @@ class StudioSearchVariantView(_StudioSingleSelectBase):
     )
 
     def get_extra_context(self, form):
-        return {
+        extra = {
             **_studio_form_state_context(form),
             "references_field": form["references"],
             "references_hx_include": (
@@ -308,7 +296,19 @@ class StudioSearchVariantView(_StudioSingleSelectBase):
                 "forms/widgets/"
                 "reference_item_display.html"
             ),
+            "collection_field": form["collection"],
         }
+        # Auto-populate collection from selected variant
+        variant_id = form.data.get("variant") if form.is_bound else None
+        if variant_id:
+            try:
+                variant = BlockVariant.objects.select_related("collection").get(
+                    pk=variant_id
+                )
+                extra["auto_collection"] = variant.collection
+            except BlockVariant.DoesNotExist:
+                pass
+        return extra
 
 
 class StudioSearchReferencesView(StreamsPermissionMixin, MultiSelectChipsSearchView):

@@ -3,44 +3,32 @@ from django.utils.translation import gettext_lazy as _
 
 from phoxtail.core.fields import MultiSelectChipsField, SingleSelectSearchField
 
-from .constants import WORKFLOW_CHOICES
-from .models import Block, BlockSystemPrompt, BlockVariant, VariantCollection
+from .models import BlockSystemPrompt, BlockVariant, VariantCollection
 
 
 class StudioContextForm(forms.Form):
-    workflow = forms.ChoiceField(
-        choices=WORKFLOW_CHOICES.choices,
-        initial=WORKFLOW_CHOICES.CREATE,
-        widget=forms.HiddenInput(),
-        required=True,
-    )
-
     system_prompt = SingleSelectSearchField(
-        queryset=BlockSystemPrompt.objects.none(),
+        queryset=BlockSystemPrompt.objects.all(),
         required=True,
         label=_("System Prompt"),
         help_text=_("AI prompt template"),
     )
 
-    block = SingleSelectSearchField(
-        queryset=Block.objects.all(),
-        required=False,
-        label=_("Block"),
-        help_text=_("The block type to create a variant for"),
-    )
-
     variant = SingleSelectSearchField(
         queryset=BlockVariant.objects.select_related("block", "collection").all(),
-        required=False,
+        required=True,
         label=_("Variant"),
-        help_text=_("The existing variant to refine or enhance"),
+        help_text=_("The variant to work with (block is derived automatically)"),
     )
 
     collection = SingleSelectSearchField(
         queryset=VariantCollection.objects.all(),
-        required=False,
+        required=True,
         label=_("Collection"),
-        help_text=_("Design system to follow"),
+        help_text=_(
+            "Design system to follow. Auto-populated from variant, "
+            "change to apply a different collection's design direction."
+        ),
     )
 
     references = MultiSelectChipsField(
@@ -49,65 +37,37 @@ class StudioContextForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         label=_("References"),
         help_text=_(
-            "Select existing variants to use as design inspiration. "
-            "Filtered to show only variants from the selected collection."
+            "Select existing variants as design inspiration. "
+            "Filtered by the selected collection."
         ),
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        workflow = self._get_workflow()
-        self._configure_for_workflow(workflow)
-        self._set_references_queryset(workflow)
+        self._set_references_queryset()
 
-    def _configure_for_workflow(self, workflow):
-        self._set_system_prompt_queryset(workflow)
-        if workflow == WORKFLOW_CHOICES.CREATE:
-            self.fields["block"].required = True
-            self.fields["variant"].required = False
-            self.fields["collection"].required = True
-        else:
-            self.fields["block"].required = False
-            self.fields["variant"].required = True
-            self.fields["collection"].required = False
-
-    def _get_workflow(self):
-        if self.is_bound and self.data.get("workflow"):
-            return self.data.get("workflow")
-        return self.initial.get("workflow", WORKFLOW_CHOICES.CREATE)
-
-    def _set_system_prompt_queryset(self, workflow):
-        if workflow == WORKFLOW_CHOICES.EDIT:
-            self.fields["system_prompt"].queryset = BlockSystemPrompt.objects.filter(
-                _requires_variant=True
-            )
-        else:
-            self.fields["system_prompt"].queryset = BlockSystemPrompt.objects.filter(
-                _requires_variant=False
-            )
-
-    def _set_references_queryset(self, workflow):
+    def _set_references_queryset(self):
         collection = None
         variant_to_exclude = None
 
-        if workflow == WORKFLOW_CHOICES.CREATE:
-            if self.is_bound:
-                collection_id = self.data.get("collection")
-                if collection_id:
-                    try:
-                        collection = VariantCollection.objects.get(pk=collection_id)
-                    except VariantCollection.DoesNotExist:
-                        pass
-        else:
-            if self.is_bound:
-                variant_id = self.data.get("variant")
-                if variant_id:
+        if self.is_bound:
+            collection_id = self.data.get("collection")
+            if collection_id:
+                try:
+                    collection = VariantCollection.objects.get(pk=collection_id)
+                except VariantCollection.DoesNotExist:
+                    pass
+
+            variant_id = self.data.get("variant")
+            if variant_id:
+                variant_to_exclude = variant_id
+                # Derive collection from variant when not explicitly provided
+                if not collection:
                     try:
                         variant = BlockVariant.objects.select_related(
-                            "block", "collection"
+                            "collection"
                         ).get(pk=variant_id)
                         collection = variant.collection
-                        variant_to_exclude = variant.pk
                     except BlockVariant.DoesNotExist:
                         pass
 
@@ -122,6 +82,7 @@ class StudioContextForm(forms.Form):
 
         self.fields["references"].queryset = queryset
 
+        # Sanitize submitted references against current queryset
         if self.is_bound:
             submitted_refs = self.data.getlist("references")
             if submitted_refs:
@@ -132,41 +93,20 @@ class StudioContextForm(forms.Form):
                     data.setlist("references", sanitized)
                     self.data = data
 
-    def clean(self):
-        cleaned_data = super().clean()
-        workflow = cleaned_data.get("workflow")
-
-        if workflow == WORKFLOW_CHOICES.CREATE:
-            cleaned_data["variant"] = None
-        elif workflow == WORKFLOW_CHOICES.EDIT:
-            cleaned_data["block"] = None
-            cleaned_data["collection"] = None
-
-        return cleaned_data
-
     def get_rendered_prompt(self):
         if not self.is_valid():
             return None
 
         system_prompt = self.cleaned_data.get("system_prompt")
-        workflow = self.cleaned_data.get("workflow")
+        variant = self.cleaned_data.get("variant")
+        collection = self.cleaned_data.get("collection")
         references = self.cleaned_data.get("references", [])
 
-        if workflow == WORKFLOW_CHOICES.CREATE:
-            block = self.cleaned_data.get("block")
-            collection = self.cleaned_data.get("collection")
-            variant = None
-        else:
-            variant = self.cleaned_data.get("variant")
-            block = variant.block if variant else None
-            collection = variant.collection if variant else None
-
-        if not (system_prompt and block and collection):
+        if not (system_prompt and variant and collection):
             return None
 
         return system_prompt.render(
-            block=block,
-            collection=collection,
             variant=variant,
+            collection=collection,
             references=list(references) if references else [],
         )

@@ -1,18 +1,4 @@
 {% load i18n %}
-{% url 'studio:apply_context' as apply_context_url %}
-<!-- Workflow Selector -->
-<div class="stu-workflow-tabs">
-    <button type="button"
-            class="stu-workflow-tab {% if form.workflow.value == 'create' %}stu-workflow-tab--active{% endif %}"
-            hx-get="{{ apply_context_url }}"
-            hx-vals='{"workflow": "create"}'
-            hx-swap="none">{% trans "Create" %}</button>
-    <button type="button"
-            class="stu-workflow-tab {% if form.workflow.value == 'edit' %}stu-workflow-tab--active{% endif %}"
-            hx-get="{{ apply_context_url }}"
-            hx-vals='{"workflow": "edit"}'
-            hx-swap="none">{% trans "Edit" %}</button>
-</div>
 <!-- Form -->
 <form id="context-form">
     {% include 'phoxtail_streams/studio/partials/forms/context/form_content.html' %}
