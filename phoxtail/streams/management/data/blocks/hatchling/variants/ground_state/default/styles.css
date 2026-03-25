@@ -118,21 +118,6 @@
 }
 
 /* ── SVG Internal Animations ── */
-#hl-{{ block.id }} .hl-flame {
-    transform-origin: center bottom;
-}
-
-#hl-{{ block.id }} .hl-flame-l {
-    animation: hl-sway-l-{{ block.id }} 3s ease-in-out infinite;
-}
-
-#hl-{{ block.id }} .hl-flame-c {
-    animation: hl-sway-c-{{ block.id }} 3.5s ease-in-out infinite;
-}
-
-#hl-{{ block.id }} .hl-flame-r {
-    animation: hl-sway-r-{{ block.id }} 3s ease-in-out infinite 0.5s;
-}
 
 @keyframes hl-sway-l-{{ block.id }} {
     0%, 100% { transform: rotate(0deg) scale(1); }

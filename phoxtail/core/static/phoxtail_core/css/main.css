@@ -62,47 +62,47 @@ video {
     --color-surface-900: 23 23 23;
     --color-surface-950: 10 10 10;
 
-    /* Primary palette – Indigo */
-    /* A deep blue-violet that anchors the interface with authority and focus. Carries strong associations with trust, depth, and digital craft without veering into generic corporate blue. */
-    --color-primary-50: 238 242 255;
-    --color-primary-100: 224 231 255;
-    --color-primary-200: 199 210 254;
-    --color-primary-300: 165 180 252;
-    --color-primary-400: 129 140 248;
-    --color-primary-500: 99 102 241;
-    --color-primary-600: 79 70 229;
-    --color-primary-700: 67 56 202;
-    --color-primary-800: 55 48 163;
-    --color-primary-900: 49 46 129;
-    --color-primary-950: 30 27 75;
+    /* Primary palette – Emerald */
+    /* A cooler, teal-leaning green from seafoam to deep jungle. More refined than pure green, well-suited for primary brand use alongside a non-green success palette. */
+    --color-primary-50: 236 253 245;
+    --color-primary-100: 209 250 229;
+    --color-primary-200: 167 243 208;
+    --color-primary-300: 110 231 183;
+    --color-primary-400: 52 211 153;
+    --color-primary-500: 16 185 129;
+    --color-primary-600: 5 150 105;
+    --color-primary-700: 4 120 87;
+    --color-primary-800: 6 95 70;
+    --color-primary-900: 6 78 59;
+    --color-primary-950: 2 44 34;
 
-    /* Secondary palette – Fuchsia */
-    /* A vivid magenta-pink that provides high hue contrast against the cool primary. It reads as creative and energetic, well-suited for highlights, tags, and secondary interactive elements. */
-    --color-secondary-50: 253 244 255;
-    --color-secondary-100: 250 232 255;
-    --color-secondary-200: 245 208 254;
-    --color-secondary-300: 240 171 252;
-    --color-secondary-400: 232 121 249;
-    --color-secondary-500: 217 70 239;
-    --color-secondary-600: 192 38 211;
-    --color-secondary-700: 162 28 175;
-    --color-secondary-800: 134 25 143;
-    --color-secondary-900: 112 26 117;
-    --color-secondary-950: 74 4 78;
+    /* Secondary palette – Teal */
+    /* A balanced blue-green from pale aqua to deep petrol. Carries associations with clarity and calm, effective for informational accents and secondary actions. */
+    --color-secondary-50: 240 253 250;
+    --color-secondary-100: 204 251 241;
+    --color-secondary-200: 153 246 228;
+    --color-secondary-300: 94 234 212;
+    --color-secondary-400: 45 212 191;
+    --color-secondary-500: 20 184 166;
+    --color-secondary-600: 13 148 136;
+    --color-secondary-700: 15 118 110;
+    --color-secondary-800: 17 94 89;
+    --color-secondary-900: 19 78 74;
+    --color-secondary-950: 4 47 46;
 
-    /* Accent palette – Amber */
-    /* A warm golden tone that counterbalances the cool primary and secondary. Used for attention-worthy elements like badges, callouts, and promotional highlights where warmth signals importance. */
-    --color-accent-50: 255 251 235;
-    --color-accent-100: 254 243 199;
-    --color-accent-200: 253 230 138;
-    --color-accent-300: 252 211 77;
-    --color-accent-400: 251 191 36;
-    --color-accent-500: 245 158 11;
-    --color-accent-600: 217 119 6;
-    --color-accent-700: 180 83 9;
-    --color-accent-800: 146 64 14;
-    --color-accent-900: 120 53 15;
-    --color-accent-950: 69 26 3;
+    /* Accent palette – Green */
+    /* A classic mid-range green from mint to forest. The conventional success colour, immediately understood as confirmation, completion, or healthy status. */
+    --color-accent-50: 240 253 244;
+    --color-accent-100: 220 252 231;
+    --color-accent-200: 187 247 208;
+    --color-accent-300: 134 239 172;
+    --color-accent-400: 74 222 128;
+    --color-accent-500: 34 197 94;
+    --color-accent-600: 22 163 74;
+    --color-accent-700: 21 128 61;
+    --color-accent-800: 22 101 52;
+    --color-accent-900: 20 83 45;
+    --color-accent-950: 5 46 22;
 
     /* Success palette – Emerald */
     /* A balanced, saturated green grounded in the teal-green range. Universally legible as positive confirmation — completions, approvals, and healthy system states. */
