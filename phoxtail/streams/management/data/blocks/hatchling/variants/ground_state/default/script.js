@@ -1,11 +1,11 @@
 (function () {
-    var root = document.getElementById("hl-{{ block.id }}");
+    var root = document.getElementById("m3-hatch-{{ block.id }}");
     if (!root) return;
 
     /* ── Advanced Eye Tracking (Bounded) ── */
-    var phoenixWrap = root.querySelector("[data-hl-phoenix]");
-    var pupils = root.querySelectorAll("[data-hl-pupil]");
-
+    var phoenixWrap = root.querySelector("[data-m3-phoenix]");
+    var pupils = root.querySelectorAll("[data-m3-pupil]");
+    
     if (phoenixWrap && pupils.length) {
         var MAX_OFFSET = 3.5;
         var targetX = 0, targetY = 0;
@@ -19,10 +19,8 @@
             var cy = rect.top + rect.height * 0.40;
             var dx = e.clientX - cx;
             var dy = e.clientY - cy;
-
             var angle = Math.atan2(dy, dx);
             var dist = Math.min(Math.sqrt(dx * dx + dy * dy) / 40, MAX_OFFSET);
-
             targetX = Math.cos(angle) * dist;
             targetY = Math.sin(angle) * dist;
 
@@ -35,7 +33,7 @@
         function animateEyes() {
             currentX += (targetX - currentX) * EASE;
             currentY += (targetY - currentY) * EASE;
-
+            
             for (var i = 0; i < pupils.length; i++) {
                 pupils[i].setAttribute("transform", "translate(" + currentX.toFixed(2) + " " + currentY.toFixed(2) + ")");
             }
@@ -51,7 +49,7 @@
     }
 
     /* ── Hardware Accelerated Blinking ── */
-    var eyesWrap = root.querySelector("[data-hl-eyes-wrap]");
+    var eyesWrap = root.querySelector("[data-m3-eyes-wrap]");
     if (eyesWrap) {
         function triggerBlink() {
             eyesWrap.classList.add("is-blinking");
@@ -60,12 +58,11 @@
             }, 150);
             setTimeout(triggerBlink, 2500 + Math.random() * 4000);
         }
-
         setTimeout(triggerBlink, 2000);
     }
 
-    /* ── Free-Floating Embers (Gravity Removed) ── */
-    var embersEl = root.querySelector("[data-hl-embers]");
+    /* ── Free-Floating Embers ── */
+    var embersEl = root.querySelector("[data-m3-embers]");
     if (embersEl) {
         var EMBER_COUNT = 45;
         var colors = [
@@ -77,7 +74,7 @@
 
         function createParticle() {
             var el = document.createElement("span");
-            el.className = "hl-ember";
+            el.className = "m3-ember";
             var size = 2 + Math.random() * 5;
             el.style.width = size + "px";
             el.style.height = size + "px";
@@ -106,19 +103,15 @@
 
         function renderEmbers() {
             var rootRect = root.getBoundingClientRect();
-            var h = rootRect.height || window.innerHeight;
             var w = rootRect.width || window.innerWidth;
-
+            
             for (var i = 0; i < particles.length; i++) {
                 var p = particles[i];
                 p.life += 0.03;
-
-                // Simple natural sway without gravity wells
                 p.x += p.vx + Math.sin(p.life) * 0.5;
                 p.y += p.vy;
-
                 p.el.style.transform = "translate3d(" + p.x.toFixed(2) + "px, " + p.y.toFixed(2) + "px, 0)";
-
+                
                 if (p.y < -50 || p.x < -50 || p.x > w + 50) {
                     resetParticle(p, false);
                 }

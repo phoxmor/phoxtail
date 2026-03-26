@@ -1,132 +1,147 @@
 {% load wagtailcore_tags wagtailimages_tags static phoxtail_design_tags %}
 
-<div id="hl-{{ block.id }}" class="hl-page">
-    <div class="hl-top-bar">
-        <div class="hl-top-bar-inner">
-            <span class="hl-logo">
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="hl-logo-img hl-logo-light" />
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="hl-logo-img hl-logo-dark" />
-            </span>
-            <span class="hl-version-info">
+<div id="m3-hatch-{{ block.id }}" class="m3-page">
+    <header class="m3-top-bar">
+        <div class="m3-top-bar-inner">
+            <div class="m3-logo">
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="m3-logo-img m3-logo-light" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="m3-logo-img m3-logo-dark" />
+            </div>
+            <div class="m3-badge-tonal">
                 v{% phoxtail_version %}
-            </span>
-        </div>
-    </div>
-
-    <div class="hl-embers" data-hl-embers></div>
-
-    <div class="hl-content">
-        <div class="hl-phoenix-wrap" data-hl-phoenix>
-            <svg class="hl-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <radialGradient id="hl-body-g-{{ block.id }}" cx="50%" cy="40%" r="60%">
-                        <stop offset="0%" stop-color="rgb(var(--color-accent-50))"/>
-                        <stop offset="60%" stop-color="rgb(var(--color-surface-500))"/>
-                        <stop offset="100%" stop-color="rgb(var(--color-surface-600))"/>
-                    </radialGradient>
-                    <radialGradient id="hl-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0.3"/>
-                        <stop offset="100%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0"/>
-                    </radialGradient>
-                    <radialGradient id="hl-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0.5"/>
-                        <stop offset="100%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0"/>
-                    </radialGradient>
-                    <linearGradient id="hl-shell-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
-                        <stop offset="100%" stop-color="rgb(var(--color-surface-200))"/>
-                    </linearGradient>
-                    <filter id="hl-shadow-{{ block.id }}" x="-10%" y="-10%" width="120%" height="120%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgb(var(--color-surface-900))" flood-opacity="0.15"/>
-                    </filter>
-                </defs>
-                <circle cx="100" cy="120" r="90" fill="url(#hl-glow-g-{{ block.id }})"/>
-
-                <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#hl-body-g-{{ block.id }})"/>
-                <path class="hl-wing hl-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-surface-600))"/>
-                <path class="hl-wing hl-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-surface-600))"/>
-                <circle cx="100" cy="88" r="44" fill="url(#hl-body-g-{{ block.id }})"/>
-                <g class="hl-crest">
-                    <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="rgb(var(--color-primary-500))"/>
-                    <path d="M100,44 C105,15 120,5 120,5 C115,20 108,35 104,46 Z" fill="rgb(var(--color-surface-500))"/>
-                    <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="rgb(var(--color-secondary-300))"/>
-                </g>
-                <circle cx="70" cy="102" r="11" fill="url(#hl-cheek-g-{{ block.id }})"/>
-                <circle cx="130" cy="102" r="11" fill="url(#hl-cheek-g-{{ block.id }})"/>
-                <g class="hl-eyes-wrap" data-hl-eyes-wrap>
-                    <g class="hl-eye" data-hl-eye="left">
-                        <circle cx="78" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                        <g class="hl-pupil-group" data-hl-pupil>
-                            <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
-                            <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
-                            <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
-                        </g>
-                    </g>
-                    <g class="hl-eye" data-hl-eye="right">
-                        <circle cx="122" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                        <g class="hl-pupil-group" data-hl-pupil>
-                            <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
-                            <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
-                            <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
-                        </g>
-                    </g>
-                </g>
-                <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
-                <path class="hl-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#hl-shell-g-{{ block.id }})" filter="url(#hl-shadow-{{ block.id }})"/>
-            </svg>
-        </div>
-
-        <h1 class="hl-title">
-            {% if block.value.title %}
-                {{ block.value.title }}
-            {% else %}
-                Your phoenix has hatched
-            {% endif %}
-        </h1>
-        <p class="hl-subtitle">
-            {% if block.value.subtitle %}
-                {{ block.value.subtitle }}
-            {% else %}
-                Start building something beautiful
-            {% endif %}
-        </p>
-        <a href="/admin/" class="hl-cta">
-            {% icon "dashboard" class="hl-cta-icon" %}
-            <span class="hl-cta-label">
-                {% if block.value.cta_text %}
-                    {{ block.value.cta_text }}
-                {% else %}
-                    Open Dashboard
-                {% endif %}
-            </span>
-        </a>
-    </div>
-
-    <div class="hl-bottom">
-        <div class="hl-bottom-inner">
-            <div class="hl-useful-links">
-                <a href="https://phoxtail.com" target="_blank" rel="noopener" class="hl-link-card">
-                    <span class="hl-link-icon">
-                        {% icon "docs" class="hl-link-svg" %}
-                    </span>
-                    <h3 class="hl-link-title">Read the Docs</h3>
-                    <p class="hl-link-desc">Get acquainted with Phoxtail's core features.</p>
-                </a>
-                <a href="https://github.com/phoxmor/phoxtail" target="_blank" rel="noopener" class="hl-link-card">
-                    <span class="hl-link-icon">
-                        {% icon "rocket_launch" class="hl-link-svg" %}
-                    </span>
-                    <h3 class="hl-link-title">Source & Tutorials</h3>
-                    <p class="hl-link-desc">Explore the repository, examples, and step-by-step guides.</p>
-                </a>
-                <a href="https://github.com/phoxmor/phoxtail/discussions" target="_blank" rel="noopener" class="hl-link-card">
-                    <span class="hl-link-icon">
-                        {% icon "groups" class="hl-link-svg" %}
-                    </span>
-                    <h3 class="hl-link-title">Join the Community</h3>
-                    <p class="hl-link-desc">Ask questions, share ideas, and connect with other developers.</p>
-                </a>
             </div>
         </div>
-    </div>
+    </header>
+
+    <div class="m3-embers" data-m3-embers></div>
+
+    <main class="m3-main-content">
+        <div class="m3-hero">
+            <div class="m3-phoenix-wrap" data-m3-phoenix>
+                <svg class="m3-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="m3-body-g-{{ block.id }}" cx="50%" cy="40%" r="60%">
+                            <stop offset="0%" stop-color="rgb(var(--color-accent-50))"/>
+                            <stop offset="60%" stop-color="rgb(var(--color-surface-500))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-600))"/>
+                        </radialGradient>
+                        <radialGradient id="m3-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0"/>
+                        </radialGradient>
+                        <radialGradient id="m3-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0.5"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0"/>
+                        </radialGradient>
+                        <linearGradient id="m3-shell-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-200))"/>
+                        </linearGradient>
+                        <filter id="m3-shadow-{{ block.id }}" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="rgb(var(--color-surface-900))" flood-opacity="0.12"/>
+                        </filter>
+                    </defs>
+
+                    <circle cx="100" cy="120" r="90" fill="url(#m3-glow-g-{{ block.id }})"/>
+                    <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#m3-body-g-{{ block.id }})"/>
+                    
+                    <path class="m3-wing m3-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-surface-600))"/>
+                    <path class="m3-wing m3-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-surface-600))"/>
+                    
+                    <circle cx="100" cy="88" r="44" fill="url(#m3-body-g-{{ block.id }})"/>
+                    
+                    <g class="m3-crest">
+                        <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="rgb(var(--color-primary-500))"/>
+                        <path d="M100,44 C105,15 120,5 120,5 C115,20 108,35 104,46 Z" fill="rgb(var(--color-surface-500))"/>
+                        <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="rgb(var(--color-secondary-300))"/>
+                    </g>
+                    
+                    <circle cx="70" cy="102" r="11" fill="url(#m3-cheek-g-{{ block.id }})"/>
+                    <circle cx="130" cy="102" r="11" fill="url(#m3-cheek-g-{{ block.id }})"/>
+                    
+                    <g class="m3-eyes-wrap" data-m3-eyes-wrap>
+                        <g class="m3-eye" data-m3-eye="left">
+                            <circle cx="78" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
+                            <g class="m3-pupil-group" data-m3-pupil>
+                                <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
+                                <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
+                                <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
+                            </g>
+                        </g>
+                        <g class="m3-eye" data-m3-eye="right">
+                            <circle cx="122" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
+                            <g class="m3-pupil-group" data-m3-pupil>
+                                <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
+                                <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
+                                <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
+                            </g>
+                        </g>
+                    </g>
+                    
+                    <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
+                    <path class="m3-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#m3-shell-g-{{ block.id }})" filter="url(#m3-shadow-{{ block.id }})"/>
+                </svg>
+            </div>
+
+            <h1 class="m3-display-title">
+                {% if block.value.title %}
+                    {{ block.value.title }}
+                {% else %}
+                    Your phoenix has hatched
+                {% endif %}
+            </h1>
+            <p class="m3-body-subtitle">
+                {% if block.value.subtitle %}
+                    {{ block.value.subtitle }}
+                {% else %}
+                    Start building something beautiful
+                {% endif %}
+            </p>
+
+            <a href="/admin/" class="m3-btn-filled">
+                {% icon "dashboard" class="m3-btn-icon" %}
+                <span class="m3-btn-label">
+                    {% if block.value.cta_text %}
+                        {{ block.value.cta_text }}
+                    {% else %}
+                        Open Dashboard
+                    {% endif %}
+                </span>
+            </a>
+        </div>
+    </main>
+
+    <footer class="m3-cards-section">
+        <div class="m3-cards-container">
+            <a href="https://phoxtail.com" target="_blank" rel="noopener" class="m3-card-filled">
+                <div class="m3-card-icon-wrap">
+                    {% icon "docs" class="m3-card-icon" %}
+                </div>
+                <div class="m3-card-text">
+                    <h2 class="m3-card-title">Documentation</h2>
+                    <p class="m3-card-desc">Get acquainted with Phoxtail's core features.</p>
+                </div>
+            </a>
+            
+            <a href="https://github.com/phoxmor/phoxtail" target="_blank" rel="noopener" class="m3-card-filled">
+                <div class="m3-card-icon-wrap">
+                    {% icon "code" class="m3-card-icon" %}
+                </div>
+                <div class="m3-card-text">
+                    <h2 class="m3-card-title">Source Code</h2>
+                    <p class="m3-card-desc">Dig into the code and see how everything works under the hood.</p>
+                </div>
+            </a>
+            
+            <a href="https://github.com/phoxmor/phoxtail/discussions" target="_blank" rel="noopener" class="m3-card-filled">
+                <div class="m3-card-icon-wrap">
+                    {% icon "groups" class="m3-card-icon" %}
+                </div>
+                <div class="m3-card-text">
+                    <h2 class="m3-card-title">Join the Community</h2>
+                    <p class="m3-card-desc">Ask questions, share ideas, and connect with other developers.</p>
+                </div>
+            </a>
+        </div>
+    </footer>
 </div>

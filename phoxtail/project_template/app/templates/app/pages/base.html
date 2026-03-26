@@ -61,9 +61,6 @@
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
         <!-- Force All Links to Open in New Tab in Wagtail Preview Panel -->
         {% if request.in_preview_panel %}<base target="_blank">{% endif %}
-        <!-- Swiper CSS -->
-        <link rel="stylesheet"
-              href="{% static 'phoxtail_core/swiper/swiper-bundle.min.css' %}" />
         {% get_settings %}
         <style>
             :root {
@@ -73,8 +70,6 @@
         </style>
         {% block extra_css %}{% endblock %}
     </head>
-    <!-- Swiper JS -->
-    <script src="{% static 'phoxtail_core/swiper/swiper-bundle.min.js' %}"></script>
     <body class="fw-body">
         {% include "account/messages_static.html" %}
         {% include "account/messages.html" %}
