@@ -1,182 +1,23 @@
 """Database management commands for Phoxtail."""
 
-import ipaddress
-import json
 import subprocess
-from enum import Enum
 from pathlib import Path
 
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from phoxtail.cli.utils.config import (
-    get_cluster_names,
-    get_clusters,
-    resolve_cluster_order,
-)
 from phoxtail.cli.utils.docker import docker_db, docker_manage
 from phoxtail.cli.utils.env import read_env_value
 
 app = typer.Typer()
 console = Console()
 
-
-def _build_data_cluster_enum():
-    """Build DataCluster enum from phoxtail.toml cluster names + 'all'."""
-    members = {name.upper(): name for name in get_cluster_names()}
-    members["ALL"] = "all"
-    return Enum("DataCluster", members, type=str)
-
-
-DataCluster = _build_data_cluster_enum()
-
-
-def _deep_localize(val, hostname_map: dict[str, str]):
-    """Recursively replace hostnames in a data structure.
-
-    Handles plain dicts/lists and JSON-encoded strings that may
-    contain hostname references (e.g. StreamField data).
-    """
-    if isinstance(val, dict):
-        return {k: _deep_localize(v, hostname_map) for k, v in val.items()}
-    elif isinstance(val, list):
-        # Natural key format: ["hostname", port]
-        if len(val) == 2 and isinstance(val[0], str) and isinstance(val[1], int):
-            h = val[0].lower()
-            if h in hostname_map:
-                return [hostname_map[h], val[1]]
-        return [_deep_localize(i, hostname_map) for i in val]
-    elif isinstance(val, str):
-        if (val.startswith("{") and val.endswith("}")) or (
-            val.startswith("[") and val.endswith("]")
-        ):
-            try:
-                parsed = json.loads(val)
-                translated = _deep_localize(parsed, hostname_map)
-                return json.dumps(translated)
-            except (json.JSONDecodeError, TypeError):
-                pass
-    return val
-
-
-def _localize_hostnames(data: list, target_domain: str) -> list:
-    """Translate remote hostnames to the target domain.
-
-    Builds a hostname map from wagtailcore.site entries, then applies it
-    across the entire fixture data including JSON-encoded string fields.
-    """
-    hostname_map = {}
-    for entry in data:
-        if entry.get("model") == "wagtailcore.site":
-            fields = entry.get("fields", {})
-            old_h = fields.get("hostname", "").lower()
-            if (
-                not old_h
-                or old_h == target_domain
-                or old_h.endswith(f".{target_domain}")
-            ):
-                continue
-            try:
-                ipaddress.ip_address(old_h)
-                continue
-            except ValueError:
-                pass
-
-            parts = old_h.split(".")
-            if len(parts) > 2:
-                subdomain = ".".join(parts[:-2])
-                new_h = f"{subdomain}.{target_domain}"
-            else:
-                new_h = target_domain
-            hostname_map[old_h] = new_h
-            fields["hostname"] = new_h
-
-    if not hostname_map:
-        return data
-
-    for entry in data:
-        entry["fields"] = _deep_localize(entry.get("fields", {}), hostname_map)
-
-    return data
-
-
-def _pull_single_cluster(
-    cluster_name: str,
-    remote_host: str,
-    remote_dir: str,
-    localize: bool,
-    progress,
-    task,
-) -> None:
-    """Pull and load a single cluster from the remote server."""
-    clusters = get_clusters()
-    selected_apps = clusters[cluster_name]["apps"]
-    dump_filename = f"remote_{cluster_name}_pull.json"
-    local_dump_path = Path.cwd() / dump_filename
-
-    try:
-        remote_cmd = (
-            f"cd {remote_dir} && "
-            f"docker compose exec web python manage.py dumpdata "
-            f"{' '.join(selected_apps)} "
-            f"--natural-foreign --indent 2 > {dump_filename}"
-        )
-        progress.update(
-            task, description=f"Dumping {cluster_name.upper()} on remote..."
-        )
-        subprocess.run(
-            ["ssh", remote_host, remote_cmd],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        progress.update(task, description=f"Downloading {cluster_name.upper()} dump...")
-        subprocess.run(
-            [
-                "scp",
-                f"{remote_host}:{remote_dir}/{dump_filename}",
-                str(local_dump_path),
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        # Clean up remote dump file (failure is non-critical)
-        subprocess.run(
-            ["ssh", remote_host, f"rm -f {remote_dir}/{dump_filename}"],
-            capture_output=True,
-        )
-
-        if localize:
-            target_domain = read_env_value("DOMAIN") or "localhost"
-            progress.update(
-                task,
-                description=(
-                    f"Localizing {cluster_name.upper()} hostnames to {target_domain}..."
-                ),
-            )
-            with open(local_dump_path) as f:
-                data = json.load(f)
-            data = _localize_hostnames(data, target_domain)
-            with open(local_dump_path, "w") as f:
-                json.dump(data, f, indent=2)
-
-        progress.update(
-            task, description=f"Loading {cluster_name.upper()} into database..."
-        )
-        docker_manage("loaddata", local_dump_path.name)
-    finally:
-        if local_dump_path.exists():
-            local_dump_path.unlink()
+DUMP_FILENAME = "remote_pull.sql"
 
 
 @app.command(name="pull")
 def pull(
-    cluster: DataCluster = typer.Argument(
-        ...,
-        help="The data cluster to pull from the remote server",
-    ),
     remote_host: str = typer.Argument(
         ...,
         help="SSH connection string (e.g., user@example.com)",
@@ -185,29 +26,16 @@ def pull(
         ...,
         help="Path to the project on the remote server",
     ),
-    localize: bool = typer.Option(
-        True,
-        "--localize/--no-localize",
-        help="Whether to translate remote hostnames to localhost/subdomains.localhost",
-    ),
 ) -> None:
-    """Pull data clusters from a remote server to the local environment.
+    """Pull the database from a remote server.
 
-    DANGER: This will FLUSH your local database before loading.
-    A safety backup is created automatically before flushing.
-
-    Dependencies are resolved automatically. For example, pulling 'booking'
-    will pull 'cms' first since booking data depends on it.
+    Creates a pg_dump on the remote, downloads it via SCP, and restores
+    it locally.  A safety backup is created automatically before restoring.
     """
-    try:
-        cluster_order = resolve_cluster_order(cluster.value)
-    except ValueError as e:
-        console.print(f"[red]Error:[/red] {e}")
-        raise typer.Exit(1)
-
-    if len(cluster_order) > 1:
-        names = " → ".join(c.upper() for c in cluster_order)
-        console.print(f"[dim]Resolved pull order: {names}[/dim]")
+    backups_dir = Path.cwd() / "db-backups"
+    backups_dir.mkdir(exist_ok=True)
+    local_dump_path = backups_dir / DUMP_FILENAME
+    local_domain = read_env_value("DOMAIN") or "localhost"
 
     with Progress(
         SpinnerColumn(),
@@ -216,27 +44,156 @@ def pull(
     ) as progress:
         task = progress.add_task(description="Starting...", total=None)
         try:
-            progress.update(task, description="Creating safety backup...")
-            docker_db(
-                "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
-                " -U $POSTGRES_USER $POSTGRES_DB"
-                " > /db-backups/pre_pull_safety.sql"
+            # 1. Dump on remote.
+            progress.update(task, description="Dumping database on remote...")
+            remote_cmd = (
+                f"cd {remote_dir} && "
+                f"docker compose exec -T db sh -c "
+                f"'PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
+                f" -U $POSTGRES_USER $POSTGRES_DB'"
+                f" > {DUMP_FILENAME}"
+            )
+            subprocess.run(
+                ["ssh", remote_host, remote_cmd],
+                check=True,
+                capture_output=True,
+                text=True,
             )
 
-            progress.update(task, description="Flushing local database...")
-            docker_manage("flush", "--no-input")
+            # 2. Download.
+            progress.update(task, description="Downloading dump...")
+            subprocess.run(
+                [
+                    "scp",
+                    f"{remote_host}:{remote_dir}/{DUMP_FILENAME}",
+                    str(local_dump_path),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            # Clean up remote dump file (failure is non-critical).
+            subprocess.run(
+                ["ssh", remote_host, f"rm -f {remote_dir}/{DUMP_FILENAME}"],
+                capture_output=True,
+            )
 
-            for cluster_name in cluster_order:
-                _pull_single_cluster(
-                    cluster_name, remote_host, remote_dir, localize, progress, task
+            # 3. Safety backup of current local state (non-fatal on fresh projects).
+            progress.update(task, description="Creating safety backup...")
+            try:
+                docker_db(
+                    "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
+                    " -U $POSTGRES_USER $POSTGRES_DB"
+                    " > /db-backups/pre_pull_safety.sql"
+                )
+            except subprocess.CalledProcessError:
+                console.print(
+                    "  [dim]Safety backup skipped (no existing data)[/dim]"
                 )
 
-            pulled = ", ".join(c.upper() for c in cluster_order)
-            console.print(f"[green bold]✓ {pulled} data pulled and loaded[/green bold]")
+            # 4. Restore: drop schema, recreate, load dump via stdin
+            #    (avoids dependency on the db-backups bind mount).
+            progress.update(task, description="Restoring into local database...")
+            restore_cmd = [
+                "docker", "compose", "exec", "-T", "db", "sh", "-c",
+                "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
+                " -U $POSTGRES_USER -d $POSTGRES_DB"
+                " -v ON_ERROR_STOP=1 --single-transaction"
+                ' -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+                ' GRANT ALL ON SCHEMA public TO \\"$POSTGRES_USER\\";'
+                ' GRANT ALL ON SCHEMA public TO public;"'
+                " -f -",
+            ]
+            with open(local_dump_path) as f:
+                result = subprocess.run(
+                    restore_cmd, stdin=f, capture_output=True, text=True
+                )
+            if result.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    result.returncode, restore_cmd,
+                    output=result.stdout, stderr=result.stderr,
+                )
+
+            # 5. Update Wagtail Site hostnames to local domain.
+            progress.update(
+                task, description=f"Updating hostnames to {local_domain}..."
+            )
+            docker_db(
+                "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
+                " -U $POSTGRES_USER -d $POSTGRES_DB"
+                " -c \"UPDATE wagtailcore_site SET hostname = CASE"
+                "  WHEN hostname = ("
+                "    SELECT hostname FROM wagtailcore_site"
+                "    WHERE is_default_site = true LIMIT 1"
+                f"  ) THEN '{local_domain}'"
+                "  ELSE CONCAT("
+                "    SPLIT_PART(hostname, '.', 1),"
+                f"   '.{local_domain}'"
+                "  )"
+                ' END"'
+            )
+
+            # 6. Reset all superuser passwords for local access.
+            progress.update(
+                task, description="Resetting superuser passwords..."
+            )
+            result = docker_manage(
+                "shell",
+                "-c",
+                (
+                    "from django.contrib.auth import get_user_model;"
+                    "User = get_user_model();"
+                    "emails = ','.join(User.objects.filter(is_superuser=True)"
+                    ".values_list('email', flat=True));"
+                    "print('__SUPERUSERS__:' + emails)"
+                ),
+            )
+            # Use a unique marker to ignore Django shell startup noise.
+            marker_line = next(
+                (
+                    line for line in result.stdout.splitlines()
+                    if line.startswith("__SUPERUSERS__:")
+                ),
+                None,
+            )
+            raw = (marker_line or "").removeprefix("__SUPERUSERS__:")
+            superuser_emails = [e for e in raw.split(",") if e]
+
+            if superuser_emails:
+                progress.stop()
+                console.print(f"  Superusers: {', '.join(superuser_emails)}")
+                new_password = typer.prompt(
+                    "Set local password for all superusers",
+                    hide_input=True,
+                    confirmation_prompt=False,
+                )
+                docker_manage(
+                    "shell",
+                    "-c",
+                    (
+                        "from django.contrib.auth import get_user_model;"
+                        "User = get_user_model();"
+                        f"pw={new_password!r};"
+                        "[u.set_password(pw) or u.save()"
+                        " for u in User.objects.filter(is_superuser=True)]"
+                    ),
+                )
+                console.print(
+                    "[green bold]✓ Database pulled and restored[/green bold]"
+                )
+            else:
+                console.print(
+                    "[green bold]✓ Database pulled and restored[/green bold]\n"
+                    "  [yellow]No superuser found — run:[/yellow] "
+                    "phoxtail manage createsuperuser"
+                )
         except subprocess.CalledProcessError as e:
             stderr = e.stderr if e.stderr else str(e)
             console.print(f"[red]Error:[/red] {stderr}")
             raise typer.Exit(1)
+        finally:
+            if local_dump_path.exists():
+                local_dump_path.unlink()
 
 
 @app.command(name="backup")
