@@ -313,7 +313,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=5, pause=prev_failed
     )
     console.print("  Populate design tokens and stream blocks\n")
-    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
+    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=False):
         if not _ensure_migrated(target_dir, steps, details):
             steps["stream_engine"] = "failed"
             details["stream_engine"] = "migration required"
@@ -348,7 +348,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=6, pause=prev_failed
     )
     console.print("  Create an admin superuser account\n")
-    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
+    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=False):
         if not _ensure_migrated(target_dir, steps, details):
             steps["superuser"] = "failed"
             details["superuser"] = "migration required"
@@ -381,13 +381,10 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
     )
     console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
-        detach = Confirm.ask("  Run in background (detached)?", default=False)
-        args = ["docker", "up", "--build"]
-        if not detach:
-            args.append("--no-detach")
+        args = ["docker", "up", "--build", "--no-detach"]
         if _run_step(target_dir, args):
             steps["docker_up"] = "done"
-            details["docker_up"] = "detached" if detach else "foreground"
+            details["docker_up"] = "foreground"
             prev_failed = False
         else:
             steps["docker_up"] = "failed"

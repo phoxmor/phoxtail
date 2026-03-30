@@ -190,9 +190,9 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + 4 config + migrate(y) + stream_engine(y)
-        # + superuser(y) + launch(y) + detach(y) = 10 y's
+        # + superuser(y) + launch(y) = 9 y's
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
         # 1 compile + 4 config + 1 migrate + 2 populate (design + streams)
@@ -209,9 +209,9 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
+        # Accept wizard + all steps + superuser(y) + launch(y)
         runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
@@ -230,40 +230,9 @@ class TestHatchCommand:
         # Superuser: createsuperuser + verify_email
         assert calls[8][-2:] == ["manage", "createsuperuser"]
         assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
-        # Cleanup + launch
+        # Cleanup + launch (always foreground)
         assert calls[10] == ["docker", "compose", "down"]
-        assert calls[11][-3:] == ["docker", "up", "--build"]
-
-    @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_launch_foreground(self, mock_q, mock_run, tmp_path, monkeypatch):
-        monkeypatch.chdir(tmp_path)
-        mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
-
-        # Accept wizard + all steps + superuser(y) + launch(y) + detach(n)
-        runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\nn\n"
-        )
-
-        calls = [c.args[0] for c in mock_run.call_args_list]
-        # Last call should include --no-detach
         assert calls[-1][-4:] == ["docker", "up", "--build", "--no-detach"]
-
-    @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_launch_detached_shows_ready(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
-        monkeypatch.chdir(tmp_path)
-        mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
-
-        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
-        result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
-        assert "is ready!" in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -275,7 +244,7 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "production"
 
         runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
