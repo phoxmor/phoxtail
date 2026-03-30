@@ -33,10 +33,11 @@ nav:
   - Patterns:
       - Testing: patterns/testing.md
       - Service Layer:
+          - Overview: patterns/service-layer-overview.md
+          - Users: patterns/service-layer-users.md
           - Subscriptions: patterns/service-layer-subscriptions.md
           - Reservations: patterns/service-layer-reservations.md
           - Events: patterns/service-layer-events.md
-          - Users: patterns/service-layer-users.md
 
   - Apps:
       - Dashboard Registration: apps/dashboard/registration.md
