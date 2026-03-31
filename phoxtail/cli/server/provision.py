@@ -543,11 +543,12 @@ def provision(
         # --- Wait for cloud-init bootstrap ---
         if user_data and server.ipv4:
             console.print()
-            with console.status(
+            console.print(
                 "[bold cyan]Waiting for cloud-init to finish "
-                "(Docker, uv, phoxtail, hardening)...[/bold cyan]"
-            ):
-                cloud_init_ok = wait_for_cloud_init(deploy_user, server.ipv4)
+                "(Docker, uv, phoxtail, hardening)...[/bold cyan]\n"
+            )
+            cloud_init_ok = wait_for_cloud_init(deploy_user, server.ipv4)
+            console.print()
 
             if cloud_init_ok:
                 bootstrap_note = (

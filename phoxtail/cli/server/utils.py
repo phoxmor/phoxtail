@@ -59,19 +59,19 @@ CLOUD_INIT_SENTINEL = "/var/lib/cloud/instance/boot-finished"
 PROJECT_DIR = "~/project"
 
 
-def wait_for_cloud_init(
+def _wait_for_ssh(
     user: str,
     ip: str,
     *,
-    timeout: int = 600,
-    interval: int = 10,
+    timeout: int = 120,
+    interval: int = 5,
 ) -> bool:
-    """Poll via SSH until cloud-init finishes."""
+    """Block until SSH accepts a connection for *user*@*ip*."""
     cmd = [
         "ssh",
         *_SSH_BATCH,
         f"{user}@{ip}",
-        f"test -f {CLOUD_INIT_SENTINEL}",
+        "true",
     ]
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
@@ -84,6 +84,45 @@ def wait_for_cloud_init(
             return True
         time.sleep(interval)
     return False
+
+
+def wait_for_cloud_init(
+    user: str,
+    ip: str,
+    *,
+    timeout: int = 600,
+) -> bool:
+    """Wait for cloud-init, streaming its log output live.
+
+    1. Poll until SSH is reachable (deploy user may not exist yet).
+    2. If cloud-init already finished, return immediately.
+    3. Otherwise tail the cloud-init log live until the sentinel appears.
+    """
+    if not _wait_for_ssh(user, ip):
+        return False
+
+    # Already done?
+    check = subprocess.run(
+        ["ssh", *_SSH_BATCH, f"{user}@{ip}", f"test -f {CLOUD_INIT_SENTINEL}"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if check.returncode == 0:
+        return True
+
+    # Tail the log live; exit as soon as the sentinel file appears.
+    tail_cmd = (
+        f"sudo tail -n 50 -f /var/log/cloud-init-output.log &"
+        f" TAIL_PID=$!;"
+        f" while [ ! -f {CLOUD_INIT_SENTINEL} ]; do sleep 3; done;"
+        f" sleep 1; kill $TAIL_PID 2>/dev/null"
+    )
+    rc = subprocess.run(
+        ["ssh", *_SSH_MUX, f"{user}@{ip}", tail_cmd],
+        timeout=timeout,
+    ).returncode
+
+    return rc == 0
 
 
 def ssh_run(
