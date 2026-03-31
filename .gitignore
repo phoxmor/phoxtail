@@ -30,6 +30,7 @@ htmlcov/
 # AI Agents
 # --------------------
 CLAUDE.md
+.claude
 
 # --------------------
 # Docs build output
