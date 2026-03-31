@@ -12,6 +12,7 @@ from phoxtail.cli.db import backup, pull, restore
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _completed(returncode=0, stdout="", stderr=""):
     return subprocess.CompletedProcess([], returncode, stdout=stdout, stderr=stderr)
 
@@ -19,6 +20,7 @@ def _completed(returncode=0, stdout="", stderr=""):
 # ---------------------------------------------------------------------------
 # pull
 # ---------------------------------------------------------------------------
+
 
 class TestPull:
     """Tests for the db pull command."""
@@ -68,7 +70,8 @@ class TestPull:
 
         # Hostname update
         hostname_calls = [
-            c for c in mock_docker_db.call_args_list
+            c
+            for c in mock_docker_db.call_args_list
             if "UPDATE wagtailcore_site" in str(c)
         ]
         assert len(hostname_calls) == 1
@@ -117,7 +120,8 @@ class TestPull:
 
         # Hostname update should use 'localhost'
         hostname_call = [
-            c for c in mock_docker_db.call_args_list
+            c
+            for c in mock_docker_db.call_args_list
             if "UPDATE wagtailcore_site" in str(c)
         ]
         assert len(hostname_call) == 1
@@ -223,7 +227,8 @@ class TestPull:
         pull(remote_host="user@host", remote_dir="/srv/app")
 
         hostname_call = [
-            c for c in mock_docker_db.call_args_list
+            c
+            for c in mock_docker_db.call_args_list
             if "UPDATE wagtailcore_site" in str(c)
         ]
         assert "mysite.local" in str(hostname_call[0])
@@ -256,6 +261,7 @@ class TestPull:
 # backup
 # ---------------------------------------------------------------------------
 
+
 class TestBackup:
     """Tests for the db backup command."""
 
@@ -278,6 +284,7 @@ class TestBackup:
 # ---------------------------------------------------------------------------
 # restore
 # ---------------------------------------------------------------------------
+
 
 class TestRestore:
     """Tests for the db restore command."""

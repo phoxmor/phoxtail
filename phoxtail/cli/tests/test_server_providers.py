@@ -6,7 +6,6 @@ from pytest_httpx import HTTPXMock
 from phoxtail.cli.server.providers.base import ServerSpec
 from phoxtail.cli.server.providers.hetzner import HetznerError, HetznerProvider
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -34,7 +33,15 @@ LOCATIONS_RESPONSE = {
             "longitude": 24.938379,
         },
     ],
-    "meta": {"pagination": {"page": 1, "per_page": 50, "next_page": None, "last_page": 1, "total_entries": 2}},
+    "meta": {
+        "pagination": {
+            "page": 1,
+            "per_page": 50,
+            "next_page": None,
+            "last_page": 1,
+            "total_entries": 2,
+        }
+    },
 }
 
 SERVER_TYPES_RESPONSE = {
@@ -56,7 +63,16 @@ SERVER_TYPES_RESPONSE = {
                     "price_monthly": {"net": "5.0000", "gross": "5.9500"},
                 }
             ],
-            "locations": [{"id": 3, "name": "hel1", "description": "Helsinki DC Park 1", "city": "Helsinki", "country": "FI", "network_zone": "eu-central"}],
+            "locations": [
+                {
+                    "id": 3,
+                    "name": "hel1",
+                    "description": "Helsinki DC Park 1",
+                    "city": "Helsinki",
+                    "country": "FI",
+                    "network_zone": "eu-central",
+                }
+            ],
         },
         {
             "id": 32,
@@ -75,10 +91,27 @@ SERVER_TYPES_RESPONSE = {
                     "price_monthly": {"net": "8.8200", "gross": "10.4958"},
                 }
             ],
-            "locations": [{"id": 3, "name": "hel1", "description": "Helsinki DC Park 1", "city": "Helsinki", "country": "FI", "network_zone": "eu-central"}],
+            "locations": [
+                {
+                    "id": 3,
+                    "name": "hel1",
+                    "description": "Helsinki DC Park 1",
+                    "city": "Helsinki",
+                    "country": "FI",
+                    "network_zone": "eu-central",
+                }
+            ],
         },
     ],
-    "meta": {"pagination": {"page": 1, "per_page": 50, "next_page": None, "last_page": 1, "total_entries": 2}},
+    "meta": {
+        "pagination": {
+            "page": 1,
+            "per_page": 50,
+            "next_page": None,
+            "last_page": 1,
+            "total_entries": 2,
+        }
+    },
 }
 
 IMAGES_RESPONSE = {
@@ -114,7 +147,15 @@ IMAGES_RESPONSE = {
             "labels": {},
         },
     ],
-    "meta": {"pagination": {"page": 1, "per_page": 50, "next_page": None, "last_page": 1, "total_entries": 2}},
+    "meta": {
+        "pagination": {
+            "page": 1,
+            "per_page": 50,
+            "next_page": None,
+            "last_page": 1,
+            "total_entries": 2,
+        }
+    },
 }
 
 SSH_KEYS_RESPONSE = {
@@ -123,12 +164,20 @@ SSH_KEYS_RESPONSE = {
             "id": 1001,
             "name": "my-laptop",
             "fingerprint": "b7:2f:30:a0:2f:6c:58:6c:21:04:58:61:ba:06:3b:2f",
-            "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKeyForPhoxtail user@laptop",
+            "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKeyForPhoxtail u@l",
             "labels": {},
             "created": "2024-01-01T00:00:00+00:00",
         }
     ],
-    "meta": {"pagination": {"page": 1, "per_page": 50, "next_page": None, "last_page": 1, "total_entries": 1}},
+    "meta": {
+        "pagination": {
+            "page": 1,
+            "per_page": 50,
+            "next_page": None,
+            "last_page": 1,
+            "total_entries": 1,
+        }
+    },
 }
 
 CREATE_SERVER_RESPONSE = {
@@ -244,7 +293,16 @@ class TestListServerTypes:
                 SERVER_TYPES_RESPONSE["server_types"][0],  # has hel1
                 {
                     **SERVER_TYPES_RESPONSE["server_types"][1],
-                    "locations": [{"id": 1, "name": "fsn1", "description": "Falkenstein", "city": "Falkenstein", "country": "DE", "network_zone": "eu-central"}],
+                    "locations": [
+                        {
+                            "id": 1,
+                            "name": "fsn1",
+                            "description": "Falkenstein",
+                            "city": "Falkenstein",
+                            "country": "DE",
+                            "network_zone": "eu-central",
+                        }
+                    ],
                 },
             ],
             "meta": SERVER_TYPES_RESPONSE["meta"],
@@ -278,7 +336,18 @@ class TestListSSHKeys:
     def test_returns_empty_list_when_no_keys(self, provider, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
             url="https://api.hetzner.cloud/v1/ssh_keys?page=1&per_page=50",
-            json={"ssh_keys": [], "meta": {"pagination": {"page": 1, "per_page": 50, "next_page": None, "last_page": 1, "total_entries": 0}}},
+            json={
+                "ssh_keys": [],
+                "meta": {
+                    "pagination": {
+                        "page": 1,
+                        "per_page": 50,
+                        "next_page": None,
+                        "last_page": 1,
+                        "total_entries": 0,
+                    }
+                },
+            },
         )
         keys = provider.list_ssh_keys()
         assert keys == []
@@ -332,7 +401,9 @@ class TestCreateServer:
             url="https://api.hetzner.cloud/v1/servers",
             method="POST",
             status_code=422,
-            json={"error": {"code": "invalid_input", "message": "server_type is invalid"}},
+            json={
+                "error": {"code": "invalid_input", "message": "server_type is invalid"}
+            },
         )
         spec = ServerSpec(
             name="test",

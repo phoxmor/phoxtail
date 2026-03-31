@@ -22,11 +22,11 @@
                         {% if can_confirm %}
                             <p class="auth-subtitle">
                                 {% blocktrans with email=confirmation.email_address.email user=user_display %}
-                                        Please confirm that
-                                        <a href="mailto:{{ email }}" class="auth-link">
-                                            {{ email }}
-                                        </a>
-                                        is an email address for user {{ user }}.
+                                    Please confirm that
+                                    <a href="mailto:{{ email }}" class="auth-link">
+                                        {{ email }}
+                                    </a>
+                                    is an email address for user {{ user }}.
                                 {% endblocktrans %}
                             </p>
                             <form method="post"
@@ -46,7 +46,7 @@
                                       max-width: 24rem;
                                       line-height: 1.625">
                                 {% blocktrans with email=confirmation.email_address.email %}
-                                        Unable to confirm {{ email }} because it is already confirmed by a different account.
+                                    Unable to confirm {{ email }} because it is already confirmed by a different account.
                                 {% endblocktrans %}
                             </p>
                         {% endif %}
@@ -54,10 +54,10 @@
                         {% url 'account_email' as email_url %}
                         <p class="auth-subtitle">
                             {% blocktrans with email_url=email_url %}
-                                    This email confirmation link expired or is invalid. Please
-                                    <a href="{{ email_url }}" class="auth-link">
-                                        issue a new email confirmation request
-                                    </a>.
+                                This email confirmation link expired or is invalid. Please
+                                <a href="{{ email_url }}" class="auth-link">
+                                    issue a new email confirmation request
+                                </a>.
                             {% endblocktrans %}
                         </p>
                     {% endif %}

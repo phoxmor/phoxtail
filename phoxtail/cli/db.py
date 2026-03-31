@@ -87,15 +87,19 @@ def pull(
                     " > /db-backups/pre_pull_safety.sql"
                 )
             except subprocess.CalledProcessError:
-                console.print(
-                    "  [dim]Safety backup skipped (no existing data)[/dim]"
-                )
+                console.print("  [dim]Safety backup skipped (no existing data)[/dim]")
 
             # 4. Restore: drop schema, recreate, load dump via stdin
             #    (avoids dependency on the db-backups bind mount).
             progress.update(task, description="Restoring into local database...")
             restore_cmd = [
-                "docker", "compose", "exec", "-T", "db", "sh", "-c",
+                "docker",
+                "compose",
+                "exec",
+                "-T",
+                "db",
+                "sh",
+                "-c",
                 "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
                 " -U $POSTGRES_USER -d $POSTGRES_DB"
                 " -v ON_ERROR_STOP=1 --single-transaction"
@@ -110,8 +114,10 @@ def pull(
                 )
             if result.returncode != 0:
                 raise subprocess.CalledProcessError(
-                    result.returncode, restore_cmd,
-                    output=result.stdout, stderr=result.stderr,
+                    result.returncode,
+                    restore_cmd,
+                    output=result.stdout,
+                    stderr=result.stderr,
                 )
 
             # 5. Update Wagtail Site hostnames to local domain.
@@ -121,7 +127,7 @@ def pull(
             docker_db(
                 "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
                 " -U $POSTGRES_USER -d $POSTGRES_DB"
-                " -c \"UPDATE wagtailcore_site SET hostname = CASE"
+                ' -c "UPDATE wagtailcore_site SET hostname = CASE'
                 "  WHEN hostname = ("
                 "    SELECT hostname FROM wagtailcore_site"
                 "    WHERE is_default_site = true LIMIT 1"
@@ -134,9 +140,7 @@ def pull(
             )
 
             # 6. Reset all superuser passwords for local access.
-            progress.update(
-                task, description="Resetting superuser passwords..."
-            )
+            progress.update(task, description="Resetting superuser passwords...")
             result = docker_manage(
                 "shell",
                 "-c",
@@ -151,7 +155,8 @@ def pull(
             # Use a unique marker to ignore Django shell startup noise.
             marker_line = next(
                 (
-                    line for line in result.stdout.splitlines()
+                    line
+                    for line in result.stdout.splitlines()
                     if line.startswith("__SUPERUSERS__:")
                 ),
                 None,
@@ -178,9 +183,7 @@ def pull(
                         " for u in User.objects.filter(is_superuser=True)]"
                     ),
                 )
-                console.print(
-                    "[green bold]✓ Database pulled and restored[/green bold]"
-                )
+                console.print("[green bold]✓ Database pulled and restored[/green bold]")
             else:
                 console.print(
                     "[green bold]✓ Database pulled and restored[/green bold]\n"

@@ -20,280 +20,280 @@
                     <h1 class="auth-heading">{% trans "Sign Up" %}</h1>
                     <p class="auth-subtitle">
                         {% setvar link %}
-                        <a href="{{ login_url }}" class="auth-link">
+                            <a href="{{ login_url }}" class="auth-link">
                         {% endsetvar %}
                         {% setvar end_link %}
-                    </a>
-                {% endsetvar %}
-                {% blocktranslate %}Already have an account? Then please {{ link }}sign in{{ end_link }}.{% endblocktranslate %}
-            </p>
-        </div>
-        {% if not SOCIALACCOUNT_ONLY %}
-            {% url 'account_signup' as action_url %}
-            <form class="auth-form"
-                  method="post"
-                  action="{{ action_url }}"
-                  tags="entrance,signup">
-                {% csrf_token %}
-                {% if form.non_field_errors %}
-                    <div class="auth-error-box">
-                        <div class="auth-error-box-content">
-                            <svg class="auth-error-box-icon"
-                                 xmlns="http://www.w3.org/2000/svg"
-                                 viewBox="0 0 20 20"
-                                 fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                            </svg>
-                            <span class="auth-error-box-text">
-                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                            </span>
+                            </a>
+                        {% endsetvar %}
+                        {% blocktranslate %}Already have an account? Then please {{ link }}sign in{{ end_link }}.{% endblocktranslate %}
+                    </p>
+                </div>
+                {% if not SOCIALACCOUNT_ONLY %}
+                    {% url 'account_signup' as action_url %}
+                    <form class="auth-form"
+                          method="post"
+                          action="{{ action_url }}"
+                          tags="entrance,signup">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="auth-error-box">
+                                <div class="auth-error-box-content">
+                                    <svg class="auth-error-box-icon"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 20 20"
+                                         fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                    <span class="auth-error-box-text">
+                                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="auth-form-grid">
+                            <div>
+                                <label for="{{ form.first_name.id_for_label }}" class="auth-label">
+                                    {{ form.first_name.label }}
+                                    {% if form.first_name.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="text"
+                                           name="{{ form.first_name.html_name }}"
+                                           id="{{ form.first_name.id_for_label }}"
+                                           value="{{ form.first_name.value|default_if_none:'' }}"
+                                           {% if form.first_name.field.widget.attrs.placeholder %}placeholder="{{ form.first_name.field.widget.attrs.placeholder }}"{% endif %}
+                                           class="auth-input{% if form.first_name.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.first_name.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.first_name.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.last_name.id_for_label }}" class="auth-label">
+                                    {{ form.last_name.label }}
+                                    {% if form.last_name.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="text"
+                                           name="{{ form.last_name.html_name }}"
+                                           id="{{ form.last_name.id_for_label }}"
+                                           value="{{ form.last_name.value|default_if_none:'' }}"
+                                           {% if form.last_name.field.widget.attrs.placeholder %}placeholder="{{ form.last_name.field.widget.attrs.placeholder }}"{% endif %}
+                                           class="auth-input{% if form.last_name.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.last_name.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.last_name.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="auth-form-grid-full">
+                                <label for="{{ form.email.id_for_label }}" class="auth-label">
+                                    {{ form.email.label }}
+                                    {% if form.email.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="email"
+                                           name="{{ form.email.html_name }}"
+                                           id="{{ form.email.id_for_label }}"
+                                           value="{{ form.email.value|default_if_none:'' }}"
+                                           {% if form.email.field.widget.attrs.placeholder %}placeholder="{{ form.email.field.widget.attrs.placeholder }}"{% endif %}
+                                           class="auth-input{% if form.email.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.email.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.email.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.born_at.id_for_label }}" class="auth-label">
+                                    {{ form.born_at.label }}
+                                    {% if form.born_at.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="date"
+                                           name="{{ form.born_at.html_name }}"
+                                           id="{{ form.born_at.id_for_label }}"
+                                           value="{{ form.born_at.value|default_if_none:'' }}"
+                                           class="auth-input{% if form.born_at.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.born_at.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.born_at.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.gender.id_for_label }}" class="auth-label">
+                                    {{ form.gender.label }}
+                                    {% if form.gender.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <select name="{{ form.gender.html_name }}"
+                                            id="{{ form.gender.id_for_label }}"
+                                            class="auth-input{% if form.gender.errors %} auth-input--error{% endif %}">
+                                        {% for gender in form.gender.field.choices %}
+                                            <option value="{{ gender.0 }}"
+                                                    {% if form.gender.value|stringformat:"s" == gender.0|stringformat:"s" %}selected{% endif %}>
+                                                {{ gender.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.gender.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.gender.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="auth-form-grid-full">
+                                <label for="{{ form.country.id_for_label }}" class="auth-label">
+                                    {{ form.country.label }}
+                                    {% if form.country.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <select name="{{ form.country.html_name }}"
+                                            id="{{ form.country.id_for_label }}"
+                                            class="auth-input{% if form.country.errors %} auth-input--error{% endif %}">
+                                        {% for country in form.country.field.choices %}
+                                            <option value="{{ country.0 }}"
+                                                    {% if form.country.value == country.0 %}selected{% endif %}>
+                                                {{ country.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.country.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.country.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="auth-form-grid-full">
+                                <label for="{{ form.phone_number.id_for_label }}" class="auth-label">
+                                    Phone Number
+                                    {% if form.phone_number.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-phone-wrapper">
+                                    <div class="auth-phone-inner">
+                                        {{ form.phone_number|add_class:"auth-input" }}
+                                        <div class="auth-input-glow"></div>
+                                    </div>
+                                    {% if form.phone_number.errors %}
+                                        <p class="auth-error">
+                                            <span class="auth-error-dot"></span>
+                                            {% for error in form.phone_number.errors %}
+                                                {{ error }}
+                                                {% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.password1.id_for_label }}" class="auth-label">
+                                    {{ form.password1.label }}
+                                    {% if form.password1.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="password"
+                                           name="{{ form.password1.html_name }}"
+                                           id="{{ form.password1.id_for_label }}"
+                                           value="{{ form.password1.value|default_if_none:'' }}"
+                                           {% if form.password1.field.widget.attrs.placeholder %}placeholder="{{ form.password1.field.widget.attrs.placeholder }}"{% endif %}
+                                           class="auth-input{% if form.password1.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.password1.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.password1.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <label for="{{ form.password2.id_for_label }}" class="auth-label">
+                                    {{ form.password2.label }}
+                                    {% if form.password2.field.required %}<span class="auth-required">*</span>{% endif %}
+                                </label>
+                                <div class="auth-input-wrapper">
+                                    <input type="password"
+                                           name="{{ form.password2.html_name }}"
+                                           id="{{ form.password2.id_for_label }}"
+                                           value="{{ form.password2.value|default_if_none:'' }}"
+                                           {% if form.password2.field.widget.attrs.placeholder %}placeholder="{{ form.password2.field.widget.attrs.placeholder }}"{% endif %}
+                                           class="auth-input{% if form.password2.errors %} auth-input--error{% endif %}">
+                                    <div class="auth-input-glow"></div>
+                                    {% if form.password2.errors %}
+                                        <div class="auth-errors-block">
+                                            {% for error in form.password2.errors %}
+                                                <p class="auth-error">
+                                                    <span class="auth-error-dot"></span>{{ error }}
+                                                </p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
+                        {{ redirect_field }}
+                        <div class="auth-actions">
+                            {% include "allauth/components/submit_button.html" with text_key="Sign Up" button_type="submit" %}
+                        </div>
+                    </form>
+                {% endif %}
+                {% if PASSKEY_SIGNUP_ENABLED %}
+                    <div class="auth-section-divider">
+                        {% include "allauth/components/submit_button.html" with text_key="Sign up using a passkey" button_type="submit" form_id="passkey_signup_form" button_id="passkey_signup" %}
+                        <form id="passkey_signup_form"
+                              action="{{ signup_by_passkey_url }}"
+                              method="post"
+                              class="auth-hidden">
+                            {% csrf_token %}
+                        </form>
                     </div>
                 {% endif %}
-                <div class="auth-form-grid">
-                    <div>
-                        <label for="{{ form.first_name.id_for_label }}" class="auth-label">
-                            {{ form.first_name.label }}
-                            {% if form.first_name.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="text"
-                                   name="{{ form.first_name.html_name }}"
-                                   id="{{ form.first_name.id_for_label }}"
-                                   value="{{ form.first_name.value|default_if_none:'' }}"
-                                   {% if form.first_name.field.widget.attrs.placeholder %}placeholder="{{ form.first_name.field.widget.attrs.placeholder }}"{% endif %}
-                                   class="auth-input{% if form.first_name.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.first_name.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.first_name.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <label for="{{ form.last_name.id_for_label }}" class="auth-label">
-                            {{ form.last_name.label }}
-                            {% if form.last_name.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="text"
-                                   name="{{ form.last_name.html_name }}"
-                                   id="{{ form.last_name.id_for_label }}"
-                                   value="{{ form.last_name.value|default_if_none:'' }}"
-                                   {% if form.last_name.field.widget.attrs.placeholder %}placeholder="{{ form.last_name.field.widget.attrs.placeholder }}"{% endif %}
-                                   class="auth-input{% if form.last_name.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.last_name.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.last_name.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="auth-form-grid-full">
-                        <label for="{{ form.email.id_for_label }}" class="auth-label">
-                            {{ form.email.label }}
-                            {% if form.email.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="email"
-                                   name="{{ form.email.html_name }}"
-                                   id="{{ form.email.id_for_label }}"
-                                   value="{{ form.email.value|default_if_none:'' }}"
-                                   {% if form.email.field.widget.attrs.placeholder %}placeholder="{{ form.email.field.widget.attrs.placeholder }}"{% endif %}
-                                   class="auth-input{% if form.email.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.email.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.email.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <label for="{{ form.born_at.id_for_label }}" class="auth-label">
-                            {{ form.born_at.label }}
-                            {% if form.born_at.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="date"
-                                   name="{{ form.born_at.html_name }}"
-                                   id="{{ form.born_at.id_for_label }}"
-                                   value="{{ form.born_at.value|default_if_none:'' }}"
-                                   class="auth-input{% if form.born_at.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.born_at.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.born_at.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <label for="{{ form.gender.id_for_label }}" class="auth-label">
-                            {{ form.gender.label }}
-                            {% if form.gender.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <select name="{{ form.gender.html_name }}"
-                                    id="{{ form.gender.id_for_label }}"
-                                    class="auth-input{% if form.gender.errors %} auth-input--error{% endif %}">
-                                {% for gender in form.gender.field.choices %}
-                                    <option value="{{ gender.0 }}"
-                                            {% if form.gender.value|stringformat:"s" == gender.0|stringformat:"s" %}selected{% endif %}>
-                                        {{ gender.1 }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="auth-input-glow"></div>
-                            {% if form.gender.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.gender.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="auth-form-grid-full">
-                        <label for="{{ form.country.id_for_label }}" class="auth-label">
-                            {{ form.country.label }}
-                            {% if form.country.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <select name="{{ form.country.html_name }}"
-                                    id="{{ form.country.id_for_label }}"
-                                    class="auth-input{% if form.country.errors %} auth-input--error{% endif %}">
-                                {% for country in form.country.field.choices %}
-                                    <option value="{{ country.0 }}"
-                                            {% if form.country.value == country.0 %}selected{% endif %}>
-                                        {{ country.1 }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="auth-input-glow"></div>
-                            {% if form.country.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.country.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="auth-form-grid-full">
-                        <label for="{{ form.phone_number.id_for_label }}" class="auth-label">
-                            Phone Number
-                            {% if form.phone_number.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-phone-wrapper">
-                            <div class="auth-phone-inner">
-                                {{ form.phone_number|add_class:"auth-input" }}
-                                <div class="auth-input-glow"></div>
-                            </div>
-                            {% if form.phone_number.errors %}
-                                <p class="auth-error">
-                                    <span class="auth-error-dot"></span>
-                                    {% for error in form.phone_number.errors %}
-                                        {{ error }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% endfor %}
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <label for="{{ form.password1.id_for_label }}" class="auth-label">
-                            {{ form.password1.label }}
-                            {% if form.password1.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="password"
-                                   name="{{ form.password1.html_name }}"
-                                   id="{{ form.password1.id_for_label }}"
-                                   value="{{ form.password1.value|default_if_none:'' }}"
-                                   {% if form.password1.field.widget.attrs.placeholder %}placeholder="{{ form.password1.field.widget.attrs.placeholder }}"{% endif %}
-                                   class="auth-input{% if form.password1.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.password1.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.password1.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div>
-                        <label for="{{ form.password2.id_for_label }}" class="auth-label">
-                            {{ form.password2.label }}
-                            {% if form.password2.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="password"
-                                   name="{{ form.password2.html_name }}"
-                                   id="{{ form.password2.id_for_label }}"
-                                   value="{{ form.password2.value|default_if_none:'' }}"
-                                   {% if form.password2.field.widget.attrs.placeholder %}placeholder="{{ form.password2.field.widget.attrs.placeholder }}"{% endif %}
-                                   class="auth-input{% if form.password2.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.password2.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.password2.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>{{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {{ redirect_field }}
-                <div class="auth-actions">
-                    {% include "allauth/components/submit_button.html" with text_key="Sign Up" button_type="submit" %}
-                </div>
-            </form>
-        {% endif %}
-        {% if PASSKEY_SIGNUP_ENABLED %}
-            <div class="auth-section-divider">
-                {% include "allauth/components/submit_button.html" with text_key="Sign up using a passkey" button_type="submit" form_id="passkey_signup_form" button_id="passkey_signup" %}
-                <form id="passkey_signup_form"
-                      action="{{ signup_by_passkey_url }}"
-                      method="post"
-                      class="auth-hidden">
-                    {% csrf_token %}
-                </form>
+                {% if SOCIALACCOUNT_ENABLED %}
+                    <div class="auth-section-divider">{% include "socialaccount/snippets/login.html" with page_layout="entrance" %}</div>
+                {% endif %}
             </div>
-        {% endif %}
-        {% if SOCIALACCOUNT_ENABLED %}
-            <div class="auth-section-divider">{% include "socialaccount/snippets/login.html" with page_layout="entrance" %}</div>
-        {% endif %}
-    </div>
-</div>
+        </div>
 {% endblock body %}
 {% block extra_body %}
     {{ block.super }}

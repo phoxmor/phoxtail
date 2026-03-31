@@ -205,75 +205,75 @@
     </div>
 </div>
 <script>
-(function() {
-    const previewImage = document.getElementById('avatar-preview-image');
-    const originalAvatarSrc = previewImage?.getAttribute('src') || '';
-    const hasOriginalAvatar = !!originalAvatarSrc;
+    (function() {
+        const previewImage = document.getElementById('avatar-preview-image');
+        const originalAvatarSrc = previewImage?.getAttribute('src') || '';
+        const hasOriginalAvatar = !!originalAvatarSrc;
 
-    window.previewAvatar = function(event) {
-        const file = event.target.files[0];
-        const previewInitials = document.getElementById('avatar-preview-initials');
-        const clearCheckbox = document.getElementById('avatar-clear-checkbox');
+        window.previewAvatar = function(event) {
+            const file = event.target.files[0];
+            const previewInitials = document.getElementById('avatar-preview-initials');
+            const clearCheckbox = document.getElementById('avatar-clear-checkbox');
 
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            const img = new Image();
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                const img = new Image();
 
-            reader.onload = function(e) {
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const maxSize = 512;
+                reader.onload = function(e) {
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxSize = 512;
 
-                    let width = img.width;
-                    let height = img.height;
+                        let width = img.width;
+                        let height = img.height;
 
-                    if (width > height) {
-                        if (width > maxSize) {
-                            height *= maxSize / width;
-                            width = maxSize;
+                        if (width > height) {
+                            if (width > maxSize) {
+                                height *= maxSize / width;
+                                width = maxSize;
+                            }
+                        } else {
+                            if (height > maxSize) {
+                                width *= maxSize / height;
+                                height = maxSize;
+                            }
                         }
-                    } else {
-                        if (height > maxSize) {
-                            width *= maxSize / height;
-                            height = maxSize;
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
+                        previewImage.classList.remove('dash-hidden');
+                        if (previewInitials) {
+                            previewInitials.classList.add('dash-hidden');
                         }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
-                    previewImage.classList.remove('dash-hidden');
-                    if (previewInitials) {
-                        previewInitials.classList.add('dash-hidden');
-                    }
-                    if (clearCheckbox) {
-                        clearCheckbox.checked = false;
-                    }
+                        if (clearCheckbox) {
+                            clearCheckbox.checked = false;
+                        }
+                    };
+                    img.src = e.target.result;
                 };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    window.handleClearAvatar = function(event) {
-        const previewInitials = document.getElementById('avatar-preview-initials');
-        const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
-
-        if (event.target.checked) {
-            previewImage.classList.add('dash-hidden');
-            previewInitials.classList.remove('dash-hidden');
-            fileInput.value = '';
-        } else {
-            if (hasOriginalAvatar) {
-                previewImage.src = originalAvatarSrc;
-                previewImage.classList.remove('dash-hidden');
-                previewInitials.classList.add('dash-hidden');
+                reader.readAsDataURL(file);
             }
-        }
-    };
-})();
+        };
+
+        window.handleClearAvatar = function(event) {
+            const previewInitials = document.getElementById('avatar-preview-initials');
+            const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
+
+            if (event.target.checked) {
+                previewImage.classList.add('dash-hidden');
+                previewInitials.classList.remove('dash-hidden');
+                fileInput.value = '';
+            } else {
+                if (hasOriginalAvatar) {
+                    previewImage.src = originalAvatarSrc;
+                    previewImage.classList.remove('dash-hidden');
+                    previewInitials.classList.add('dash-hidden');
+                }
+            }
+        };
+    })();
 </script>

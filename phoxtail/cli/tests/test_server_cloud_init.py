@@ -1,7 +1,5 @@
 """Tests for cloud-init bootstrap template rendering."""
 
-import pytest
-
 from phoxtail.cli.utils.templates import render_template
 
 

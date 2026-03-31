@@ -8,35 +8,35 @@
          preserveAspectRatio="xMidYMid meet">
         <defs>
         <!-- Gradient for waves -->
-        <linearGradient id="wave-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="rgba(139, 92, 246, 0)" />
-        <stop offset="20%" stop-color="rgba(139, 92, 246, 0.6)" />
-        <stop offset="50%" stop-color="rgba(168, 85, 247, 0.8)" />
-        <stop offset="80%" stop-color="rgba(139, 92, 246, 0.6)" />
-        <stop offset="100%" stop-color="rgba(139, 92, 246, 0)" />
-        </linearGradient>
-        <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="rgba(99, 102, 241, 0)" />
-        <stop offset="25%" stop-color="rgba(99, 102, 241, 0.5)" />
-        <stop offset="50%" stop-color="rgba(129, 140, 248, 0.7)" />
-        <stop offset="75%" stop-color="rgba(99, 102, 241, 0.5)" />
-        <stop offset="100%" stop-color="rgba(99, 102, 241, 0)" />
-        </linearGradient>
-        <linearGradient id="wave-gradient-3" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="rgba(192, 132, 252, 0)" />
-        <stop offset="30%" stop-color="rgba(192, 132, 252, 0.4)" />
-        <stop offset="50%" stop-color="rgba(216, 180, 254, 0.6)" />
-        <stop offset="70%" stop-color="rgba(192, 132, 252, 0.4)" />
-        <stop offset="100%" stop-color="rgba(192, 132, 252, 0)" />
-        </linearGradient>
+            <linearGradient id="wave-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="rgba(139, 92, 246, 0)" />
+                <stop offset="20%" stop-color="rgba(139, 92, 246, 0.6)" />
+                <stop offset="50%" stop-color="rgba(168, 85, 247, 0.8)" />
+                <stop offset="80%" stop-color="rgba(139, 92, 246, 0.6)" />
+                <stop offset="100%" stop-color="rgba(139, 92, 246, 0)" />
+            </linearGradient>
+            <linearGradient id="wave-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="rgba(99, 102, 241, 0)" />
+                <stop offset="25%" stop-color="rgba(99, 102, 241, 0.5)" />
+                <stop offset="50%" stop-color="rgba(129, 140, 248, 0.7)" />
+                <stop offset="75%" stop-color="rgba(99, 102, 241, 0.5)" />
+                <stop offset="100%" stop-color="rgba(99, 102, 241, 0)" />
+            </linearGradient>
+            <linearGradient id="wave-gradient-3" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="rgba(192, 132, 252, 0)" />
+                <stop offset="30%" stop-color="rgba(192, 132, 252, 0.4)" />
+                <stop offset="50%" stop-color="rgba(216, 180, 254, 0.6)" />
+                <stop offset="70%" stop-color="rgba(192, 132, 252, 0.4)" />
+                <stop offset="100%" stop-color="rgba(192, 132, 252, 0)" />
+            </linearGradient>
         <!-- Glow filter -->
-        <filter id="wave-glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-        <feMerge>
-        <feMergeNode in="coloredBlur" />
-        <feMergeNode in="SourceGraphic" />
-        </feMerge>
-        </filter>
+            <filter id="wave-glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                <feMerge>
+                    <feMergeNode in="coloredBlur" />
+                    <feMergeNode in="SourceGraphic" />
+                </feMerge>
+            </filter>
         </defs>
         <!-- Background subtle wave -->
         <path class="quantum-wave wave-bg" stroke="url(#wave-gradient-3)" fill="none" stroke-width="1.5" opacity="0.5" />
@@ -46,11 +46,11 @@
         <path class="quantum-wave wave-front" stroke="url(#wave-gradient-1)" fill="none" stroke-width="2.5" filter="url(#wave-glow)" />
         <!-- Quantum particles along the waves -->
         <g class="quantum-particles">
-        <circle class="q-particle p1" r="3" fill="rgba(168, 85, 247, 0.9)" />
-        <circle class="q-particle p2" r="2.5" fill="rgba(129, 140, 248, 0.8)" />
-        <circle class="q-particle p3" r="2" fill="rgba(192, 132, 252, 0.7)" />
-        <circle class="q-particle p4" r="2" fill="rgba(139, 92, 246, 0.8)" />
-        <circle class="q-particle p5" r="1.5" fill="rgba(216, 180, 254, 0.6)" />
+            <circle class="q-particle p1" r="3" fill="rgba(168, 85, 247, 0.9)" />
+            <circle class="q-particle p2" r="2.5" fill="rgba(129, 140, 248, 0.8)" />
+            <circle class="q-particle p3" r="2" fill="rgba(192, 132, 252, 0.7)" />
+            <circle class="q-particle p4" r="2" fill="rgba(139, 92, 246, 0.8)" />
+            <circle class="q-particle p5" r="1.5" fill="rgba(216, 180, 254, 0.6)" />
         </g>
     </svg>
     <!-- Central resonance point -->

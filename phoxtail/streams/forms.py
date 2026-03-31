@@ -64,9 +64,9 @@ class StudioContextForm(forms.Form):
                 # Derive collection from variant when not explicitly provided
                 if not collection:
                     try:
-                        variant = BlockVariant.objects.select_related(
-                            "collection"
-                        ).get(pk=variant_id)
+                        variant = BlockVariant.objects.select_related("collection").get(
+                            pk=variant_id
+                        )
                         collection = variant.collection
                     except BlockVariant.DoesNotExist:
                         pass

@@ -17,99 +17,99 @@ Parameters:
     <div class="copy-key-icon-wrapper check-icon">{% icon "check" %}</div>
 </button>
 <style>
-.copy-key-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 6px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
-    cursor: pointer;
-    transition: all 150ms ease;
-    color: rgb(var(--color-surface-500));
-}
+    .copy-key-btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 6px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 150ms ease;
+        color: rgb(var(--color-surface-500));
+    }
 
-.copy-key-btn:hover {
-    background: rgb(var(--color-surface-100));
-    border-color: rgb(var(--color-surface-200));
-    color: rgb(var(--color-primary-600));
-}
+    .copy-key-btn:hover {
+        background: rgb(var(--color-surface-100));
+        border-color: rgb(var(--color-surface-200));
+        color: rgb(var(--color-primary-600));
+    }
 
-.copy-key-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .copy-key-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.copy-key-icon-wrapper svg {
-    width: 1.125rem;
-    height: 1.125rem;
-    color: inherit;
-}
+    .copy-key-icon-wrapper svg {
+        width: 1.125rem;
+        height: 1.125rem;
+        color: inherit;
+    }
 
-.check-icon {
-    display: none;
-    color: rgb(var(--color-success-600));
-}
+    .check-icon {
+        display: none;
+        color: rgb(var(--color-success-600));
+    }
 
-.copy-key-btn.copied .copy-icon {
-    display: none;
-}
+    .copy-key-btn.copied .copy-icon {
+        display: none;
+    }
 
-.copy-key-btn.copied .check-icon {
-    display: flex;
-}
+    .copy-key-btn.copied .check-icon {
+        display: flex;
+    }
 
 /* Tooltip Popup */
-.copy-key-btn::after {
-    content: "Copy";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-4px);
-    padding: 4px 8px;
-    background: rgb(var(--color-surface-800));
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 4px;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 150ms ease;
-    pointer-events: none;
-    z-index: 10;
-}
+    .copy-key-btn::after {
+        content: "Copy";
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-4px);
+        padding: 4px 8px;
+        background: rgb(var(--color-surface-800));
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        border-radius: 4px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 150ms ease;
+        pointer-events: none;
+        z-index: 10;
+    }
 
-.copy-key-btn:hover::after {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(-8px);
-}
+    .copy-key-btn:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-8px);
+    }
 
-.copy-key-btn.copied::after {
-    content: "Copied!";
-}
+    .copy-key-btn.copied::after {
+        content: "Copied!";
+    }
 
 /* Dark Mode Overrides */
-@media (prefers-color-scheme: dark) {
-    .copy-key-btn {
-        color: rgb(var(--color-surface-400));
+    @media (prefers-color-scheme: dark) {
+        .copy-key-btn {
+            color: rgb(var(--color-surface-400));
+        }
+        .copy-key-btn:hover {
+            background: rgb(var(--color-surface-800));
+            border-color: rgb(var(--color-surface-700));
+            color: rgb(var(--color-primary-400));
+        }
+        .check-icon {
+            color: rgb(var(--color-success-400));
+        }
+        .copy-key-btn::after {
+            background: rgb(var(--color-surface-700));
+        }
     }
-    .copy-key-btn:hover {
-        background: rgb(var(--color-surface-800));
-        border-color: rgb(var(--color-surface-700));
-        color: rgb(var(--color-primary-400));
-    }
-    .check-icon {
-        color: rgb(var(--color-success-400));
-    }
-    .copy-key-btn::after {
-        background: rgb(var(--color-surface-700));
-    }
-}
 </style>
