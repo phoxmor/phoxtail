@@ -9,6 +9,8 @@ import questionary
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils.docker import docker_env
+
 console = Console()
 
 
@@ -31,6 +33,7 @@ def _get_django_commands() -> list[tuple[str, str]]:
         ],
         capture_output=True,
         text=True,
+        env=docker_env(),
     )
     if result.returncode != 0:
         if result.stderr:
@@ -116,4 +119,4 @@ def manage(
         command,
         *ctx.args,
     ]
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))

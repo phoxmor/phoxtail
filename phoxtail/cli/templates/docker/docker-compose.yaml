@@ -4,6 +4,7 @@ services:
       target: {{ environment }}
     image: {{ image_name }}
     restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - .:/app
 {% if environment == "development" and phoxtail_source is defined %}

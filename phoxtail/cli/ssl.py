@@ -6,6 +6,7 @@ import sys
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.env import read_env_value
 
 app = typer.Typer()
@@ -69,7 +70,7 @@ def obtain(
             f"--email {email} --agree-tos --no-eff-email",
         ]
 
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))
 
 
 @app.command()
@@ -79,15 +80,16 @@ def renew() -> None:
     Examples:
         phoxtail ssl renew
     """
+    env = docker_env()
     result = subprocess.call(
-        ["docker", "compose", "run", "--rm", "certbot", "renew", "-q"]
+        ["docker", "compose", "run", "--rm", "certbot", "renew", "-q"], env=env
     )
     if result != 0:
         console.print("[red]Error:[/red] Certificate renewal failed")
         raise typer.Exit(1)
 
     result = subprocess.call(
-        ["docker", "compose", "exec", "nginx", "nginx", "-s", "reload"]
+        ["docker", "compose", "exec", "nginx", "nginx", "-s", "reload"], env=env
     )
     if result != 0:
         console.print("[red]Error:[/red] Nginx reload failed")

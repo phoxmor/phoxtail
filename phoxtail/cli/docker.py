@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 from phoxtail.cli.utils.config import get_image_prefix
+from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
 
 app = typer.Typer()
@@ -50,7 +51,7 @@ def up(
     if build:
         cmd.append("--build")
     cmd.extend(ctx.args)
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))
 
 
 @app.command(
@@ -70,7 +71,7 @@ def down(ctx: typer.Context) -> None:
         phoxtail docker down --volumes
     """
     cmd = ["docker", "compose", "down", *ctx.args]
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))
 
 
 @app.command(
@@ -90,7 +91,7 @@ def restart(ctx: typer.Context) -> None:
         phoxtail docker restart web
     """
     cmd = ["docker", "compose", "restart", *ctx.args]
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))
 
 
 # Valid versions for selection

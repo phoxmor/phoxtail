@@ -6,6 +6,8 @@ import sys
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils.docker import docker_env
+
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
@@ -49,4 +51,4 @@ def test(
         if coverage:
             cmd.extend(["--cov", "--cov-report=term-missing"])
         cmd.extend(ctx.args)
-        sys.exit(subprocess.call(cmd))
+        sys.exit(subprocess.call(cmd, env=docker_env()))
