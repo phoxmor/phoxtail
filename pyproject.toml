@@ -70,7 +70,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"phoxtail" = ["project_template/**/*", "docs/**/*"]
+"phoxtail" = ["project_template/**/*", "project_template/**/.*", "docs/**/*"]
 "phoxtail.cli" = ["templates/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.design" = ["management/data/**/*"]
