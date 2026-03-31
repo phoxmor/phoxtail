@@ -15,6 +15,7 @@ from phoxtail.cli import (
     media,
     nginx,
     requirements,
+    server,
     ssl,
     test,
 )
@@ -29,7 +30,7 @@ app = typer.Typer(
 console = Console()
 
 # Commands that don't require a phoxtail project.
-NO_PROJECT_COMMANDS = {"version", "hatch", "docs"}
+NO_PROJECT_COMMANDS = {"version", "hatch", "docs", "server"}
 
 
 @app.callback(invoke_without_command=True)
@@ -62,6 +63,7 @@ app.add_typer(media.app, name="media", help="Media file management")
 app.add_typer(nginx.app, name="nginx", help="Nginx configuration")
 app.add_typer(env.app, name="env", help="Environment configuration")
 app.add_typer(requirements.app, name="requirements", help="Python requirements")
+app.add_typer(server.app, name="server", help="Remote server management")
 app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
 
 # Top-level commands

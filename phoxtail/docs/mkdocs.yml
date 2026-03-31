@@ -12,6 +12,7 @@ nav:
   - CLI:
       - Overview: cli/overview.md
       - Configuration Reference: cli/configuration.md
+      - Server Plan: cli/server-plan.md
 
   - Engine:
       - Core:

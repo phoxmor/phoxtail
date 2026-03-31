@@ -1,0 +1,89 @@
+#cloud-config
+
+# -----------------------------------------------------------------------
+# Phoxtail server bootstrap
+# Runs once on first boot. By the time cloud-init finishes, the server
+# has a hardened non-root user, Docker, uv, and the phoxtail CLI ready.
+# -----------------------------------------------------------------------
+
+# Create the deploy user with sudo and Docker access
+users:
+  - name: {{ deploy_user }}
+    groups: users, sudo
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+{% for key in ssh_public_keys %}
+      - {{ key }}
+{% endfor %}
+
+# Install security and utility packages
+packages:
+  - fail2ban
+  - ufw
+  - unattended-upgrades
+  - git
+  - curl
+
+package_update: true
+package_upgrade: true
+
+write_files:
+  # SSH hardening — drop-in file so it doesn't touch the main sshd_config
+  - path: /etc/ssh/sshd_config.d/99-phoxtail-hardening.conf
+    permissions: "0600"
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      ChallengeResponseAuthentication no
+      MaxAuthTries 3
+      AllowTcpForwarding no
+      X11Forwarding no
+      AllowAgentForwarding no
+      AuthorizedKeysFile .ssh/authorized_keys
+      AllowUsers {{ deploy_user }}
+
+  # Auto-apply security updates without rebooting
+  - path: /etc/apt/apt.conf.d/51phoxtail-unattended-upgrades
+    content: |
+      Unattended-Upgrade::Automatic-Reboot "false";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+      Unattended-Upgrade::Mail "root";
+
+  # fail2ban — protect SSH on default port
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [sshd]
+      enabled = true
+      port = ssh
+      banaction = iptables-multiport
+      maxretry = 3
+      findtime = 300
+      bantime = 3600
+
+runcmd:
+  # Install Docker (official convenience script — installs engine + compose plugin)
+  - curl -fsSL https://get.docker.com | sh
+  # Add deploy user to docker group so it can run docker without sudo
+  - usermod -aG docker {{ deploy_user }}
+
+  # Install uv (Python package manager) as the deploy user
+  - su - {{ deploy_user }} -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
+  # Install phoxtail CLI from PyPI and symlink it system-wide
+  - su - {{ deploy_user }} -c "/home/{{ deploy_user }}/.local/bin/uv tool install phoxtail"
+  - ln -sf /home/{{ deploy_user }}/.local/bin/phoxtail /usr/local/bin/phoxtail
+
+  # Enable services
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # Firewall — allow SSH, HTTP, HTTPS only
+  - ufw allow ssh
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+
+  # Restart SSH to apply hardening config (new connections use hardened config,
+  # existing root session stays open until the server reboots or it's closed)
+  - systemctl restart ssh
