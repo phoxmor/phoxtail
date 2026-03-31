@@ -5,7 +5,7 @@
     --md-sys-color-on-surface: var(--color-surface-900);
     --md-sys-color-on-surface-variant: var(--color-surface-600);
     --md-sys-color-outline-variant: var(--color-surface-200);
-    
+
     /* Tonal Surfaces */
     --md-sys-color-surface-container-lowest: 255, 255, 255;
     --md-sys-color-surface-container-low: var(--color-surface-100);
@@ -316,12 +316,12 @@
         --md-sys-color-on-surface: var(--color-surface-100);
         --md-sys-color-on-surface-variant: var(--color-surface-300);
         --md-sys-color-outline-variant: var(--color-surface-700);
-        
+
         --md-sys-color-surface-container-lowest: var(--color-surface-950);
         --md-sys-color-surface-container-low: var(--color-surface-800);
         --md-sys-color-surface-container: var(--color-surface-700);
         --md-sys-color-surface-container-high: var(--color-surface-600);
-        
+
         --md-sys-color-primary: var(--color-primary-400);
         --md-sys-color-on-primary: var(--color-surface-900);
         --md-sys-color-primary-container: var(--color-primary-400);

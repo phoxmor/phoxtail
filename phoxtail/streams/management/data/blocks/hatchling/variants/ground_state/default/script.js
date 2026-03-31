@@ -21,9 +21,10 @@
             var dy = e.clientY - cy;
             var angle = Math.atan2(dy, dx);
             var dist = Math.min(Math.sqrt(dx * dx + dy * dy) / 40, MAX_OFFSET);
+            
             targetX = Math.cos(angle) * dist;
             targetY = Math.sin(angle) * dist;
-
+            
             if (!tickingEyes) {
                 tickingEyes = true;
                 requestAnimationFrame(animateEyes);
@@ -37,7 +38,7 @@
             for (var i = 0; i < pupils.length; i++) {
                 pupils[i].setAttribute("transform", "translate(" + currentX.toFixed(2) + " " + currentY.toFixed(2) + ")");
             }
-
+            
             if (Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
                 requestAnimationFrame(animateEyes);
             } else {
@@ -61,7 +62,7 @@
         setTimeout(triggerBlink, 2000);
     }
 
-    /* ── Free-Floating Embers ── */
+    /* ── Free-Floating Embers (Now with Gravitational Repel) ── */
     var embersEl = root.querySelector("[data-m3-embers]");
     if (embersEl) {
         var EMBER_COUNT = 45;
@@ -71,6 +72,21 @@
             "rgb(var(--color-accent-500))"
         ];
         var particles = [];
+
+        // Global mouse position tracking relative to the block
+        var emberMouseX = -1000;
+        var emberMouseY = -1000;
+
+        root.addEventListener("mousemove", function(e) {
+            var rect = root.getBoundingClientRect();
+            emberMouseX = e.clientX - rect.left;
+            emberMouseY = e.clientY - rect.top;
+        });
+
+        root.addEventListener("mouseleave", function() {
+            emberMouseX = -1000;
+            emberMouseY = -1000;
+        });
 
         function createParticle() {
             var el = document.createElement("span");
@@ -90,8 +106,13 @@
             var h = rootRect.height || window.innerHeight;
             p.x = Math.random() * w;
             p.y = isInitial ? Math.random() * h : h + 20;
-            p.vx = (Math.random() - 0.5) * 1.5;
-            p.vy = -(1 + Math.random() * 1.5);
+            
+            // Store a base velocity to smoothly ease back into natural state after repelling
+            p.baseVx = (Math.random() - 0.5) * 1.5;
+            p.baseVy = -(1 + Math.random() * 1.5);
+            
+            p.vx = p.baseVx;
+            p.vy = p.baseVy;
             p.life = Math.random() * Math.PI * 2;
             p.el.style.opacity = Math.random() * 0.5 + 0.3;
             return p;
@@ -107,9 +128,27 @@
             
             for (var i = 0; i < particles.length; i++) {
                 var p = particles[i];
+
+                // Smoothly dampen the current velocity back towards the natural base velocity
+                p.vx += (p.baseVx - p.vx) * 0.05;
+                p.vy += (p.baseVy - p.vy) * 0.05;
+
+                // Calculate distance to mouse cursor
+                var dx = p.x - emberMouseX;
+                var dy = p.y - emberMouseY;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+
+                // Apply gravitational repel if the mouse is within range
+                if (dist < 120 && dist > 0) {
+                    var force = (120 - dist) / 120; // 0 to 1 scaling (stronger closer to cursor)
+                    p.vx += (dx / dist) * force * 1.5;
+                    p.vy += (dy / dist) * force * 1.5;
+                }
+
                 p.life += 0.03;
                 p.x += p.vx + Math.sin(p.life) * 0.5;
                 p.y += p.vy;
+                
                 p.el.style.transform = "translate3d(" + p.x.toFixed(2) + "px, " + p.y.toFixed(2) + "px, 0)";
                 
                 if (p.y < -50 || p.x < -50 || p.x > w + 50) {
