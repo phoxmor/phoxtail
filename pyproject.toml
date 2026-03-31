@@ -50,7 +50,9 @@ dev = [
     "pytest>=8.0.0",
     "pytest-django>=4.8.0",
     "pytest-httpx>=0.30.0",
+    "pytest-cov>=5.0.0",
     "ruff>=0.4.0",
+    "djhtml>=3.0.0",
     "phoxtail[engine,docs]",
 ]
 
