@@ -14,12 +14,19 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "django_htmx",
+    "taggit",
+    "modelcluster",
     "wagtail",
     "wagtail.admin",
+    "wagtail.images",
     "wagtail.search",
+    "wagtail.sites",
+    "wagtail.locales",
     "wagtail.users",
     "phoxtail.core",
     "phoxtail.core.tests.testapp",
+    "phoxtail.design",
+    "phoxtail.streams",
 ]
 
 MIDDLEWARE = [
