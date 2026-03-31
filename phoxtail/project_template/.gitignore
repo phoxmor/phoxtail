@@ -1,0 +1,54 @@
+# --------------------
+# Python
+# --------------------
+.venv/
+venv/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+requirements.txt
+.phoxtail/
+uv.lock
+
+# Python build artifacts
+*.egg-info/
+*.egg
+dist/
+build/
+
+# --------------------
+# Django
+# --------------------
+*.log
+db.sqlite3
+**/migrations/*
+!**/migrations/__init__.py
+
+/static/
+/media/
+
+# --------------------
+# Environment and Config Files
+# --------------------
+.env
+.env.*
+nginx.conf
+Dockerfile
+docker-compose.yaml
+docker-compose.*.yaml
+
+# --------------------
+# Backups and Certbot
+# --------------------
+db-backups/
+certbot/
+
+# --------------------
+# OS
+# --------------------
+.DS_Store
+
+# --------------------
+# AI Agents
+# --------------------
+CLAUDE.md
