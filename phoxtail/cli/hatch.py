@@ -12,6 +12,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm
 
 from phoxtail.cli.utils.config import validate_project_name
+from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
 
 console = Console()
@@ -370,6 +371,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         subprocess.run(
             ["docker", "compose", "down"],
             cwd=target_dir,
+            env=docker_env(),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -457,8 +459,13 @@ def hatch(
     try:
         console.print()
 
-        # Copy template files with placeholder replacement
+        # Create project directory and pre-create directories that Docker
+        # would otherwise auto-create as root when bind-mounting volumes.
         target_dir.mkdir(parents=True, exist_ok=True)
+        (target_dir / "db-backups").mkdir(exist_ok=True)
+        (target_dir / "media").mkdir(exist_ok=True)
+
+        # Copy template files with placeholder replacement
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             file_count = _copy_template(project_name, target_dir)
 
