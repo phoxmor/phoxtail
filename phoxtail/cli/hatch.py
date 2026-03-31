@@ -348,7 +348,9 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=6, pause=prev_failed
     )
     console.print("  Create an admin superuser account\n")
-    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=False):
+    if Confirm.ask(
+        "  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=False
+    ):
         if not _ensure_migrated(target_dir, steps, details):
             steps["superuser"] = "failed"
             details["superuser"] = "migration required"
@@ -405,11 +407,9 @@ def hatch(
         ...,
         help="Name for the new project (must be a valid Python identifier)",
     ),
-    output_dir: Path = typer.Option(
-        Path("."),
-        "--output-dir",
-        "-o",
-        help="Parent directory to create the project in",
+    directory: str = typer.Argument(
+        None,
+        help="Optional destination directory (e.g. '.' for current dir)",
     ),
     no_wizard: bool = typer.Option(
         False,
@@ -428,7 +428,8 @@ def hatch(
 
     Examples:
         phoxtail hatch myproject
-        phoxtail hatch myproject --output-dir /tmp
+        phoxtail hatch myproject .
+        phoxtail hatch myproject /tmp/myproject
         phoxtail hatch myproject --no-wizard
     """
     # Validate project name
@@ -437,10 +438,14 @@ def hatch(
         console.print(f"[red]Error:[/red] {error}")
         raise typer.Exit(1)
 
-    target_dir = (output_dir / project_name).resolve()
+    if directory is not None:
+        target_dir = Path(directory).expanduser().resolve()
+    else:
+        target_dir = (Path(".") / project_name).resolve()
 
-    # Check for existing directory
-    if target_dir.exists():
+    # When an explicit directory is given, scaffold into it (like Django's
+    # startproject <name> <directory>). When omitted, create a new folder.
+    if directory is None and target_dir.exists():
         if not Confirm.ask(
             f"[yellow]Warning:[/yellow] '{target_dir}' already exists. Overwrite?",
             default=False,

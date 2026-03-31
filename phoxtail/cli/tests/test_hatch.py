@@ -154,16 +154,41 @@ class TestHatchCommand:
         assert (existing / "manage.py").exists()
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_output_dir_option(self, mock_run, tmp_path, monkeypatch):
+    def test_directory_argument_current_dir(self, mock_run, tmp_path, monkeypatch):
+        """phoxtail hatch myproject <dir> scaffolds into that directory."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        outdir = tmp_path / "projects"
-        outdir.mkdir()
         result = runner.invoke(
-            app, ["hatch", "myproject", "--output-dir", str(outdir), "--no-wizard"]
+            app, ["hatch", "myproject", str(tmp_path), "--no-wizard"]
         )
         assert result.exit_code == 0
-        assert (outdir / "myproject" / "manage.py").exists()
+        # Files should be in tmp_path directly, not in a "myproject" subdirectory
+        assert (tmp_path / "manage.py").exists()
+        assert (tmp_path / "phoxtail.toml").exists()
+        assert not (tmp_path / "myproject").exists()
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    def test_directory_argument_explicit_path(self, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        target = tmp_path / "mydir"
+        result = runner.invoke(app, ["hatch", "myproject", str(target), "--no-wizard"])
+        assert result.exit_code == 0
+        assert (target / "manage.py").exists()
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    def test_directory_argument_nonempty_merges(self, mock_run, tmp_path, monkeypatch):
+        """Existing files are preserved when directory is given."""
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        (tmp_path / "existing.txt").write_text("hello")
+        result = runner.invoke(
+            app, ["hatch", "myproject", str(tmp_path), "--no-wizard"]
+        )
+        assert result.exit_code == 0
+        # Existing file preserved, new files added
+        assert (tmp_path / "existing.txt").read_text() == "hello"
+        assert (tmp_path / "manage.py").exists()
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     def test_placeholder_replaced_in_output(self, mock_run, tmp_path, monkeypatch):
@@ -210,9 +235,7 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y)
-        runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
@@ -243,9 +266,7 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "production"
 
-        runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert calls[1][-3:] == ["env", "create", "production"]
