@@ -6,7 +6,7 @@ import pytest
 from typer.testing import CliRunner
 
 from phoxtail.__main__ import app
-from phoxtail.cli.hatch import PLACEHOLDER, TEMPLATE_DIR, _copy_template
+from phoxtail.cli.hatch import APPS_MARKER, PLACEHOLDER, TEMPLATE_DIR, _copy_template
 
 runner = CliRunner()
 
@@ -72,6 +72,24 @@ class TestCopyTemplate:
         assert (target / "users").is_dir()
         assert (target / "app" / "templatetags").is_dir()
         assert (target / "app" / "templates" / "app" / "pages").is_dir()
+
+    def test_injects_optional_apps_into_settings(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target, optional_apps=["phoxtail.blog"])
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        assert APPS_MARKER.strip() not in settings
+        assert '"phoxtail.blog",' in settings
+
+    def test_removes_apps_marker_when_no_optional_apps(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target)
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        assert APPS_MARKER.strip() not in settings
+        assert "phoxtail.blog" not in settings
 
     def test_raises_when_template_dir_missing(self, tmp_path, monkeypatch):
         monkeypatch.setattr("phoxtail.cli.hatch.TEMPLATE_DIR", tmp_path / "nonexistent")
@@ -212,6 +230,7 @@ class TestHatchCommand:
     def test_wizard_runs_all_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + 4 config + migrate(y) + stream_engine(y)
@@ -232,6 +251,7 @@ class TestHatchCommand:
     ):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y)
@@ -264,6 +284,7 @@ class TestHatchCommand:
     ):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "production"
 
         runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n")
@@ -281,6 +302,7 @@ class TestHatchCommand:
         """verify_email --all-superusers is called after createsuperuser succeeds."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard, skip first 4 config steps, accept migrate,
@@ -297,6 +319,7 @@ class TestHatchCommand:
     ):
         """verify_email is NOT called when createsuperuser fails."""
         monkeypatch.chdir(tmp_path)
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # migrate succeeds, createsuperuser fails
@@ -326,6 +349,7 @@ class TestHatchCommand:
     def test_wizard_skip_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard prompt, then skip all 8 steps
@@ -342,6 +366,7 @@ class TestHatchCommand:
     ):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
@@ -354,9 +379,11 @@ class TestHatchCommand:
         assert "Next steps" not in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_wizard_declined(self, mock_run, tmp_path, monkeypatch):
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_wizard_declined(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         # Decline the wizard prompt
         result = runner.invoke(app, ["hatch", "myproject"], input="n\n")
         assert result.exit_code == 0
@@ -388,6 +415,7 @@ class TestHatchCommand:
         """Stream Engine runs populate_design before populate_streams."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard, skip 4 config, accept migrate, accept stream_engine,
@@ -407,6 +435,7 @@ class TestHatchCommand:
     ):
         """If populate_design fails, populate_streams is not attempted."""
         monkeypatch.chdir(tmp_path)
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         def side_effect(args, **kwargs):
@@ -439,6 +468,7 @@ class TestHatchCommand:
         """Stream Engine prompts to migrate if migrate step was skipped."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
+        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard, skip 4 config, SKIP migrate, accept stream_engine,
