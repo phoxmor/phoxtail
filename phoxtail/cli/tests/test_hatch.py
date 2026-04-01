@@ -239,10 +239,10 @@ class TestHatchCommand:
             app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        # 1 compile + 4 config + 1 migrate + 2 populate (design + streams)
+        # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate (design + streams)
         # + 2 superuser (createsuperuser + verify_email)
-        # + 1 docker-compose-down + 1 launch = 12
-        assert mock_run.call_count == 12
+        # + 1 docker-compose-down + 1 launch = 11
+        assert mock_run.call_count == 11
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -260,21 +260,20 @@ class TestHatchCommand:
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
         assert calls[0][-2:] == ["requirements", "compile"]
-        # Config wizard steps
+        # Config wizard steps (no nginx in development)
         assert calls[1][-3:] == ["env", "create", "development"]
         assert calls[2][-3:] == ["docker", "create", "dockerfile"]
         assert calls[3][-4:] == ["docker", "create", "compose", "development"]
-        assert calls[4][-3:] == ["nginx", "create", "initial"]
         # Migrate
-        assert calls[5][-2:] == ["manage", "migrate"]
+        assert calls[4][-2:] == ["manage", "migrate"]
         # Stream Engine: populate_design then populate_streams
-        assert calls[6][-2:] == ["manage", "populate_design"]
-        assert calls[7][-2:] == ["manage", "populate_streams"]
+        assert calls[5][-2:] == ["manage", "populate_design"]
+        assert calls[6][-2:] == ["manage", "populate_streams"]
         # Superuser: createsuperuser + verify_email
-        assert calls[8][-2:] == ["manage", "createsuperuser"]
-        assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
+        assert calls[7][-2:] == ["manage", "createsuperuser"]
+        assert calls[8][-3:] == ["manage", "verify_email", "--all-superusers"]
         # Cleanup + launch (always foreground)
-        assert calls[10] == ["docker", "compose", "down"]
+        assert calls[9] == ["docker", "compose", "down"]
         assert calls[-1][-4:] == ["docker", "up", "--build", "--no-detach"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
@@ -305,9 +304,9 @@ class TestHatchCommand:
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip first 4 config steps, accept migrate,
+        # Accept wizard, skip 3 config steps (no nginx in dev), accept migrate,
         # skip stream_engine, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\ny\nn\n")
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)
@@ -471,11 +470,9 @@ class TestHatchCommand:
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip 4 config, SKIP migrate, accept stream_engine,
+        # Accept wizard, skip 3 config (no nginx in dev), SKIP migrate, accept stream_engine,
         # accept _ensure_migrated prompt, skip superuser, skip launch
-        runner.invoke(
-            app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\nn\ny\ny\nn\nn\n"
-        )
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # Migration should have been triggered by _ensure_migrated

@@ -21,6 +21,18 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='StreamsAdminPermission',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+            ],
+            options={
+                'verbose_name': 'Streams',
+                'verbose_name_plural': 'Streams',
+                'default_permissions': (),
+                'permissions': [('access_stream_studio', 'Can access the Stream Studio')],
+            },
+        ),
+        migrations.CreateModel(
             name='BlockSystemPrompt',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -29,8 +41,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(help_text='Display name for this system prompt template', max_length=255, unique=True)),
                 ('identifier', models.CharField(help_text="Unique identifier (e.g., 'variant_generator')", max_length=100, unique=True)),
                 ('description', models.TextField(help_text='What this system prompt template is used for')),
-                ('template', models.TextField(help_text='System prompt template using Django Template Language. Available context: {{ block }}, {{ collection }}, {{ variant }}, {{ references }}. variant is None for creation tasks, references is a list (may be empty)')),
-                ('_requires_variant', models.BooleanField(db_index=True, default=False, editable=False, help_text='Auto-detected: Does this template use the variant context variable?')),
+                ('template', models.TextField(help_text='System prompt template using Django Template Language. Available context: {{ block }}, {{ collection }}, {{ variant }}, {{ references }}. All variables are always provided. references is a list (may be empty).')),
             ],
             options={
                 'verbose_name': 'System Prompt',
