@@ -47,6 +47,7 @@ nav:
       - Package Vision: internal/package-vision.md
       - Publishing Guide: internal/publishing-guide.md
       - CLI Testing: internal/testing.md
+      - App Migration Guide: internal/app-migration-guide.md
       - Studio Refactor Plan: internal/studio-refactor-plan.md
 
 theme:
