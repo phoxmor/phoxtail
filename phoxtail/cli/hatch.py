@@ -78,7 +78,9 @@ def _render_progress(
 
     return Panel(
         "\n".join(lines),
-        title=f"[bold cyan]Hatching '{project_name}'[/bold cyan] [dim]{environment}[/dim]",
+        title=(
+            f"[bold cyan]Hatching '{project_name}'[/bold cyan] [dim]{environment}[/dim]"
+        ),
         border_style="cyan",
         expand=False,
     )
@@ -103,7 +105,11 @@ def _clear_and_show_progress(
         console.input("[dim]Press Enter to continue...[/dim]")
     console.clear()
     console.print()
-    console.print(_render_progress(project_name, steps, details, wizard_steps, environment, current_index))
+    console.print(
+        _render_progress(
+            project_name, steps, details, wizard_steps, environment, current_index
+        )
+    )
     console.print()
 
 
@@ -220,7 +226,8 @@ def _run_wizard(
 
     # Nginx is only relevant for production — omit the step entirely in dev.
     active_steps = [
-        step for step in WIZARD_STEPS
+        step
+        for step in WIZARD_STEPS
         if not (step[0] == "nginx" and environment == "development")
     ]
     step_idx = {key: i for i, (key, _) in enumerate(active_steps)}
@@ -232,8 +239,13 @@ def _run_wizard(
 
     # --- Step: Environment ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["env"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["env"],
+        pause=prev_failed,
     )
     console.print(f"  Generate [bold]{environment}[/bold] .env configuration\n")
     if Confirm.ask(
@@ -252,8 +264,13 @@ def _run_wizard(
 
     # --- Step: Dockerfile ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["dockerfile"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["dockerfile"],
+        pause=prev_failed,
     )
     console.print("  Generate Dockerfile\n")
     if Confirm.ask(
@@ -272,8 +289,13 @@ def _run_wizard(
 
     # --- Step: Docker Compose ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["compose"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["compose"],
+        pause=prev_failed,
     )
     console.print(f"  Generate [bold]{environment}[/bold] docker-compose.yaml\n")
     if Confirm.ask(
@@ -294,8 +316,13 @@ def _run_wizard(
     # --- Step: Nginx (production only) ---
     if environment == "production":
         _clear_and_show_progress(
-            project_name, steps, details, active_steps,
-            environment=environment, current_index=step_idx["nginx"], pause=prev_failed,
+            project_name,
+            steps,
+            details,
+            active_steps,
+            environment=environment,
+            current_index=step_idx["nginx"],
+            pause=prev_failed,
         )
         console.print(f"  Generate [bold]{nginx_sub}[/bold] nginx.conf\n")
         if Confirm.ask(
@@ -314,8 +341,13 @@ def _run_wizard(
 
     # --- Step: Migrate Database ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["migrate"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["migrate"],
+        pause=prev_failed,
     )
     console.print("  Apply database migrations\n")
     if Confirm.ask("  Run [cyan]phoxtail manage migrate[/cyan]?", default=True):
@@ -332,8 +364,13 @@ def _run_wizard(
 
     # --- Step: Stream Engine ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["stream_engine"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["stream_engine"],
+        pause=prev_failed,
     )
     console.print("  Populate design tokens and stream blocks\n")
     if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
@@ -368,8 +405,13 @@ def _run_wizard(
 
     # --- Step: Create Superuser ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["superuser"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["superuser"],
+        pause=prev_failed,
     )
     console.print("  Create an admin superuser account\n")
     if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
@@ -402,8 +444,13 @@ def _run_wizard(
 
     # --- Step: Launch App ---
     _clear_and_show_progress(
-        project_name, steps, details, active_steps,
-        environment=environment, current_index=step_idx["docker_up"], pause=prev_failed,
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["docker_up"],
+        pause=prev_failed,
     )
     console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
@@ -420,7 +467,9 @@ def _run_wizard(
         prev_failed = False
 
     # Show final state
-    _clear_and_show_progress(project_name, steps, details, active_steps, environment, pause=prev_failed)
+    _clear_and_show_progress(
+        project_name, steps, details, active_steps, environment, pause=prev_failed
+    )
 
     return steps
 

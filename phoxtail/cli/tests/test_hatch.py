@@ -239,7 +239,7 @@ class TestHatchCommand:
             app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
-        # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate (design + streams)
+        # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate
         # + 2 superuser (createsuperuser + verify_email)
         # + 1 docker-compose-down + 1 launch = 11
         assert mock_run.call_count == 11
@@ -470,7 +470,7 @@ class TestHatchCommand:
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip 3 config (no nginx in dev), SKIP migrate, accept stream_engine,
+        # Accept wizard, skip 3 config (no nginx in dev), SKIP migrate,
         # accept _ensure_migrated prompt, skip superuser, skip launch
         runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
 
