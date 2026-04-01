@@ -61,11 +61,13 @@ def _render_progress(
     project_name: str,
     steps: dict[str, str],
     details: dict[str, str],
+    wizard_steps: list[tuple[str, str]],
+    environment: str,
     current_index: int | None = None,
 ) -> Panel:
     """Build the progress panel showing all wizard steps."""
     lines = []
-    for i, (key, label) in enumerate(WIZARD_STEPS):
+    for i, (key, label) in enumerate(wizard_steps):
         if key in steps:
             status = steps[key]
         elif current_index is not None and i == current_index:
@@ -76,7 +78,7 @@ def _render_progress(
 
     return Panel(
         "\n".join(lines),
-        title=f"[bold cyan]Hatching '{project_name}'[/bold cyan]",
+        title=f"[bold cyan]Hatching '{project_name}'[/bold cyan] [dim]{environment}[/dim]",
         border_style="cyan",
         expand=False,
     )
@@ -86,6 +88,8 @@ def _clear_and_show_progress(
     project_name: str,
     steps: dict[str, str],
     details: dict[str, str],
+    wizard_steps: list[tuple[str, str]],
+    environment: str,
     current_index: int | None = None,
     pause: bool = False,
 ) -> None:
@@ -99,7 +103,7 @@ def _clear_and_show_progress(
         console.input("[dim]Press Enter to continue...[/dim]")
     console.clear()
     console.print()
-    console.print(_render_progress(project_name, steps, details, current_index))
+    console.print(_render_progress(project_name, steps, details, wizard_steps, environment, current_index))
     console.print()
 
 
@@ -198,39 +202,38 @@ def _ensure_migrated(
     return False
 
 
-def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
+def _run_wizard(
+    project_name: str, target_dir: Path, environment: str
+) -> dict[str, str]:
     """Walk the user through optional post-scaffold setup steps.
 
     Each step invokes an existing phoxtail CLI command as a subprocess
     inside the new project directory (which has a phoxtail.toml).
     Steps are optional — the user can skip any of them.
 
-    The environment type (development/production) is asked once and
-    reused across steps that need it.
-
     Returns a dict mapping step keys to their status ("done"/"skipped"/"failed").
     """
     steps: dict[str, str] = {}  # key -> "done" | "skipped" | "failed"
     details: dict[str, str] = {}  # key -> detail text
 
-    # Show initial progress with all steps pending
-    _clear_and_show_progress(project_name, steps, details, current_index=None)
+    nginx_sub = "production"
 
-    # Ask environment type once — reused by env create and docker compose
-    environment = questionary.select(
-        "Select environment type:",
-        choices=["development", "production"],
-    ).ask()
-    if environment is None:
-        console.print("[dim]Cancelled.[/dim]")
-        return {}
+    # Nginx is only relevant for production — omit the step entirely in dev.
+    active_steps = [
+        step for step in WIZARD_STEPS
+        if not (step[0] == "nginx" and environment == "development")
+    ]
+    step_idx = {key: i for i, (key, _) in enumerate(active_steps)}
 
-    nginx_sub = "initial" if environment == "development" else "production"
     prev_failed = False
 
-    # --- Step 1: Environment ---
+    # Show initial progress with all steps pending
+    _clear_and_show_progress(project_name, steps, details, active_steps, environment)
+
+    # --- Step: Environment ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=0, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["env"], pause=prev_failed,
     )
     console.print(f"  Generate [bold]{environment}[/bold] .env configuration\n")
     if Confirm.ask(
@@ -238,7 +241,6 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
     ):
         if _run_step(target_dir, ["env", "create", environment]):
             steps["env"] = "done"
-            details["env"] = environment
             prev_failed = False
         else:
             steps["env"] = "failed"
@@ -248,9 +250,10 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["env"] = "skipped"
         prev_failed = False
 
-    # --- Step 2: Dockerfile ---
+    # --- Step: Dockerfile ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=1, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["dockerfile"], pause=prev_failed,
     )
     console.print("  Generate Dockerfile\n")
     if Confirm.ask(
@@ -267,9 +270,10 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["dockerfile"] = "skipped"
         prev_failed = False
 
-    # --- Step 3: Docker Compose ---
+    # --- Step: Docker Compose ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=2, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["compose"], pause=prev_failed,
     )
     console.print(f"  Generate [bold]{environment}[/bold] docker-compose.yaml\n")
     if Confirm.ask(
@@ -278,7 +282,6 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
     ):
         if _run_step(target_dir, ["docker", "create", "compose", environment]):
             steps["compose"] = "done"
-            details["compose"] = environment
             prev_failed = False
         else:
             steps["compose"] = "failed"
@@ -288,29 +291,31 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["compose"] = "skipped"
         prev_failed = False
 
-    # --- Step 4: Nginx ---
-    _clear_and_show_progress(
-        project_name, steps, details, current_index=3, pause=prev_failed
-    )
-    console.print(f"  Generate [bold]{nginx_sub}[/bold] nginx.conf\n")
-    if Confirm.ask(
-        f"  Run [cyan]phoxtail nginx create {nginx_sub}[/cyan]?", default=True
-    ):
-        if _run_step(target_dir, ["nginx", "create", nginx_sub]):
-            steps["nginx"] = "done"
-            details["nginx"] = nginx_sub
-            prev_failed = False
+    # --- Step: Nginx (production only) ---
+    if environment == "production":
+        _clear_and_show_progress(
+            project_name, steps, details, active_steps,
+            environment=environment, current_index=step_idx["nginx"], pause=prev_failed,
+        )
+        console.print(f"  Generate [bold]{nginx_sub}[/bold] nginx.conf\n")
+        if Confirm.ask(
+            f"  Run [cyan]phoxtail nginx create {nginx_sub}[/cyan]?", default=True
+        ):
+            if _run_step(target_dir, ["nginx", "create", nginx_sub]):
+                steps["nginx"] = "done"
+                prev_failed = False
+            else:
+                steps["nginx"] = "failed"
+                details["nginx"] = "command failed"
+                prev_failed = True
         else:
-            steps["nginx"] = "failed"
-            details["nginx"] = "command failed"
-            prev_failed = True
-    else:
-        steps["nginx"] = "skipped"
-        prev_failed = False
+            steps["nginx"] = "skipped"
+            prev_failed = False
 
-    # --- Step 5: Migrate Database ---
+    # --- Step: Migrate Database ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=4, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["migrate"], pause=prev_failed,
     )
     console.print("  Apply database migrations\n")
     if Confirm.ask("  Run [cyan]phoxtail manage migrate[/cyan]?", default=True):
@@ -325,9 +330,10 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["migrate"] = "skipped"
         prev_failed = False
 
-    # --- Step 6: Stream Engine ---
+    # --- Step: Stream Engine ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=5, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["stream_engine"], pause=prev_failed,
     )
     console.print("  Populate design tokens and stream blocks\n")
     if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
@@ -360,9 +366,10 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["stream_engine"] = "skipped"
         prev_failed = False
 
-    # --- Step 7: Create Superuser ---
+    # --- Step: Create Superuser ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=6, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["superuser"], pause=prev_failed,
     )
     console.print("  Create an admin superuser account\n")
     if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
@@ -393,16 +400,16 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         steps["superuser"] = "skipped"
         prev_failed = False
 
-    # --- Step 8: Launch App ---
+    # --- Step: Launch App ---
     _clear_and_show_progress(
-        project_name, steps, details, current_index=7, pause=prev_failed
+        project_name, steps, details, active_steps,
+        environment=environment, current_index=step_idx["docker_up"], pause=prev_failed,
     )
     console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
         args = ["docker", "up", "--build", "--no-detach"]
         if _run_step(target_dir, args):
             steps["docker_up"] = "done"
-            details["docker_up"] = "foreground"
             prev_failed = False
         else:
             steps["docker_up"] = "failed"
@@ -413,7 +420,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         prev_failed = False
 
     # Show final state
-    _clear_and_show_progress(project_name, steps, details, pause=prev_failed)
+    _clear_and_show_progress(project_name, steps, details, active_steps, environment, pause=prev_failed)
 
     return steps
 
@@ -473,8 +480,19 @@ def hatch(
     try:
         console.print()
 
-        # Ask for optional apps before scaffolding so they are baked into
-        # the generated settings file — no fragile post-processing needed.
+        # Ask for environment and optional apps before scaffolding so they are
+        # baked into the generated settings — no fragile post-processing needed.
+        environment: str | None = None
+        if not no_wizard:
+            environment = questionary.select(
+                "Select environment type:",
+                choices=["development", "production"],
+            ).ask()
+            if environment is None:
+                console.print("[dim]Cancelled.[/dim]")
+                raise typer.Exit(0)
+            console.print()
+
         selected_apps: list[str] = []
         if not no_wizard and OPTIONAL_APPS:
             choices = [
@@ -554,7 +572,7 @@ def hatch(
                 "Would you like to run the setup wizard?", default=True
             )
             if run_wizard:
-                wizard_steps = _run_wizard(project_name, target_dir)
+                wizard_steps = _run_wizard(project_name, target_dir, environment)
 
         # Build context-aware next steps — separate skipped from failed
         next_steps = []
@@ -577,11 +595,12 @@ def hatch(
         _check(
             "compose", "phoxtail docker create compose", "generate docker-compose.yaml"
         )
-        _check(
-            "nginx",
-            "phoxtail nginx create initial",
-            "optional — only needed for production-like setups",
-        )
+        if environment != "development":
+            _check(
+                "nginx",
+                "phoxtail nginx create production",
+                "generate nginx.conf",
+            )
         _check(
             "migrate",
             "phoxtail manage migrate",

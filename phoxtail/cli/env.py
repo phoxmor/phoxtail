@@ -21,7 +21,7 @@ def _generate_secret_key() -> str:
     Replicates Django's get_random_secret_key() implementation exactly.
     Returns a 50 character random string usable as a SECRET_KEY setting value.
     """
-    chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
+    chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#%^&*(-_=+)"
     return "".join(secrets.choice(chars) for i in range(50))
 
 

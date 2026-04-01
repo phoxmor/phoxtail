@@ -221,18 +221,25 @@ def create_homepage(apps, schema_editor):
     root.numchild = Page.objects.filter(depth=2).count()
     root.save()
 
-    # Point the site to our homepage and set the project name
+    # Point the site to our homepage and set the site name.
+    # Read from Django settings so the value comes from SITE_NAME in .env
+    # (the human-readable name the user entered) rather than the Python
+    # identifier used as the project name.
+    from django.conf import settings as django_settings
+
+    site_name = getattr(django_settings, "WAGTAIL_SITE_NAME", "{{ phoxtail_project_name }}")
+
     if site:
         Site.objects.filter(pk=site.pk).update(
             root_page=homepage,
-            site_name="{{ phoxtail_project_name }}",
+            site_name=site_name,
         )
     else:
         Site.objects.create(
             hostname="localhost",
             root_page=homepage,
             is_default_site=True,
-            site_name="{{ phoxtail_project_name }}",
+            site_name=site_name,
         )
 
 
