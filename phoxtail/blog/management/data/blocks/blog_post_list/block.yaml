@@ -4,4 +4,4 @@ description: Searchable, paginated blog post grid for the Blog Index page. All d
 icon: list-ul
 group: Blog
 page_types:
-  - blog.blogindexpage
+  - phoxtail_blog.blogindexpage

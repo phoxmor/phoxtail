@@ -1,4 +1,4 @@
-{% load wagtailcore_tags wagtailimages_tags thumbnail blog_tags %}
+{% load wagtailcore_tags wagtailimages_tags thumbnail phoxtail_blog_tags %}
 {% get_recent_blog_posts value.blog_index value.count|default:3 as recent_posts %}
 {% if recent_posts %}
     <section id="brp-{{ block.id }}" class="brp-wrapper">

@@ -4,4 +4,4 @@ description: Context-reader block that renders related blog posts beneath the cu
 icon: list-ul
 group: Blog
 page_types:
-  - blog.blogpostpage
+  - phoxtail_blog.blogpostpage

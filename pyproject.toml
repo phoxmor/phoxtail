@@ -45,6 +45,9 @@ engine = [
     "wagtailmedia>=0.15",
     "sorl-thumbnail>=12.10",
 ]
+blog = [
+    "phoxtail[engine]",
+]
 dev = [
     "pip-tools>=7.0.0",
     "pytest>=8.0.0",
@@ -53,7 +56,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "ruff>=0.4.0",
     "djhtml>=3.0.0",
-    "phoxtail[engine,docs]",
+    "phoxtail[engine,blog,docs]",
 ]
 
 [project.urls]
@@ -75,6 +78,7 @@ exclude = [
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.design" = ["management/data/**/*"]
 "phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
+"phoxtail.blog" = ["templates/**/*", "management/data/**/*"]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]

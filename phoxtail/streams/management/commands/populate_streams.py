@@ -1,6 +1,10 @@
 """
 Unified management command to populate all stream entities from data files.
 
+Discovers ``management/data/`` directories across all installed Django
+apps, so each phoxtail app (streams, blog, booking, ...) can ship its
+own blocks, variants, prompts, and collections alongside its models.
+
 Auto-discovers and imports:
 - System prompts from data/prompts/*.md (YAML frontmatter + markdown body)
 - Collections from data/collections/*.md (YAML frontmatter + markdown body)
@@ -34,7 +38,26 @@ from phoxtail.streams.models import (
     VariantCollection,
 )
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+def _get_data_dirs() -> list[Path]:
+    """Discover management/data/ directories from all installed apps.
+
+    Any Django app that ships a ``management/data/`` directory is
+    automatically included.  The streams app's own directory is
+    always listed first so its prompts/collections exist before
+    other apps try to reference them in their blocks or variants.
+    """
+    streams_dir = Path(__file__).resolve().parent.parent / "data"
+    dirs: list[Path] = []
+    if streams_dir.is_dir():
+        dirs.append(streams_dir)
+
+    for app_config in apps.get_app_configs():
+        data_dir = Path(app_config.path) / "management" / "data"
+        if data_dir.is_dir() and data_dir != streams_dir:
+            dirs.append(data_dir)
+
+    return dirs
 
 
 def _check_app_references(page_types_config: list, schema: list) -> list[str]:
@@ -134,18 +157,14 @@ class Command(BaseCommand):
         """Import system prompts from data/prompts/*.md files."""
         self.stdout.write(self.style.SUCCESS("Importing system prompts..."))
 
-        prompts_dir = DATA_DIR / "prompts"
-        if not prompts_dir.exists():
-            self.stdout.write(
-                self.style.WARNING(f"Prompts directory not found: {prompts_dir}")
-            )
-            return
+        md_files = []
+        for data_dir in _get_data_dirs():
+            prompts_dir = data_dir / "prompts"
+            if prompts_dir.exists():
+                md_files.extend(prompts_dir.glob("*.md"))
 
-        md_files = list(prompts_dir.glob("*.md"))
         if not md_files:
-            self.stdout.write(
-                self.style.WARNING("No markdown files found in prompts directory")
-            )
+            self.stdout.write(self.style.WARNING("No prompt files found in any app"))
             return
 
         created_count = 0
@@ -195,19 +214,15 @@ class Command(BaseCommand):
         """Import collections from data/collections/*.md files."""
         self.stdout.write(self.style.SUCCESS("Importing collections..."))
 
-        collections_dir = DATA_DIR / "collections"
-        if not collections_dir.exists():
-            self.stdout.write(
-                self.style.WARNING(
-                    f"Collections directory not found: {collections_dir}"
-                )
-            )
-            return
+        md_files = []
+        for data_dir in _get_data_dirs():
+            collections_dir = data_dir / "collections"
+            if collections_dir.exists():
+                md_files.extend(collections_dir.glob("*.md"))
 
-        md_files = list(collections_dir.glob("*.md"))
         if not md_files:
             self.stdout.write(
-                self.style.WARNING("No markdown files found in collections directory")
+                self.style.WARNING("No collection files found in any app")
             )
             return
 
@@ -258,17 +273,15 @@ class Command(BaseCommand):
         """Import blocks from data/blocks/<identifier>/ directories."""
         self.stdout.write(self.style.SUCCESS("Importing blocks..."))
 
-        blocks_dir = DATA_DIR / "blocks"
-        if not blocks_dir.exists():
-            self.stdout.write(
-                self.style.WARNING(f"Blocks directory not found: {blocks_dir}")
-            )
-            return
+        block_dirs = []
+        for data_dir in _get_data_dirs():
+            blocks_dir = data_dir / "blocks"
+            if blocks_dir.exists():
+                block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
 
-        block_dirs = [d for d in blocks_dir.iterdir() if d.is_dir()]
         if not block_dirs:
             self.stdout.write(
-                self.style.WARNING("No block directories found in blocks directory")
+                self.style.WARNING("No block directories found in any app")
             )
             return
 
@@ -391,20 +404,22 @@ class Command(BaseCommand):
         """
         self.stdout.write(self.style.SUCCESS("Importing variants..."))
 
-        blocks_dir = DATA_DIR / "blocks"
-        if not blocks_dir.exists():
+        block_dirs = []
+        for data_dir in _get_data_dirs():
+            blocks_dir = data_dir / "blocks"
+            if blocks_dir.exists():
+                block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
+
+        if not block_dirs:
             self.stdout.write(
-                self.style.WARNING(f"Blocks directory not found: {blocks_dir}")
+                self.style.WARNING("No block directories found in any app")
             )
             return
 
         created_count = 0
         skipped_count = 0
 
-        for block_dir in blocks_dir.iterdir():
-            if not block_dir.is_dir():
-                continue
-
+        for block_dir in block_dirs:
             variants_dir = block_dir / "variants"
             if not variants_dir.exists():
                 continue

@@ -4,4 +4,4 @@ description: Context-reader block that renders the blog post header (title, intr
 icon: title
 group: Blog
 page_types:
-  - blog.blogpostpage
+  - phoxtail_blog.blogpostpage

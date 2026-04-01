@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "phoxtail.core",
     "phoxtail.design",
     "phoxtail.streams",
+    # {{ phoxtail_optional_apps }}
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",

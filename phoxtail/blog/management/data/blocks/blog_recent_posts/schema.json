@@ -5,7 +5,7 @@
       "name": "blog_index",
       "required": true,
       "help_text": "Select the Blog Index page to pull recent posts from.",
-      "page_type": "blog.blogindexpage"
+      "page_type": "phoxtail_blog.blogindexpage"
     }
   },
   {

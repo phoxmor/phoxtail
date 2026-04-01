@@ -1,0 +1,9 @@
+{% extends "app/pages/base.html" %}
+{% load wagtailcore_tags %}
+{% block content %}
+    {% for block in page.body %}
+        {% with streamfield_name="body" block_index=forloop.counter0 %}
+            {% include_block block %}
+        {% endwith %}
+    {% endfor %}
+{% endblock %}

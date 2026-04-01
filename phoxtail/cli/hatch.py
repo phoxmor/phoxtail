@@ -18,7 +18,13 @@ from phoxtail.cli.utils.templates import render_template
 console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
+APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
+
+# Optional phoxtail apps available during hatching.
+OPTIONAL_APPS = [
+    {"name": "Blog", "value": "phoxtail.blog"},
+]
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
@@ -31,9 +37,6 @@ WIZARD_STEPS = [
     ("superuser", "Create Superuser"),
     ("docker_up", "Launch App"),
 ]
-
-# Steps that require a migrated database
-_NEEDS_MIGRATION = {"stream_engine", "superuser"}
 
 # Status icons
 _ICONS = {
@@ -100,11 +103,17 @@ def _clear_and_show_progress(
     console.print()
 
 
-def _copy_template(project_name: str, target_dir: Path) -> int:
+def _copy_template(
+    project_name: str, target_dir: Path, optional_apps: list[str] | None = None
+) -> int:
     """Copy project_template into target_dir, replacing placeholders.
 
     Uses str.replace() for substitution — NOT Jinja2 — because scaffold
     files contain Django template syntax that must be left untouched.
+
+    *optional_apps* is a list of dotted app names to inject into
+    INSTALLED_APPS (replacing the ``APPS_MARKER`` line).  When empty or
+    ``None`` the marker is simply removed so the file stays clean.
 
     Returns the number of files copied.
     """
@@ -114,6 +123,11 @@ def _copy_template(project_name: str, target_dir: Path) -> int:
             "The hatch command requires phoxtail[engine] or an editable "
             "install of the full repository."
         )
+
+    if optional_apps:
+        apps_replacement = "".join(f'    "{app}",\n' for app in optional_apps)
+    else:
+        apps_replacement = ""
 
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
@@ -129,6 +143,8 @@ def _copy_template(project_name: str, target_dir: Path) -> int:
             content = src_path.read_text(encoding="utf-8")
             if PLACEHOLDER in content:
                 content = content.replace(PLACEHOLDER, project_name)
+            if APPS_MARKER in content:
+                content = content.replace(APPS_MARKER, apps_replacement)
             dest_path.write_text(content, encoding="utf-8")
         except UnicodeDecodeError:
             shutil.copy2(src_path, dest_path)
@@ -314,7 +330,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=5, pause=prev_failed
     )
     console.print("  Populate design tokens and stream blocks\n")
-    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=False):
+    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
         if not _ensure_migrated(target_dir, steps, details):
             steps["stream_engine"] = "failed"
             details["stream_engine"] = "migration required"
@@ -349,9 +365,7 @@ def _run_wizard(project_name: str, target_dir: Path) -> dict[str, str]:
         project_name, steps, details, current_index=6, pause=prev_failed
     )
     console.print("  Create an admin superuser account\n")
-    if Confirm.ask(
-        "  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=False
-    ):
+    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
         if not _ensure_migrated(target_dir, steps, details):
             steps["superuser"] = "failed"
             details["superuser"] = "migration required"
@@ -459,6 +473,31 @@ def hatch(
     try:
         console.print()
 
+        # Ask for optional apps before scaffolding so they are baked into
+        # the generated settings file — no fragile post-processing needed.
+        selected_apps: list[str] = []
+        if not no_wizard and OPTIONAL_APPS:
+            choices = [
+                questionary.Choice(
+                    title=app["name"],
+                    value=app["value"],
+                )
+                for app in OPTIONAL_APPS
+            ]
+            selected_apps = (
+                questionary.checkbox(
+                    "Select optional apps to enable:",
+                    choices=choices,
+                ).ask()
+                or []
+            )
+            if selected_apps:
+                names = ", ".join(
+                    a["name"] for a in OPTIONAL_APPS if a["value"] in selected_apps
+                )
+                console.print(f"  [green]Enabled:[/green] {names}")
+                console.print()
+
         # Create project directory and pre-create directories that Docker
         # would otherwise auto-create as root when bind-mounting volumes.
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -467,7 +506,7 @@ def hatch(
 
         # Copy template files with placeholder replacement
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
-            file_count = _copy_template(project_name, target_dir)
+            file_count = _copy_template(project_name, target_dir, selected_apps)
 
             # Generate requirements.in from template
             requirements_in = render_template("requirements/requirements.in", {})
