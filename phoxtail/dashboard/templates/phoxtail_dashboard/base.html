@@ -1,0 +1,44 @@
+{% load i18n static wagtailsettings_tags django_htmx %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block head_title %}
+            {% endblock head_title %}
+        </title>
+        <!-- HTMX -->
+        <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+        {% django_htmx_script %}
+        <!-- Modal Media -->
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+        <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+        <!-- Core CSS (fallback custom properties) -->
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
+        <!-- Dashboard CSS -->
+        <link rel="stylesheet" href="{% static 'phoxtail_dashboard/css/dashboard.css' %}">
+        <link rel="stylesheet" href="{% static 'phoxtail_dashboard/css/ui.css' %}">
+        <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+        <!-- SiteConfig overrides -->
+        {% get_settings %}
+        <style>
+            :root {
+                {{ settings.app.SiteConfig.css_variables|safe }}
+            }
+            {{ settings.app.SiteConfig.font_face_declarations|safe }}
+        </style>
+        {% block extra_css %}
+        {% endblock extra_css %}
+    </head>
+    <body class="dash-body">
+        {% include "account/messages_static.html" %}
+        <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+        <!-- Modal Placeholder -->
+        <div id="core-modal-placeholder-wrapper"></div>
+        {% block body %}
+        {% endblock body %}
+        {% block extra_js %}
+        {% endblock extra_js %}
+    </body>
+</html>

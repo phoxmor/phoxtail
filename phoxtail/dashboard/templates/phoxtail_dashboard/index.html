@@ -1,0 +1,40 @@
+{% extends "phoxtail_dashboard/base.html" %}
+{% load static %}
+{% block head_title %}
+    Dashboard
+{% endblock head_title %}
+{% block extra_css %}
+    {% for css_file in widget_css_files %}
+        <link rel="stylesheet" href="{% static css_file %}">
+    {% endfor %}
+{% endblock extra_css %}
+{% block body %}
+    <div class="dash-layout">
+        {% include 'phoxtail_dashboard/navigation/sidebar.html' %}
+        <div class="dash-main">
+            {% include 'phoxtail_dashboard/navigation/drawer.html' %}
+            <div class="dash-content">
+                {% block content %}
+                    {% if dashboard_widgets %}
+                        <div class="dash-page">
+                            <div class="dash-page-inner">
+                                <div class="dash-widgets-grid">
+                                    {% for widget in dashboard_widgets %}
+                                        {% include widget.template_name with data=widget %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="dash-empty-state dash-empty-state--centered">
+                            <div class="dash-empty-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</div>
+                            <h2 class="dash-empty-heading">No widgets available yet</h2>
+                            <p class="dash-empty-text">Register widgets from your apps to bring this page to life.</p>
+                        </div>
+                    {% endif %}
+                {% endblock content %}
+            </div>
+            {% include 'phoxtail_dashboard/navigation/dock.html' %}
+        </div>
+    </div>
+{% endblock body %}

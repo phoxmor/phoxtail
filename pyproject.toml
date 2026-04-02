@@ -48,6 +48,9 @@ engine = [
 blog = [
     "phoxtail[engine]",
 ]
+dashboard = [
+    "phoxtail[engine]",
+]
 dev = [
     "pip-tools>=7.0.0",
     "pytest>=8.0.0",
@@ -56,7 +59,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "ruff>=0.4.0",
     "djhtml>=3.0.0",
-    "phoxtail[engine,blog,docs]",
+    "phoxtail[engine,blog,dashboard,docs]",
 ]
 
 [project.urls]
@@ -79,13 +82,14 @@ exclude = [
 "phoxtail.design" = ["management/data/**/*"]
 "phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
 "phoxtail.blog" = ["templates/**/*", "management/data/**/*"]
+"phoxtail.dashboard" = ["templates/**/*", "static/**/*"]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/design/tests", "phoxtail/streams/tests"]
+testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/tests", "phoxtail/design/tests", "phoxtail/streams/tests"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]

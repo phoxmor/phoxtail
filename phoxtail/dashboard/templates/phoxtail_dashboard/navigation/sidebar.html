@@ -1,0 +1,160 @@
+{% load wagtailimages_tags wagtailsettings_tags phoxtail_core_tags phoxtail_dashboard_tags %}
+<div class="dash-sidebar-wrapper">
+    <div class="dash-sidebar-spacer" id="dash-sidebar-spacer">
+        <div class="dash-sidebar" id="dash-sidebar">
+            <!-- Logo -->
+            <div class="dash-sidebar__logo">
+                {% get_settings %}
+                {% if settings.app.SiteConfig.logo %}
+                    {% image settings.app.SiteConfig.logo height-256 as logo %}
+                    <a href="/" class="dash-sidebar__logo-link">
+                        <picture>
+                            {% if settings.app.SiteConfig.logo_dark %}
+                                {% image settings.app.SiteConfig.logo_dark height-256 as logo_dark %}
+                                <source srcset="{{ logo_dark.url }}" media="(prefers-color-scheme: dark)">
+                            {% endif %}
+                            <img src="{{ logo.url }}"
+                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 class="dash-sidebar__logo-img" />
+                        </picture>
+                    </a>
+                {% endif %}
+            </div>
+            <!-- Navigation -->
+            <div class="dash-sidebar__nav">
+                <nav class="dash-sidebar__nav-list">
+                    {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+                    {% if is_dashboard_enabled %}
+                        {% url 'dashboard:index' as dashboard_path %}
+                        <a href="{{ dashboard_path }}"
+                           class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
+                            <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+                            <span class="dash-nav-label">Dashboard</span>
+                        </a>
+                        {% for item in dashboard_nav_items %}
+                            {% url item.url_name as item_path %}
+                            {% dashboard_icon_path item.icon as svg_path %}
+                            <a href="{{ item_path }}"
+                               class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
+                                <span class="dash-nav-icon">{% include svg_path %}</span>
+                                <span class="dash-nav-label">{{ item.label }}</span>
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+                </nav>
+            </div>
+            <!-- Footer Controls -->
+            <div class="dash-sidebar__footer">
+                <button type="button"
+                        class="dash-nav-item dash-sidebar__collapse-btn"
+                        id="sidebar-collapse-btn"
+                        aria-label="Toggle sidebar">
+                    <span class="dash-nav-icon dash-sidebar__collapse-icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                    <span class="dash-nav-label" id="sidebar-collapse-label">Collapse Menu</span>
+                </button>
+                {% if is_dashboard_enabled %}
+                    {% url 'dashboard:users:profile' as profile_path %}
+                    <a href="{{ profile_path }}"
+                       class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                        <span class="dash-nav-label">Profile</span>
+                    </a>
+                {% endif %}
+                {% url 'wagtailadmin_home' as admin_path %}
+                {% if perms.wagtailadmin.access_admin %}
+                    <a href="{{ admin_path }}"
+                       class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+                        <span class="dash-nav-label">Admin</span>
+                    </a>
+                {% endif %}
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dash-nav-item dash-nav-signout">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+                        <span class="dash-nav-label">Sign Out</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        const sidebar = document.getElementById('dash-sidebar');
+        const spacer = document.getElementById('dash-sidebar-spacer');
+        const btn = document.getElementById('sidebar-collapse-btn');
+        const label = document.getElementById('sidebar-collapse-label');
+        const logo = sidebar.querySelector('.dash-sidebar__logo');
+        const KEY = 'dash-sidebar-collapsed';
+        let centeringListener = null;
+
+        const setLogoCentered = (centered) => {
+            logo.classList.toggle('dash-sidebar__logo--centered', centered);
+        };
+
+        const setCollapsed = (collapsed, animate = true) => {
+        // When expanding, remove centering immediately so the logo stays left
+        // throughout the expand transition rather than snapping right.
+            if (!collapsed) {
+                setLogoCentered(false);
+            }
+
+            if (!animate) {
+                sidebar.style.transition = 'none';
+                spacer.style.transition = 'none';
+            }
+
+            sidebar.classList.toggle('dash-sidebar--collapsed', collapsed);
+            spacer.classList.toggle('dash-sidebar-spacer--collapsed', collapsed);
+
+            if (label) {
+                label.textContent = collapsed ? 'Expand Menu' : 'Collapse Menu';
+            }
+
+            if (!animate) {
+            // Force reflow to ensure the 'none' transition is applied before we restore it
+                sidebar.offsetHeight;
+                sidebar.style.transition = '';
+                spacer.style.transition = '';
+            // Apply centering immediately with no animation
+                if (collapsed) setLogoCentered(true);
+            } else if (collapsed) {
+            // Apply centering only after the width transition ends
+                if (centeringListener) {
+                    sidebar.removeEventListener('transitionend', centeringListener);
+                }
+                centeringListener = (e) => {
+                    if (e.propertyName === 'width') {
+                        setLogoCentered(true);
+                        centeringListener = null;
+                    }
+                };
+                sidebar.addEventListener('transitionend', centeringListener, { once: true });
+            }
+        };
+
+    // Apply state immediately from localStorage
+        const isCollapsed = localStorage.getItem(KEY) === '1';
+        setCollapsed(isCollapsed, false);
+
+        btn.addEventListener('click', () => {
+            const nowCollapsed = !sidebar.classList.contains('dash-sidebar--collapsed');
+
+        // Prevent immediate tooltip pop-up on click when collapsing
+            if (nowCollapsed) {
+                btn.classList.add('dash-nav-item--no-tooltip');
+            }
+
+            setCollapsed(nowCollapsed, true);
+            localStorage.setItem(KEY, nowCollapsed ? '1' : '0');
+
+        // Remove the no-tooltip class once the mouse leaves the button
+            const onMouseLeave = () => {
+                btn.classList.remove('dash-nav-item--no-tooltip');
+                btn.removeEventListener('mouseleave', onMouseLeave);
+            };
+            btn.addEventListener('mouseleave', onMouseLeave);
+        });
+    })();
+</script>

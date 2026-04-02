@@ -1,0 +1,191 @@
+{% load wagtailimages_tags wagtailsettings_tags phoxtail_core_tags phoxtail_dashboard_tags %}
+{% get_settings %}
+<!-- Mobile Top Bar (hidden on xl+) -->
+<nav class="dash-topbar">
+    <div class="dash-topbar__inner">
+        <div class="dash-topbar__row">
+            <div class="dash-topbar__logo">
+                {% if settings.app.SiteConfig.logo %}
+                    {% image settings.app.SiteConfig.logo height-256 as topbar_logo %}
+                    <a href="/" class="dash-topbar__logo-link">
+                        <picture>
+                            {% if settings.app.SiteConfig.logo_dark %}
+                                {% image settings.app.SiteConfig.logo_dark height-256 as topbar_logo_dark %}
+                                <source srcset="{{ topbar_logo_dark.url }}"
+                                        media="(prefers-color-scheme: dark)">
+                            {% endif %}
+                            <img src="{{ topbar_logo.url }}"
+                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 class="dash-topbar__logo-img" />
+                        </picture>
+                    </a>
+                {% endif %}
+            </div>
+            <div class="dash-topbar__actions">
+                <button id="menu-btn"
+                        class="dash-icon-btn"
+                        aria-label="Open Menu"
+                        type="button">
+                    <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+<!-- Mobile Off-Canvas Drawer -->
+<div id="drawer" class="dash-mobile-sidebar">
+    <div class="dash-mobile-sidebar__header">
+        <div class="dash-mobile-sidebar__logo-row">
+            {% if settings.app.SiteConfig.logo %}
+                {% image settings.app.SiteConfig.logo height-256 as drawer_logo %}
+                <div class="dash-mobile-sidebar__logo">
+                    <a href="/" class="dash-mobile-sidebar__logo-link">
+                        <picture>
+                            {% if settings.app.SiteConfig.logo_dark %}
+                                {% image settings.app.SiteConfig.logo_dark height-256 as drawer_logo_dark %}
+                                <source srcset="{{ drawer_logo_dark.url }}"
+                                        media="(prefers-color-scheme: dark)">
+                            {% endif %}
+                            <img src="{{ drawer_logo.url }}"
+                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 class="dash-mobile-sidebar__logo-img" />
+                        </picture>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        <button id="close-drawer"
+                class="dash-icon-btn"
+                aria-label="Close Menu"
+                type="button">
+            <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+        </button>
+    </div>
+    <nav class="dash-mobile-sidebar__nav">
+        {% if user.is_authenticated %}
+            {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+            <div class="dash-mobile-sidebar__links">
+                {% if is_dashboard_enabled %}
+                    {% url 'dashboard:index' as dashboard_path %}
+                    <a href="{{ dashboard_path }}"
+                       class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+                        <span class="dash-nav-label">Dashboard</span>
+                    </a>
+                    {% for item in dashboard_nav_items %}
+                        {% url item.url_name as item_path %}
+                        {% dashboard_icon_path item.icon as svg_path %}
+                        <a href="{{ item_path }}"
+                           class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
+                            <span class="dash-nav-icon">{% include svg_path %}</span>
+                            <span class="dash-nav-label">{{ item.label }}</span>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="dash-mobile-sidebar__footer-links">
+                <hr class="dash-nav-separator">
+                {% if is_dashboard_enabled %}
+                    {% url 'dashboard:users:profile' as profile_path %}
+                    <a href="{{ profile_path }}"
+                       class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                        <span class="dash-nav-label">Profile</span>
+                    </a>
+                {% endif %}
+                {% url 'wagtailadmin_home' as admin_path %}
+                {% if perms.wagtailadmin.access_admin %}
+                    <a href="{{ admin_path }}"
+                       class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+                        <span class="dash-nav-label">Admin</span>
+                    </a>
+                {% endif %}
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dash-nav-item dash-nav-signout">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+                        <span class="dash-nav-label">Sign Out</span>
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+        {% if not user.is_authenticated %}
+            <div class="dash-mobile-sidebar__auth">
+                <a href="{% url 'account_login' %}"
+                   class="dash-auth-btn dash-auth-btn--outline">
+                    <span class="dash-auth-btn__icon">{% include 'phoxtail_core/svgs/signin.html' %}</span>
+                    Log In
+                </a>
+                <a href="{% url 'account_signup' %}"
+                   class="dash-auth-btn dash-auth-btn--primary">
+                    <span class="dash-auth-btn__icon">{% include 'phoxtail_core/svgs/person_add.html' %}</span>
+                    Sign Up
+                </a>
+            </div>
+        {% endif %}
+    </nav>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var topbar = document.querySelector('.dash-topbar');
+        var menuBtn = document.getElementById('menu-btn');
+        var sidebar = document.getElementById('drawer');
+        var backdrop = document.getElementById('drawer-backdrop');
+        var closeBtn = document.getElementById('close-drawer');
+
+    /* Smart scroll behavior — scroll happens inside .dash-content, not window */
+        var scrollContainer = document.querySelector('.dash-content');
+        var lastScrollY = scrollContainer ? scrollContainer.scrollTop : 0;
+        var ticking = false;
+
+        function updateTopbar() {
+            var currentScrollY = scrollContainer.scrollTop;
+
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                topbar.classList.add('dash-topbar--hidden');
+            } else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+                topbar.classList.remove('dash-topbar--hidden');
+            }
+
+            lastScrollY = currentScrollY;
+            ticking = false;
+        }
+
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', function () {
+                if (!ticking) {
+                    window.requestAnimationFrame(updateTopbar);
+                    ticking = true;
+                }
+            }, { passive: true });
+        }
+
+    /* Sidebar open/close */
+        function openSidebar() {
+            if (backdrop) backdrop.classList.add('nb-open');
+            setTimeout(function () {
+                sidebar.classList.add('nb-open');
+            }, 50);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('nb-open');
+            setTimeout(function () {
+                if (backdrop) backdrop.classList.remove('nb-open');
+            }, 300);
+            document.body.style.overflow = '';
+        }
+
+        if (menuBtn) menuBtn.addEventListener('click', openSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('nb-open')) {
+                closeSidebar();
+            }
+        });
+    });
+</script>

@@ -1,0 +1,96 @@
+{% load phoxtail_core_tags phoxtail_dashboard_tags %}
+{% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+{% if is_dashboard_enabled %}
+    <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
+    <div id="dock-sheet" class="dash-dock-sheet">
+        {% for item in dashboard_mobile_nav_items|slice:"3:" %}
+            {% url item.url_name as item_path %}
+            {% dashboard_icon_path item.icon as svg_path %}
+            <a href="{{ item_path }}"
+               class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
+                <span class="dash-nav-icon">{% include svg_path %}</span>
+                <span class="dash-nav-label">{{ item.label }}</span>
+            </a>
+        {% endfor %}
+        {% if dashboard_mobile_nav_items|slice:"3:" %}<hr class="dash-nav-separator">{% endif %}
+        {% url 'dashboard:users:profile' as profile_path %}
+        <a href="{{ profile_path }}"
+           class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
+            <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+            <span class="dash-nav-label">Profile</span>
+        </a>
+        {% url 'wagtailadmin_home' as admin_path %}
+        {% if perms.wagtailadmin.access_admin %}
+            <a href="{{ admin_path }}"
+               class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
+                <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+                <span class="dash-nav-label">Admin</span>
+            </a>
+        {% endif %}
+        <form method="post" action="{% url 'account_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="dash-nav-item dash-nav-signout">
+                <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+                <span class="dash-nav-label">Sign Out</span>
+            </button>
+        </form>
+    </div>
+    <nav class="dash-dock">
+        {% url 'dashboard:index' as dashboard_path %}
+        <a href="{{ dashboard_path }}"
+           class="dash-dock__item{% if request.path == dashboard_path %} dash-dock__item--active{% endif %}">
+            <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+            <span class="dash-dock__label">Dash</span>
+        </a>
+        {% for item in dashboard_mobile_nav_items|slice:":3" %}
+            {% url item.url_name as item_path %}
+            {% dashboard_icon_path item.icon as svg_path %}
+            <a href="{{ item_path }}"
+               class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
+                <span class="dash-dock__icon">{% include svg_path %}</span>
+                <span class="dash-dock__label">{{ item.label }}</span>
+            </a>
+        {% endfor %}
+        <button id="dock-more-btn"
+                type="button"
+                class="dash-dock__item dash-dock__more-btn"
+                aria-label="More navigation items"
+                aria-expanded="false">
+            <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/more_horiz.html' %}</span>
+            <span class="dash-dock__label">More</span>
+        </button>
+    </nav>
+    <script>
+        (function () {
+            const moreBtn = document.getElementById('dock-more-btn');
+            const sheet = document.getElementById('dock-sheet');
+            const backdrop = document.getElementById('dock-sheet-backdrop');
+
+            function openSheet() {
+                sheet.classList.add('dash-dock-sheet--open');
+                backdrop.classList.add('dash-dock-sheet-backdrop--open');
+                moreBtn.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeSheet() {
+                sheet.classList.remove('dash-dock-sheet--open');
+                backdrop.classList.remove('dash-dock-sheet-backdrop--open');
+                moreBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            moreBtn.addEventListener('click', function () {
+                if (sheet.classList.contains('dash-dock-sheet--open')) {
+                    closeSheet();
+                } else {
+                    openSheet();
+                }
+            });
+
+            backdrop.addEventListener('click', closeSheet);
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeSheet();
+            });
+        })();
+    </script>
+{% endif %}

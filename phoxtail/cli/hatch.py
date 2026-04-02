@@ -19,12 +19,30 @@ console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
 APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
+CTX_MARKER = "                # {{ phoxtail_context_processors }}\n"
+URLS_MARKER = "    # {{ phoxtail_optional_urls }}\n"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 
 # Optional phoxtail apps available during hatching.
 OPTIONAL_APPS = [
     {"name": "Blog", "value": "phoxtail.blog"},
+    {"name": "Dashboard", "value": "phoxtail.dashboard"},
 ]
+
+# Context processors to inject when specific optional apps are selected.
+APP_CONTEXT_PROCESSORS = {
+    "phoxtail.dashboard": [
+        "phoxtail.dashboard.context_processors.dashboard_nav",
+    ],
+}
+
+# URL patterns to inject when specific optional apps are selected.
+# Each value is a line of code to insert into urls.py (with correct indent).
+APP_URL_PATTERNS = {
+    "phoxtail.dashboard": (
+        '    path("dashboard/", include("phoxtail.dashboard.urls")),\n'
+    ),
+}
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
@@ -139,6 +157,23 @@ def _copy_template(
     else:
         apps_replacement = ""
 
+    # Collect context processors for selected apps.
+    ctx_processors = []
+    for app in optional_apps or []:
+        ctx_processors.extend(APP_CONTEXT_PROCESSORS.get(app, []))
+    if ctx_processors:
+        ctx_replacement = "".join(f'                "{cp}",\n' for cp in ctx_processors)
+    else:
+        ctx_replacement = ""
+
+    # Collect URL patterns for selected apps.
+    url_lines = []
+    for app in optional_apps or []:
+        line = APP_URL_PATTERNS.get(app)
+        if line:
+            url_lines.append(line)
+    urls_replacement = "".join(url_lines)
+
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
         if src_path.is_dir():
@@ -155,6 +190,10 @@ def _copy_template(
                 content = content.replace(PLACEHOLDER, project_name)
             if APPS_MARKER in content:
                 content = content.replace(APPS_MARKER, apps_replacement)
+            if CTX_MARKER in content:
+                content = content.replace(CTX_MARKER, ctx_replacement)
+            if URLS_MARKER in content:
+                content = content.replace(URLS_MARKER, urls_replacement)
             dest_path.write_text(content, encoding="utf-8")
         except UnicodeDecodeError:
             shutil.copy2(src_path, dest_path)

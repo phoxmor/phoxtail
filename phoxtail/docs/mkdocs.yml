@@ -49,6 +49,8 @@ nav:
       - CLI Testing: internal/testing.md
       - App Migration Guide: internal/app-migration-guide.md
       - Studio Refactor Plan: internal/studio-refactor-plan.md
+      - Booking Migration Plan: internal/booking-migration-plan.md
+      - Dashboard Migration Plan: internal/dashboard-migration-plan.md
 
 theme:
   name: material
