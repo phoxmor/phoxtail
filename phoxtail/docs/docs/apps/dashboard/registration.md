@@ -160,7 +160,7 @@ URL patterns from registered modules are mounted under the dashboard's URL prefi
 
 ```
 /dashboard/                          → dashboard:index
-/dashboard/users/profile/            → dashboard:users:profile
+/dashboard/users/profile/            → :users:profile
 /dashboard/<url_prefix>/<app_urls>   → dashboard:<url_prefix_stripped>:<url_name>
 ```
 

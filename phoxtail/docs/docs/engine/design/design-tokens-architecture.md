@@ -49,7 +49,7 @@ Every base template follows the same three-step pattern in `<head>`:
 
 ```html
 <!-- Step 1: fallback defaults (all CSS vars have safe values) -->
-<link rel="stylesheet" href="{% static 'core/css/main.css' %}" />
+<link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
 
 <!-- Step 2: other static CSS -->
 <link rel="stylesheet" href="{% static 'app/css/main.css' %}" />

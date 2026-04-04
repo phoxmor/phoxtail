@@ -244,12 +244,12 @@ The templates reference several URL names:
 | URL name | Source |
 |----------|--------|
 | `dashboard:index` | Dashboard's own URL conf |
-| `dashboard:users:profile` | `users` app — depends on users being wired |
+| `:users:profile` | `users` app — depends on users being wired |
 | `dashboard:booking:events:list` | Booking registration via registry |
 | `account_login` / `account_signup` / `account_logout` | `django-allauth` |
 | `wagtailadmin_home` | Wagtail admin |
 
-The `dashboard:users:profile` reference will break without the users
+The `:users:profile` reference will break without the users
 app. Options:
 
 - **(a)** Wrap the profile link in `{% url ... as var %}` with a

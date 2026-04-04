@@ -56,7 +56,7 @@ core/
 Use `MultiSelectChipsField` in the form — the field auto-derives `selected_items` and `available_items` from its queryset and current value. Include the widget with just `field` and `search_url`:
 
 ```django
-{% include 'core/forms/widgets/htmx/multi_select_chips.html' with
+{% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips.html' with
     field=form.my_field
     search_url=search_url
     item_template="myapp/widgets/my_item_display.html"
@@ -139,7 +139,7 @@ Example from `references_search_response.html`:
 
 ```django
 {# Primary response: update the widget #}
-{% include 'core/forms/widgets/htmx/multi_select_chips/compact_input.html' %}
+{% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html' %}
 
 {# OOB update: sync hidden form placeholder #}
 <div hx-swap-oob="innerHTML:#context-form-placeholder">
@@ -259,7 +259,7 @@ path(
 ### Step 3: Include Widget in Template
 
 ```django
-{% include 'core/forms/widgets/htmx/multi_select_chips.html' with
+{% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips.html' with
     field=form.my_field
     search_url=my_search_url
     item_template="myapp/widgets/my_item_display.html"

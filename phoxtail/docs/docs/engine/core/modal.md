@@ -126,7 +126,7 @@ Use HTMX to hit the `core:modal` endpoint with a `content_url` parameter:
 ```html
 {% url 'myapp:my_form' as form_url %}
 <button type="button"
-        hx-get="{% url 'core:modal' %}"
+        hx-get="{% url 'phoxtail_core:modal' %}"
         hx-vals='{"content_url": "{{ form_url }}"}'
         hx-target="#core-modal-placeholder-wrapper"
         hx-swap="innerHTML">
@@ -139,7 +139,7 @@ Use HTMX to hit the `core:modal` endpoint with a `content_url` parameter:
 Any query parameters besides `content_url` are merged into the content URL automatically:
 
 ```html
-<button hx-get="{% url 'core:modal' %}"
+<button hx-get="{% url 'phoxtail_core:modal' %}"
         hx-vals='{"content_url": "{{ form_url }}", "event_id": "{{ event.pk }}"}'
         hx-target="#core-modal-placeholder-wrapper"
         hx-swap="innerHTML">
@@ -152,7 +152,7 @@ The content view receives `event_id` in `request.GET` as if the client had hit t
 You can also use `hx-include` to send the current state of other form fields along with the request — the included values get merged into the content URL as well:
 
 ```html
-<button hx-get="{% url 'core:modal' %}"
+<button hx-get="{% url 'phoxtail_core:modal' %}"
         hx-vals='{"content_url": "{{ form_url }}"}'
         hx-include="#filters-form-placeholder"
         hx-target="#core-modal-placeholder-wrapper"
@@ -166,7 +166,7 @@ You can also use `hx-include` to send the current state of other form fields alo
 For modals that open on top of an existing modal, use the level 1 endpoint and target:
 
 ```html
-<button hx-get="{% url 'core:modal_level_1' %}"
+<button hx-get="{% url 'phoxtail_core:modal_level_1' %}"
         hx-vals='{"content_url": "{{ nested_form_url }}"}'
         hx-target="#core-modal-level-1-placeholder-wrapper"
         hx-swap="innerHTML">
