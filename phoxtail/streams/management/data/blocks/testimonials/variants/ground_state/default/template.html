@@ -19,9 +19,7 @@
                                  tabindex="0">
                                 <div class="tm-card">
                                     <div class="tm-quote-icon tm-quote-icon--top">
-                                        {% with class="tm-icon-lg" %}
-                                            {% icon "format_quote" %}
-                                        {% endwith %}
+                                        {% icon "format_quote" class="tm-icon-lg" %}
                                     </div>
                                     <div class="tm-card-content">
                                         {% if review.avatar_image %}
@@ -40,9 +38,7 @@
                                                 {% for i in "12345"|make_list %}
                                                     <div class="tm-star {% if i|add:0 <= review.rating|add:0 %}tm-star--active{% endif %}"
                                                          aria-hidden="true">
-                                                        {% with class="tm-star-svg" %}
-                                                            {% icon "star_fill" %}
-                                                        {% endwith %}
+                                                        {% icon "star_fill" class="tm-star-svg" %}
                                                     </div>
                                                 {% endfor %}
                                             </div>
@@ -58,9 +54,7 @@
                                         {% if review.title %}<p class="tm-author-title">{{ review.title }}</p>{% endif %}
                                     </div>
                                     <div class="tm-quote-icon tm-quote-icon--bottom">
-                                        {% with class="tm-icon-sm tm-rotate-180" %}
-                                            {% icon "format_quote" %}
-                                        {% endwith %}
+                                        {% icon "format_quote" class="tm-icon-sm tm-rotate-180" %}
                                     </div>
                                 </div>
                             </div>
@@ -89,16 +83,12 @@
         <button class="tm-nav tm-nav--prev"
                 type="button"
                 aria-label="Previous review">
-            {% with class="tm-nav-icon" %}
-                {% icon "chevron_left" %}
-            {% endwith %}
+            {% icon "chevron_left" class="tm-nav-icon" %}
         </button>
         <div class="tm-modal-stage">
             <div class="tm-modal-content">
                 <div class="tm-quote-icon tm-quote-icon--top">
-                    {% with class="tm-icon-lg" %}
-                        {% icon "format_quote" %}
-                    {% endwith %}
+                    {% icon "format_quote" class="tm-icon-lg" %}
                 </div>
                 <div class="tm-modal-avatar"></div>
                 <div class="tm-modal-rating"></div>
@@ -108,21 +98,15 @@
                     <div class="tm-modal-author-title"></div>
                 </div>
                 <div class="tm-quote-icon tm-quote-icon--bottom">
-                    {% with class="tm-icon-sm tm-rotate-180" %}
-                        {% icon "format_quote" %}
-                    {% endwith %}
+                    {% icon "format_quote" class="tm-icon-sm tm-rotate-180" %}
                 </div>
             </div>
         </div>
         <button class="tm-nav tm-nav--next" type="button" aria-label="Next review">
-            {% with class="tm-nav-icon" %}
-                {% icon "chevron_right" %}
-            {% endwith %}
+            {% icon "chevron_right" class="tm-nav-icon" %}
         </button>
         <button class="tm-close" type="button" aria-label="Close viewer">
-            {% with class="tm-close-icon" %}
-                {% icon "close" %}
-            {% endwith %}
+            {% icon "close" class="tm-close-icon" %}
         </button>
         <div class="tm-counter" aria-live="polite"></div>
     </div>

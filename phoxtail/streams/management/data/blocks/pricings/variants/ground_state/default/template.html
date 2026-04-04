@@ -32,15 +32,11 @@
                                                 <div class="pricing-feature-icon">
                                                     {% if feature.is_enabled %}
                                                         <div class="pricing-icon pricing-icon-enabled {% if plan.is_highlighted %}pricing-icon-highlighted{% endif %}">
-                                                            {% with class="pricing-icon-svg" %}
-                                                                {% icon "check" %}
-                                                            {% endwith %}
+                                                            {% icon "check" class="pricing-icon-svg" %}
                                                         </div>
                                                     {% else %}
                                                         <div class="pricing-icon pricing-icon-disabled">
-                                                            {% with class="pricing-icon-svg" %}
-                                                                {% icon "close" %}
-                                                            {% endwith %}
+                                                            {% icon "close" class="pricing-icon-svg" %}
                                                         </div>
                                                     {% endif %}
                                                 </div>
@@ -62,17 +58,13 @@
                                                         {% if perms.wagtailadmin.access_admin %}
                                                             <span class="pricing-btn pricing-btn-disabled">
                                                                 {{ button.label|default:current_page.title }}
-                                                                {% with class="pricing-btn-icon" %}
-                                                                    {% icon "cloud_off" %}
-                                                                {% endwith %}
+                                                                {% icon "cloud_off" class="pricing-btn-icon" %}
                                                             </span>
                                                         {% endif %}
                                                     {% elif current_page.is_locked_for_references %}
                                                         <span class="pricing-btn pricing-btn-disabled">
                                                             {{ button.label|default:current_page.title }}
-                                                            {% with class="pricing-btn-icon" %}
-                                                                {% icon "lock" %}
-                                                            {% endwith %}
+                                                            {% icon "lock" class="pricing-btn-icon" %}
                                                         </span>
                                                     {% else %}
                                                         <a href="{{ button.link.url }}"

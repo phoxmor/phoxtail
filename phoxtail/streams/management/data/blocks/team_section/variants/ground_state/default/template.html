@@ -104,9 +104,7 @@
         <button class="ts-nav ts-nav--prev"
                 type="button"
                 aria-label="Previous member">
-            {% with class="ts-nav-icon" %}
-                {% icon "chevron_left" %}
-            {% endwith %}
+            {% icon "chevron_left" class="ts-nav-icon" %}
         </button>
         <div class="ts-modal-stage">
             <div class="ts-modal-content">
@@ -119,14 +117,10 @@
             </div>
         </div>
         <button class="ts-nav ts-nav--next" type="button" aria-label="Next member">
-            {% with class="ts-nav-icon" %}
-                {% icon "chevron_right" %}
-            {% endwith %}
+            {% icon "chevron_right" class="ts-nav-icon" %}
         </button>
         <button class="ts-close" type="button" aria-label="Close viewer">
-            {% with class="ts-close-icon" %}
-                {% icon "close" %}
-            {% endwith %}
+            {% icon "close" class="ts-close-icon" %}
         </button>
         <div class="ts-counter" aria-live="polite"></div>
     </div>

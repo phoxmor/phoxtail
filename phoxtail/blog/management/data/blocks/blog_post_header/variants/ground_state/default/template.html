@@ -39,17 +39,13 @@
                 {% with pub_date=page.first_published_at_override|default:page.first_published_at %}
                     {% if pub_date %}
                         <time class="bph-date" datetime="{{ pub_date|date:'Y-m-d' }}">
-                            {% with class="bph-meta-icon" %}
-                                {% icon "publish" %}
-                            {% endwith %}
+                            {% icon "publish" class="bph-meta-icon" %}
                             <span>{{ pub_date|date:"M d, Y" }}</span>
                         </time>
                         {% with updated_date=page.last_published_at_override|default:page.last_published_at %}
                             {% if updated_date != pub_date %}
                                 <time class="bph-date" datetime="{{ updated_date|date:'Y-m-d' }}">
-                                    {% with class="bph-meta-icon" %}
-                                        {% icon "published_with_changes" %}
-                                    {% endwith %}
+                                    {% icon "published_with_changes" class="bph-meta-icon" %}
                                     <span>{{ updated_date|date:"M d, Y" }}</span>
                                 </time>
                             {% endif %}
@@ -59,9 +55,7 @@
             {% endif %}
             {% if page.read_mins %}
                 <span class="bph-read-mins">
-                    {% with class="bph-meta-icon" %}
-                        {% icon "schedule" %}
-                    {% endwith %}
+                    {% icon "schedule" class="bph-meta-icon" %}
                     <span>{{ page.read_mins }} min read</span>
                 </span>
             {% endif %}

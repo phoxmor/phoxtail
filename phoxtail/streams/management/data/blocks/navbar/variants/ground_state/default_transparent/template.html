@@ -69,9 +69,7 @@
                                             aria-haspopup="true"
                                             aria-expanded="false">
                                         {{ dd.label }}
-                                        {% with class="nb-glass-chevron" %}
-                                            {% icon "chevron_down" %}
-                                        {% endwith %}
+                                        {% icon "chevron_down" class="nb-glass-chevron" %}
                                     </button>
                                     {% if dd.items %}
                                         <div class="nb-glass-dropdown-pad"></div>
@@ -138,9 +136,7 @@
                             <button type="button"
                                     class="nb-glass-ctrl-btn nb-glass-user-btn"
                                     aria-label="User Menu">
-                                {% with class="nb-glass-icon" %}
-                                    {% icon "person" %}
-                                {% endwith %}
+                                {% icon "person" class="nb-glass-icon" %}
                             </button>
                         {% endif %}
                         <div class="nb-glass-hoverfill"></div>
@@ -150,17 +146,13 @@
                                 {% url 'dashboard:index' as dashboard_path %}
                                 <a href="{{ dashboard_path }}"
                                    class="nb-glass-user-link{% if request.path == dashboard_path %} nb-glass-user-link-active{% endif %}">
-                                    {% with class="nb-glass-icon" %}
-                                        {% icon "browse" %}
-                                    {% endwith %}
+                                    {% icon "browse" class="nb-glass-icon" %}
                                     <span>Dashboard</span>
                                 </a>
                                 {% url 'users:profile' as profile_path %}
                                 <a href="{{ profile_path }}"
                                    class="nb-glass-user-link{% if request.path == profile_path %} nb-glass-user-link-active{% endif %}">
-                                    {% with class="nb-glass-icon" %}
-                                        {% icon "profile" %}
-                                    {% endwith %}
+                                    {% icon "profile" class="nb-glass-icon" %}
                                     <span>Profile</span>
                                 </a>
                             {% endif %}
@@ -168,9 +160,7 @@
                                 {% url 'wagtailadmin_home' as admin_path %}
                                 <a href="{{ admin_path }}"
                                    class="nb-glass-user-link{% if request.path == admin_path %} nb-glass-user-link-active{% endif %}">
-                                    {% with class="nb-glass-icon" %}
-                                        {% icon "settings" %}
-                                    {% endwith %}
+                                    {% icon "settings" class="nb-glass-icon" %}
                                     <span>Admin</span>
                                 </a>
                             {% endif %}
@@ -178,9 +168,7 @@
                             <form method="post" action="{% url 'account_logout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="nb-glass-user-link nb-glass-user-link-danger">
-                                    {% with class="nb-glass-icon" %}
-                                        {% icon "signout" %}
-                                    {% endwith %}
+                                    {% icon "signout" class="nb-glass-icon" %}
                                     <span>Sign out</span>
                                 </button>
                             </form>
@@ -190,16 +178,12 @@
                     <div class="nb-glass-auth-btns">
                         <a href="{% url 'account_login' %}"
                            class="nb-glass-ctrl-btn nb-glass-login-btn">
-                            {% with class="nb-glass-icon-sm" %}
-                                {% icon "signin" %}
-                            {% endwith %}
+                            {% icon "signin" class="nb-glass-icon-sm" %}
                             <span>Log In</span>
                         </a>
                         <a href="{% url 'account_signup' %}"
                            class="nb-glass-ctrl-btn nb-glass-signup-btn">
-                            {% with class="nb-glass-icon-sm" %}
-                                {% icon "person_add" %}
-                            {% endwith %}
+                            {% icon "person_add" class="nb-glass-icon-sm" %}
                             <span>Sign Up</span>
                         </a>
                     </div>
@@ -233,9 +217,7 @@
                 <button class="nb-glass-toggle"
                         aria-expanded="false"
                         aria-label="Toggle navigation">
-                    {% with class="nb-glass-icon" %}
-                        {% icon "menu" %}
-                    {% endwith %}
+                    {% icon "menu" class="nb-glass-icon" %}
                 </button>
             </div>
         </div>
@@ -262,9 +244,7 @@
                 </div>
             {% endif %}
             <button class="nb-glass-sidebar-close" aria-label="Close" type="button">
-                {% with class="nb-glass-icon" %}
-                    {% icon "close" %}
-                {% endwith %}
+                {% icon "close" class="nb-glass-icon" %}
             </button>
         </div>
         <div class="nb-glass-sidebar-nav">
@@ -309,13 +289,9 @@
                                             class="nb-glass-sidebar-link nb-glass-accordion-trigger{% if is_active %} nb-glass-sidebar-link-active{% endif %}">
                                         <span>{{ dd.label }}</span>
                                         {% if is_active %}
-                                            {% with class="nb-glass-accordion-chevron nb-glass-rotated" %}
-                                                {% icon "chevron_down" %}
-                                            {% endwith %}
+                                            {% icon "chevron_down" class="nb-glass-accordion-chevron nb-glass-rotated" %}
                                         {% else %}
-                                            {% with class="nb-glass-accordion-chevron" %}
-                                                {% icon "chevron_down" %}
-                                            {% endwith %}
+                                            {% icon "chevron_down" class="nb-glass-accordion-chevron" %}
                                         {% endif %}
                                     </button>
                                     <div class="nb-glass-accordion-content{% if is_active %} nb-glass-expanded{% endif %}">
@@ -366,17 +342,13 @@
                         {% url 'dashboard:index' as dashboard_path %}
                         <a href="{{ dashboard_path }}"
                            class="nb-glass-sidebar-link{% if request.path == dashboard_path %} nb-glass-sidebar-link-active{% endif %}">
-                            {% with class="nb-glass-icon" %}
-                                {% icon "browse" %}
-                            {% endwith %}
+                            {% icon "browse" class="nb-glass-icon" %}
                             <span>Dashboard</span>
                         </a>
                         {% url 'users:profile' as profile_path %}
                         <a href="{{ profile_path }}"
                            class="nb-glass-sidebar-link{% if request.path == profile_path %} nb-glass-sidebar-link-active{% endif %}">
-                            {% with class="nb-glass-icon" %}
-                                {% icon "profile" %}
-                            {% endwith %}
+                            {% icon "profile" class="nb-glass-icon" %}
                             <span>Profile</span>
                         </a>
                     {% endif %}
@@ -384,9 +356,7 @@
                         {% url 'wagtailadmin_home' as admin_path %}
                         <a href="{{ admin_path }}"
                            class="nb-glass-sidebar-link{% if request.path == admin_path %} nb-glass-sidebar-link-active{% endif %}">
-                            {% with class="nb-glass-icon" %}
-                                {% icon "settings" %}
-                            {% endwith %}
+                            {% icon "settings" class="nb-glass-icon" %}
                             <span>Admin</span>
                         </a>
                     {% endif %}
@@ -394,9 +364,7 @@
                         {% csrf_token %}
                         <button type="submit"
                                 class="nb-glass-sidebar-link nb-glass-sidebar-link-danger">
-                            {% with class="nb-glass-icon" %}
-                                {% icon "signout" %}
-                            {% endwith %}
+                            {% icon "signout" class="nb-glass-icon" %}
                             <span>Sign out</span>
                         </button>
                     </form>
@@ -405,16 +373,12 @@
                 <div class="nb-glass-sidebar-auth">
                     <a href="{% url 'account_login' %}"
                        class="nb-glass-sidebar-auth-btn nb-glass-login-btn">
-                        {% with class="nb-glass-icon-sm" %}
-                            {% icon "signin" %}
-                        {% endwith %}
+                        {% icon "signin" class="nb-glass-icon-sm" %}
                         <span>Log In</span>
                     </a>
                     <a href="{% url 'account_signup' %}"
                        class="nb-glass-sidebar-auth-btn nb-glass-signup-btn">
-                        {% with class="nb-glass-icon-sm" %}
-                            {% icon "person_add" %}
-                        {% endwith %}
+                        {% icon "person_add" class="nb-glass-icon-sm" %}
                         <span>Sign Up</span>
                     </a>
                 </div>
