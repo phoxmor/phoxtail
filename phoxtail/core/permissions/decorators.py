@@ -31,7 +31,7 @@ def permission_required_factory(policy):
                         # modal. Raising PermissionDenied would let Wagtail's
                         # middleware convert it to a 302 redirect, which HTMX
                         # follows transparently — breaking the page layout.
-                        if request.htmx:
+                        if getattr(request, 'htmx', None):
                             response = HttpResponse(status=204)
                             trigger_client_event(
                                 response,
