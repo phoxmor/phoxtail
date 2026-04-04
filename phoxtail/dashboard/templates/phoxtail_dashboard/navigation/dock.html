@@ -13,7 +13,7 @@
             </a>
         {% endfor %}
         {% if dashboard_mobile_nav_items|slice:"3:" %}<hr class="dash-nav-separator">{% endif %}
-        {% url 'dashboard:users:profile' as profile_path %}
+        {% url 'users:profile' as profile_path %}
         <a href="{{ profile_path }}"
            class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
             <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>

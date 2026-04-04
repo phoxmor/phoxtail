@@ -155,7 +155,7 @@
                                     {% endwith %}
                                     <span>Dashboard</span>
                                 </a>
-                                {% url 'dashboard:users:profile' as profile_path %}
+                                {% url 'users:profile' as profile_path %}
                                 <a href="{{ profile_path }}"
                                    class="nb-glass-user-link{% if request.path == profile_path %} nb-glass-user-link-active{% endif %}">
                                     {% with class="nb-glass-icon" %}
@@ -371,7 +371,7 @@
                             {% endwith %}
                             <span>Dashboard</span>
                         </a>
-                        {% url 'dashboard:users:profile' as profile_path %}
+                        {% url 'users:profile' as profile_path %}
                         <a href="{{ profile_path }}"
                            class="nb-glass-sidebar-link{% if request.path == profile_path %} nb-glass-sidebar-link-active{% endif %}">
                             {% with class="nb-glass-icon" %}

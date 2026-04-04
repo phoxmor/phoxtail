@@ -14,13 +14,21 @@ from .utils import get_age_display
 from .validators import validate_born_at
 
 
-class User(
+class AbstractPhoxtailUser(
     AbstractUser,
     UUIDMixin,
     TimestampMixin,
     AdminURLMixin,
     index.Indexed,
 ):
+    """Abstract base user model with Phoxtail's opinionated fields.
+
+    Projects that need custom fields should subclass this in a local ``users``
+    app and set ``AUTH_USER_MODEL`` accordingly — **before** running the first
+    migration.  Otherwise the concrete ``User`` model below is used as the
+    default.
+    """
+
     email = models.EmailField(unique=True, verbose_name=_("email address"))
     born_at = models.DateField(
         blank=True,
@@ -29,7 +37,10 @@ class User(
         validators=[validate_born_at],
     )
     gender = models.ForeignKey(
-        "users.Gender", blank=True, null=True, on_delete=models.SET_NULL
+        "phoxtail_users.Gender",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     country = CountryField(blank=True, null=True)
 
@@ -50,6 +61,7 @@ class User(
     ]
 
     class Meta:
+        abstract = True
         verbose_name = _("User")
         verbose_name_plural = _("Users")
 
@@ -57,8 +69,27 @@ class User(
         return self.get_full_name()
 
     @property
+    def service(self):
+        from phoxtail.users.services import UserService
+
+        return UserService(self)
+
+    @property
     def age_display(self) -> str | None:
         return get_age_display(self.born_at)
+
+
+class User(AbstractPhoxtailUser):
+    """Concrete default user model.
+
+    Used when ``AUTH_USER_MODEL = "phoxtail_users.User"`` (the default for
+    hatched projects).  The ``swappable`` meta option tells Django's migration
+    framework to skip this table when a project points AUTH_USER_MODEL
+    elsewhere.
+    """
+
+    class Meta(AbstractPhoxtailUser.Meta):
+        swappable = "AUTH_USER_MODEL"
 
 
 @register_snippet

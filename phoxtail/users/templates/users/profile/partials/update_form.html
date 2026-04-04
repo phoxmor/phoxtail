@@ -48,7 +48,7 @@
                 <form method="POST"
                       enctype="multipart/form-data"
                       class="dash-form-grid"
-                      hx-post="{% url 'dashboard:users:profile_update' %}"
+                      hx-post="{% url 'users:profile_update' %}"
                       hx-target="#core-modal-placeholder"
                       hx-swap="innerHTML">
                     {% csrf_token %}

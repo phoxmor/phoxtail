@@ -5,6 +5,7 @@ from django.utils import timezone
 
 
 def get_age_time_delta(birth_date: date | None) -> relativedelta | None:
+    """Calculate the precise age as a relativedelta from the birth date."""
     if birth_date:
         today = timezone.now().date()
         return relativedelta(today, birth_date)
@@ -12,6 +13,7 @@ def get_age_time_delta(birth_date: date | None) -> relativedelta | None:
 
 
 def get_age_display(birth_date: date | None) -> str | None:
+    """Return a human-readable age string (e.g. '21 years', '3 months', '5 days')."""
     age = get_age_time_delta(birth_date)
     if age is None:
         return None

@@ -146,7 +146,7 @@
                                     {% endwith %}
                                     <span>Dashboard</span>
                                 </a>
-                                {% url 'dashboard:users:profile' as profile_path %}
+                                {% url 'users:profile' as profile_path %}
                                 <a href="{{ profile_path }}"
                                    class="nb-user-link{% if request.path == profile_path %} nb-user-link-active{% endif %}">
                                     {% with class="nb-icon" %}
@@ -358,7 +358,7 @@
                             {% endwith %}
                             <span>Dashboard</span>
                         </a>
-                        {% url 'dashboard:users:profile' as profile_path %}
+                        {% url 'users:profile' as profile_path %}
                         <a href="{{ profile_path }}"
                            class="nb-sidebar-link{% if request.path == profile_path %} nb-sidebar-link-active{% endif %}">
                             {% with class="nb-icon" %}

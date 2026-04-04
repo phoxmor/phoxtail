@@ -70,7 +70,7 @@ def _load_command():
     import importlib
     import sys
 
-    mod_path = "phoxtail.project_template.users.management.commands.verify_email"
+    mod_path = "phoxtail.users.management.commands.verify_email"
     sys.modules.pop(mod_path, None)
     mod = importlib.import_module(mod_path)
     return mod.Command

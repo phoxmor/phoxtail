@@ -41,12 +41,12 @@
 <div class="dash-column">
     <div class="dash-info-header">
         <h3 class="dash-info-title">Personal Information</h3>
-        {% url 'dashboard:users:profile_update_form' as profile_update_form_url %}
+        {% url 'users:profile_update_form' as profile_update_form_url %}
         <!-- Edit Button - Desktop (hidden on mobile) -->
         <button type="button"
                 class="dash-btn dash-btn--outline dash-hidden dash-md-flex"
                 hx-get="{% url 'phoxtail_core:modal' %}"
-                hx-vals='{"content_url": "{{ profile_update_form_url }}"}'
+                hx-vals='{"content_url": "{{profile_update_form_url }}"}'
                 hx-target="#core-modal-placeholder-wrapper"
                 hx-swap="innerHTML">
             <span class="dash-info-item__icon">{% icon "edit" %}</span>

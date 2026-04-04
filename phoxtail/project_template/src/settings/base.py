@@ -12,12 +12,13 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # Core Django Settings
 SECRET_KEY = env("SECRET_KEY")
 ROOT_URLCONF = "src.urls"
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "phoxtail_users.User"
 WSGI_APPLICATION = "src.wsgi.application"
 
 # Installed Applications
 INSTALLED_APPS = [
     "phoxtail.core",
+    "phoxtail.users",
     "phoxtail.design",
     "phoxtail.streams",
     # {{ phoxtail_optional_apps }}
@@ -46,7 +47,6 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
     "django.contrib.postgres",
     "django_htmx",
-    "users",
     "wagtail.users",
     "app",
     "allauth",
@@ -77,15 +77,15 @@ MIDDLEWARE = [
 ]
 
 # Authentication (django-allauth)
-ACCOUNT_ADAPTER = "users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "phoxtail.users.adapters.AccountAdapter"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_BY_CODE_ENABLED = False
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_FORMS = {
-    "login": "users.forms.LoginForm",
-    "signup": "users.forms.SignupForm",
+    "login": "phoxtail.users.forms.LoginForm",
+    "signup": "phoxtail.users.forms.SignupForm",
 }
 LOGIN_URL = "account_login"
 LOGIN_REDIRECT_URL = "login_redirect"
@@ -223,6 +223,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Features
 FEATURE_ALLOW_SIGNUP = env.bool("FEATURE_ALLOW_SIGNUP", default=False)
+FEATURE_ACTIVATE_DASHBOARD = env.bool("FEATURE_ACTIVATE_DASHBOARD", default=False)
 
 # Celery Configuration
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379/0")

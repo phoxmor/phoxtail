@@ -1,0 +1,139 @@
+/* users/static/users/css/profile.css */
+
+/* ========================================
+   DRAWER SCROLL WRAPPER
+   ======================================== */
+.usr-drawer-scroll {
+    width: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ========================================
+   AVATAR
+   ======================================== */
+.dash-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dash-avatar {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    border: 4px solid rgb(var(--color-surface-100));
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.dash-avatar-initials {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+        135deg,
+        rgb(var(--color-primary-50)),
+        rgb(var(--color-primary-100))
+    );
+    color: rgb(var(--color-primary-700));
+    font-size: 2.25rem;
+    font-weight: 700;
+    border: 4px solid rgb(var(--color-surface-100));
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* ========================================
+   PROFILE DETAILS
+   ======================================== */
+.dash-profile-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
+    margin: 1.5rem 0 0.25rem;
+    text-align: center;
+}
+
+.dash-profile-handle {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-500));
+    text-align: center;
+}
+
+/* ========================================
+   SECTION LABEL
+   Used to label groups inside a column (e.g. "Account Settings").
+   ======================================== */
+.usr-section-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-500));
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0 0.25rem;
+    margin-top: 1.75rem;
+}
+
+/* Reduce gap when a section label directly precedes the action list */
+.usr-section-label + .dash-action-list {
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   DRAWER FOOTER
+   ======================================== */
+.usr-drawer-footer {
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid rgb(var(--color-surface-200) / 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.usr-drawer-footer .dash-btn {
+    width: 100%;
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+    .dash-profile-name {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .dash-avatar,
+    .dash-avatar-initials {
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .dash-avatar-initials {
+        background: linear-gradient(
+            135deg,
+            rgb(var(--color-primary-900) / 0.4),
+            rgb(var(--color-primary-900) / 0.6)
+        );
+        color: rgb(var(--color-primary-400));
+    }
+
+    /* Subtler hover on account setting links — override the default surface-800 tint */
+    .dash-action-item:hover {
+        background-color: rgb(var(--color-primary-900) / 0.3);
+    }
+
+    .usr-section-label {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .usr-drawer-footer {
+        border-top-color: rgb(var(--color-surface-700) / 0.4);
+    }
+}

@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
 from phonenumber_field.formfields import PrefixChoiceField, SplitPhoneNumberField
 
-from users.models import Gender
+from phoxtail.users.models import Gender
 
 User = get_user_model()
 
@@ -30,6 +30,7 @@ class CustomSplitPhoneNumberField(SplitPhoneNumberField):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Add placeholder to phone number input
         if len(self.widget.widgets) >= 2:
             self.widget.widgets[1].attrs["placeholder"] = _("Enter phone number")
             self.widget.widgets[1].attrs["type"] = "tel"
