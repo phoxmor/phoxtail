@@ -1,0 +1,78 @@
+{% load tz %}
+<div class="evta-modal-overlay"
+     onclick="closeModalLevel1()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="evta-drawer" onclick="event.stopPropagation()">
+        <div class="evta-drawer__scroll">
+            <!-- Header -->
+            <div class="evta-drawer__header">
+                <div class="evta-drawer__title-row">
+                    <h2 class="evta-drawer__title">Edit Event</h2>
+                    <button class="evta-close-btn"
+                            onclick="closeModalLevel1()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="evta-drawer__body">
+                <form id="update-event-form"
+                      hx-post="{% url 'booking_management:admin_booking_event_update_form' event.uuid %}"
+                      hx-include="#filters-form-placeholder"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <!-- Configuration Section -->
+                    <div class="evta-form-section">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/info_cicle.html' with class="icon-md" %}
+                            Configuration
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.service %}
+                            {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.start_datetime %}
+                            {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.end_datetime %}
+                            {% url 'scheduling_management:admin_schedule_event_capacity_form_field' as capacity_field_url %}
+                            {% include "phoxtail_core/forms/widgets/htmx/select.html" with field=form.space hx_get=capacity_field_url hx_target="#capacity-field-wrapper" %}
+                            <div id="capacity-field-wrapper">{% include "phoxtail_core/forms/widgets/number.html" with field=form.capacity %}</div>
+                            {% include "phoxtail_core/forms/widgets/radio_select.html" with field=form.status %}
+                            {% include "phoxtail_core/forms/widgets/checkbox_multiple.html" with field=form.staff %}
+                        </div>
+                    </div>
+                    <!-- Access & Notes Section -->
+                    <div class="evta-form-section" style="margin-top: 1rem;">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/adjustments.html' with class="icon-md" %}
+                            Access &amp; Notes
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.group %}
+                            {% include "phoxtail_core/forms/widgets/textarea.html" with field=form.notes %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="evta-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="evta-admin-actions">
+                    <button class="evta-btn evta-btn--edit"
+                            type="submit"
+                            form="update-event-form">
+                        {% include 'phoxtail_core/svgs/save.html' %}
+                        <span>Update Event</span>
+                    </button>
+                </div>
+                <button class="evta-btn evta-btn--secondary"
+                        onclick="closeModalLevel1()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

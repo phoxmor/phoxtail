@@ -1,0 +1,15 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+<!-- Always re-render the edit form (with or without errors) -->
+<div hx-swap-oob="innerHTML:#core-modal-level-1-placeholder-wrapper"></div>
+{% if not form.errors %}
+    <!-- Refresh the calendar on success -->
+    <div hx-swap-oob="innerHTML:#calendar-and-events-container">
+        {% include 'phoxtail_booking_events/admin/booking/partials/calendar.html' %}
+    </div>
+    <!-- Refresh only the event details card in the detail modal (level 0) on success -->
+    <div hx-swap-oob="innerHTML:#event-details">
+        {% include 'phoxtail_booking_events/admin/booking/partials/forms/components/event_details.html' %}
+    </div>
+{% endif %}

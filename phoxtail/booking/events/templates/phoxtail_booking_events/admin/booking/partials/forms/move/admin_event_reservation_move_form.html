@@ -1,0 +1,56 @@
+{% load tz %}
+<div class="evta-modal-overlay"
+     onclick="closeModalLevel1()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="evta-drawer" onclick="event.stopPropagation()">
+        <div class="evta-drawer__scroll">
+            <!-- Header -->
+            <div class="evta-drawer__header">
+                <div class="evta-drawer__title-row">
+                    <h2 class="evta-drawer__title">Move Reservation</h2>
+                    <button class="evta-close-btn"
+                            onclick="closeModalLevel1()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+                <!-- Reservation Info -->
+                {% include 'phoxtail_booking_events/admin/booking/partials/forms/components/reservation_details.html' %}
+            </div>
+            <!-- Body -->
+            <div class="evta-drawer__body">
+                <form id="move-reservation-form"
+                      hx-post="{% url 'booking_management:admin_event_reservation_move' reservation.uuid %}"
+                      hx-target="#core-modal-level-1-placeholder-wrapper"
+                      hx-swap="none"
+                      hx-include="#filters-form-placeholder">
+                    {% csrf_token %}
+                    {% include 'phoxtail_booking_events/admin/booking/partials/forms/move/form_content.html' %}
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="evta-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="evta-admin-actions">
+                    <button class="evta-btn evta-btn--primary"
+                            type="submit"
+                            form="move-reservation-form">
+                        {% include 'phoxtail_core/svgs/event_upcoming.html' %}
+                        <span>Move Reservation</span>
+                    </button>
+                </div>
+                <button class="evta-btn evta-btn--secondary"
+                        onclick="closeModalLevel1()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{# Hidden form placeholder for OOB syncing field values across HTMX requests #}
+<div id="move-reservation-form-placeholder" style="display: none;"></div>

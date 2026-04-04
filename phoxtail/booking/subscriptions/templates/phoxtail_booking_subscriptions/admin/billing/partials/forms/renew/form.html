@@ -1,0 +1,151 @@
+{% load tz %}
+<div class="suba-modal-overlay"
+     onclick="closeModalLevel1()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="suba-drawer" onclick="event.stopPropagation()">
+        <div class="suba-drawer__scroll">
+            <!-- Header -->
+            <div class="suba-drawer__header">
+                <div class="suba-drawer__title-row">
+                    <div class="suba-drawer__title-block">
+                        <h2 class="suba-drawer__title">Renew Subscription</h2>
+                        <div class="suba-drawer__subtitle">
+                            {% include 'phoxtail_core/svgs/refresh.html' %}
+                            <span class="suba-drawer__subtitle-text">Confirm subscription renewal</span>
+                        </div>
+                    </div>
+                    <button class="suba-close-btn"
+                            onclick="closeModalLevel1()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="suba-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body — New Subscription Preview -->
+            <div class="suba-drawer__body">
+                <div class="suba-renew-card">
+                    <!-- Card Header -->
+                    <div class="suba-renew-card__header">
+                        <div class="suba-renew-card__header-inner">
+                            <div>
+                                <h3 class="suba-renew-card__name">{{ subscription.subscription_type.name }}</h3>
+                                <div class="suba-renew-card__price">€{{ subscription.subscription_type.price }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="suba-renew-card__body">
+                        <!-- User Info -->
+                        <div class="suba-renew-section">
+                            <h4 class="suba-renew-section__heading">
+                                {% include 'phoxtail_core/svgs/person.html' %}
+                                User
+                            </h4>
+                            <div class="suba-renew-info-box">
+                                <div class="suba-renew-info-box__name">{{ subscription.user.get_full_name|default:subscription.user.username }}</div>
+                                <div class="suba-renew-info-box__email">{{ subscription.user.email }}</div>
+                            </div>
+                        </div>
+                        <!-- Duration -->
+                        <div class="suba-renew-section">
+                            <h4 class="suba-renew-section__heading">
+                                {% include 'phoxtail_core/svgs/calendar.html' %}
+                                Duration
+                            </h4>
+                            <div class="suba-renew-info-box">
+                                <div class="suba-renew-duration-row">
+                                    <div class="suba-renew-duration-item">
+                                        {% include 'phoxtail_core/svgs/event.html' %}
+                                        <div>
+                                            <span class="suba-renew-duration-item__label">Starts</span>
+                                            <span class="suba-renew-duration-item__value">{% now "M d, Y" %}</span>
+                                        </div>
+                                    </div>
+                                    <div class="suba-renew-divider"></div>
+                                    {% if subscription.renewal_end_date %}
+                                        <div class="suba-renew-duration-item">
+                                            {% include 'phoxtail_core/svgs/event.html' %}
+                                            <div>
+                                                <span class="suba-renew-duration-item__label">Expires</span>
+                                                <span class="suba-renew-duration-item__value">{{ subscription.renewal_end_date|date:"M d, Y" }}</span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="suba-renew-duration-item">
+                                            {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                                            <div>
+                                                <span class="suba-renew-duration-item__label">Expires</span>
+                                                <span class="suba-renew-duration-item__value">No Time Limit</span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Credits -->
+                        <div class="suba-renew-section">
+                            <h4 class="suba-renew-section__heading">
+                                {% include 'phoxtail_core/svgs/poker_chip.html' %}
+                                Credits
+                            </h4>
+                            {% if subscription.subscription_type.credit_allocations.all %}
+                                {% for allocation in subscription.subscription_type.credit_allocations.all %}
+                                    <div class="suba-renew-info-box">
+                                        <div class="suba-renew-credit-row">
+                                            <span class="suba-renew-credit-name">{{ allocation.service.name }}</span>
+                                            {% if allocation.credits is None %}
+                                                <span class="suba-renew-credit-amount">Unlimited credits</span>
+                                            {% else %}
+                                                <span class="suba-renew-credit-amount">
+                                                    {% if subscription.subscription_type.credits and subscription.subscription_type.credits > 0 %}
+                                                        {{ subscription.subscription_type.credits }} shared credit{{ subscription.subscription_type.credits|pluralize }}
+                                                        {% if allocation.credits > 0 %}+{{ allocation.credits }}{% endif %}
+                                                    {% else %}
+                                                        {{ allocation.credits }} credit{{ allocation.credits|pluralize }}
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="suba-renew-info-box">
+                                    <div class="suba-renew-unlimited">
+                                        {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                                        <span>Unlimited access to all available classes</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer Actions -->
+            <div class="suba-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="suba-admin-actions">
+                    <form id="renew-subscription-form"
+                          hx-post="{% url 'billing_management:admin_subscription_renew_form' subscription.uuid %}"
+                          hx-swap="none"
+                          hx-include="#billing-filters-form-placeholder"
+                          style="display: contents">
+                        {% csrf_token %}
+                        <button class="suba-btn suba-btn--primary" type="submit">
+                            {% include 'phoxtail_core/svgs/refresh.html' %}
+                            <span>Confirm and Renew</span>
+                        </button>
+                    </form>
+                </div>
+                <button class="suba-btn suba-btn--secondary"
+                        onclick="closeModalLevel1()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

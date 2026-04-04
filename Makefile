@@ -14,12 +14,17 @@ test-cli:
 	uv run pytest phoxtail/cli/tests/ -p no:django $(ARGS)
 
 test-engine:
-	uv run pytest phoxtail/core/tests/ phoxtail/streams/tests/ $(ARGS)
+	uv run pytest phoxtail/core/tests/ phoxtail/streams/tests/ phoxtail/dashboard/tests/ $(ARGS)
+
+test-booking:
+	uv run pytest phoxtail/booking/core/tests/ phoxtail/booking/events/tests/ phoxtail/booking/subscriptions/tests/ phoxtail/booking/reservations/tests/ $(ARGS)
 
 test:
 	$(MAKE) test-cli
 	$(MAKE) test-engine
+	$(MAKE) test-booking
 
 test-cov:
 	uv run pytest phoxtail/cli/tests/ -p no:django --cov --cov-report=term-missing $(ARGS)
-	uv run pytest phoxtail/core/tests/ phoxtail/streams/tests/ --cov --cov-append --cov-report=term-missing $(ARGS)
+	uv run pytest phoxtail/core/tests/ phoxtail/streams/tests/ phoxtail/dashboard/tests/ --cov --cov-append --cov-report=term-missing $(ARGS)
+	uv run pytest phoxtail/booking/core/tests/ phoxtail/booking/events/tests/ phoxtail/booking/subscriptions/tests/ phoxtail/booking/reservations/tests/ --cov --cov-append --cov-report=term-missing $(ARGS)

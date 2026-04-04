@@ -1,0 +1,6 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+<div hx-swap-oob="innerHTML:#core-modal-placeholder-wrapper"></div>
+<!-- Refresh the schedule on success -->
+<div hx-swap-oob="innerHTML:#schedule-container">{% include 'phoxtail_booking_events/admin/scheduling/partials/schedule.html' %}</div>

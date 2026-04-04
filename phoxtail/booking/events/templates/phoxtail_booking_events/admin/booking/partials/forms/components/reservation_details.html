@@ -1,0 +1,90 @@
+{% load tz %}
+<details class="evta-details-collapsible">
+    <summary class="evta-details-summary">
+        <span class="evta-details-summary__label">Reservation Details</span>
+        <span class="evta-details-summary__icon">{% include 'phoxtail_core/svgs/chevron_right.html' %}</span>
+    </summary>
+    <div class="evta-details-content">
+        <div class="evta-detail-grid">
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">{{ reservation.user.get_full_name|default:reservation.user.username }}</div>
+                    <div class="evta-detail-item__value">{{ reservation.user.email }}</div>
+                    {% if reservation.user.phone_number.national_number %}
+                        <div class="evta-detail-item__value">{{ reservation.user.phone_number.as_international }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/calendar.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">{{ reservation.event.service.name }}</div>
+                    <div class="evta-detail-item__value">
+                        {% timezone reservation.event.space.location.timezone %}{{ reservation.event.start_datetime|date:"F d, Y" }}{% endtimezone %}
+                    </div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/clock.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">Start Time</div>
+                    <div class="evta-detail-item__value">
+                        {% timezone reservation.event.space.location.timezone %}{{ reservation.event.start_datetime|time:"H:i" }}{% endtimezone %}
+                    </div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/clock.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">End Time</div>
+                    <div class="evta-detail-item__value">
+                        {% timezone reservation.event.space.location.timezone %}{{ reservation.event.end_datetime|time:"H:i" }}{% endtimezone %}
+                    </div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/location_on.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">{{ reservation.event.space.name }}</div>
+                    {% if reservation.event.space.location %}
+                        <div class="evta-detail-item__value">{{ reservation.event.space.location.name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/info.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">Status</div>
+                    <div class="evta-detail-item__value">{{ reservation.get_status_display }}</div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/key.html' %}</span>
+                <div style="flex: 1;">
+                    <div class="evta-detail-item__label">Reservation Key</div>
+                    <div class="evta-detail-item__value"
+                         style="display: flex;
+                                align-items: center;
+                                gap: 0.5rem">
+                        <span>{{ reservation.short_id }}</span>
+                        {% include 'phoxtail_core/copy_key_button.html' with key=reservation.short_id %}
+                    </div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/key.html' %}</span>
+                <div style="flex: 1;">
+                    <div class="evta-detail-item__label">Subscription Key</div>
+                    <div class="evta-detail-item__value"
+                         style="display: flex;
+                                align-items: center;
+                                gap: 0.5rem">
+                        <span>{{ reservation.subscription.short_id }}</span>
+                        {% include 'phoxtail_core/copy_key_button.html' with key=reservation.subscription.short_id %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</details>

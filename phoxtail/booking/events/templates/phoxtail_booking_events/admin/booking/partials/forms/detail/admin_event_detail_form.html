@@ -1,0 +1,138 @@
+{% load tz %}
+<div class="evta-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="evta-drawer" onclick="event.stopPropagation()">
+        <div class="evta-drawer__scroll">
+            <!-- Header -->
+            <div class="evta-drawer__header">
+                <div class="evta-drawer__title-row">
+                    <h2 class="evta-drawer__title">Manage Event</h2>
+                    <button class="evta-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+                <!-- Event Details Card -->
+                <div id="event-details">{% include "phoxtail_booking_events/admin/booking/partials/forms/components/event_details.html" %}</div>
+            </div>
+            <!-- Body -->
+            <div class="evta-drawer__body">
+                <!-- Reservations -->
+                <div class="evta-section">
+                    <div class="evta-section__header">
+                        <h4 class="evta-section__title">
+                            {% include 'phoxtail_core/svgs/groups.html' %}
+                            Reservations
+                        </h4>
+                        <span class="evta-section__badge">{{ reservations.count }}</span>
+                    </div>
+                    <div class="evta-section__list">
+                        {% if reservations %}
+                            {% for reservation in reservations %}
+                                <div class="evta-section__item">
+                                    <div class="evta-res-row">
+                                        <div class="evta-res-user">
+                                            <div class="evta-res-avatar-wrapper">
+                                                <div class="evta-res-avatar evta-res-avatar--{{ reservation.status|lower }}">
+                                                    {% include 'phoxtail_core/svgs/person.html' with class="icon-lg" %}
+                                                </div>
+                                                <svg class="evta-res-status-circular evta-res-status-circular--{{ reservation.status|lower }}"
+                                                     viewBox="0 0 100 100">
+                                                    <defs>
+                                                        <path id="statusPath-{{ reservation.id }}" d="M 50, 50 m 38, 0 a 38,38 0 1,1 -76,0 a 38,38 0 1,1 76,0" />
+                                                    </defs>
+                                                    <text>
+                                                        <textPath href="#statusPath-{{ reservation.id }}" startOffset="0%" text-anchor="middle">&bull;</textPath>
+                                                        <textPath href="#statusPath-{{ reservation.id }}" startOffset="25%" text-anchor="middle">{{ reservation.get_status_display }}</textPath>
+                                                        <textPath href="#statusPath-{{ reservation.id }}" startOffset="50%" text-anchor="middle">&bull;</textPath>
+                                                        <textPath href="#statusPath-{{ reservation.id }}" startOffset="75%" text-anchor="middle">{{ reservation.get_status_display }}</textPath>
+                                                    </text>
+                                                </svg>
+                                            </div>
+                                            <div class="evta-res-info">
+                                                <div class="evta-res-name">
+                                                    {% if reservation.subscription %}
+                                                        {% if reservation.subscription.is_paid %}
+                                                            <span class="evta-pay-badge evta-pay-badge--paid">
+                                                                {% include 'phoxtail_core/svgs/payment_card.html' %}
+                                                                Paid</span>
+                                                        {% else %}
+                                                            <span class="evta-pay-badge evta-pay-badge--unpaid">
+                                                                {% include 'phoxtail_core/svgs/payment_card.html' %}
+                                                                Unpaid</span>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                    <span class="evta-res-name-text">{{ reservation.user.get_full_name|default:reservation.user.username }}</span>
+                                                </div>
+                                                <div class="evta-res-email">{{ reservation.user.email }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="evta-res-actions">
+                                            {% url 'booking_management:admin_event_reservation_update_form' reservation.uuid as edit_url %}
+                                            <button class="evta-action-btn"
+                                                    hx-get="{% url 'phoxtail_core:modal_level_1' %}"
+                                                    hx-vals='{"content_url": "{{ edit_url }}"}'
+                                                    hx-target="#core-modal-level-1-placeholder-wrapper"
+                                                    hx-swap="innerHTML">
+                                                {% include 'phoxtail_core/svgs/edit.html' %}
+                                                <span>Edit</span>
+                                            </button>
+                                            <button class="evta-action-btn"
+                                                    hx-get="{% url 'phoxtail_core:modal_level_1' %}"
+                                                    hx-vals='{"content_url": "{% url 'booking_management:admin_event_reservation_move_form' reservation.uuid %}"}'
+                                                    hx-target="#core-modal-level-1-placeholder-wrapper"
+                                                    hx-swap="innerHTML">
+                                                {% include 'phoxtail_core/svgs/move_item.html' %}
+                                                <span>Move</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="evta-section__empty">
+                                {% include 'phoxtail_core/svgs/group_off.html' with class="icon-sm" %}
+                                <span>No reservations</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="evta-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="evta-admin-actions">
+                    {% url 'booking_management:admin_event_reservation_create_form' event.uuid as create_reservation_url  %}
+                    <button type="button"
+                            class="evta-btn evta-btn--create"
+                            hx-get="{% url 'phoxtail_core:modal_level_1' %}"
+                            hx-vals='{"content_url": "{{create_reservation_url}}"}'
+                            hx-target="#core-modal-level-1-placeholder-wrapper"
+                            hx-swap="innerHTML">
+                        {% include 'phoxtail_core/svgs/plus.html' %}
+                        <span>Create Booking</span>
+                    </button>
+                    {% url 'booking_management:admin_booking_event_update_form' event.uuid as update_event_url %}
+                    <button type="button"
+                            class="evta-btn evta-btn--edit"
+                            hx-get="{% url 'phoxtail_core:modal_level_1' %}"
+                            hx-vals='{"content_url": "{{ update_event_url }}"}'
+                            hx-target="#core-modal-level-1-placeholder-wrapper"
+                            hx-swap="innerHTML">
+                        {% include 'phoxtail_core/svgs/edit.html' %}
+                        <span>Edit Event</span>
+                    </button>
+                </div>
+                <button class="evta-btn evta-btn--secondary" onclick="closeModal()">
+                    <span>Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

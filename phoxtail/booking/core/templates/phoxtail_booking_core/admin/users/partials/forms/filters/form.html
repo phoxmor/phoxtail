@@ -1,0 +1,18 @@
+<!-- Filters Modal Content -->
+<div class="bkua-center-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade"
+     data-animation-duration="300ms"
+     id="modal-filters-content">
+    <!-- Backdrop -->
+    <div class="bkua-center-backdrop"></div>
+    <!-- Modal Box -->
+    <div class="bkua-center-modal" onclick="event.stopPropagation();">
+        <div class="bkua-center-modal__scroll">
+            <form id="users-filters-form"
+                  hx-include="#users-search-form, #users-filters-form">
+                {% include 'phoxtail_booking_core/admin/users/partials/forms/filters/form_content.html' %}
+            </form>
+        </div>
+    </div>
+</div>

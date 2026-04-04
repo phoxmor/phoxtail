@@ -1,0 +1,56 @@
+<div class="evta-page-header">
+    <div class="evta-page-header__inner">
+        <!-- Title Section -->
+        <div class="evta-page-header__title-section">
+            <h1 class="evta-page-header__title">Scheduling</h1>
+            <!-- Week Display -->
+            <div class="evta-page-header__day">
+                {% include 'phoxtail_core/svgs/calendar.html' %}
+                <span>{{ week_display }}</span>
+            </div>
+        </div>
+        {% if filterset.form.location.value or location_count > 1 %}
+            <div class="evta-header-actions">
+                <!-- Filters Button -->
+                {% url 'scheduling_management:filters_form' as filters_url %}
+                <button type="button"
+                        class="evta-filter-btn"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ filters_url }}"}'
+                        hx-include="#filters-form-placeholder"
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML">
+                    {% include 'phoxtail_core/svgs/filter_alt.html' %}
+                    <span>Filters</span>
+                    {% if filter_count > 0 %}<span class="evta-filter-badge">{{ filter_count }}</span>{% endif %}
+                </button>
+                <!-- Actions Button -->
+                {% url 'scheduling_management:actions_form' as actions_url %}
+                <button type="button"
+                        class="evta-filter-btn"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ actions_url }}"}'
+                        hx-include="#filters-form-placeholder"
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML">
+                    {% include 'phoxtail_core/svgs/more_vert.html' %}
+                    <span>Actions</span>
+                </button>
+                <!-- Create New Event Button -->
+                {% url 'scheduling_management:admin_schedule_event_create_form' as event_create_url %}
+                <button class="evta-filter-btn"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ event_create_url }}"}'
+                        hx-include="#filters-form-placeholder"
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML">
+                    {% include 'phoxtail_core/svgs/plus.html' %}
+                    <span>Create</span>
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    {% if location_count >= 1 %}
+        {% include "phoxtail_booking_events/admin/scheduling/partials/forms/navigate/form.html" %}
+    {% endif %}
+</div>

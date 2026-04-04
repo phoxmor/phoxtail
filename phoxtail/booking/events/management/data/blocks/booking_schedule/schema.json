@@ -4,7 +4,7 @@
     "value": {
       "name": "location",
       "required": true,
-      "target_model": "booking_core.Location",
+      "target_model": "phoxtail_booking_core.Location",
       "help_text": "Select the location whose schedule should be displayed."
     }
   }

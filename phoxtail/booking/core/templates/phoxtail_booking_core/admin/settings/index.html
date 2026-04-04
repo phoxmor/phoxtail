@@ -1,0 +1,53 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailsettings_tags %}
+{% block titletag %}Booking Settings{% endblock %}
+{% block extra_css %}
+    <!-- Fallback design token properties -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+    <!-- Booking settings admin CSS -->
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_core/css/admin.css' %}">
+    <!-- SiteConfig design tokens (overrides fallback defaults) -->
+    {% get_settings %}
+    <style>
+        :root {
+            {{ settings.app.SiteConfig.css_variables|safe }}
+        }
+        {{ settings.app.SiteConfig.font_face_declarations|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="bksa-page">
+        <div class="bksa-settings-container">
+            <!-- Page Header -->
+            <div class="bksa-page-header">
+                <div class="bksa-page-header__inner">
+                    <div class="bksa-page-header__title-section">
+                        <h1 class="bksa-page-header__title">Settings</h1>
+                        <p class="bksa-page-header__subtitle">Manage the core configuration for your booking system.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Settings Cards -->
+            <div class="bksa-cards-section">
+                <div class="bksa-cards-wrap">
+                    <div class="bksa-cards-inner">
+                        <div class="bksa-grid">
+                            {% for item in settings_items %}
+                                <a href="{{ item.url }}" class="bksa-card">
+                                    <div class="bksa-card__inner">
+                                        <div class="bksa-card__icon-wrap">{% include "wagtailadmin/shared/icon.html" with name=item.icon %}</div>
+                                        <div class="bksa-card__body">
+                                            <h3 class="bksa-card__title">{{ item.label }}</h3>
+                                            <p class="bksa-card__description">{{ item.description }}</p>
+                                        </div>
+                                        <div class="bksa-card__arrow">{% include "wagtailadmin/shared/icon.html" with name="arrow-right" %}</div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

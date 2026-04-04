@@ -1,0 +1,73 @@
+{% load tz %}
+{% with palette=reservation.event.service.palette %}
+    <div class="res-card">
+        <div class="res-card__inner"
+             {% if palette %} style="--res-p-light-text: {{ palette.shades_rgb.600 }}; --res-p-dark-text: {{ palette.shades_rgb.400 }};"{% endif %}>
+            {% if reservation.event.is_cancelled %}
+                <div class="res-tag res-tag--cancelled">
+                    <span class="res-tag__label">Cancelled</span>
+                </div>
+            {% elif reservation.event.is_unpublished %}
+                <div class="res-tag res-tag--unpublished">
+                    <span class="res-tag__label">Unpublished</span>
+                </div>
+            {% endif %}
+            <h4 class="res-card__title">
+                <span>{{ reservation.event.service.name }}</span>
+            </h4>
+            <div class="res-card__meta">
+                <div class="res-card__meta-row">
+                    <span class="res-card__meta-icon">{% include 'phoxtail_core/svgs/timer.html' with class="icon-md" %}</span>
+                    <span class="res-card__meta-text">
+                        {% timezone reservation.event.space.location.timezone %}
+                            {{ reservation.event.start_datetime|date:"H:i" }} - {{ reservation.event.end_datetime|date:"H:i" }}
+                        {% endtimezone %}
+                    </span>
+                </div>
+                <div class="res-card__meta-row">
+                    <span class="res-card__meta-icon">{% include 'phoxtail_core/svgs/calendar.html' with class="icon-md" %}</span>
+                    <span class="res-card__meta-text">{{ reservation.event.start_datetime|date:"M d, Y" }}</span>
+                </div>
+                <div class="res-card__meta-row">
+                    <span class="res-card__meta-icon">{% include 'phoxtail_core/svgs/groups.html' with class="icon-md" %}</span>
+                    {% if reservation.event.is_full %}
+                        <span class="res-card__meta-text--full">Fully Booked</span>
+                    {% else %}
+                        <span class="res-card__meta-text--available">Available Spots</span>
+                    {% endif %}
+                </div>
+                <div class="res-card__meta-row">
+                    <span class="res-card__meta-icon">{% include 'phoxtail_core/svgs/door_front.html' with class="icon-md" %}</span>
+                    <span class="res-card__meta-text">{{ reservation.event.space.name }}</span>
+                </div>
+                <div class="res-card__meta-row">
+                    <span class="res-card__meta-icon">{% include 'phoxtail_core/svgs/equalizer.html' with class="icon-md" %}</span>
+                    {% if reservation.event.group %}
+                        <span class="res-card__meta-text">{{ reservation.event.group }}</span>
+                    {% else %}
+                        <span class="res-card__meta-text">Open to all</span>
+                    {% endif %}
+                </div>
+                <div class="res-card__booking-badge res-card__booking-badge--{{ reservation.status|lower }}">
+                    <span class="res-card__booking-badge__label">BOOKING</span>
+                    {{ reservation.get_status_display|upper }}
+                </div>
+            </div>
+        </div>
+{% endwith %}
+{% if reservation.status == 'WAITLISTED' %}
+    {% if reservation.event.is_full %}
+        {% url 'dashboard:booking:reservations:waitlisted_reservation_cancel_form' reservation.uuid as modal_url %}
+    {% else %}
+        {% url 'dashboard:booking:reservations:waitlisted_reservation_confirm_form' reservation.uuid as modal_url %}
+    {% endif %}
+{% else %}
+    {% url 'dashboard:booking:reservations:reservation_cancel_form' reservation.uuid as modal_url %}
+{% endif %}
+<button class="res-card-btn"
+        hx-get="{% url 'phoxtail_core:modal' %}"
+        hx-vals='{"content_url": "{{ modal_url }}"}'
+        hx-target="#core-modal-placeholder-wrapper"
+        hx-swap="innerHTML"
+        aria-label="View reservation details for {{ reservation.event.service.name }}"></button>
+</div>

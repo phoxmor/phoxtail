@@ -1,0 +1,485 @@
+/* services/static/services/css/services.css
+   Public-facing services templates.
+   Class prefix: svc-*
+   Colors: CSS custom properties only (--color-surface-*, --color-primary-*)
+*/
+
+/* =============================================
+   LAYOUT
+   ============================================= */
+
+.svc-page {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.svc-page-inner {
+    max-width: 80rem;
+    margin: 0 auto;
+}
+
+/* =============================================
+   PAGE HEADER
+   ============================================= */
+
+.svc-page-header {
+    background: rgb(255 255 255);
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Responsive row used on detail page header (title/subtitle left, back button right) */
+.svc-page-header__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .svc-page-header__inner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.svc-page-header__title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+    color: rgb(var(--color-surface-700));
+}
+
+.svc-page-header__subtitle {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-600));
+}
+
+.svc-page-header__subtitle svg {
+    width: 1rem;
+    height: 1rem;
+    color: rgb(var(--color-primary-600));
+    flex-shrink: 0;
+}
+
+/* Size SVGs inside page header buttons */
+.svc-page-header .dash-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* =============================================
+   EMPTY STATE
+   ============================================= */
+
+.svc-empty {
+    padding: 2rem 0;
+}
+
+.svc-empty__card {
+    background: rgb(255 255 255);
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 1.5rem;
+    padding: 3rem;
+    text-align: center;
+}
+
+.svc-empty__icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: rgb(var(--color-surface-300));
+    margin: 0 auto 1.5rem;
+}
+
+.svc-empty__icon-wrap svg {
+    width: 100%;
+    height: 100%;
+}
+
+.svc-empty__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
+    margin: 0 0 0.75rem;
+}
+
+.svc-empty__text {
+    color: rgb(var(--color-surface-600));
+    margin: 0 0 1.5rem;
+    font-size: 0.9375rem;
+}
+
+.svc-empty__action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: rgb(var(--color-primary-600));
+    color: rgb(255 255 255);
+    font-weight: 500;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    transition: background-color 200ms ease;
+}
+
+.svc-empty__action:hover {
+    background-color: rgb(var(--color-primary-700));
+}
+
+.svc-empty__action svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* =============================================
+   RESPONSIVE GRID
+   ============================================= */
+
+.svc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: stretch;
+}
+
+@media (min-width: 768px) {
+    .svc-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .svc-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* =============================================
+   STATUS BADGE
+   ============================================= */
+
+.svc-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 9999px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.svc-badge--available {
+    background-color: rgb(var(--color-primary-50));
+    color: rgb(var(--color-primary-700));
+    border-color: rgb(var(--color-primary-200));
+}
+
+.svc-badge--unavailable {
+    background-color: rgb(var(--color-surface-100));
+    color: rgb(var(--color-surface-500));
+    border-color: rgb(var(--color-surface-200));
+}
+
+/* =============================================
+   SERVICE CARD (list)
+   ============================================= */
+
+.svc-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: rgb(255 255 255);
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 1.5rem;
+    overflow: hidden;
+    transition: box-shadow 300ms ease, border-color 300ms ease;
+}
+
+.svc-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08),
+        0 4px 10px -6px rgba(0, 0, 0, 0.06);
+    border-color: rgb(var(--color-primary-200));
+}
+
+.svc-card__body {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.svc-card__name-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.svc-card__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-900));
+    margin: 0;
+}
+
+.svc-card__desc {
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-600));
+    line-height: 1.625;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+
+.svc-card__footer {
+    padding: 0 1.5rem 1.5rem;
+}
+
+/* =============================================
+   CTA BUTTON
+   ============================================= */
+
+.svc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    background-color: rgb(var(--color-primary-600));
+    color: rgb(255 255 255);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 200ms ease;
+}
+
+.svc-btn:hover {
+    background-color: rgb(var(--color-primary-700));
+}
+
+.svc-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* =============================================
+   SERVICE DETAIL
+   ============================================= */
+
+.svc-detail {
+    background: rgb(255 255 255);
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 1.5rem;
+    padding: 2rem;
+}
+
+.svc-detail__head {
+    margin-bottom: 2rem;
+}
+
+.svc-detail__name-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.svc-detail__name {
+    font-size: 1.875rem;
+    font-weight: 700;
+    background: linear-gradient(to right,
+            rgb(var(--color-primary-600)),
+            rgb(var(--color-primary-400)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: rgb(var(--color-primary-600));
+    /* fallback */
+    margin: 0;
+}
+
+.svc-detail__desc {
+    color: rgb(var(--color-surface-600));
+    line-height: 1.625;
+    margin: 0;
+}
+
+.svc-detail__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .svc-detail__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =============================================
+   INFO CARD (inside detail)
+   ============================================= */
+
+.svc-info-card {
+    background: rgb(var(--color-surface-50));
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.svc-info-card__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.svc-info-card__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    color: rgb(var(--color-primary-500));
+}
+
+.svc-info-card__icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.svc-info-card__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-600));
+    margin: 0;
+}
+
+.svc-info-card__value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-800));
+    margin: 0 0 0.5rem;
+}
+
+.svc-info-card__help {
+    font-size: 0.75rem;
+    color: rgb(var(--color-surface-500));
+    margin: 0;
+}
+
+/* =============================================
+   DARK MODE
+   ============================================= */
+
+@media (prefers-color-scheme: dark) {
+
+    .svc-page-header,
+    .svc-card,
+    .svc-detail,
+    .svc-empty__card {
+        background: rgb(var(--color-surface-900));
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .svc-page-header__title {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .svc-page-header__subtitle {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .svc-page-header__subtitle svg {
+        color: rgb(var(--color-primary-400));
+    }
+
+    .svc-card:hover {
+        border-color: rgb(var(--color-primary-700));
+        box-shadow: none;
+    }
+
+    .svc-card__name {
+        color: rgb(var(--color-surface-100));
+    }
+
+    .svc-card__desc,
+    .svc-detail__desc {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .svc-badge--available {
+        background-color: rgb(var(--color-primary-900) / 0.4);
+        color: rgb(var(--color-primary-300));
+        border-color: rgb(var(--color-primary-800) / 0.5);
+    }
+
+    .svc-badge--unavailable {
+        background-color: rgb(var(--color-surface-800) / 0.5);
+        color: rgb(var(--color-surface-500));
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .svc-detail__name {
+        background: linear-gradient(to right,
+                rgb(var(--color-primary-400)),
+                rgb(var(--color-primary-300)));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: rgb(var(--color-primary-400));
+    }
+
+    .svc-info-card {
+        background: rgb(var(--color-surface-800) / 0.5);
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    .svc-info-card__label {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .svc-info-card__value {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .svc-info-card__help {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .svc-empty__title {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .svc-empty__text {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .svc-empty__icon-wrap {
+        color: rgb(var(--color-surface-600));
+    }
+}

@@ -1,0 +1,62 @@
+<div class="dash-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="dash-drawer-content" onclick="event.stopPropagation()">
+        <div class="evt-drawer-scroll">
+            <div class="dash-drawer-header">
+                <div class="dash-drawer-title-row">
+                    <div>
+                        <h2 class="dash-drawer-title">{{ reservation.event.service.name }}</h2>
+                        <div class="dash-drawer-subtitle">
+                            {% include 'phoxtail_core/svgs/calendar.html' with class="icon-sm" %}
+                            <span>{{ reservation.event.start_datetime|date:"l, M d" }} at {{ reservation.event.start_datetime|time:"H:i" }}</span>
+                        </div>
+                    </div>
+                    <button class="dash-icon-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="dash-drawer-body">
+                {% include 'phoxtail_booking_events/public/booking/partials/forms/components/event_details.html' with event=reservation.event %}
+                {% include 'phoxtail_booking_subscriptions/public/components/subscription_display.html' with subscription=reservation.subscription %}
+                {% if not reservation.is_cancelled and not reservation.event.is_cancelled %}
+                    <div class="evt-cancel-section">
+                        <div class="evt-cancel-section__header">
+                            <div class="evt-cancel-section__icon-wrap">{% include 'phoxtail_core/svgs/event_busy.html' %}</div>
+                            <div>
+                                <h3 class="evt-cancel-section__title">Cancel Reservation</h3>
+                                <p class="evt-cancel-section__text">
+                                    {% if reservation.is_within_allowed_cancellation_period %}
+                                        You are within the allowed cancellation period. The reservation will be <strong>deleted</strong> and credit will be <strong>restored</strong> to the subscription, if applicable.
+                                    {% else %}
+                                        You are outside the allowed cancellation period. The reservation will be <strong>marked as cancelled</strong> and <strong>no credit</strong> will be restored.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <form hx-post="{% url 'dashboard:booking:events:event_reservation_cancel' reservation.uuid %}"
+                              hx-target="#calendar-and-events-container"
+                              hx-swap="innerHTML"
+                              hx-on::after-request="closeModal()"
+                              hx-confirm="Are you sure you want to cancel this reservation? {% if reservation.is_within_allowed_cancellation_period %}You are within the allowed cancellation period. The reservation will be deleted and credit will be restored to the subscription, if applicable.{% else %}You are outside the allowed cancellation period. The reservation will be marked as cancelled and no credit will be restored.{% endif %}"
+                              hx-include="#filters-form-placeholder">
+                            {% csrf_token %}
+                            <button type="submit" class="evt-btn evt-btn--destructive">
+                                {% include 'phoxtail_core/svgs/event_busy.html' %}
+                                Cancel Reservation
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="evt-drawer-footer">
+                <button type="button" class="evt-btn evt-btn--close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,19 @@
+{% load tz %}
+{# Rich display for Event items in the single-select search dropdown and selected state #}
+<span style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.875rem; font-weight: 500;">{{ item.service.name }}</span>
+        <span style="font-size: 0.6875rem;
+                     color: rgb(var(--color-surface-500));
+                     font-family: monospace">{{ item.short_id }}</span>
+    </span>
+    <span style="font-size: 0.75rem; color: rgb(var(--color-surface-500));">
+        {% timezone item.space.location.timezone %}
+            {{ item.start_datetime|date:"l, M d, Y" }} &middot; {{ item.start_datetime|time:"H:i" }}&ndash;{{ item.end_datetime|time:"H:i" }}
+        {% endtimezone %}
+    </span>
+    <span style="font-size: 0.6875rem; color: rgb(var(--color-surface-400));">
+        {{ item.space.name }}
+        {% if item.space.location %}&middot; {{ item.space.location.name }}{% endif %}
+    </span>
+</span>

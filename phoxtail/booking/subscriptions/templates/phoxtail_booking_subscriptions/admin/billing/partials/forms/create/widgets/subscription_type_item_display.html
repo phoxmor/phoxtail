@@ -1,0 +1,17 @@
+{# Rich display for SubscriptionType items in the single-select search dropdown and selected state #}
+<span style="display: flex; flex-direction: column; flex: 1; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.875rem; font-weight: 500;">{{ item.name }}</span>
+        <span style="font-size: 0.6875rem;
+                     color: rgb(var(--color-surface-500));
+                     font-family: monospace">{{ item.price }}</span>
+    </span>
+    <span style="font-size: 0.75rem; color: rgb(var(--color-surface-500));">
+        {% if item.duration %}
+            {{ item.duration }} days
+        {% else %}
+            Unlimited
+        {% endif %}
+        {% if item.location %}&middot; {{ item.location.name }}{% endif %}
+    </span>
+</span>

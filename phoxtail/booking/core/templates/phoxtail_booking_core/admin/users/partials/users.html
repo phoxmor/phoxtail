@@ -1,0 +1,98 @@
+<!-- Users Header -->
+<div class="bkua-page-header">
+    <div class="bkua-page-header__inner">
+        <!-- Title Section -->
+        <div class="bkua-page-header__title-section">
+            <h1 class="bkua-page-header__title">Users</h1>
+            <div class="bkua-page-header__count">
+                {% include 'phoxtail_core/svgs/group.html' %}
+                <span class="bkua-page-header__count-text">{{ users.paginator.count }} User{{ users.paginator.count|pluralize }}</span>
+            </div>
+        </div>
+        <div class="bkua-page-header__controls">
+            <!-- Search Input -->
+            {% include 'phoxtail_booking_core/admin/users/partials/searchbar.html' %}
+            <!-- Filters Button -->
+            {% url 'users_management:admin_users_filters_form' as filters_url %}
+            <button type="button"
+                    class="bkua-header-btn"
+                    hx-get="{% url 'phoxtail_core:modal' %}"
+                    hx-vals='{"content_url": "{{ filters_url }}"}'
+                    hx-include="#users-filters-form-placeholder"
+                    hx-target="#core-modal-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% include 'phoxtail_core/svgs/filter_alt.html' %}
+                <span>Filters</span>
+                {% if filter_count > 0 %}<span class="bkua-header-btn__badge">{{ filter_count }}</span>{% endif %}
+            </button>
+            <!-- Create New User Button -->
+            {% url 'users_management:admin_user_create_form' as create_user_url %}
+            <button class="bkua-header-btn"
+                    hx-get="{% url 'phoxtail_core:modal' %}"
+                    hx-vals='{"content_url": "{{ create_user_url }}"}'
+                    hx-target="#core-modal-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% include 'phoxtail_core/svgs/person_add.html' %}
+                <span>Create</span>
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Hidden form to include filter values in HTMX requests -->
+<div id="users-filters-form-placeholder" style="display: none;">{{ filterset.form }}</div>
+<div id="users-filters-without-search-form-placeholder"
+     style="display: none">{% include 'phoxtail_booking_core/admin/users/partials/forms/filters/form_content.html' %}</div>
+<!-- User Cards Wrapper -->
+<div class="bkua-cards-section">
+    <div class="bkua-cards-wrap">
+        <div class="bkua-cards-inner">
+            {% if users %}
+                <div class="bkua-grid">
+                    {% for user in users %}
+                        <div class="bkua-card">
+                            <div class="bkua-card__inner">
+                                <div class="bkua-card__body">
+                                    <div class="bkua-card__content">
+                                        <h4 class="bkua-card__title">{{ user.get_full_name|default:user.username }}</h4>
+                                        <div class="bkua-card__meta">
+                                            <div class="bkua-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/email.html' %}
+                                                <span class="bkua-card__meta-value bkua-card__meta-value--truncate">{{ user.email }}</span>
+                                            </div>
+                                            <div class="bkua-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/user.html' %}
+                                                <span class="bkua-card__meta-value">{{ user.username }}</span>
+                                            </div>
+                                            <div class="bkua-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/calendar.html' %}
+                                                <span class="bkua-card__meta-value">Joined {{ user.date_joined|date:"M j, Y" }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% url 'users_management:admin_user_update_form' user.uuid as content_url %}
+                            <button class="bkua-card__button"
+                                    hx-get="{% url 'phoxtail_core:modal' %}"
+                                    hx-vals='{"content_url": "{{ content_url }}"}'
+                                    hx-include="#users-filters-form-placeholder"
+                                    hx-target="#core-modal-placeholder-wrapper"
+                                    hx-swap="innerHTML"
+                                    aria-label="Edit {{ user.get_full_name|default:user.username }}"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bkua-empty-state">
+                    <div class="bkua-empty-state__icon">{% include 'phoxtail_core/svgs/group.html' %}</div>
+                    <h3 class="bkua-empty-state__title">No Users Found</h3>
+                    <p class="bkua-empty-state__text">No users match your current filters or search query.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Pagination -->
+<div class="bkua-pagination">
+    {% include 'phoxtail_booking_core/admin/users/partials/forms/navigate/paginator.html' with paginator=users %}
+</div>

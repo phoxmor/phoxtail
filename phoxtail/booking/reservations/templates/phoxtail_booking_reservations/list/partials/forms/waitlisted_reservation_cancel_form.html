@@ -1,0 +1,54 @@
+<div class="dash-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="dash-drawer-content" onclick="event.stopPropagation()">
+        <div class="res-drawer-scroll">
+            <!-- Header -->
+            <div class="dash-drawer-header">
+                <div class="dash-drawer-title-row">
+                    <div>
+                        <h2 class="dash-drawer-title">You're on the Waitlist</h2>
+                        <div class="dash-drawer-subtitle">
+                            {% include 'phoxtail_core/svgs/calendar.html' with class="icon-sm" %}
+                            <span>{{ reservation.event.start_datetime|date:"l, M d" }} at {{ reservation.event.start_datetime|time:"H:i" }}</span>
+                        </div>
+                    </div>
+                    <button class="dash-icon-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="dash-drawer-body">
+                {% include 'phoxtail_booking_reservations/list/partials/forms/components/reservation_details.html' with reservation=reservation %}
+                {% if reservation.subscription %}
+                    {% include 'phoxtail_booking_subscriptions/public/components/subscription_display.html' with subscription=reservation.subscription %}
+                {% endif %}
+                <div class="res-alert res-alert--waitlisted">
+                    <p class="res-alert__title">You're on the Waitlist</p>
+                    <p class="res-alert__text">
+                        You're currently on the waitlist for this class. You'll be notified if a spot becomes available, and you can secure your place at that time.
+                    </p>
+                    <form hx-post="{% url 'dashboard:booking:reservations:waitlisted_reservation_cancel' reservation.uuid %}"
+                          hx-target="#reservations-container"
+                          hx-swap="innerHTML"
+                          hx-on::after-request="closeModal()">
+                        {% csrf_token %}
+                        <button type="submit" class="res-btn res-btn--destructive">
+                            {% include 'phoxtail_core/svgs/event_busy.html' with class="icon-md" %}
+                            Leave Waitlist
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="res-drawer-footer">
+                <button type="button" class="res-btn res-btn--close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

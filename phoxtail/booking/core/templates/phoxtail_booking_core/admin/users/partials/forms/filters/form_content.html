@@ -1,0 +1,40 @@
+<!-- Filter Header -->
+<div class="bkua-filter-header">
+    <div class="bkua-filter-header__inner">
+        <div class="bkua-filter-header__left">
+            <h2 class="bkua-filter-header__title">Filters</h2>
+            {% if filter_count > 0 %}
+                <button class="bkua-filter-clear-btn"
+                        hx-get="{% url 'users_management:admin_users_filters' %}"
+                        hx-trigger="click"
+                        hx-target="this"
+                        hx-swap="none"
+                        hx-params="none"
+                        type="button">
+                    {% include 'phoxtail_core/svgs/filter_alt_off.html' %}
+                    <span>Clear all filters</span>
+                </button>
+            {% endif %}
+        </div>
+        <button class="bkua-close-btn"
+                onclick="closeModal()"
+                aria-label="Close modal"
+                type="button">
+            <span class="bkua-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+        </button>
+    </div>
+</div>
+<!-- Filter Fields -->
+<div class="bkua-filter-body">
+    <div class="bkua-filter-fields">
+        {% url 'users_management:admin_users_filters' as filters_url %}
+        <!-- Active Filter -->
+        <div class="bkua-filter-field">
+            <div class="bkua-filter-field__label">
+                {% include 'phoxtail_core/svgs/check_circle.html' %}
+                <span class="bkua-filter-field__label-text">Active</span>
+            </div>
+            {% include 'phoxtail_core/forms/widgets/htmx/null_boolean_select.html' with field=filterset.form.is_active show_label=False show_help_text=False hx_get=filters_url hx_target="this" hx_swap="none" hx_trigger="change" %}
+        </div>
+    </div>
+</div>

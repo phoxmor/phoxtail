@@ -1,0 +1,91 @@
+{% load tz %}
+<div class="evta-modal-overlay"
+     onclick="closeModalLevel1()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="evta-drawer" onclick="event.stopPropagation()">
+        <div class="evta-drawer__scroll">
+            <!-- Header -->
+            <div class="evta-drawer__header">
+                <div class="evta-drawer__title-row">
+                    <h2 class="evta-drawer__title">Edit Reservation</h2>
+                    <button class="evta-close-btn"
+                            onclick="closeModalLevel1()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+                <!-- Reservation Details -->
+                {% include 'phoxtail_booking_events/admin/booking/partials/forms/components/reservation_details.html' %}
+            </div>
+            <!-- Body -->
+            <div class="evta-drawer__body">
+                <!-- Cancellation Impact -->
+                <div class="evta-impact-card {% if reservation.is_within_allowed_cancellation_period %}evta-impact-card--safe{% else %}evta-impact-card--warning{% endif %}">
+                    {% if reservation.is_within_allowed_cancellation_period %}
+                        <div class="evta-impact-card__heading">
+                            {% include 'phoxtail_core/svgs/info.html' with class="icon-md" %}
+                            <h3 class="evta-impact-card__heading-title">Within Allowed Cancellation Period</h3>
+                        </div>
+                        <p class="evta-impact-card__text">
+                            If cancelled, the reservation will be <strong>deleted</strong> and credit will be <strong>restored</strong> to the subscription, if applicable.
+                        </p>
+                    {% else %}
+                        <div class="evta-impact-card__heading">
+                            {% include 'phoxtail_core/svgs/info.html' with class="icon-md" %}
+                            <h3 class="evta-impact-card__heading-title">Outside Allowed Cancellation Period</h3>
+                        </div>
+                        <p class="evta-impact-card__text">
+                            If cancelled, the reservation will be <strong>marked as cancelled</strong> and <strong>no credit</strong> will be restored.
+                        </p>
+                    {% endif %}
+                </div>
+                <!-- Edit Form -->
+                <form id="update-reservation-form"
+                      hx-post="{% url 'booking_management:admin_event_reservation_update_form' reservation.uuid %}"
+                      hx-include="#filters-form-placeholder"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <div class="evta-form-section">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/info_cicle.html' with class="icon-md" %}
+                            Status
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/radio_select.html" with field=form.status %}
+                        </div>
+                    </div>
+                    <div class="evta-form-section" style="margin-top: 1rem;">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/notes.html' with class="icon-md" %}
+                            Notes
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/textarea.html" with field=form.notes show_label=False show_help_text=False %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="evta-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="evta-admin-actions">
+                    <button class="evta-btn evta-btn--primary"
+                            type="submit"
+                            form="update-reservation-form">
+                        {% include 'phoxtail_core/svgs/save.html' %}
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+                <button class="evta-btn evta-btn--secondary"
+                        onclick="closeModalLevel1()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,13 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if renewal_success %}
+    <!-- Close level-1 modal -->
+    <div hx-swap-oob="innerHTML:#core-modal-level-1-placeholder-wrapper"></div>
+    <!-- Refresh the billing list on success -->
+    <div hx-swap-oob="innerHTML:#billing-container">{% include 'phoxtail_booking_subscriptions/admin/billing/partials/billing.html' %}</div>
+    <!-- Update main modal with the new subscription's update form -->
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder">
+        {% include 'phoxtail_booking_subscriptions/admin/billing/partials/forms/update/subscription/form.html' %}
+    </div>
+{% endif %}

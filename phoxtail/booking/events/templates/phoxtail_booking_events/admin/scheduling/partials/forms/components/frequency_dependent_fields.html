@@ -1,0 +1,70 @@
+<!-- Recurrence by Weekday (conditional, shown only for WEEKLY frequency) -->
+{% if show_weekdays %}
+    {# WEEKLY: show weekdays #}
+    {% include "phoxtail_core/forms/widgets/checkbox_multiple.html" with field=form.recurrence_byweekday grid_modifier="fw-checkbox-grid--7col" label_slice_index=":1" show_label=False show_help_text=False %}
+{% endif %}
+<!-- Monthly recurrence options (conditional, shown only for MONTHLY frequency) -->
+{% if show_monthly_options %}
+    {# MONTHLY: show monthly options #}
+    <div class="evta-monthly-opts">
+        <label class="evta-monthly-opts__label">Repeat by</label>
+        <!-- Radio Option 1: Day of Month -->
+        <div class="evta-monthly-opt">
+            <input type="radio"
+                   name="monthly_repeat_mode"
+                   id="monthly_repeat_by_day"
+                   value="day"
+                   {% if form.recurrence_bymonthday.value or not form.recurrence_bysetpos.value %}checked{% endif %}>
+            <div class="evta-monthly-opt__content">
+                <label for="monthly_repeat_by_day" class="evta-monthly-opt__sublabel">Day of month</label>
+                {% include "phoxtail_core/forms/widgets/select.html" with field=form.recurrence_bymonthday show_label=False show_help_text=False %}
+            </div>
+        </div>
+        <!-- Radio Option 2: Position + Weekday -->
+        <div class="evta-monthly-opt">
+            <input type="radio"
+                   name="monthly_repeat_mode"
+                   id="monthly_repeat_by_position"
+                   value="position"
+                   {% if form.recurrence_bysetpos.value %}checked{% endif %}>
+            <div class="evta-monthly-opt__content">
+                <label for="monthly_repeat_by_position" class="evta-monthly-opt__sublabel">Position and weekday</label>
+                <div class="evta-monthly-opt__row">
+                    {% include "phoxtail_core/forms/widgets/select.html" with field=form.recurrence_bysetpos show_label=False show_help_text=False %}
+                    {% include "phoxtail_core/forms/widgets/select.html" with field=form.recurrence_byweekday_monthly show_label=False show_help_text=False %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Handle monthly recurrence radio button toggles
+        (function() {
+            const dayRadio = document.getElementById('monthly_repeat_by_day');
+            const positionRadio = document.getElementById('monthly_repeat_by_position');
+            const daySelect = document.getElementById('{{ form.recurrence_bymonthday.id_for_label }}');
+            const positionSelect = document.getElementById('{{ form.recurrence_bysetpos.id_for_label }}');
+            const weekdaySelect = document.getElementById('{{ form.recurrence_byweekday_monthly.id_for_label }}');
+
+            if (dayRadio && positionRadio && daySelect && positionSelect && weekdaySelect) {
+                function updateFields() {
+                    if (dayRadio.checked) {
+                        daySelect.disabled = false;
+                        positionSelect.disabled = true;
+                        positionSelect.value = '';
+                        weekdaySelect.disabled = true;
+                        weekdaySelect.value = '';
+                    } else {
+                        daySelect.disabled = true;
+                        daySelect.value = '';
+                        positionSelect.disabled = false;
+                        weekdaySelect.disabled = false;
+                    }
+                }
+
+                dayRadio.addEventListener('change', updateFields);
+                positionRadio.addEventListener('change', updateFields);
+                updateFields(); // Initialize on load
+            }
+        })();
+    </script>
+{% endif %}

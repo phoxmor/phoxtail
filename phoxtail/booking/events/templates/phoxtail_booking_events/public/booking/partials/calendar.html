@@ -1,0 +1,175 @@
+{% load tz %}
+{% include "account/messages.html" %}
+<div class="evt-page-header">
+    <div class="evt-page-header__inner">
+        <div>
+            <h1 class="evt-page-header__title">Class Calendar</h1>
+            <div class="evt-page-header__day">
+                {% include 'phoxtail_core/svgs/calendar.html' %}
+                <span>{{ day_display }}</span>
+            </div>
+        </div>
+        <div>
+            {% url 'dashboard:booking:events:filters_form' as filters_url %}
+            <button type="button"
+                    class="evt-filter-btn"
+                    hx-get="{% url 'phoxtail_core:modal' %}"
+                    hx-vals='{"content_url": "{{ filters_url }}"}'
+                    hx-include="#filters-form-placeholder"
+                    hx-target="#core-modal-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% include 'phoxtail_core/svgs/filter_alt.html' %}
+                <span>Filters</span>
+                {% if filter_count > 0 %}<span class="evt-filter-badge">{{ filter_count }}</span>{% endif %}
+            </button>
+        </div>
+    </div>
+    {% if location_count >= 1 %}
+        {% include "phoxtail_booking_events/public/booking/partials/forms/navigate/form.html" %}
+    {% endif %}
+</div>
+{% if filterset.form.location.value %}
+    <div id="filters-form-placeholder" style="display:none">{{ filterset.form }}</div>
+    <div class="evt-calendar">
+        <div class="evt-calendar__inner">
+            <div class="evt-grid">
+                {% for event in filterset.qs %}
+                    {% with palette=event.service.palette %}
+                        <div class="evt-card-wrap {% if event.is_past %}evt-card-wrap--past{% endif %}">
+                            <div class="evt-card {% if event.user_reservation_id %}evt-card--booked{% endif %}"
+                                 {% if palette %}style="--card-p-light-text: {{ palette.shades_rgb.600 }}; --card-p-dark-text: {{ palette.shades_rgb.400 }};"{% endif %}>
+                                <div class="evt-card__body">
+                                    <h4 class="evt-card__name">{{ event.service.name }}</h4>
+                                    <div class="evt-card__rows">
+                                        <div class="evt-card__row">
+                                            <span class="evt-card__icon">{% include 'phoxtail_core/svgs/timer.html' %}</span>
+                                            <span class="evt-card__value">
+                                                {% timezone event.space.location.timezone %}{{ event.start_datetime|date:"H:i" }} - {{ event.end_datetime|date:"H:i" }}{% endtimezone %}
+                                            </span>
+                                        </div>
+                                        <div class="evt-card__row">
+                                            <span class="evt-card__icon">{% include 'phoxtail_core/svgs/groups.html' %}</span>
+                                            {% if event.is_full %}
+                                                <span class="evt-card__value {% if not event.user_reservation_id %}evt-card__value--full{% endif %}">Fully Booked</span>
+                                            {% else %}
+                                                <span class="evt-card__value {% if not event.user_reservation_id %}evt-card__value--available{% endif %}">Available Spots</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="evt-card__row">
+                                            <span class="evt-card__icon">{% include 'phoxtail_core/svgs/door_front.html' %}</span>
+                                            <span class="evt-card__value">{{ event.space.name }}</span>
+                                        </div>
+                                        <div class="evt-card__row">
+                                            <span class="evt-card__icon">{% include 'phoxtail_core/svgs/equalizer.html' %}</span>
+                                            <span class="evt-card__value">
+                                                {% if event.group %}
+                                                    {{ event.group.name }}
+                                                {% else %}
+                                                    Open to all
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if event.is_cancelled or event.is_unpublished or event.user_reservation_id %}
+                                    <div class="evt-card__status-group">
+                                        {% if event.is_cancelled %}
+                                            <span class="evt-tag evt-tag--cancelled">
+                                                <span class="evt-tag__label">EVENT</span>
+                                                {{ event.status }}
+                                            </span>
+                                        {% elif event.is_unpublished %}
+                                            <span class="evt-tag evt-tag--unpublished">
+                                                <span class="evt-tag__label">EVENT</span>
+                                                {{ event.status }}
+                                            </span>
+                                        {% endif %}
+                                        {% if event.user_reservation_id %}
+                                            <div class="evt-card__booking-badge evt-card__booking-badge--{{ event.user_reservation_status|lower }}">
+                                                <span class="evt-tag__label">BOOKING</span>
+                                                {{ event.user_reservation_status_display|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                {% if event.user_reservation_id %}
+                                    {% if event.user_reservation_status == 'WAITLISTED' %}
+                                        {% if event.is_full %}
+                                            {% url 'dashboard:booking:events:event_waitlisted_reservation_cancel_form' event.user_reservation_id as modal_url %}
+                                        {% else %}
+                                            {% url 'dashboard:booking:events:event_waitlisted_reservation_confirm_form' event.user_reservation_id as modal_url %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% url 'dashboard:booking:events:event_reservation_cancel_form' event.user_reservation_id as modal_url %}
+                                    {% endif %}
+                                {% else %}
+                                    {% if event.is_full %}
+                                        {% url 'dashboard:booking:events:event_waitlisted_reservation_create_form' as modal_url %}
+                                    {% else %}
+                                        {% url 'dashboard:booking:events:event_reservation_create_form' as modal_url %}
+                                    {% endif %}
+                                {% endif %}
+                                {% if not event.is_past %}
+                                    {% if event.user_reservation_id %}
+                                        <button class="evt-card-btn"
+                                                hx-get="{% url 'phoxtail_core:modal' %}"
+                                                hx-vals='{"content_url": "{{ modal_url }}", "reservation_id": "{{ event.user_reservation_id }}"}'
+                                                hx-include="#filters-form-placeholder"
+                                                hx-target="#core-modal-placeholder-wrapper"
+                                                hx-swap="innerHTML"
+                                                aria-label="View reservation details for {{ event.service.name }}">
+                                        </button>
+                                    {% else %}
+                                        <button class="evt-card-btn"
+                                                hx-get="{% url 'phoxtail_core:modal' %}"
+                                                hx-vals='{"content_url": "{{ modal_url }}", "event_id": "{{ event.uuid }}"}'
+                                                hx-include="#filters-form-placeholder"
+                                                hx-target="#core-modal-placeholder-wrapper"
+                                                hx-swap="innerHTML"
+                                                aria-label="{% if event.is_full %}Join the waitlist for{% else %}Reserve{% endif %} {{ event.service.name }}">
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+            {% if not filterset.qs %}
+                <div class="evt-empty">
+                    <div class="evt-empty__icon-wrap">{% include 'phoxtail_core/svgs/calendar.html' %}</div>
+                    <h3 class="evt-empty__title">No Classes Scheduled</h3>
+                    <p class="evt-empty__text">
+                        There are no classes scheduled for <strong>{{ day_display }}</strong>. Try browsing other days or check back later for new classes.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="evt-no-location">
+        <div class="evt-no-location__inner">
+            <div class="evt-no-location__icon-wrap">
+                {% if location_count == 0 %}
+                    {% include 'phoxtail_core/svgs/location_off.html' %}
+                {% else %}
+                    {% include 'phoxtail_core/svgs/location_on.html' %}
+                {% endif %}
+            </div>
+            <h3 class="evt-no-location__title">
+                {% if location_count == 0 %}
+                    No Active Locations
+                {% else %}
+                    Select a Location
+                {% endif %}
+            </h3>
+            <p class="evt-no-location__text">
+                {% if location_count == 0 %}
+                    Please set up a location before browsing events.
+                {% else %}
+                    Please select a location to begin browsing events.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+{% endif %}

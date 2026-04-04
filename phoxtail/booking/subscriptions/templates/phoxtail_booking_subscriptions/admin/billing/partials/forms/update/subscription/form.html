@@ -1,0 +1,131 @@
+{% load tz %}
+<div class="suba-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="suba-drawer" onclick="event.stopPropagation()">
+        <div class="suba-drawer__scroll">
+            <!-- Header -->
+            <div class="suba-drawer__header">
+                <div class="suba-drawer__title-row">
+                    <h2 class="suba-drawer__title">Edit Subscription</h2>
+                    <button class="suba-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="suba-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="suba-drawer__body">
+                <form id="update-subscription-form"
+                      hx-post="{% url 'billing_management:admin_subscription_update_form' subscription.uuid %}"
+                      hx-include="#billing-filters-form-placeholder"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <div class="suba-form-stack">
+                        <!-- Details Section -->
+                        <div class="suba-section-card">
+                            <h3 class="suba-section-card__title">
+                                {% include 'phoxtail_core/svgs/info_cicle.html' %}
+                                Details
+                            </h3>
+                            <div class="suba-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/date.html" with field=form.start_date %}
+                                {% include "phoxtail_core/forms/widgets/date.html" with field=form.end_date %}
+                                {% include "phoxtail_core/forms/widgets/select.html" with field=form.status %}
+                                {% include "phoxtail_core/forms/widgets/number.html" with field=form.unpaid_reservation_limit %}
+                            </div>
+                        </div>
+                        <!-- Payment Section -->
+                        <div class="suba-section-card">
+                            <h3 class="suba-section-card__title">
+                                {% include 'phoxtail_core/svgs/payment_card.html' %}
+                                Payment
+                            </h3>
+                            <div class="suba-section-card__fields">{% include "phoxtail_core/forms/widgets/checkbox.html" with field=form.is_paid %}</div>
+                        </div>
+                        <!-- Credits Section -->
+                        <div class="suba-section-card">
+                            <h3 class="suba-section-card__title">
+                                {% include 'phoxtail_core/svgs/poker_chip.html' %}
+                                Credits
+                            </h3>
+                            <div class="suba-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/number.html" with field=form.credits label="Shared" %}
+                                {% if formset %}
+                                    <div class="suba-section-divider">
+                                        <div class="suba-section-divider__line"></div>
+                                        <span class="suba-section-divider__label">Per Service</span>
+                                        <div class="suba-section-divider__line"></div>
+                                    </div>
+                                    <div class="suba-section-card__fields">
+                                        {% include "phoxtail_booking_subscriptions/admin/billing/partials/forms/update/subscription/components/credit_balances_formset.html" %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- Renewal Section -->
+                        <div class="suba-section-card">
+                            <h3 class="suba-section-card__title">
+                                {% include 'phoxtail_core/svgs/refresh.html' %}
+                                Renewal
+                            </h3>
+                            <div class="suba-section-card__fields">
+                                {% if subscription.can_renew %}
+                                    {% url 'billing_management:admin_subscription_renew_form' subscription.uuid as renew_content_url %}
+                                    <button type="button"
+                                            class="suba-renew-btn"
+                                            hx-get="{% url 'phoxtail_core:modal_level_1' %}"
+                                            hx-vals='{"content_url": "{{ renew_content_url }}"}'
+                                            hx-target="#core-modal-level-1-placeholder-wrapper"
+                                            hx-swap="innerHTML">
+                                        <span class="suba-renew-btn__inner">
+                                            <span>Renew Subscription</span>
+                                            {% include 'phoxtail_core/svgs/refresh.html' %}
+                                        </span>
+                                    </button>
+                                    <p class="suba-renew-note">
+                                        Click to preview and confirm the renewal. This will archive the current subscription and create a new one with fresh credits.
+                                    </p>
+                                {% else %}
+                                    <button type="button"
+                                            class="suba-renew-btn suba-renew-btn--disabled"
+                                            disabled>
+                                        <span class="suba-renew-btn__inner">
+                                            <span>Renew Subscription</span>
+                                            {% include 'phoxtail_core/svgs/refresh.html' %}
+                                        </span>
+                                    </button>
+                                    <p class="suba-renew-note">
+                                        This subscription can be renewed when it expires or after all credits are used. The subscription must also be marked as paid before renewal.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="suba-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="suba-admin-actions">
+                    <button class="suba-btn suba-btn--primary"
+                            type="submit"
+                            form="update-subscription-form">
+                        {% include 'phoxtail_core/svgs/save.html' %}
+                        <span>Update Subscription</span>
+                    </button>
+                </div>
+                <button class="suba-btn suba-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

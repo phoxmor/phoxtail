@@ -1,0 +1,35 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailsettings_tags django_htmx %}
+{% block titletag %}Booking{% endblock %}
+{% block extra_css %}
+    <!-- Fallback CSS custom properties -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+    <!-- HTMX -->
+    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% django_htmx_script %}
+    <!-- Modal Media -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+    <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_events/css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_subscriptions/css/admin.css' %}">
+    <!-- SiteConfig design tokens (overrides fallback defaults) -->
+    {% get_settings %}
+    <style>
+        :root {
+            {{ settings.app.SiteConfig.css_variables|safe }}
+        }
+        {{ settings.app.SiteConfig.font_face_declarations|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+    <!-- Messages -->
+    {% include "account/messages_static.html" %}
+    <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+    <!-- Modal Placeholders -->
+    <div id="core-modal-placeholder-wrapper"></div>
+    <div id="core-modal-level-1-placeholder-wrapper"></div>
+    <div id="calendar-and-events-container" class="evta-page">
+        {% include 'phoxtail_booking_events/admin/booking/partials/calendar.html' %}
+    </div>
+{% endblock %}

@@ -1,0 +1,96 @@
+<div class="bkua-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="bkua-drawer" onclick="event.stopPropagation()">
+        <div class="bkua-drawer__scroll">
+            <!-- Header -->
+            <div class="bkua-drawer__header">
+                <div class="bkua-drawer__title-row">
+                    <h2 class="bkua-drawer__title">Edit User</h2>
+                    <button class="bkua-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="bkua-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="bkua-drawer__body">
+                <form id="update-user-form"
+                      hx-post="{% url 'users_management:admin_user_update_form' edited_user.uuid %}"
+                      hx-include="#users-filters-form-placeholder"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <div class="bkua-form-stack">
+                        <!-- Personal Section -->
+                        <div class="bkua-section-card">
+                            <h3 class="bkua-section-card__title">
+                                {% include 'phoxtail_core/svgs/user.html' %}
+                                Personal
+                            </h3>
+                            <div class="bkua-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.first_name show_label=True show_help_text=False %}
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.last_name show_label=True show_help_text=False %}
+                                {% include "phoxtail_core/forms/widgets/date.html" with field=form.born_at %}
+                                {% include "phoxtail_core/forms/widgets/select.html" with field=form.gender %}
+                                {% include "phoxtail_core/forms/widgets/select.html" with field=form.country %}
+                                {% include "phoxtail_core/forms/widgets/htmx/input.html" with field=form.phone_number show_label=True show_help_text=False %}
+                            </div>
+                        </div>
+                        <!-- Account Section -->
+                        <div class="bkua-section-card">
+                            <h3 class="bkua-section-card__title">
+                                {% include 'phoxtail_core/svgs/email.html' %}
+                                Account
+                            </h3>
+                            <div class="bkua-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.email show_label=True show_help_text=False %}
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.username show_label=True show_help_text=False %}
+                            </div>
+                        </div>
+                        <!-- Permissions Section -->
+                        {% if not edited_user.is_superuser %}
+                            <div class="bkua-section-card">
+                                <h3 class="bkua-section-card__title">
+                                    {% include 'phoxtail_core/svgs/lock.html' %}
+                                    Permissions
+                                </h3>
+                                <div class="bkua-section-card__fields">{% include "phoxtail_core/forms/widgets/checkbox.html" with field=form.is_active %}</div>
+                            </div>
+                        {% endif %}
+                        <!-- Booking Groups Section -->
+                        <div class="bkua-section-card">
+                            <h3 class="bkua-section-card__title">
+                                {% include 'phoxtail_core/svgs/groups.html' %}
+                                Booking Groups
+                            </h3>
+                            <div class="bkua-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/checkbox_multiple.html" with field=form.booking_groups show_label=False show_help_text=False %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="bkua-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <div class="bkua-admin-actions">
+                    <button class="bkua-btn bkua-btn--primary"
+                            type="submit"
+                            form="update-user-form">
+                        {% include 'phoxtail_core/svgs/save.html' %}
+                        <span>Update User</span>
+                    </button>
+                </div>
+                <button class="bkua-btn bkua-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

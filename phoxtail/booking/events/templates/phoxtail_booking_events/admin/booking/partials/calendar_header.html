@@ -1,0 +1,28 @@
+<div class="evta-page-header">
+    <div class="evta-page-header__inner">
+        <!-- Title Section -->
+        <div>
+            <h1 class="evta-page-header__title">Booking</h1>
+            <div class="evta-page-header__day">
+                {% include 'phoxtail_core/svgs/calendar.html' %}
+                <span>{{ day_display }}</span>
+            </div>
+        </div>
+        <!-- Filters Button -->
+        {% url 'booking_management:filters_form' as filters_url %}
+        <button type="button"
+                class="evta-filter-btn"
+                hx-get="{% url 'phoxtail_core:modal' %}"
+                hx-vals='{"content_url": "{{ filters_url }}"}'
+                hx-include="#filters-form-placeholder"
+                hx-target="#core-modal-placeholder-wrapper"
+                hx-swap="innerHTML">
+            {% include 'phoxtail_core/svgs/filter_alt.html' %}
+            <span>Filters</span>
+            {% if filter_count > 0 %}<span class="evta-filter-badge">{{ filter_count }}</span>{% endif %}
+        </button>
+    </div>
+    {% if location_count >= 1 %}
+        {% include "phoxtail_booking_events/admin/booking/partials/forms/navigate/form.html" %}
+    {% endif %}
+</div>

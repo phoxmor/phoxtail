@@ -51,6 +51,16 @@ blog = [
 dashboard = [
     "phoxtail[engine]",
 ]
+booking = [
+    "phoxtail[engine,dashboard]",
+    "django-countries>=7.0",
+    "django-phonenumber-field[phonenumbers]>=7.0",
+    "django-timezone-field>=6.0",
+    "django-celery-beat>=2.5",
+    "django-filter>=23.0",
+    "Faker>=19.0",
+    "factory-boy>=3.3",
+]
 dev = [
     "pip-tools>=7.0.0",
     "pytest>=8.0.0",
@@ -59,7 +69,9 @@ dev = [
     "pytest-cov>=5.0.0",
     "ruff>=0.4.0",
     "djhtml>=3.0.0",
-    "phoxtail[engine,blog,dashboard,docs]",
+    "freezegun>=1.2",
+    "ipython>=8.0",
+    "phoxtail[engine,blog,booking,dashboard,docs]",
 ]
 
 [project.urls]
@@ -78,18 +90,24 @@ exclude = [
 [tool.setuptools.package-data]
 "phoxtail" = ["project_template/**/*", "project_template/**/.*", "docs/**/*"]
 "phoxtail.cli" = ["templates/**/*"]
+"phoxtail.users" = ["templates/**/*", "static/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.design" = ["management/data/**/*"]
 "phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
 "phoxtail.blog" = ["templates/**/*", "management/data/**/*"]
 "phoxtail.dashboard" = ["templates/**/*", "static/**/*"]
+"phoxtail.booking.core" = ["templates/**/*", "static/**/*"]
+"phoxtail.booking.events" = ["templates/**/*", "static/**/*", "management/data/**/*"]
+"phoxtail.booking.services" = ["templates/**/*", "static/**/*"]
+"phoxtail.booking.subscriptions" = ["templates/**/*", "static/**/*"]
+"phoxtail.booking.reservations" = ["templates/**/*", "static/**/*"]
 
 [tool.pytest.ini_options]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/tests", "phoxtail/design/tests", "phoxtail/streams/tests"]
+testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/tests", "phoxtail/design/tests", "phoxtail/streams/tests", "phoxtail/booking/core/tests", "phoxtail/booking/events/tests", "phoxtail/booking/subscriptions/tests", "phoxtail/booking/reservations/tests"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]

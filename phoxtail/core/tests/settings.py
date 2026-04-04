@@ -27,6 +27,18 @@ INSTALLED_APPS = [
     "phoxtail.core.tests.testapp",
     "phoxtail.design",
     "phoxtail.streams",
+    "phoxtail.dashboard",
+    "django_countries",
+    "phonenumber_field",
+    "timezone_field",
+    "django_celery_beat",
+    "django_filters",
+    "wagtailmedia",
+    "phoxtail.booking.core",
+    "phoxtail.booking.events",
+    "phoxtail.booking.services",
+    "phoxtail.booking.subscriptions",
+    "phoxtail.booking.reservations",
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,31 @@
+<!-- Actions Modal Content -->
+<div class="evta-center-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade"
+     data-animation-duration="300ms"
+     id="modal-actions-content">
+    <!-- Backdrop -->
+    <div class="evta-center-backdrop"></div>
+    <!-- Modal Content -->
+    <div class="evta-center-modal evta-center-modal--narrow"
+         onclick="event.stopPropagation();">
+        <div class="evta-center-modal__scroll">
+            <!-- Header -->
+            <div class="evta-filter-header">
+                <h2 class="evta-filter-title">Actions</h2>
+                <button class="evta-close-btn"
+                        onclick="closeModal()"
+                        aria-label="Close modal"
+                        type="button">
+                    <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                </button>
+            </div>
+            <!-- Content -->
+            <div class="evta-filter-body">
+                <form id="actions-form">
+                    {% include 'phoxtail_booking_events/admin/scheduling/partials/forms/actions/form_content.html' %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

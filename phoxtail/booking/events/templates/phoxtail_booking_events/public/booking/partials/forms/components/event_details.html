@@ -1,0 +1,51 @@
+{% load tz %}
+<div class="evt-detail-card">
+    <h3 class="evt-detail-card__title">
+        {% include 'phoxtail_core/svgs/event.html' %}
+        Event Details
+    </h3>
+    <div class="evt-detail-rows">
+        <div class="evt-detail-row">
+            <span class="evt-detail-row__icon">{% include 'phoxtail_core/svgs/calendar.html' %}</span>
+            <div>
+                <div class="evt-detail-row__label">{{ event.service.name }}</div>
+                <div class="evt-detail-row__value">{{ event.start_datetime|date:"F d, Y" }}</div>
+            </div>
+        </div>
+        <div class="evt-detail-row">
+            <span class="evt-detail-row__icon">{% include 'phoxtail_core/svgs/timer.html' %}</span>
+            <div>
+                <div class="evt-detail-row__label">Duration</div>
+                <div class="evt-detail-row__value">
+                    {% timezone event.space.location.timezone %}{{ event.start_datetime|time:"H:i" }} - {{ event.end_datetime|time:"H:i" }}{% endtimezone %}
+                </div>
+            </div>
+        </div>
+        {% if event.space %}
+            <div class="evt-detail-row">
+                <span class="evt-detail-row__icon">{% include 'phoxtail_core/svgs/location_on.html' %}</span>
+                <div>
+                    <div class="evt-detail-row__label">{{ event.space.name }}</div>
+                    {% if event.space.location %}<div class="evt-detail-row__value">{{ event.space.location.name }}</div>{% endif %}
+                </div>
+            </div>
+        {% endif %}
+        <div class="evt-detail-row">
+            <span class="evt-detail-row__icon">{% include 'phoxtail_core/svgs/groups.html' %}</span>
+            <div>
+                <div class="evt-detail-row__label">Class Size</div>
+                {% if event.is_full %}
+                    <div class="evt-detail-row__value--full">Fully Booked</div>
+                {% else %}
+                    <div class="evt-detail-row__value--available">Available Spots</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% if event.description %}
+        <div class="evt-detail-card__desc">
+            {% include "phoxtail_core/svgs/info.html" %}
+            <span>{{ event.description|truncatewords:20 }}</span>
+        </div>
+    {% endif %}
+</div>

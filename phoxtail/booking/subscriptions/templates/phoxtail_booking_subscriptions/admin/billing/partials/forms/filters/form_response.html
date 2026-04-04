@@ -1,0 +1,6 @@
+{# Update the subscriptions list with filtered results #}
+<div hx-swap-oob="innerHTML:#billing-container">{% include 'phoxtail_booking_subscriptions/admin/billing/partials/billing.html' %}</div>
+{# Update the filters form to reflect current selections #}
+<div hx-swap-oob="innerHTML:#billing-filters-form">
+    {% include 'phoxtail_booking_subscriptions/admin/billing/partials/forms/filters/form_content.html' %}
+</div>

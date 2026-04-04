@@ -1,0 +1,105 @@
+{% load tz %}
+<div class="evta-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="evta-drawer" onclick="event.stopPropagation()">
+        <div class="evta-drawer__scroll">
+            <!-- Header -->
+            <div class="evta-drawer__header">
+                <div class="evta-drawer__title-row">
+                    <div>
+                        <h2 class="evta-drawer__title">Create New Event</h2>
+                    </div>
+                    <button class="evta-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="evta-drawer__body">
+                <form id="create-event-form"
+                      hx-post="{% url 'scheduling_management:admin_schedule_event_create_form' %}"
+                      hx-target="#core-modal-placeholder"
+                      hx-include="#filters-form-placeholder"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <!-- Configuration Section -->
+                    <div class="evta-form-section">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/info_cicle.html' %}
+                            Configuration
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.service %}
+                            {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.start_datetime %}
+                            {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.end_datetime %}
+                            {% url 'scheduling_management:admin_schedule_event_capacity_form_field' as capacity_field_url %}
+                            {% include "phoxtail_core/forms/widgets/htmx/select.html" with field=form.space hx_get=capacity_field_url hx_target="#capacity-field-wrapper" %}
+                            <div id="capacity-field-wrapper">{% include "phoxtail_core/forms/widgets/number.html" with field=form.capacity %}</div>
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.status %}
+                            {% include "phoxtail_core/forms/widgets/checkbox_multiple.html" with field=form.staff %}
+                        </div>
+                    </div>
+                    <!-- Recurrence Section -->
+                    <div class="evta-form-section">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/history.html' %}
+                            Repeats
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            <!-- Recurrence Frequency & Interval -->
+                            <div>
+                                <label class="evta-recurrence-label">Every</label>
+                                <div class="evta-recurrence-row">
+                                    {% url 'scheduling_management:admin_schedule_event_frequency_form_field' as frequency_field_url %}
+                                    {% include "phoxtail_core/forms/widgets/htmx/number.html" with field=form.recurrence_interval hx_get=frequency_field_url hx_target="#recurrence-freq-wrapper" hx_vals='js:{recurrence_freq: document.getElementById("id_recurrence_freq").value}' show_label=False show_help_text=False %}
+                                    <div id="recurrence-freq-wrapper">
+                                        {% url 'scheduling_management:admin_schedule_event_weekdays_form_field' as frequency_dependent_url %}
+                                        {% include "phoxtail_core/forms/widgets/htmx/select.html" with field=form.recurrence_freq hx_get=frequency_dependent_url hx_target="#recurrence-frequency-dependent-wrapper" hx_vals='js:{recurrence_interval: document.getElementById("id_recurrence_interval").value}' show_label=False show_help_text=False %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Frequency-dependent fields -->
+                            <div id="recurrence-frequency-dependent-wrapper"></div>
+                            {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.recurrence_until label="Ends" %}
+                        </div>
+                    </div>
+                    <!-- Access & Notes Section -->
+                    <div class="evta-form-section">
+                        <h3 class="evta-form-section__title">
+                            {% include 'phoxtail_core/svgs/adjustments.html' %}
+                            Access & Notes
+                        </h3>
+                        <div class="evta-form-section__fields">
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.group %}
+                            {% include "phoxtail_core/forms/widgets/textarea.html" with field=form.notes %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="evta-drawer__footer"
+                 style="flex-direction: column;
+                        align-items: stretch">
+                <!-- Admin Actions -->
+                <div class="evta-admin-actions">
+                    <button class="evta-btn evta-btn--primary"
+                            type="submit"
+                            form="create-event-form">
+                        {% include 'phoxtail_core/svgs/plus.html' %}
+                        <span>Create Event</span>
+                    </button>
+                </div>
+                <button class="evta-btn evta-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

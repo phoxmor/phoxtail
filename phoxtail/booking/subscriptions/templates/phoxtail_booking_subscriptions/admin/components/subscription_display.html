@@ -1,0 +1,102 @@
+{% comment %}
+Reusable subscription display component (Admin - Dark Mode Support)
+Usage: {% include 'phoxtail_booking_subscriptions/admin/components/subscription_display.html' with subscription=subscription %}
+
+Parameters:
+  - subscription: The Subscription instance to display (required)
+{% endcomment %}
+<div class="suba-display">
+    <!-- Header -->
+    <div class="suba-display__header">
+        <div class="suba-display__header-inner">
+            <h3 class="suba-display__title">{{ subscription.subscription_type.name }}</h3>
+            <!-- Payment Status Badge -->
+            {% if subscription.is_paid %}
+                <span class="suba-badge suba-badge--paid">
+                    {% include 'phoxtail_core/svgs/payment_card.html' %}
+                    Paid
+                </span>
+            {% else %}
+                <span class="suba-badge suba-badge--unpaid">
+                    {% include 'phoxtail_core/svgs/payment_card.html' %}
+                    Unpaid
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Body -->
+    <div class="suba-display__body">
+        <!-- Duration -->
+        <div class="suba-display__section">
+            <h4 class="suba-display__section-title">
+                {% include 'phoxtail_core/svgs/calendar.html' %}
+                Duration
+            </h4>
+            <div class="suba-display__info-box">
+                <div class="suba-display__duration-row">
+                    <div class="suba-display__duration-item">
+                        {% include 'phoxtail_core/svgs/event.html' %}
+                        <div>
+                            <span class="suba-display__duration-label">Started</span>
+                            <span class="suba-display__duration-value">{{ subscription.start_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="suba-display__divider"></div>
+                    {% if subscription.end_date %}
+                        <div class="suba-display__duration-item">
+                            {% include 'phoxtail_core/svgs/event.html' %}
+                            <div>
+                                <span class="suba-display__duration-label">Expires</span>
+                                <span class="suba-display__duration-value">{{ subscription.end_date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="suba-display__duration-item">
+                            {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                            <div>
+                                <span class="suba-display__duration-label">Expires</span>
+                                <span class="suba-display__duration-value">No Time Limit</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Credits -->
+        <div class="suba-display__section">
+            <h4 class="suba-display__section-title">
+                {% include 'phoxtail_core/svgs/poker_chip.html' %}
+                Credits
+            </h4>
+            {% if subscription.credit_balances.all %}
+                {% for balance in subscription.credit_balances.all %}
+                    <div class="suba-display__credit-item">
+                        <span class="suba-display__credit-name">{{ balance.service.name }}</span>
+                        {% if balance.credits is None %}
+                            <span class="suba-display__credit-amount">Unlimited credits</span>
+                        {% elif balance.credits > 0 %}
+                            <span class="suba-display__credit-amount">
+                                {% if subscription.credits and subscription.credits > 0 %}
+                                    {{ subscription.credits }} shared credit{{ subscription.credits|pluralize }} +{{ balance.credits }}
+                                {% else %}
+                                    {{ balance.credits }} credit{{ balance.credits|pluralize }}
+                                {% endif %}
+                            </span>
+                        {% elif subscription.credits and subscription.credits > 0 %}
+                            <span class="suba-display__credit-amount">{{ subscription.credits }} shared credit{{ subscription.credits|pluralize }}</span>
+                        {% else %}
+                            <span class="suba-display__credit-zero">0 credits</span>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="suba-display__info-box">
+                    <div class="suba-display__unlimited-row">
+                        {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                        <span>Unlimited access to all available classes</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

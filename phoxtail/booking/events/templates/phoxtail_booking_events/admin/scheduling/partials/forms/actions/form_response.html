@@ -1,0 +1,6 @@
+{# Update the schedule with filtered results #}
+<div hx-swap-oob="innerHTML:#schedule-container">{% include 'phoxtail_booking_events/admin/scheduling/partials/schedule.html' %}</div>
+{# Update the actions form to reflect current selections #}
+<div hx-swap-oob="innerHTML:#actions-form">
+    {% include 'phoxtail_booking_events/admin/scheduling/partials/forms/actions/form_content.html' %}
+</div>

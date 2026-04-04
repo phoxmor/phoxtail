@@ -1,0 +1,78 @@
+<!-- Header -->
+<div class="evta-filter-header">
+    <div class="evta-filter-header__left">
+        <h2 class="evta-filter-title">Filters</h2>
+        {% if filter_count > 0 %}
+            <button class="evta-filter-clear-btn"
+                    type="button"
+                    hx-get="{% url 'scheduling_management:filters' %}"
+                    hx-trigger="click"
+                    hx-target="this"
+                    hx-swap="none">
+                {% include 'phoxtail_core/svgs/filter_alt_off.html' %}
+                <span>Clear all filters</span>
+            </button>
+        {% endif %}
+    </div>
+    <button class="evta-close-btn"
+            onclick="closeModal()"
+            aria-label="Close modal"
+            type="button">
+        <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+    </button>
+</div>
+<!-- Body -->
+<div class="evta-filter-body">
+    {% url 'scheduling_management:filters' as filters_url %}
+    <!-- Location Filter -->
+    {% if location_count > 1 %}
+        <div class="evta-filter-field">
+            <label for="{{ filterset.form.location.id_for_label }}"
+                   class="evta-filter-label">
+                {% include 'phoxtail_core/svgs/location_on.html' %}
+                Location
+            </label>
+            {% include 'phoxtail_core/forms/widgets/htmx/select.html' with field=filterset.form.location show_label=False show_help_text=False hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+        </div>
+    {% endif %}
+    <!-- Space Filter -->
+    <div class="evta-filter-field">
+        <label for="{{ filterset.form.space.id_for_label }}"
+               class="evta-filter-label">
+            {% include 'phoxtail_core/svgs/home.html' %}
+            Space
+        </label>
+        {% include 'phoxtail_core/forms/widgets/htmx/select.html' with field=filterset.form.space show_label=False show_help_text=False hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+    </div>
+    <!-- Class Filter -->
+    <div class="evta-filter-field">
+        <label for="{{ filterset.form.service.id_for_label }}"
+               class="evta-filter-label">
+            {% include 'phoxtail_core/svgs/amp_stories.html' %}
+            Class
+        </label>
+        {% include 'phoxtail_core/forms/widgets/htmx/select.html' with field=filterset.form.service show_label=False show_help_text=False hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+    </div>
+    <!-- Staff Filter -->
+    <div class="evta-filter-field">
+        <label for="{{ filterset.form.staff.id_for_label }}"
+               class="evta-filter-label">
+            {% include 'phoxtail_core/svgs/person.html' %}
+            Staff
+        </label>
+        {% include 'phoxtail_core/forms/widgets/htmx/select.html' with field=filterset.form.staff show_label=False show_help_text=False hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+    </div>
+    <!-- Date Filter -->
+    <div class="evta-filter-field">
+        <label for="{{ filterset.form.date.id_for_label }}"
+               class="evta-filter-label">
+            {% include 'phoxtail_core/svgs/calendar.html' %}
+            Date
+        </label>
+        {% include 'phoxtail_core/forms/widgets/htmx/datetime.html' with field=filterset.form.date input_type="date" show_label=False show_help_text=False hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+    </div>
+    <!-- Schedule Display -->
+    <div class="evta-filter-field">
+        {% include 'phoxtail_core/forms/widgets/htmx/toggle.html' with field=filterset.form.show_empty_rows hx_get=filters_url hx_include="#filters-form" hx_target="this" hx_swap="none" hx_trigger="change" %}
+    </div>
+</div>

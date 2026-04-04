@@ -1,0 +1,44 @@
+<div class="evt-nav">
+    <div class="evt-loading">
+        <div class="evt-loading__spinner"></div>
+        <span class="evt-loading__text">Loading...</span>
+    </div>
+    <div class="evt-nav-grid">
+        <button type="button"
+                class="evt-nav-btn evt-nav-btn--today {% if is_today %}evt-nav-btn--active{% endif %}"
+                hx-get="{% url 'dashboard:booking:events:list' %}"
+                hx-trigger="click"
+                hx-target="#calendar-and-events-container"
+                hx-swap="innerHTML"
+                hx-indicator=".evt-loading"
+                hx-include="#filters-form-placeholder"
+                hx-vals='{"filter-date": "{{ today_date }}"}'>
+            {% include 'phoxtail_core/svgs/today.html' %}
+            <span>Today</span>
+        </button>
+        <button type="button"
+                class="evt-nav-btn"
+                hx-get="{% url 'dashboard:booking:events:list' %}"
+                hx-trigger="click"
+                hx-target="#calendar-and-events-container"
+                hx-swap="innerHTML"
+                hx-indicator=".evt-loading"
+                hx-include="#filters-form-placeholder"
+                hx-vals='{"filter-date": "{{ previous_date }}"}'>
+            {% include 'phoxtail_core/svgs/chevron_left.html' %}
+            <span>Previous</span>
+        </button>
+        <button type="button"
+                class="evt-nav-btn"
+                hx-get="{% url 'dashboard:booking:events:list' %}"
+                hx-trigger="click"
+                hx-target="#calendar-and-events-container"
+                hx-swap="innerHTML"
+                hx-indicator=".evt-loading"
+                hx-include="#filters-form-placeholder"
+                hx-vals='{"filter-date": "{{ next_date }}"}'>
+            <span>Next</span>
+            {% include 'phoxtail_core/svgs/chevron_right.html' %}
+        </button>
+    </div>
+</div>

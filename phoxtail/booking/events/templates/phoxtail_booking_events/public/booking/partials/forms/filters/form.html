@@ -1,0 +1,14 @@
+<div class="evt-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade-up"
+     data-animation-duration="300ms"
+     id="modal-filters-content">
+    <div class="evt-modal-backdrop"></div>
+    <div class="evt-modal" onclick="event.stopPropagation()">
+        <div class="evt-modal__scroll">
+            <form id="filters-form">
+                {% include 'phoxtail_booking_events/public/booking/partials/forms/filters/form_content.html' %}
+            </form>
+        </div>
+    </div>
+</div>

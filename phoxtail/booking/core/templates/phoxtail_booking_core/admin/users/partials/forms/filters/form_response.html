@@ -1,0 +1,6 @@
+{# Update the users list with filtered results #}
+<div hx-swap-oob="innerHTML:#users-container">{% include 'phoxtail_booking_core/admin/users/partials/users.html' %}</div>
+{# Update the filters form to reflect current selections #}
+<div hx-swap-oob="innerHTML:#users-filters-form">
+    {% include 'phoxtail_booking_core/admin/users/partials/forms/filters/form_content.html' %}
+</div>

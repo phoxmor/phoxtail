@@ -1,0 +1,11 @@
+{% if subscription.is_paid %}
+    <span class="suba-badge suba-badge--paid">
+        {% include 'phoxtail_core/svgs/payment_card.html' %}
+        Paid
+    </span>
+{% else %}
+    <span class="suba-badge suba-badge--unpaid">
+        {% include 'phoxtail_core/svgs/payment_card.html' %}
+        Unpaid
+    </span>
+{% endif %}

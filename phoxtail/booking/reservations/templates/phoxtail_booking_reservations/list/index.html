@@ -1,0 +1,33 @@
+{% extends "phoxtail_dashboard/index.html" %}
+{% load static %}
+{% block head_title %}
+    Your Bookings
+{% endblock head_title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_reservations/css/public.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_subscriptions/css/public.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <div class="res-page">
+        <div class="res-page-inner">
+            <!-- Header -->
+            <div class="res-page-header">
+                <div class="res-page-header__inner">
+                    <div>
+                        <h1 class="res-page-header__title">Your Bookings</h1>
+                        <p class="res-page-header__subtitle">
+                            {% include 'phoxtail_core/svgs/event_available.html' %}
+                            <span>View and manage your upcoming bookings</span>
+                        </p>
+                    </div>
+                    <a href="{% url 'dashboard:booking:events:list' %}" class="res-book-btn">
+                        {% include 'phoxtail_core/svgs/plus.html' with class="icon-md" %}
+                        Book a Class
+                    </a>
+                </div>
+            </div>
+            <!-- Reservations -->
+            <div id="reservations-container">{% include 'phoxtail_booking_reservations/list/partials/reservations.html' %}</div>
+        </div>
+    </div>
+{% endblock content %}

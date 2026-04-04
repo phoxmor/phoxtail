@@ -1,0 +1,106 @@
+<div class="dash-widget-card">
+    <div class="dash-widget-header">
+        <h3 class="dash-widget-title">Your Plans</h3>
+        {% if data.subscriptions %}
+            <a href="{% url 'dashboard:booking:subscriptions:subscription-list' %}"
+               class="dash-widget-link">
+                View all
+                {% include 'phoxtail_core/svgs/arrow_right_alt.html' %}
+            </a>
+        {% endif %}
+    </div>
+    {% if data.subscriptions %}
+        <ul class="dash-widget-list">
+            {% for subscription in data.subscriptions %}
+                <li class="dash-widget-list__item" style="padding: 1rem 0;">
+                    <div class="dash-widget-list__top-row">
+                        <div class="dash-widget-list__primary">{{ subscription.subscription_type.name }}</div>
+                        {% if subscription.is_paid %}
+                            <span class="sub-badge sub-badge--paid" style="flex-shrink: 0;">
+                                {% include 'phoxtail_core/svgs/payment_card.html' %}
+                                Paid
+                            </span>
+                        {% else %}
+                            <span class="sub-badge sub-badge--unpaid" style="flex-shrink: 0;">
+                                {% include 'phoxtail_core/svgs/payment_card.html' %}
+                                Unpaid
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="sub-info-box" style="margin-top: 0.625rem; padding: 0.625rem;">
+                        <div class="sub-duration-row">
+                            <div class="sub-duration-item">
+                                {% include 'phoxtail_core/svgs/event.html' %}
+                                <div>
+                                    <span class="sub-date-label">Started</span>
+                                    <span class="sub-date-value">{{ subscription.start_date|date:"M j, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="sub-divider-v"></div>
+                            {% if subscription.end_date %}
+                                <div class="sub-duration-item">
+                                    {% include 'phoxtail_core/svgs/event.html' %}
+                                    <div>
+                                        <span class="sub-date-label">
+                                            {% if subscription.is_expired %}
+                                                Expired
+                                            {% else %}
+                                                Expires
+                                            {% endif %}
+                                        </span>
+                                        <span class="sub-date-value">{{ subscription.end_date|date:"M j, Y" }}</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="sub-duration-item">
+                                    {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                                    <div>
+                                        <span class="sub-date-label">Expires</span>
+                                        <span class="sub-date-value">No Time Limit</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if subscription.credit_balances.all %}
+                        <div style="margin-top: 0.625rem;
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 0.25rem">
+                            {% for balance in subscription.credit_balances.all %}
+                                <div class="sub-credit-item" style="padding: 0.5rem 0.75rem;">
+                                    <span class="sub-credit-name">{{ balance.service.name }}</span>
+                                    {% if balance.credits is None %}
+                                        <span class="sub-credit-value">Unlimited credits</span>
+                                    {% elif balance.credits > 0 %}
+                                        <span class="sub-credit-value">
+                                            {% if subscription.credits and subscription.credits > 0 %}
+                                                {{ subscription.credits }} shared credit{{ subscription.credits|pluralize }} +{{ balance.credits }}
+                                            {% else %}
+                                                {{ balance.credits }} credit{{ balance.credits|pluralize }}
+                                            {% endif %}
+                                        </span>
+                                    {% elif subscription.credits and subscription.credits > 0 %}
+                                        <span class="sub-credit-value">{{ subscription.credits }} shared credit{{ subscription.credits|pluralize }}</span>
+                                    {% else %}
+                                        <span class="sub-credit-value sub-credit-value--zero">0 credits</span>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="dash-widget-empty-state">
+            <span class="dash-widget-empty-icon">{% include 'phoxtail_core/svgs/payment_card.html' %}</span>
+            <p class="dash-widget-empty">No plans yet.</p>
+            <a href="{% url 'dashboard:booking:subscriptions:subscription-type-list' %}"
+               class="dash-widget-cta">
+                {% include 'phoxtail_core/svgs/add_shopping_cart.html' %}
+                Browse Plans
+            </a>
+        </div>
+    {% endif %}
+</div>

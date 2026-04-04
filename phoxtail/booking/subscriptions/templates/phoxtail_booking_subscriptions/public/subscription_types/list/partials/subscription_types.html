@@ -1,0 +1,23 @@
+{% include "account/messages.html" %}
+{% if subscription_types %}
+    <div class="sub-grid">
+        {% for subscription_type in subscription_types %}
+            {% include 'phoxtail_booking_subscriptions/public/subscription_types/list/partials/subscription_type.html' with subscription_type=subscription_type %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="sub-empty">
+        <div class="sub-empty__card">
+            <div class="sub-empty__icon-wrap">{% include 'phoxtail_core/svgs/groups.html' %}</div>
+            <h3 class="sub-empty__title">No Plans Available</h3>
+            <p class="sub-empty__text">There are no subscription types available at this time. Please check back later.</p>
+            <a href="{% url 'dashboard:booking:subscriptions:subscription-list' %}"
+               class="sub-empty__action">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Go Back
+            </a>
+        </div>
+    </div>
+{% endif %}

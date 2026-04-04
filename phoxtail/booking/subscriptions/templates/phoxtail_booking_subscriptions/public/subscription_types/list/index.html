@@ -1,0 +1,28 @@
+{% extends "phoxtail_dashboard/index.html" %}
+{% load static thumbnail %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_subscriptions/css/public.css' %}">
+{% endblock extra_css %}
+{% block head_title %}
+    Choose Subscription Type
+{% endblock head_title %}
+{% block content %}
+    <div class="sub-page">
+        <div class="sub-page-inner">
+            <div class="sub-page-header">
+                <div class="sub-page-header__inner">
+                    <div>
+                        <h1 class="sub-page-header__title">Choose Your Plan</h1>
+                        <p class="sub-page-header__subtitle">
+                            {% include 'phoxtail_core/svgs/all_inclusive.html' %}
+                            <span>Select the perfect plan that fits your needs</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div id="subscription-types-container">
+                {% include 'phoxtail_booking_subscriptions/public/subscription_types/list/partials/subscription_types.html' %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}

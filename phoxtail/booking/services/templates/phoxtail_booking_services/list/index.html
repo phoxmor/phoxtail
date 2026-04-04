@@ -1,0 +1,30 @@
+{% extends "phoxtail_dashboard/index.html" %}
+{% load static %}
+{% block head_title %}
+    Available Classes
+{% endblock head_title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'phoxtail_booking_services/css/services.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <div class="svc-page">
+        <div class="svc-page-inner">
+            <div class="svc-page-header">
+                <h1 class="svc-page-header__title">Available Classes</h1>
+                <p class="svc-page-header__subtitle">
+                    {% include 'phoxtail_core/svgs/category.html' %}
+                    <span>Explore our class offerings</span>
+                </p>
+            </div>
+            {% if services %}
+                <div class="svc-grid">
+                    {% for service in services %}
+                        {% include 'phoxtail_booking_services/list/object.html' with service=service %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {% include 'phoxtail_booking_services/list/objects_not_found.html' %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

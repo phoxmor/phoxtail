@@ -1,0 +1,89 @@
+{% load tz %}
+<details class="evta-details-collapsible">
+    <summary class="evta-details-summary">
+        <span class="evta-details-summary__label">Event Details</span>
+        <span class="evta-details-summary__icon">{% include 'phoxtail_core/svgs/chevron_right.html' %}</span>
+    </summary>
+    <div class="evta-details-content">
+        <div class="evta-detail-grid">
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/calendar.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">{{ event.service.name }}</div>
+                    <div class="evta-detail-item__value">
+                        {% timezone event.space.location.timezone %}{{ event.start_datetime|date:"F d, Y" }}{% endtimezone %}
+                    </div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/timer.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">Duration</div>
+                    <div class="evta-detail-item__value">
+                        {% timezone event.space.location.timezone %}{{ event.start_datetime|time:"H:i" }} - {{ event.end_datetime|time:"H:i" }}{% endtimezone %}
+                    </div>
+                </div>
+            </div>
+            {% if event.space %}
+                <div class="evta-detail-item">
+                    <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/location_on.html' %}</span>
+                    <div>
+                        <div class="evta-detail-item__label">{{ event.space.name }}</div>
+                        {% if event.space.location %}<div class="evta-detail-item__value">{{ event.space.location.name }}</div>{% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if event.staff.all %}
+                <div class="evta-detail-item">
+                    <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/groups_2.html' %}</span>
+                    <div>
+                        <div class="evta-detail-item__label">Instructor{{ event.staff.all|length|pluralize }}</div>
+                        <div class="evta-detail-item__value">
+                            {% for staff in event.staff.all %}
+                                {{ staff.user.get_full_name|default:staff.user.username }}
+                                {% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/groups.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">Class Size</div>
+                    <div class="evta-detail-item__value">{{ event.reserved_spots_count|default:0 }}/{{ event.capacity }} spots filled</div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/info.html' %}</span>
+                <div>
+                    <div class="evta-detail-item__label">Status</div>
+                    <div class="evta-detail-item__value">{{ event.get_status_display }}</div>
+                </div>
+            </div>
+            <div class="evta-detail-item">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/key.html' %}</span>
+                <div style="flex: 1;">
+                    <div class="evta-detail-item__label">Event Key</div>
+                    <div class="evta-detail-item__value"
+                         style="display: flex;
+                                align-items: center;
+                                gap: 0.5rem">
+                        <span>{{ event.short_id }}</span>
+                        {% include 'phoxtail_core/copy_key_button.html' with key=event.short_id %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if event.description %}
+            <div class="evta-detail-card__desc"
+                 style="border-radius: 0;
+                        border: none;
+                        margin-top: 0;
+                        border-top: 1px solid rgb(var(--color-surface-200) / 0.8)">
+                <span class="evta-detail-item__icon">{% include 'phoxtail_core/svgs/info.html' %}</span>
+                <span>{{ event.description|truncatewords:20 }}</span>
+            </div>
+        {% endif %}
+    </div>
+</details>
