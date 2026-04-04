@@ -27,7 +27,24 @@ TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 OPTIONAL_APPS = [
     {"name": "Blog", "value": "phoxtail.blog"},
     {"name": "Dashboard", "value": "phoxtail.dashboard"},
+    {"name": "Booking", "value": "phoxtail.booking"},
 ]
+
+# App groups: selecting a single value expands into multiple INSTALLED_APPS entries.
+APP_GROUPS = {
+    "phoxtail.booking": [
+        "phoxtail.booking.core",
+        "phoxtail.booking.services",
+        "phoxtail.booking.events",
+        "phoxtail.booking.subscriptions",
+        "phoxtail.booking.reservations",
+    ],
+}
+
+# Implicit dependencies: selecting an app auto-includes its dependencies.
+APP_DEPENDENCIES = {
+    "phoxtail.booking": ["phoxtail.dashboard"],
+}
 
 # Context processors to inject when specific optional apps are selected.
 APP_CONTEXT_PROCESSORS = {
@@ -152,23 +169,37 @@ def _copy_template(
             "install of the full repository."
         )
 
-    if optional_apps:
-        apps_replacement = "".join(f'    "{app}",\n' for app in optional_apps)
+    # Resolve implicit dependencies (e.g. booking requires dashboard).
+    resolved_apps: list[str] = []
+    for app in optional_apps or []:
+        for dep in APP_DEPENDENCIES.get(app, []):
+            if dep not in resolved_apps:
+                resolved_apps.append(dep)
+        if app not in resolved_apps:
+            resolved_apps.append(app)
+
+    # Expand app groups into individual INSTALLED_APPS entries.
+    installed_apps: list[str] = []
+    for app in resolved_apps:
+        installed_apps.extend(APP_GROUPS.get(app, [app]))
+
+    if installed_apps:
+        apps_replacement = "".join(f'    "{app}",\n' for app in installed_apps)
     else:
         apps_replacement = ""
 
-    # Collect context processors for selected apps.
+    # Collect context processors for selected/resolved apps.
     ctx_processors = []
-    for app in optional_apps or []:
+    for app in resolved_apps:
         ctx_processors.extend(APP_CONTEXT_PROCESSORS.get(app, []))
     if ctx_processors:
         ctx_replacement = "".join(f'                "{cp}",\n' for cp in ctx_processors)
     else:
         ctx_replacement = ""
 
-    # Collect URL patterns for selected apps.
+    # Collect URL patterns for selected/resolved apps.
     url_lines = []
-    for app in optional_apps or []:
+    for app in resolved_apps:
         line = APP_URL_PATTERNS.get(app)
         if line:
             url_lines.append(line)

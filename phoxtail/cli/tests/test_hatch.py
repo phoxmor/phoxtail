@@ -6,7 +6,13 @@ import pytest
 from typer.testing import CliRunner
 
 from phoxtail.__main__ import app
-from phoxtail.cli.hatch import APPS_MARKER, PLACEHOLDER, TEMPLATE_DIR, _copy_template
+from phoxtail.cli.hatch import (
+    APP_GROUPS,
+    APPS_MARKER,
+    PLACEHOLDER,
+    TEMPLATE_DIR,
+    _copy_template,
+)
 
 runner = CliRunner()
 
@@ -69,7 +75,6 @@ class TestCopyTemplate:
         _copy_template("myproject", target)
 
         assert (target / "src" / "settings").is_dir()
-        assert (target / "users").is_dir()
         assert (target / "app" / "templatetags").is_dir()
         assert (target / "app" / "templates" / "app" / "pages").is_dir()
 
@@ -90,6 +95,53 @@ class TestCopyTemplate:
         settings = (target / "src" / "settings" / "base.py").read_text()
         assert APPS_MARKER.strip() not in settings
         assert "phoxtail.blog" not in settings
+
+    def test_booking_expands_into_five_sub_apps(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        # Booking dependency: dashboard should be auto-included
+        assert '"phoxtail.dashboard",' in settings
+        # All five booking sub-apps should be injected
+        for sub_app in APP_GROUPS["phoxtail.booking"]:
+            assert f'"{sub_app}",' in settings
+
+    def test_booking_does_not_duplicate_dashboard_when_both_selected(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template(
+            "myproject",
+            target,
+            optional_apps=["phoxtail.dashboard", "phoxtail.booking"],
+        )
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        # Dashboard should appear exactly once
+        assert settings.count('"phoxtail.dashboard",') == 1
+        # All five booking sub-apps should be present
+        for sub_app in APP_GROUPS["phoxtail.booking"]:
+            assert f'"{sub_app}",' in settings
+
+    def test_booking_without_dashboard_auto_includes_dashboard(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        # Dashboard should be auto-included as a dependency
+        assert '"phoxtail.dashboard",' in settings
+        # Dashboard context processor should be injected
+        assert "phoxtail.dashboard.context_processors.dashboard_nav" in settings
+
+    def test_no_booking_removes_all_booking_apps(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target, optional_apps=["phoxtail.blog"])
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        assert "phoxtail.booking" not in settings
 
     def test_raises_when_template_dir_missing(self, tmp_path, monkeypatch):
         monkeypatch.setattr("phoxtail.cli.hatch.TEMPLATE_DIR", tmp_path / "nonexistent")

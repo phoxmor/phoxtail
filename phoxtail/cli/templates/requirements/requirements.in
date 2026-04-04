@@ -9,6 +9,7 @@ django-htmx
 django-countries[pyuca]
 django-phonenumber-field[phonenumbers]
 django-celery-beat
+django-filter
 django-timezone-field
 sorl-thumbnail
 babel
@@ -35,3 +36,7 @@ pyyaml
 django-browser-reload
 django-extensions
 pygraphviz
+ipython
+Faker
+factory-boy
+freezegun
