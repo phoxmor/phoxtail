@@ -63,6 +63,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # Middleware
 MIDDLEWARE = [
+    # Must run before CommonMiddleware so /api/foo is rewritten to /api/foo/
+    # in-place (no redirect) — see phoxtail.api.middleware for rationale.
+    "phoxtail.api.middleware.ApiTrailingSlashMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",

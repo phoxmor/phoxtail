@@ -14,6 +14,9 @@ django-timezone-field
 sorl-thumbnail
 babel
 
+# API framework
+django-ninja
+
 # Wagtail extensions
 wagtailmedia
 wagtail-color-panel

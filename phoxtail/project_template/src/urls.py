@@ -28,6 +28,7 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("django-admin/", admin.site.urls),
     path("documents/", include(wagtaildocs_urls)),
+    path("api/", include("phoxtail.api.urls")),
     path("phoxtail_core/", include("phoxtail.core.urls")),
     path("users/", include("phoxtail.users.urls")),
     path("app/", include("app.urls")),
