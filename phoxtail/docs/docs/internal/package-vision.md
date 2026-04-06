@@ -17,7 +17,7 @@ All three library apps, all three scaffold templates, and the `phoxtail hatch` c
 **Completed:**
 - `phoxtail.core` — library app with mixins, fields, permissions, views, templates, static files
 - `phoxtail.design` — library app with FontFamily/FontWeight/FontRole, Palette/PaletteRole, CSS variable generation, `populate_design` management command with bundled data files
-- `phoxtail.streams` — library app with Block/BlockVariant/SharedBlock/VariantCollection/BlockSystemPrompt, dynamic block factory (3 modes), schema blocks (24 field types + structures + layers), in-memory cache with signal-driven invalidation, Studio views, CodeEditorPanel (Monaco), permissions, `populate_streams` + `setup_streams_groups` management commands with bundled block data (20 blocks with schemas, variants, collections, prompts)
+- `phoxtail.streams` — library app with Block/BlockVariant/SharedBlock/VariantCollection, dynamic block factory (3 modes), schema blocks (24 field types + structures + layers), in-memory cache with signal-driven invalidation, CodeEditorPanel (Monaco), permissions, `populate_streams` + `setup_streams_groups` management commands with bundled block data (20 blocks with schemas, variants, collections)
 - `project_template/src/` — Django settings (base/dev/prod/test), URLs, Celery, WSGI
 - `project_template/users/` — Custom User model, allauth adapters, forms, validators
 - `project_template/app/` — SitePage (with BodyStreamField), SiteConfig (branding + design token inlines), ScheduleItem, HTMX views, templatetags
@@ -246,7 +246,7 @@ phoxtail/
 │
 ├── streams/                 # Library app: schema-driven block system
 │   ├── apps.py
-│   ├── models.py            # Block, BlockVariant, SharedBlock, VariantCollection, BlockSystemPrompt
+│   ├── models.py            # Block, BlockVariant, SharedBlock, VariantCollection
 │   ├── blocks/
 │   │   ├── factory.py       # Dynamic block factory (3 modes)
 │   │   ├── __init__.py      # get_dynamic_blocks entry point

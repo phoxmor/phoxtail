@@ -28,7 +28,7 @@ New readers should go through them in that order. Returning readers can jump str
 
 ## Relationship to the existing Studio
 
-The Wagtail-admin Stream Studio (see [Studio Architecture](../engine/streams/studio-architecture.md)) is being deprecated. Its valuable pieces — the `BlockSystemPrompt` model, the prompt templates, `VariantCollection.render()` — are retained and reused here. The UI layer (views, forms, modal, HTMX widgets) is being replaced by a Django Ninja API layer (`/api/streams/v1/`) consumed by CLI commands and, eventually, an MCP server and remote sync peers. The recently completed [Studio Refactor Plan](../internal/studio-refactor-plan.md) was the last investment in the admin UI; it cleaned the API surface so this migration could happen cleanly. The deprecation itself is staged; see the [roadmap](roadmap.md).
+The Wagtail-admin Stream Studio (see [Studio Architecture](../engine/streams/studio-architecture.md)) has been removed. The `BlockSystemPrompt` model and its prompt templates have been replaced by a static Jinja2 context template. `VariantCollection.render()` is retained for design token rendering. The UI layer (views, forms, modal, HTMX widgets) has been replaced by a Django Ninja API layer (`/api/streams/v1/`) consumed by CLI commands, an MCP server, and (from Phase 5 onwards) remote sync peers.
 
 ## Name
 

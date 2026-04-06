@@ -35,12 +35,11 @@ Consequences:
 │    /api/streams/v1/ (Pydantic v2 schemas, JSON)  │
 ├──────────────────────────────────────────────────┤
 │ 1. Model layer                                   │
-│    BlockVariant, VariantCollection,              │
-│    BlockSystemPrompt, Block                      │
+│    BlockVariant, VariantCollection, Block         │
 └──────────────────────────────────────────────────┘
 ```
 
-**Layer 1 — Models.** Already exists in `streams/models.py`. No new models are required for the minimum viable Studio. New models arrive with the [sync protocol](sync.md) to track identity, version, and provenance across projects.
+**Layer 1 — Models.** `Block`, `BlockVariant`, `VariantCollection`, and `SharedBlock` in `streams/models.py`. The `BlockSystemPrompt` model has been removed — context is now assembled from a static Jinja2 template shipped with phoxtail. New models arrive with the [sync protocol](sync.md) to track identity, version, and provenance across projects.
 
 **Layer 2 — API.** A Django Ninja API mounted at `/api/streams/v1/` on the running Phoxtail app. The API layer lives in a top-level `phoxtail/api/` package that mirrors the app layout (`phoxtail/api/streams/`, `phoxtail/api/design/`, ...) so that every app's endpoints have one obvious home and each app can ship its own `v2` independently. Endpoints are thin — they query models, serialize through Pydantic v2 schemas, and return JSON. The Pydantic schemas are the stable contract for agents and scripts. The API runs inside the same Django process that serves Wagtail pages, so there is no container startup cost — responses are near-instant. This layer also provides the HTTP foundation that the [sync protocol](sync.md) builds on in later phases: projects exchange data over the same HTTP surface that the CLI consumes locally.
 
@@ -55,21 +54,20 @@ Each layer depends only on the layer below it. Any layer can be replaced indepen
 The Studio API is consumed by three kinds of clients: the local CLI, the MCP server, and (from Phase 5 onwards) remote Phoxtail projects acting as sync peers. The last of those is the reason the API has to behave like a durable contract, not an internal implementation detail.
 
 - **Base path `/api/streams/v1/`.** The API lives under `/api/` alongside any future Phoxtail API surfaces. The app name (`streams`) is the second segment so that each app (`streams`, `design`, `booking`, ...) owns its own namespace and its own version cadence. The version is in the URL because URL-based versioning is the cheapest escape hatch when Phase 5 sync clients on different versions need to coexist.
-- **Resource-oriented, not RPC.** Every endpoint acts on a resource with standard HTTP verbs. Updates are `PUT /variants/{id}`, not `POST /variants/{id}/commit`. The single non-CRUD action — rendering a prompt — is expressed as a sub-resource: `POST /prompts/{id}/render`.
+- **Resource-oriented, not RPC.** Every endpoint acts on a resource with standard HTTP verbs. Updates are `PUT /variants/{id}`, not `POST /variants/{id}/commit`. Context assembly is expressed as a sub-resource: `POST /context/`.
 - **Optimistic concurrency via ETag / If-Match.** Every variant response carries a weak ETag derived from a SHA-256 hash of the three content fields (`html`, `css`, `javascript`). Clients must send the ETag back on `PUT /variants/{id}` as an `If-Match` header; mismatches return `412 Precondition Failed`. This is the same primitive the sync protocol will use for fast-forward detection in Phase 5 — the Phase 3 commit flow dogfoods the sync concurrency model.
-- **Stateless sessions.** Editing sessions are a purely client-side convention stored under `.phoxtail/studio/<id>/` on disk. The API has no session endpoint; `phoxtail studio edit` bootstraps a session by calling `GET /variants/{id}` (capturing the ETag) and `POST /prompts/{id}/render`, and `phoxtail studio commit` replays those fields via `PUT /variants/{id}` with `If-Match`.
+- **Stateless sessions.** Editing sessions are a purely client-side convention stored under `.phoxtail/studio/<id>/` on disk. The API has no session endpoint; `phoxtail studio edit` bootstraps a session by calling `GET /variants/{id}` (capturing the ETag) and `POST /context/`, and `phoxtail studio commit` replays those fields via `PUT /variants/{id}` with `If-Match`.
 - **Error shape.** 4xx responses currently return `{"detail": "..."}`; the field names are aligned with RFC 7807 Problem Details so we can harden the format without changing clients.
 - **Discovery.** Django Ninja auto-generates an OpenAPI schema at `/api/openapi.json` and Swagger UI at `/api/docs`. That document is the machine-readable contract for every future remote, MCP tool, or third-party integration.
 
-## Reuse of the existing Studio pipeline
+## Context assembly
 
-The only piece of the Wagtail-admin Studio that survives intact is the prompt rendering pipeline:
+The old `BlockSystemPrompt` model and its three DTL prompt templates (`variant_generator`, `variant_refiner`, `variant_editor`) have been replaced by a single static Jinja2 context template (`cli/templates/studio/context.md`) shipped with phoxtail. In the MCP/agent era, system prompts no longer need to carry task instructions or output format directives — the agent has tools for that. The context template provides pure domain knowledge: block schema, DTL rules, CSS architecture, design tokens, and the current variant's code.
 
-- `BlockSystemPrompt.render(variant, collection, references) -> str` — composes a full system prompt by running a Django Template Language template over four context variables.
-- `VariantCollection.render() -> str` — renders a collection's design-token documentation (palettes, fonts, philosophy) by running the collection's own template.
-- The shipped prompt templates `variant_generator.md`, `variant_refiner.md`, and `variant_editor.md`.
-
-These become a CLI verb: `phoxtail studio prompt --variant <id> --template variant_refiner`. The CLI hits the `POST /api/streams/v1/prompts/{template}/render` endpoint, which calls `BlockSystemPrompt.render()` unchanged. The output is a string that an agent can read as a tool-call result, that a user can pipe into their clipboard, or that a future MCP tool can return directly. The entire investment in DTL prompt composition earns its keep unchanged.
+- `POST /api/streams/v1/context/` — assembles structured context data (block schema as JSON, rendered collection design tokens, variant code, references).
+- `phoxtail_get_context` (MCP tool) — calls the endpoint and renders the Jinja2 template into the final context document.
+- `phoxtail studio context` (CLI) — same pipeline with Rich-formatted output.
+- `VariantCollection.render() -> str` — renders a collection's design-token documentation (palettes, fonts, philosophy) by running the collection's own template. This is the only piece of the old DTL rendering pipeline that survives.
 
 ## Wagtail pages as the preview surface
 
@@ -105,13 +103,16 @@ Phoxtail Studio reframes refinement as editing instead of generation. The agent 
 
 This implies that the prompt templates shipped with Phoxtail Studio will eventually grow a third variant — `variant_editor.md` — that frames the task as targeted refinement rather than full regeneration. The existing `variant_generator.md` remains useful for initial creation; `variant_refiner.md` remains useful as a middle ground; `variant_editor.md` is the new low-token refinement mode.
 
-## What gets deprecated
+## What was removed
 
-The Wagtail-admin Stream Studio is deprecated in favor of the CLI system:
+The Wagtail-admin Stream Studio has been removed in favor of the CLI + MCP system:
 
-- `streams/views.py` Studio views (`studio_index_view`, `studio_context_modal_view`, `studio_apply_context_view`, all four search views)
-- `StudioContextForm` in `streams/forms.py`
-- `StudioViewSet` in `streams/viewsets.py`
-- The `templates/phoxtail_streams/studio/` template tree
+- `BlockSystemPrompt` model and its three prompt templates
+- `StudioViewSet`, `StudioContextForm`, all Studio search views
+- The `templates/phoxtail_streams/studio/` template tree and `studio.css`
+- The `access_stream_studio` permission
+- The `/api/streams/v1/prompts/` endpoints
+- The `minify` template tag
+- Prompt-related CLI commands (`list prompts`, `show prompt`)
 
-None of these are removed eagerly. They continue to work through the transition and are removed only after the CLI covers every workflow they support. See the [roadmap](roadmap.md) for the specific phase boundaries.
+All variant editing is now done through the CLI (`phoxtail studio edit/commit`) or MCP tools (`phoxtail_get_variant`, `phoxtail_update_variant`, `phoxtail_get_context`).

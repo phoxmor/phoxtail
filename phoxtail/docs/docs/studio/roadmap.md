@@ -26,8 +26,8 @@ Deliverables are scoped so that each phase can be completed and reviewed in isol
     - `GET /collections/{identifier}`
     - `GET /blocks`
     - `GET /blocks/{identifier}`
-    - `GET /prompts`
-    - `GET /prompts/{identifier}`
+    - ~~`GET /prompts`~~ (removed in Phase 4)
+    - ~~`GET /prompts/{identifier}`~~ (removed in Phase 4)
 - All endpoints return JSON through Pydantic v2 schemas (the stable contract for agents, scripts, and remote sync peers).
 - The API layer lives in a top-level `phoxtail/api/` package that mirrors the app layout (`phoxtail/api/streams/v1/...`), so adding a future `phoxtail/api/design/v1/` is a two-line change in `phoxtail/api/__init__.py`.
 - Wire each endpoint to a Typer command on `phoxtail studio list` and `phoxtail studio show`. The CLI calls the API via `httpx`.
@@ -39,12 +39,11 @@ Deliverables are scoped so that each phase can be completed and reviewed in isol
 
 **Goal:** Replace the Wagtail-admin Studio's "copy prompt to clipboard" workflow entirely.
 
-- API endpoint `POST /api/streams/v1/prompts/{template-identifier}/render` accepting variant, optional collection override, and optional reference identifiers in the request body.
-- CLI command `phoxtail studio prompt` with the same options, calling the API.
-- Reuses `BlockSystemPrompt.render()` unchanged.
-- Tests verify that CLI output matches what the Wagtail-admin Studio would have produced for equivalent inputs.
+- ~~API endpoint `POST /api/streams/v1/prompts/{template-identifier}/render`~~ (removed in Phase 4 — replaced by `POST /api/streams/v1/context/`)
+- ~~CLI command `phoxtail studio prompt`~~ (removed in Phase 4 — replaced by `phoxtail studio context`)
+- Context assembly now uses a static Jinja2 template instead of `BlockSystemPrompt.render()`.
 
-**Exit criterion:** Every workflow currently served by the Wagtail-admin Studio's prompt assembly is served by `phoxtail studio prompt`. No new functionality; feature parity at the terminal.
+**Exit criterion:** Every workflow currently served by the Wagtail-admin Studio's prompt assembly is served by `phoxtail studio context`. ~~No new functionality; feature parity at the terminal.~~ Superseded by the context-based approach in Phase 4.
 
 ## Phase 3 — Editing sessions
 
@@ -67,7 +66,8 @@ Deliverables are scoped so that each phase can be completed and reviewed in isol
 **Goal:** Make Studio operations first-class tools for AI agents, without requiring a working-copy detour.
 
 - New module `phoxtail/cli/studio/mcp.py` that implements an MCP stdio server.
-- Exposes tools mirroring the Phase 1-3 verbs: `phoxtail_list_variants`, `phoxtail_get_variant`, `phoxtail_render_prompt`, `phoxtail_diff_variant`, `phoxtail_update_variant`, `phoxtail_create_variant`. Each tool calls the corresponding `/api/streams/v1/` endpoint.
+- Exposes tools mirroring the Phase 1-3 verbs: `phoxtail_list_variants`, `phoxtail_get_variant`, `phoxtail_get_context`, `phoxtail_diff_variant`, `phoxtail_update_variant`, `phoxtail_create_variant`, `phoxtail_get_collection`. Each tool calls the corresponding `/api/streams/v1/` endpoint.
+- **Completed:** Replaced `BlockSystemPrompt` model and prompt-render pipeline with a static Jinja2 context template. Removed the old Wagtail admin Studio interface, `access_stream_studio` permission, and all prompt-related API/CLI commands.
 - Sync commands are _not_ exposed in the MCP surface in this phase. Sync is a deliberate human decision.
 - Ship an example `.mcp.json` fragment users can drop into their project to register the server with Claude Code.
 - Document the MCP tool schemas in the [CLI Reference](cli.md) and in a new MCP-specific page if the surface grows.
@@ -116,8 +116,9 @@ This phase is sketched, not planned. Its features will be validated against dema
 
 | Component | Deprecated in | Removed in |
 |---|---|---|
-| Wagtail admin Studio menu entry | End of Phase 3 | End of Phase 4 |
-| `StudioViewSet`, `StudioContextForm`, Studio search views, Studio templates | End of Phase 3 | End of Phase 5 or later |
+| `BlockSystemPrompt` model, prompt templates, prompt API | End of Phase 3 | **Phase 4 (done)** |
+| Wagtail admin Studio menu entry, views, forms, templates, CSS | End of Phase 3 | **Phase 4 (done)** |
+| `access_stream_studio` permission | End of Phase 3 | **Phase 4 (done)** |
 | `streams/management/data/blocks/<...>/template.html` files as the authoritative source | Phase 5 | Phase 6 (replaced by a bootstrap registry collection) |
 | `populate_streams` reseed behavior overwriting DB edits | Phase 3 | Phase 5 |
 

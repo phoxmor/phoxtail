@@ -148,50 +148,6 @@ class BlockList(Schema):
 
 
 # ---------------------------------------------------------------------------
-# System prompts
-# ---------------------------------------------------------------------------
-
-
-class PromptSummary(Schema):
-    identifier: str
-    name: str
-    description: str
-
-
-class Prompt(PromptSummary):
-    template: str
-
-
-class PromptList(Schema):
-    prompts: list[PromptSummary]
-    total: int
-
-
-class PromptRenderRequest(Schema):
-    """Body for ``POST /prompts/{identifier}/render``.
-
-    ``variant`` is required; ``collection`` defaults to the variant's own
-    collection; ``references`` is an optional list of sibling variant
-    identifiers (must live in the effective collection). ``block`` is a
-    disambiguator for ``variant`` when the identifier is ambiguous across
-    blocks.
-    """
-
-    variant: str
-    block: str | None = None
-    collection: str | None = None
-    references: list[str] = []
-
-
-class PromptRenderResponse(Schema):
-    prompt: str
-    template: PromptSummary
-    variant: VariantSummary
-    collection: CollectionRef
-    references: list[VariantSummary]
-
-
-# ---------------------------------------------------------------------------
 # Context (agent briefing)
 # ---------------------------------------------------------------------------
 

@@ -14,7 +14,6 @@ The following entity types are synchronizable:
 
 - **BlockVariant** — a single implementation (HTML, CSS, JavaScript, and metadata)
 - **VariantCollection** — a grouping of variants with shared design tokens, including the collection's own DTL template
-- **BlockSystemPrompt** — a reusable AI prompt template
 - **Block** — a structural schema, synced less often because schema evolution requires care
 
 Each synchronizable entity carries additional metadata beyond what the current models store:

@@ -97,27 +97,6 @@ def render_blocks(data: dict[str, Any], console: Console) -> None:
     console.print(table)
 
 
-def render_prompts(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /prompts``."""
-    prompts = data.get("prompts", [])
-    if not prompts:
-        console.print("[dim]No system prompts found.[/dim]")
-        return
-
-    table = Table(title=f"System Prompts ({len(prompts)})", expand=True)
-    table.add_column("Identifier", style="cyan", no_wrap=True)
-    table.add_column("Name")
-    table.add_column("Description", overflow="fold")
-
-    for p in prompts:
-        table.add_row(
-            p.get("identifier", ""),
-            p.get("name", ""),
-            p.get("description", ""),
-        )
-    console.print(table)
-
-
 # ---------------------------------------------------------------------------
 # Detail renderers
 # ---------------------------------------------------------------------------
@@ -290,44 +269,6 @@ def render_block_detail(block: dict[str, Any], console: Console) -> None:
                 "✓" if v.get("is_default") else "",
             )
         console.print(table)
-
-
-def render_prompt_detail(prompt: dict[str, Any], console: Console) -> None:
-    """Render a single prompt response body (``GET /prompts/{id}``)."""
-    header_rows = [
-        ("Identifier", prompt.get("identifier", "")),
-        ("Name", prompt.get("name", "")),
-    ]
-    console.print(
-        Panel(
-            _kv_text(header_rows),
-            title=f"[bold]System Prompt[/bold] — {prompt.get('name', '')}",
-            border_style="green",
-            expand=False,
-        )
-    )
-    if prompt.get("description"):
-        console.print(
-            Panel(
-                prompt["description"],
-                title="Description",
-                border_style="dim",
-                expand=False,
-            )
-        )
-    if prompt.get("template"):
-        console.print(
-            Panel(
-                Syntax(
-                    prompt["template"],
-                    "django",
-                    line_numbers=True,
-                    word_wrap=True,
-                ),
-                title="Template (DTL)",
-                border_style="yellow",
-            )
-        )
 
 
 def render_sessions(sessions: list[dict[str, Any]], console: Console) -> None:

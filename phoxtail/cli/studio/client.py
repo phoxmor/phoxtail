@@ -159,10 +159,6 @@ def list_blocks() -> dict[str, Any]:
     return get_json("/blocks/")
 
 
-def list_prompts() -> dict[str, Any]:
-    return get_json("/prompts/")
-
-
 def get_variant(
     identifier: str,
     block: str,
@@ -238,10 +234,6 @@ def get_block(identifier: str) -> dict[str, Any]:
     return get_json(f"/blocks/{identifier}/")
 
 
-def get_prompt(identifier: str) -> dict[str, Any]:
-    return get_json(f"/prompts/{identifier}/")
-
-
 def get_context(
     *,
     block: str,
@@ -254,39 +246,6 @@ def get_context(
         body["references"] = references
     response = request("POST", "/context/", json_body=body)
     return response.json()
-
-
-def render_prompt(
-    template_identifier: str,
-    *,
-    variant: str,
-    block: str,
-    collection: str | None = None,
-    references: list[str] | None = None,
-) -> dict[str, Any]:
-    body: dict[str, Any] = {"variant": variant}
-    if block:
-        body["block"] = block
-    if collection:
-        body["collection"] = collection
-    if references:
-        body["references"] = references
-    response = request(
-        "POST",
-        f"/prompts/{template_identifier}/render/",
-        json_body=body,
-    )
-    return response.json()
-
-
-def prompt_exists(identifier: str) -> bool:
-    """Check whether a prompt identifier exists, without exiting on 404.
-
-    Used by the edit verb to implement the ``variant_editor`` →
-    ``variant_refiner`` template-cascade fallback.
-    """
-    response = request("GET", f"/prompts/{identifier}/", allow_status=(404,))
-    return response.status_code == 200
 
 
 def emit_json(data: Any) -> None:

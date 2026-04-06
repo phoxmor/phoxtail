@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 
 from phoxtail.streams.models import (
     Block,
-    BlockSystemPrompt,
     BlockVariant,
     VariantCollection,
 )
@@ -51,13 +50,3 @@ class BlockVariantFactory(factory.django.DjangoModelFactory):
     html = "<div>{{ value.title }}</div>"
     css = ""
     javascript = ""
-
-
-class BlockSystemPromptFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = BlockSystemPrompt
-
-    name = factory.Sequence(lambda n: f"System Prompt {n}")
-    identifier = factory.Sequence(lambda n: f"prompt_{n}")
-    description = factory.Faker("sentence")
-    template = "Block: {{ block.name }}, Collection: {{ collection.name }}"

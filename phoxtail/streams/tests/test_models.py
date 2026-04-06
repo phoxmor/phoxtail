@@ -4,7 +4,6 @@ from django.db import IntegrityError
 
 from .factories import (
     BlockFactory,
-    BlockSystemPromptFactory,
     BlockVariantFactory,
     VariantCollectionFactory,
 )
@@ -61,49 +60,6 @@ class TestBlockVariant:
         v1 = BlockVariantFactory(is_default=True)
         v2 = BlockVariantFactory(is_default=True)
         assert v1.block != v2.block
-
-
-class TestBlockSystemPrompt:
-    def test_str(self, system_prompt):
-        assert str(system_prompt) == system_prompt.name
-
-    def test_clean_valid_template(self):
-        sp = BlockSystemPromptFactory(template="{{ block.name }}")
-        sp.clean()  # should not raise
-
-    def test_clean_invalid_template(self):
-        sp = BlockSystemPromptFactory(template="{% invalid_tag %}")
-        with pytest.raises(ValidationError) as exc_info:
-            sp.clean()
-        assert "template" in exc_info.value.message_dict
-
-    def test_render_with_variant_and_collection(self, variant, collection):
-        sp = BlockSystemPromptFactory(
-            template="Block: {{ block.name }}, Variant: {{ variant.name }}, "
-            "Collection: {{ collection.name }}"
-        )
-        result = sp.render(variant=variant, collection=collection)
-        assert variant.block.name in result
-        assert variant.name in result
-        assert collection.name in result
-
-    def test_render_with_references(self, variant, collection):
-        ref = BlockVariantFactory(collection=collection)
-        sp = BlockSystemPromptFactory(
-            template="{% for r in references %}{{ r.name }}{% endfor %}"
-        )
-        result = sp.render(variant=variant, collection=collection, references=[ref])
-        assert ref.name in result
-
-    def test_render_empty_references(self, variant, collection):
-        sp = BlockSystemPromptFactory(template="Refs: {{ references|length }}")
-        result = sp.render(variant=variant, collection=collection)
-        assert "Refs: 0" in result
-
-    def test_render_none_variant(self):
-        sp = BlockSystemPromptFactory(template="Block: {{ block }}")
-        result = sp.render(variant=None, collection=None)
-        assert "Block: None" in result
 
 
 class TestSharedBlock:

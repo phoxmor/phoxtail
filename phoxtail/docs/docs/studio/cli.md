@@ -27,7 +27,6 @@ List entities of a given kind.
 phoxtail studio list variants [--block <id>] [--collection <id>]
 phoxtail studio list collections
 phoxtail studio list blocks
-phoxtail studio list prompts
 ```
 
 The `variants` subcommand supports filtering by block and/or collection. Output includes identifier, name, block, collection, and whether the variant is marked as default.
@@ -40,7 +39,6 @@ Display the full record for a single entity.
 phoxtail studio show variant <identifier>
 phoxtail studio show collection <identifier>
 phoxtail studio show block <identifier>
-phoxtail studio show prompt <identifier>
 ```
 
 For a variant, the output includes the block, collection, description, and the current HTML, CSS, and JavaScript. With `--json`, this is the format an agent should expect when reading variant contents.
@@ -57,27 +55,29 @@ phoxtail studio diff variant <identifier> --against session:<session-id>
 
 The three diff targets are the variant's own ground state, a remote variant (Phase 5+), or an active editing session (Phase 3+).
 
-## Prompt commands (Phase 2)
+## Context command
 
-### `phoxtail studio prompt`
+### `phoxtail studio context`
 
-Render a system prompt using the Studio prompt pipeline. This is the direct replacement for the Wagtail-admin Studio's "copy to clipboard" workflow, and it reuses `BlockSystemPrompt.render()` unchanged.
+Render the context briefing for a block variant. Assembles block schema, design tokens, variant code, and references into a context document for AI agents.
 
 ```
-phoxtail studio prompt \
+phoxtail studio context \
+  --block <identifier> \
   --variant <identifier> \
-  --template variant_refiner \
-  [--collection <identifier>] \
   [--references <id>,<id>,...] \
-  [--output <file>]
+  [--output <file>] \
+  [--json] \
+  [--raw]
 ```
 
-- `--variant` and `--template` are required.
-- `--collection` defaults to the variant's own collection. Override it to apply a different design system's tokens.
-- `--references` is a comma-separated list of variant identifiers used as design inspiration.
-- `--output` writes to a file instead of stdout. Without it, the prompt is printed raw.
+- `--block` and `--variant` are required.
+- `--references` is a comma-separated list of variant identifiers to include as design inspiration.
+- `--output` writes to a file instead of stdout.
+- `--json` emits the raw structured JSON data instead of the rendered context.
+- `--raw` prints plain text without Rich formatting (for piping).
 
-## Editing commands (Phase 3)
+## Editing commands
 
 Editing works through sessions. A session is a working copy of a variant on disk, under `.phoxtail/studio/<session-id>/`, containing:
 
@@ -92,10 +92,10 @@ Editing works through sessions. A session is a working copy of a variant on disk
 Start an editing session on a variant.
 
 ```
-phoxtail studio edit <variant-identifier> [--template <prompt-identifier>]
+phoxtail studio edit <variant-identifier> --block <block-identifier> [--collection <collection-identifier>]
 ```
 
-`--template` selects the system prompt used to render `context.md`. Defaults to `variant_editor` (once it exists; `variant_refiner` in the interim).
+The context briefing is assembled automatically from the API and rendered as `context.md` in the session directory.
 
 ### `phoxtail studio commit`
 

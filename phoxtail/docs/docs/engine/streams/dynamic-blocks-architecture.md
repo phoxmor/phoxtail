@@ -168,44 +168,10 @@ class BlockVariant(models.Model):
 - **html/css/javascript**: Split template fields for separation of concerns
 - **preview_image**: Optional screenshot of the rendered variant
 
-### 4. BlockSystemPrompt Model (`streams/models.py`)
+### 4. Context Assembly (replaced BlockSystemPrompt)
 
-Stores reusable system prompt templates for AI-powered block generation.
-
-```python
-class BlockSystemPrompt(TimestampMixin, models.Model):
-    name = CharField(unique=True)       # Display name: "Variant Generator"
-    identifier = CharField(unique=True) # Unique ID: "variant_generator"
-    description = TextField()           # What this prompt template is used for
-    template = TextField()              # Django Template Language content
-```
-
-**Fields:**
-- **name**: Human-readable name for the system prompt template (unique)
-- **identifier**: Unique identifier used in code (e.g., 'variant_generator')
-- **description**: Explains when and how this prompt template should be used
-- **template**: DTL template with access to `{{ block }}`, `{{ collection }}`, `{{ variant }}`, and `{{ references }}` context variables. All variables are always provided; `references` is a list (may be empty).
-
-**Key Method:**
-```python
-def render(self, variant=None, collection=None, references=None) -> str:
-    """Render the system prompt template. block is derived from variant.block."""
-    context = Context({
-        "block": variant.block if variant else None,
-        "collection": collection,
-        "variant": variant,
-        "references": references or [],
-    })
-    return Template(self.template).render(context)
-```
-
-**Purpose:** Decouples AI prompt generation from code, allowing admins to create, edit, and version prompt templates through the admin interface without code deployments.
-
-**Benefits:**
-- **No Code Changes**: Update prompts through admin UI
-- **Versioning**: Track prompt changes in database
-- **Flexibility**: Create specialized prompts for different use cases
-- **Context-Aware**: Templates have access to full block schema and collection design principles
+!!! note "Removed"
+    The `BlockSystemPrompt` model has been removed. AI context is now assembled via `POST /api/streams/v1/context/` and rendered through a static Jinja2 template (`cli/templates/studio/context.md`). See the [Studio Architecture](../../studio/architecture.md) docs for details.
 
 ### 5. Schema Definition Blocks (`streams/blocks/schema.py`)
 
@@ -661,76 +627,29 @@ When generating a new variant, AI receives:
 
 This ensures AI-generated variants use the exact colors and fonts defined for that design system.
 
-### BlockSystemPrompt: Database-Driven AI Prompts
+### AI Context Assembly
 
-Instead of hardcoded prompt generation, the system uses `BlockSystemPrompt` model to store reusable, editable prompt templates in the database. This allows admins to refine AI prompts without code deployments.
+The `BlockSystemPrompt` model has been removed. AI context is now assembled via the streams API and rendered through a static Jinja2 context template (`cli/templates/studio/context.md`). The context includes block schema, design tokens, variant code, and references.
 
-**Example System Prompt Template:**
-```django
-You are an expert frontend developer creating Wagtail block templates.
-
-## Block: {{ block.name }}
-Identifier: {{ block.identifier }}
-
-## Schema (Available Fields):
-{% for item in block.schema %}
-- {{ item.block_type }}: {{ item.value.name }}{% if item.value.help_text %} ({{ item.value.help_text }}){% endif %}
-{% endfor %}
-
-## Reference Variant: {{ variant.name }}
-```html
-{{ variant.html }}
-```
-
-## Design Collection: {{ collection.name }}
-{{ collection.description }}
-
-## Design Tokens
-{{ collection.render }}
-
-{% if references %}
-## Reference Variants
-{% for ref in references %}
-### {{ ref.block.name }} | {{ ref.name }}
-{{ ref.description }}
-{% endfor %}
-{% endif %}
-```
-
-**Using BlockSystemPrompt:**
+**Using the context API:**
 ```python
-# Fetch the appropriate system prompt template
-system_prompt = BlockSystemPrompt.objects.get(identifier="variant_generator")
-
-# Render with variant and collection context (block derived from variant.block)
-rendered_prompt = system_prompt.render(
-    variant=variant,
-    collection=collection,
-    references=reference_variants,
-)
-
-# Use rendered_prompt as the system message for AI
+# Context is now assembled via the API and rendered through a Jinja2 template.
+# See: POST /api/streams/v1/context/
+# CLI: phoxtail studio context --block <block> --variant <variant>
+# MCP: phoxtail_get_context tool
 ```
-
-**Benefits of Database-Driven Prompts:**
-- **Iterative Refinement**: Improve prompts based on AI output quality without redeploying
-- **Multiple Prompt Types**: Different prompts for different use cases (variant generation, template optimization, accessibility improvements)
-- **A/B Testing**: Compare prompt effectiveness by tracking which prompts produce better results
-- **Audit Trail**: Track prompt changes over time via timestamps
 
 ### AI Workflow
 
 ```
-1. User opens Stream Studio
-2. Selects a SystemPrompt, Variant, Collection (auto-populated), and optional References
-3. System renders the prompt template with context:
-   - block (from variant.block) → schema, available fields and structure
+1. User runs `phoxtail studio edit <variant>` or uses MCP tools
+2. Context is assembled automatically:
+   - block → schema, available fields and structure
    - variant → reference HTML/CSS/JS implementation
    - collection → design guidelines + rendered design tokens (palettes, fonts)
    - references → other variants as design inspiration
-4. User copies rendered system prompt to external AI
-5. AI returns new template code (HTML, CSS, JavaScript)
-6. User creates/updates BlockVariant with AI output
+3. Agent uses the context to make informed edits
+4. Changes are saved via `phoxtail studio commit` or `phoxtail_update_variant` MCP tool
 ```
 
 ---
@@ -739,14 +658,12 @@ rendered_prompt = system_prompt.render(
 
 ### Overview
 
-The `populate_streams` management command provides a file-based approach to seed the database with blocks, collections, variants, and system prompts. This enables version-controlled block definitions that can be shared across environments and tracked in Git.
+The `populate_streams` management command provides a file-based approach to seed the database with blocks, collections, and variants. This enables version-controlled block definitions that can be shared across environments and tracked in Git.
 
 ### Directory Structure
 
 ```
 streams/management/commands/data/
-├── prompts/                              # System prompt templates
-│   └── *.md                              # YAML frontmatter + markdown body
 ├── collections/                          # Variant collections
 │   ├── ground_state.md                   # Ground State collection (default variants)
 │   └── *.md                              # YAML frontmatter + markdown body
@@ -968,14 +885,14 @@ Share/import blocks between projects or from community.
 
 | File | Purpose |
 |------|---------|
-| `streams/models.py` | Block, VariantCollection, BlockVariant, BlockSystemPrompt, and SharedBlock models |
+| `streams/models.py` | Block, VariantCollection, BlockVariant, and SharedBlock models |
 | `streams/blocks/factory.py` | Dynamic block class generation |
 | `streams/blocks/base.py` | BlockVariantStructBlock base class |
 | `streams/blocks/schema.py` | Meta-blocks for schema definition |
 | `streams/fields.py` | SchemaStreamField implementation |
-| `streams/viewsets.py` | Wagtail admin configuration (BlockViewSet, VariantCollectionViewSet, BlockVariantViewSet, BlockSystemPromptViewSet) |
+| `streams/viewsets.py` | Wagtail admin configuration (BlockViewSet, VariantCollectionViewSet, BlockVariantViewSet) |
 | `streams/management/commands/populate_streams.py` | File-based data seeding command |
-| `streams/management/commands/data/` | Data files for seeding (blocks, collections, prompts, variants) |
+| `streams/management/commands/data/` | Data files for seeding (blocks, collections, variants) |
 | `design/models.py` | FontFamily, FontWeight, and Palette models for design tokens |
 | `design/viewsets.py` | Wagtail admin configuration (FontFamilyViewSet, PaletteViewSet) |
 | `design/wagtail_hooks.py` | Registers DesignViewSetGroup in Wagtail admin menu |

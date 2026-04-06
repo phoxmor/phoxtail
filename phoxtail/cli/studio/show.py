@@ -58,18 +58,3 @@ def show_block(
         client.emit_json(data)
     else:
         format.render_block_detail(data, console)
-
-
-@app.command("prompt")
-def show_prompt(
-    identifier: str = typer.Argument(..., help="System prompt identifier."),
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich detail view."
-    ),
-) -> None:
-    """Show a BlockSystemPrompt in detail."""
-    data = client.get_prompt(identifier)
-    if json_output:
-        client.emit_json(data)
-    else:
-        format.render_prompt_detail(data, console)

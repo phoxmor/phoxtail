@@ -3,9 +3,6 @@
 Assembles the context document that AI agents use when editing or
 creating block variants: block schema, DTL rules, CSS architecture,
 design tokens, current variant code, and references.
-
-Also supports the legacy ``--template`` flag for rendering old-style
-``BlockSystemPrompt`` templates via the prompt-render API.
 """
 
 from __future__ import annotations
@@ -48,15 +45,6 @@ def context(
             "design inspiration."
         ),
     ),
-    template: str | None = typer.Option(
-        None,
-        "--template",
-        help=(
-            "Legacy: BlockSystemPrompt identifier to render instead of "
-            "the built-in context template."
-        ),
-        hidden=True,
-    ),
     output: Path | None = typer.Option(
         None,
         "--output",
@@ -78,28 +66,6 @@ def context(
     ref_list = (
         [r.strip() for r in references.split(",") if r.strip()] if references else []
     )
-
-    # Legacy path: render a BlockSystemPrompt template server-side
-    if template:
-        data = client.render_prompt(
-            template,
-            variant=variant,
-            block=block,
-            references=ref_list,
-        )
-        prompt_text = data.get("prompt", "")
-        if json_output:
-            client.emit_json(data)
-        elif output is not None:
-            output.write_text(prompt_text)
-            console.print(
-                f"[green]\u2713[/green] Wrote rendered prompt to "
-                f"[bold]{output}[/bold] "
-                f"([dim]{len(prompt_text)} chars[/dim])"
-            )
-        else:
-            print(prompt_text)
-        return
 
     # Assemble context from the API and render locally
     data = client.get_context(

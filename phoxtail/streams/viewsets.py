@@ -1,4 +1,3 @@
-from django.urls import path
 from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
@@ -7,22 +6,11 @@ from wagtail.snippets.views.snippets import SnippetViewSet
 from .admin.panels import CodeEditorPanel
 from .models import (
     Block,
-    BlockSystemPrompt,
     BlockVariant,
     SharedBlock,
     VariantCollection,
 )
-from .permissions import StreamsViewSet
-from .views import (
-    BlockVariantChooserViewSet,
-    StudioSearchCollectionView,
-    StudioSearchReferencesView,
-    StudioSearchSystemPromptView,
-    StudioSearchVariantView,
-    studio_apply_context_view,
-    studio_context_modal_view,
-    studio_index_view,
-)
+from .views import BlockVariantChooserViewSet
 
 
 class BlockViewSet(SnippetViewSet):
@@ -142,76 +130,3 @@ class VariantCollectionViewSet(SnippetViewSet):
             ),
         ]
     )
-
-
-class BlockSystemPromptViewSet(SnippetViewSet):
-    model = BlockSystemPrompt
-    icon = "terminal"
-    menu_label = _("System Prompts")
-    menu_name = _("System Prompts")
-    menu_order = 500
-    list_display = ["name", "identifier", "updated_at"]
-    list_filter = []
-    search_fields = ["name", "identifier", "description"]
-
-    edit_handler = TabbedInterface(
-        [
-            ObjectList(
-                [
-                    FieldPanel("name"),
-                    FieldPanel("identifier"),
-                    FieldPanel("description"),
-                ],
-                heading=_("Details"),
-            ),
-            ObjectList(
-                [
-                    CodeEditorPanel("template"),
-                ],
-                heading=_("Template"),
-            ),
-        ]
-    )
-
-
-class StudioViewSet(StreamsViewSet):
-    name = "studio"
-    icon = "flowchart"
-    menu_label = _("Studio")
-    menu_order = 600
-    required_permissions = ["access_stream_studio"]
-
-    def get_urlpatterns(self):
-        return [
-            path("", studio_index_view, name="index"),
-            path(
-                "context-modal/",
-                studio_context_modal_view,
-                name="context_modal",
-            ),
-            path(
-                "apply-context/",
-                studio_apply_context_view,
-                name="apply_context",
-            ),
-            path(
-                "search/system-prompt/",
-                StudioSearchSystemPromptView.as_view(),
-                name="search_system_prompt",
-            ),
-            path(
-                "search/collection/",
-                StudioSearchCollectionView.as_view(),
-                name="search_collection",
-            ),
-            path(
-                "search/variant/",
-                StudioSearchVariantView.as_view(),
-                name="search_variant",
-            ),
-            path(
-                "search/references/",
-                StudioSearchReferencesView.as_view(),
-                name="search_references",
-            ),
-        ]

@@ -6,7 +6,6 @@ apps, so each phoxtail app (streams, blog, booking, ...) can ship its
 own blocks, variants, prompts, and collections alongside its models.
 
 Auto-discovers and imports:
-- System prompts from data/prompts/*.md (YAML frontmatter + markdown body)
 - Collections from data/collections/*.md (YAML frontmatter + markdown body)
 - Blocks from data/blocks/<block-identifier>/ (directory with block.yaml, schema.json)
 - Variants from data/blocks/<block-identifier>/variants/
@@ -18,7 +17,6 @@ uniquely identified by its position in the hierarchy.
 
 Usage:
     python manage.py populate_streams              # Import all entities
-    python manage.py populate_streams --only=prompts
     python manage.py populate_streams --only=collections
     python manage.py populate_streams --only=blocks
     python manage.py populate_streams --only=variants
@@ -33,7 +31,6 @@ from django.core.management.base import BaseCommand
 
 from phoxtail.streams.models import (
     Block,
-    BlockSystemPrompt,
     BlockVariant,
     VariantCollection,
 )
@@ -131,16 +128,13 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "--only",
-            choices=["prompts", "collections", "blocks", "variants", "all"],
+            choices=["collections", "blocks", "variants", "all"],
             default="all",
             help="Import only specific entity type",
         )
 
     def handle(self, *args, **options):
         only = options["only"]
-
-        if only in ("all", "prompts"):
-            self.import_prompts()
 
         if only in ("all", "collections"):
             self.import_collections()
@@ -152,63 +146,6 @@ class Command(BaseCommand):
             self.import_variants()
 
         self.stdout.write(self.style.SUCCESS("Stream entities populated successfully!"))
-
-    def import_prompts(self):
-        """Import system prompts from data/prompts/*.md files."""
-        self.stdout.write(self.style.SUCCESS("Importing system prompts..."))
-
-        md_files = []
-        for data_dir in _get_data_dirs():
-            prompts_dir = data_dir / "prompts"
-            if prompts_dir.exists():
-                md_files.extend(prompts_dir.glob("*.md"))
-
-        if not md_files:
-            self.stdout.write(self.style.WARNING("No prompt files found in any app"))
-            return
-
-        created_count = 0
-        skipped_count = 0
-
-        for md_file in md_files:
-            content = md_file.read_text()
-            metadata, body = parse_frontmatter(content)
-
-            name = metadata.get("name")
-            if not name:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {md_file.name}: missing 'name' in frontmatter"
-                    )
-                )
-                continue
-
-            identifier = metadata.get("identifier", md_file.stem)
-            description = metadata.get("description", "")
-
-            if BlockSystemPrompt.objects.filter(identifier=identifier).exists():
-                self.stdout.write(
-                    self.style.WARNING(f"  {identifier} already exists, skipping...")
-                )
-                skipped_count += 1
-                continue
-
-            prompt = BlockSystemPrompt.objects.create(
-                name=name,
-                identifier=identifier,
-                description=description,
-                template=body,
-            )
-            self.stdout.write(
-                self.style.SUCCESS(f"  Created system prompt: {prompt.name}")
-            )
-            created_count += 1
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"System prompts: {created_count} created, {skipped_count} skipped"
-            )
-        )
 
     def import_collections(self):
         """Import collections from data/collections/*.md files."""

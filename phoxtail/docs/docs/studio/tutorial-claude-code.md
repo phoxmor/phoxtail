@@ -50,7 +50,7 @@ Claude Code discovers the MCP server and connects. You can verify by asking:
 What Phoxtail Studio tools do you have available?
 ```
 
-Claude should list the tools: `phoxtail_list_variants`, `phoxtail_get_variant`, `phoxtail_render_prompt`, `phoxtail_diff_variant`, `phoxtail_update_variant`, `phoxtail_create_variant`, and the listing tools for blocks, collections, and prompts.
+Claude should list the tools: `phoxtail_list_variants`, `phoxtail_get_variant`, `phoxtail_get_context`, `phoxtail_diff_variant`, `phoxtail_update_variant`, `phoxtail_create_variant`, and the listing tools for blocks and collections.
 
 ## Step 4: Explore what is available
 
@@ -86,16 +86,16 @@ Claude calls `phoxtail_get_variant` and returns the variant's HTML, CSS, and Jav
 
 ## Step 6: Get design context (optional but recommended)
 
-For meaningful edits, ask Claude to render the system prompt. This gives it the full design context — block schema, collection tokens, and design philosophy:
+For meaningful edits, ask Claude to get the context briefing. This gives it the full design context — block schema, collection tokens, and design philosophy:
 
 ```
-Render the variant_editor prompt for the centered variant.
+Get the context for the centered variant of header_section.
 ```
 
-Claude calls `phoxtail_render_prompt` with the `variant_editor` template. The result is a detailed system prompt that describes the block's structure, the collection's design tokens (palettes, fonts, spacing philosophy), and guidelines for making targeted edits. Claude now has deep context about what it is editing and why.
+Claude calls `phoxtail_get_context` with the block and variant identifiers. The result is a detailed context document that describes the block's structure, the collection's design tokens (palettes, fonts, spacing philosophy), and the current variant's code. Claude now has deep context about what it is editing and why.
 
 !!! tip
-    You do not have to read the rendered prompt yourself. Claude uses it internally to make better editing decisions. But if you are curious about what design constraints apply, ask Claude to summarize the prompt.
+    You do not have to read the context document yourself. Claude uses it internally to make better editing decisions. But if you are curious about what design constraints apply, ask Claude to summarize the context.
 
 ## Step 7: Make your edits
 
@@ -195,7 +195,7 @@ in the ground-state collection. Start with a dark background, white
 text, and bold typography. Use the design context from the collection.
 ```
 
-Claude calls `phoxtail_render_prompt` to get the design context, then `phoxtail_create_variant` with the generated HTML, CSS, and JavaScript. The new variant appears in the database immediately and can be selected in the Wagtail admin's block chooser.
+Claude calls `phoxtail_get_context` to get the design context for the block, then `phoxtail_create_variant` with the generated HTML, CSS, and JavaScript. The new variant appears in the database immediately and can be selected in the Wagtail admin's block chooser.
 
 ## The working-copy alternative
 

@@ -7,7 +7,7 @@ from rich.console import Console
 
 from phoxtail.cli.studio import client, format
 
-app = typer.Typer(help="List Studio entities (variants, collections, blocks, prompts).")
+app = typer.Typer(help="List Studio entities (variants, collections, blocks).")
 console = Console()
 
 
@@ -57,17 +57,3 @@ def list_blocks(
         client.emit_json(data)
     else:
         format.render_blocks(data, console)
-
-
-@app.command("prompts")
-def list_prompts(
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich table."
-    ),
-) -> None:
-    """List all BlockSystemPrompts."""
-    data = client.list_prompts()
-    if json_output:
-        client.emit_json(data)
-    else:
-        format.render_prompts(data, console)

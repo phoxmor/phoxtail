@@ -16,7 +16,6 @@ from ninja.errors import HttpError
 
 from phoxtail.streams.models import (
     Block,
-    BlockSystemPrompt,
     BlockVariant,
     VariantCollection,
 )
@@ -74,13 +73,6 @@ def resolve_block(identifier: str) -> Block:
         )
     except Block.DoesNotExist as exc:
         raise HttpError(404, f"Block '{identifier}' not found.") from exc
-
-
-def resolve_prompt(identifier: str) -> BlockSystemPrompt:
-    try:
-        return BlockSystemPrompt.objects.get(identifier=identifier)
-    except BlockSystemPrompt.DoesNotExist as exc:
-        raise HttpError(404, f"System prompt '{identifier}' not found.") from exc
 
 
 # ---------------------------------------------------------------------------
@@ -154,18 +146,6 @@ def block_detail(b: Block) -> dict:
         "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
         "variants": variants,
     }
-
-
-def prompt_summary(p: BlockSystemPrompt) -> dict:
-    return {
-        "identifier": p.identifier,
-        "name": p.name,
-        "description": p.description,
-    }
-
-
-def prompt_detail(p: BlockSystemPrompt) -> dict:
-    return {**prompt_summary(p), "template": p.template}
 
 
 # ---------------------------------------------------------------------------

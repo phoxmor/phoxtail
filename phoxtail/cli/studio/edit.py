@@ -1,6 +1,6 @@
 """``phoxtail studio edit <variant>`` — start an editing session.
 
-Fetches the variant and a rendered system prompt from the API, then
+Fetches the variant and assembles a context briefing from the API, then
 writes them to disk as a working copy under ``.phoxtail/studio/<id>/``.
 The ETag captured on the initial ``GET /variants/{id}`` is stored in
 ``session.json`` so ``commit`` can send it back as ``If-Match`` for
@@ -9,24 +9,25 @@ optimistic concurrency.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import typer
+from jinja2 import Environment, FileSystemLoader
 from rich.console import Console
 
 from phoxtail.cli.studio import client, session
 
 console = Console()
 
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "studio"
+_jinja_env = Environment(
+    loader=FileSystemLoader(str(_TEMPLATE_DIR)),
+    keep_trailing_newline=True,
+)
+
 
 def edit(
     variant_identifier: str = typer.Argument(..., help="Variant identifier to edit."),
-    template: str | None = typer.Option(
-        None,
-        "--template",
-        help=(
-            "BlockSystemPrompt identifier for context.md. Defaults to "
-            "'variant_editor' if it exists, else 'variant_refiner'."
-        ),
-    ),
     block: str = typer.Option(..., "--block", help="Block identifier."),
     collection: str | None = typer.Option(
         None, "--collection", help="Disambiguate by collection identifier."
@@ -36,27 +37,25 @@ def edit(
 
     Creates a working copy under ``.phoxtail/studio/<session-id>/`` with
     the variant's HTML, CSS, and JavaScript as editable files, plus a
-    rendered system prompt as ``context.md``.
+    rendered context briefing as ``context.md``.
     """
     # 1. Fetch the variant (captures ETag for later If-Match).
     variant_data, etag = client.get_variant(
         variant_identifier, block=block, collection=collection
     )
 
-    # 2. Resolve the template with the variant_editor → variant_refiner
-    #    cascade when the user did not pick one explicitly.
-    resolved_template = _resolve_template(template)
+    # 2. Assemble context from the API and render the context template.
     context_md = ""
-    template_used = ""
-    if resolved_template:
-        payload = client.render_prompt(
-            resolved_template,
-            variant=variant_data["identifier"],
+    try:
+        data = client.get_context(
             block=variant_data["block"]["identifier"],
-            collection=variant_data["collection"]["identifier"],
+            variant=variant_data["identifier"],
         )
-        context_md = payload.get("prompt", "")
-        template_used = resolved_template
+        jinja_template = _jinja_env.get_template("context.md")
+        context_md = jinja_template.render(**data)
+    except Exception:
+        # Non-fatal: the session is still usable without context.
+        pass
 
     # 3. Write the session to disk.
     session_id = session.derive_session_id(variant_data["identifier"])
@@ -64,7 +63,7 @@ def edit(
         session_id=session_id,
         variant_data=variant_data,
         context_md=context_md,
-        template_used=template_used,
+        template_used="context",
         etag=etag or "",
     )
 
@@ -76,19 +75,3 @@ def edit(
         f"  [dim]Files:[/dim]   template.html, style.css, script.js, "
         f"context.md"
     )
-
-
-def _resolve_template(explicit: str | None) -> str | None:
-    """Pick a prompt template identifier.
-
-    If the user passed ``--template``, use it verbatim (let the render
-    call surface any "not found" error). Otherwise try ``variant_editor``
-    then ``variant_refiner``; if neither exists, return ``None`` and the
-    session is created without a ``context.md``.
-    """
-    if explicit:
-        return explicit
-    for candidate in ("variant_editor", "variant_refiner"):
-        if client.prompt_exists(candidate):
-            return candidate
-    return None

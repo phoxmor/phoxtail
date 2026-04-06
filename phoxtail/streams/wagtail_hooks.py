@@ -7,11 +7,9 @@ from wagtail.admin.viewsets.model import ModelViewSetGroup
 from .permissions import StreamsAdminPermission
 from .views import SharedBlockChooserViewSet
 from .viewsets import (
-    BlockSystemPromptViewSet,
     BlockVariantViewSet,
     BlockViewSet,
     SharedBlockViewSet,
-    StudioViewSet,
     VariantCollectionViewSet,
 )
 
@@ -38,6 +36,4 @@ class StreamsViewSetGroup(ModelViewSetGroup):
         SharedBlockViewSet,
         BlockVariantViewSet,
         VariantCollectionViewSet,
-        BlockSystemPromptViewSet,
-        StudioViewSet,
     )
