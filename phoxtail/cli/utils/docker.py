@@ -16,10 +16,16 @@ def docker_env() -> dict[str, str]:
     return env
 
 
-def docker_manage(*args: str, capture: bool = True) -> subprocess.CompletedProcess:
+def docker_manage(
+    *args: str,
+    capture: bool = True,
+    stdin_data: str | None = None,
+) -> subprocess.CompletedProcess:
     """Run a Django management command inside the web container."""
     cmd = ["docker", "compose", "run", "--rm", "web", "python", "manage.py", *args]
-    result = subprocess.run(cmd, capture_output=capture, text=True, env=docker_env())
+    result = subprocess.run(
+        cmd, capture_output=capture, text=True, env=docker_env(), input=stdin_data
+    )
     if result.returncode != 0 and capture:
         stderr = result.stderr.strip() if result.stderr else ""
         raise subprocess.CalledProcessError(

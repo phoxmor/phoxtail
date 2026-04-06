@@ -17,6 +17,7 @@ from phoxtail.cli import (
     requirements,
     server,
     ssl,
+    studio,
     test,
 )
 from phoxtail.cli.utils.config import _find_config_file
@@ -65,6 +66,7 @@ app.add_typer(env.app, name="env", help="Environment configuration")
 app.add_typer(requirements.app, name="requirements", help="Python requirements")
 app.add_typer(server.app, name="server", help="Remote server management")
 app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
+app.add_typer(studio.app, name="studio", help="Design and exchange block variants")
 
 # Top-level commands
 app.command(
