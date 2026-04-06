@@ -32,13 +32,25 @@ from __future__ import annotations
 import difflib
 import json
 import sys
+from pathlib import Path
 from typing import Any
 
 import httpx
 import typer
+from jinja2 import Environment, FileSystemLoader
 from mcp.server.fastmcp import FastMCP
 
 from phoxtail.cli.utils.config import _find_config_file, load_config
+
+# ---------------------------------------------------------------------------
+# Context template
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates" / "studio"
+_jinja_env = Environment(
+    loader=FileSystemLoader(str(_TEMPLATE_DIR)),
+    keep_trailing_newline=True,
+)
 
 app = typer.Typer(help="MCP server for AI agents.")
 
@@ -109,9 +121,11 @@ mcp_server = FastMCP(
         "Phoxtail Studio tools for managing block variants — the HTML, CSS, "
         "and JavaScript implementations that power Phoxtail project pages. "
         "Use list tools to discover available blocks, collections, and variants. "
-        "Use get/render tools to inspect content. Use update/create tools to "
-        "make changes. Always fetch a variant before updating it so you have "
-        "the current ETag for concurrency control."
+        "Use phoxtail_get_context to get a full briefing (block schema, DTL "
+        "rules, design tokens, current code) before editing or creating. "
+        "Use update/create tools to make changes. Always fetch a variant "
+        "before updating it so you have the current ETag for concurrency "
+        "control."
     ),
 )
 
@@ -160,19 +174,23 @@ def list_blocks() -> str:
     return json.dumps(_get_json("/blocks/"), indent=2)
 
 
+# -- Read tools ------------------------------------------------------------
+
+
 @mcp_server.tool(
-    name="phoxtail_list_prompts",
+    name="phoxtail_get_collection",
     description=(
-        "List all system prompt templates available for variant generation "
-        "and refinement (e.g. 'variant_generator', 'variant_refiner', "
-        "'variant_editor')."
+        "Get a collection's rendered design tokens — the palette roles, "
+        "font roles, color strategy, and typography guidelines that define "
+        "the design system. Use this when creating a variant for a "
+        "different collection than the source variant, or when you need "
+        "to understand a collection's design principles."
     ),
 )
-def list_prompts() -> str:
-    return json.dumps(_get_json("/prompts/"), indent=2)
-
-
-# -- Read tools ------------------------------------------------------------
+def get_collection(identifier: str) -> str:
+    resp = _request("POST", f"/collections/{identifier}/render/")
+    resp.raise_for_status()
+    return json.dumps(resp.json(), indent=2)
 
 
 @mcp_server.tool(
@@ -202,35 +220,32 @@ def get_variant(
 
 
 @mcp_server.tool(
-    name="phoxtail_render_prompt",
+    name="phoxtail_get_context",
     description=(
-        "Render a system prompt template for a given variant. "
-        "This assembles a full system prompt by combining the prompt "
-        "template with the variant's block schema, collection design "
-        "tokens, and optional reference variants. "
-        "Useful for understanding the design context before editing. "
-        "Common templates: 'variant_editor' (surgical edits), "
-        "'variant_refiner' (broader refinement), "
-        "'variant_generator' (new creation)."
+        "Get the full context document for working with a block variant. "
+        "Returns a rendered briefing that includes the block's field schema, "
+        "DTL syntax reference, CSS architecture rules, the variant's "
+        "collection design tokens, the current variant's code, and "
+        "optionally reference variants for inspiration. "
+        "Call this before editing a variant to understand the domain "
+        "constraints. To inspect a different collection's design system "
+        "(e.g. for cross-collection creation), use phoxtail_get_collection."
     ),
 )
-def render_prompt(
-    template: str,
-    variant: str,
+def get_context(
     block: str,
-    collection: str | None = None,
+    variant: str,
     references: list[str] | None = None,
 ) -> str:
-    body: dict[str, Any] = {"variant": variant}
-    if block:
-        body["block"] = block
-    if collection:
-        body["collection"] = collection
+    body: dict[str, Any] = {"block": block, "variant": variant}
     if references:
         body["references"] = references
-    resp = _request("POST", f"/prompts/{template}/render/", json_body=body)
+    resp = _request("POST", "/context/", json_body=body)
     resp.raise_for_status()
-    return json.dumps(resp.json(), indent=2)
+
+    data = resp.json()
+    template = _jinja_env.get_template("context.md")
+    return template.render(**data)
 
 
 # -- Diff tool -------------------------------------------------------------

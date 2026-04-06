@@ -99,6 +99,15 @@ class Collection(CollectionSummary):
     template: str
 
 
+class CollectionRendered(Schema):
+    """Response for ``POST /collections/{identifier}/render``."""
+
+    identifier: str
+    name: str
+    description: str
+    design_tokens: str
+
+
 class CollectionList(Schema):
     collections: list[CollectionSummary]
     total: int
@@ -180,6 +189,68 @@ class PromptRenderResponse(Schema):
     variant: VariantSummary
     collection: CollectionRef
     references: list[VariantSummary]
+
+
+# ---------------------------------------------------------------------------
+# Context (agent briefing)
+# ---------------------------------------------------------------------------
+
+
+class ContextBlockRef(Schema):
+    """Block data for the context document, including the full schema."""
+
+    identifier: str
+    name: str
+    description: str
+    field_schema: str
+
+
+class ContextCollectionRef(Schema):
+    """Collection data for the context document, including rendered tokens."""
+
+    identifier: str
+    name: str
+    description: str
+    design_tokens: str
+
+
+class ContextVariant(Schema):
+    """Variant data for the context document — full content included."""
+
+    identifier: str
+    name: str
+    description: str
+    html: str
+    css: str
+    javascript: str
+
+
+class ContextReferenceVariant(ContextVariant):
+    """Reference variant with its parent block reference."""
+
+    block: BlockRef
+
+
+class ContextRequest(Schema):
+    """Body for ``POST /context/``.
+
+    Both ``block`` and ``variant`` are required. The variant's own
+    collection is always used for design tokens. ``references`` is an
+    optional list of variant identifiers from the same collection.
+    """
+
+    block: str
+    variant: str
+    references: list[str] = []
+
+
+class ContextResponse(Schema):
+    """Structured data for rendering the context template."""
+
+    block: ContextBlockRef
+    variant: ContextVariant
+    collection: ContextCollectionRef
+    references: list[ContextReferenceVariant]
 
 
 # ---------------------------------------------------------------------------

@@ -21,13 +21,13 @@ from phoxtail.cli.studio.mcp import (
     _url,
     create_variant,
     diff_variant,
+    get_collection,
+    get_context,
     get_variant,
     list_blocks,
     list_collections,
-    list_prompts,
     list_variants,
     mcp_server,
-    render_prompt,
     update_variant,
 )
 
@@ -70,9 +70,9 @@ class TestMCPToolRegistration:
             "phoxtail_list_variants",
             "phoxtail_list_collections",
             "phoxtail_list_blocks",
-            "phoxtail_list_prompts",
+            "phoxtail_get_collection",
             "phoxtail_get_variant",
-            "phoxtail_render_prompt",
+            "phoxtail_get_context",
             "phoxtail_diff_variant",
             "phoxtail_update_variant",
             "phoxtail_create_variant",
@@ -119,17 +119,26 @@ class TestListBlocks:
         assert result["total"] == 0
 
 
-class TestListPrompts:
-    def test_returns_json(self, httpx_mock: HTTPXMock):
-        payload = {"prompts": [], "total": 0}
-        httpx_mock.add_response(url=_url("/prompts/"), json=payload)
-        result = json.loads(list_prompts())
-        assert result["total"] == 0
-
-
 # ---------------------------------------------------------------------------
 # Read tools
 # ---------------------------------------------------------------------------
+
+
+class TestGetCollection:
+    def test_returns_rendered_design_tokens(self, httpx_mock: HTTPXMock):
+        payload = {
+            "identifier": "ground-state",
+            "name": "Ground State",
+            "description": "Minimal design system.",
+            "design_tokens": "Primary: blue\nSurface: white",
+        }
+        httpx_mock.add_response(
+            url=_url("/collections/ground-state/render/"), json=payload
+        )
+        result = json.loads(get_collection("ground-state"))
+        assert result["identifier"] == "ground-state"
+        assert result["design_tokens"] == "Primary: blue\nSurface: white"
+        assert "template" not in result
 
 
 class TestGetVariant:
@@ -152,39 +161,47 @@ class TestGetVariant:
         assert "block=hero" in str(req.url)
 
 
-class TestRenderPrompt:
-    def test_returns_rendered_prompt(self, httpx_mock: HTTPXMock):
-        render_response = {
-            "prompt": "You are a design assistant...",
-            "template": {
-                "identifier": "variant_editor",
-                "name": "Variant Editor",
-                "description": "Surgical edits",
-            },
-            "variant": SAMPLE_VARIANT_SUMMARY,
-            "collection": {"identifier": "ground-state", "name": "Ground State"},
-            "references": [],
-        }
-        httpx_mock.add_response(json=render_response)
-        result = json.loads(
-            render_prompt("variant_editor", "centered", block="header_section")
-        )
-        assert "design assistant" in result["prompt"]
+class TestGetContext:
+    """The ``phoxtail_get_context`` tool renders the context template."""
+
+    CONTEXT_RESPONSE = {
+        "block": {
+            "identifier": "header_section",
+            "name": "Header Section",
+            "description": "A page header with title and subtitle.",
+            "field_schema": '{"fields": []}',
+        },
+        "variant": {
+            "identifier": "centered",
+            "name": "Centered",
+            "description": "A centered hero section.",
+            "html": "<div>hello</div>",
+            "css": ".hero { color: red; }",
+            "javascript": "",
+        },
+        "collection": {
+            "identifier": "ground-state",
+            "name": "Ground State",
+            "description": "Minimal design system.",
+            "design_tokens": "Primary: blue",
+        },
+        "references": [],
+    }
+
+    def test_renders_context_template(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
+        result = get_context(block="header_section", variant="centered")
+        assert "Header Section" in result
+        assert "DTL Reference" in result
+        assert "CSS Scoping" in result
+        assert "<div>hello</div>" in result
+        assert "Primary: blue" in result
 
     def test_sends_references(self, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(
-            json={
-                "prompt": "",
-                "template": {},
-                "variant": {},
-                "collection": {},
-                "references": [],
-            }
-        )
-        render_prompt(
-            "variant_editor",
-            "centered",
+        httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
+        get_context(
             block="header_section",
+            variant="centered",
             references=["dark", "light"],
         )
         req = httpx_mock.get_request()

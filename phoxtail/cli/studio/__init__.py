@@ -27,14 +27,14 @@ def _register_commands() -> None:
 
     # Flat verbs
     from phoxtail.cli.studio.commit import commit
+    from phoxtail.cli.studio.context import context
     from phoxtail.cli.studio.discard import discard
     from phoxtail.cli.studio.edit import edit
-    from phoxtail.cli.studio.prompt import render_prompt
     from phoxtail.cli.studio.sessions import sessions
     from phoxtail.cli.studio.version import version
 
     app.command("version")(version)
-    app.command("prompt")(render_prompt)
+    app.command("context")(context)
     app.command("edit")(edit)
     app.command("commit")(commit)
     app.command("discard")(discard)

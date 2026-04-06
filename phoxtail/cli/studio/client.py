@@ -242,6 +242,20 @@ def get_prompt(identifier: str) -> dict[str, Any]:
     return get_json(f"/prompts/{identifier}/")
 
 
+def get_context(
+    *,
+    block: str,
+    variant: str,
+    references: list[str] | None = None,
+) -> dict[str, Any]:
+    """Fetch assembled context data for an AI agent briefing."""
+    body: dict[str, Any] = {"block": block, "variant": variant}
+    if references:
+        body["references"] = references
+    response = request("POST", "/context/", json_body=body)
+    return response.json()
+
+
 def render_prompt(
     template_identifier: str,
     *,
