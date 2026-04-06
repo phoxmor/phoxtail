@@ -14,6 +14,15 @@ nav:
       - Configuration Reference: cli/configuration.md
       - Server Plan: cli/server-plan.md
 
+  - Studio:
+      - Overview: studio/index.md
+      - Vision: studio/vision.md
+      - Architecture: studio/architecture.md
+      - CLI Reference: studio/cli.md
+      - "Tutorial: Claude Code": studio/tutorial-claude-code.md
+      - Sync Protocol: studio/sync.md
+      - Roadmap: studio/roadmap.md
+
   - Engine:
       - Core:
           - Permissions: engine/core/permissions.md
