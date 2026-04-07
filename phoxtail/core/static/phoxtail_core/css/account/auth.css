@@ -628,7 +628,7 @@ select.auth-input option {
 
     /* Background gradient */
     .auth-bg {
-        background: rgb(var(--color-surface-800));
+        background: rgb(var(--color-surface-900));
     }
 
     /* Background orbs - slightly more subtle on dark surface */
