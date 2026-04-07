@@ -95,9 +95,8 @@ def create_variant(
         css=payload.css,
         javascript=payload.javascript,
     )
-    response.status_code = 201
     response["ETag"] = variant_etag(v)
-    return variant_detail(v)
+    return 201, variant_detail(v)
 
 
 @router.get(
