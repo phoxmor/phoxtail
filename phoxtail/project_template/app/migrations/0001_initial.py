@@ -2,10 +2,7 @@
 
 import django.db.models.deletion
 import modelcluster.fields
-import modelsearch.index
 import phoxtail.streams.fields
-import uuid
-import wagtail_color_panel.fields
 from django.db import migrations, models
 
 
@@ -54,26 +51,6 @@ class Migration(migrations.Migration):
                 'verbose_name': 'Site Config',
                 'verbose_name_plural': 'Site Configs',
             },
-        ),
-        migrations.CreateModel(
-            name='ScheduleItem',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('translation_key', models.UUIDField(default=uuid.uuid4, editable=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('title', models.CharField(help_text='Title of the schedule item', max_length=100)),
-                ('description', models.CharField(blank=True, help_text='Description of the schedule item', max_length=150, null=True)),
-                ('color', wagtail_color_panel.fields.ColorField(blank=True, help_text='The color of the schedule item', max_length=7, null=True)),
-                ('locale', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.PROTECT, related_name='+', to='wagtailcore.locale', verbose_name='locale')),
-            ],
-            options={
-                'verbose_name': 'Schedule Item',
-                'verbose_name_plural': 'Schedule Items',
-                'abstract': False,
-                'unique_together': {('translation_key', 'locale')},
-            },
-            bases=(modelsearch.index.Indexed, models.Model),
         ),
         migrations.CreateModel(
             name='SiteConfigFont',

@@ -20,7 +20,7 @@ All three library apps, all three scaffold templates, and the `phoxtail hatch` c
 - `phoxtail.streams` — library app with Block/BlockVariant/SharedBlock/VariantCollection, dynamic block factory (3 modes), schema blocks (24 field types + structures + layers), in-memory cache with signal-driven invalidation, CodeEditorPanel (Monaco), permissions, `populate_streams` + `setup_streams_groups` management commands with bundled block data (20 blocks with schemas, variants, collections)
 - `project_template/src/` — Django settings (base/dev/prod/test), URLs, Celery, WSGI
 - `project_template/users/` — Custom User model, allauth adapters, forms, validators
-- `project_template/app/` — SitePage (with BodyStreamField), SiteConfig (branding + design token inlines), ScheduleItem, HTMX views, templatetags
+- `project_template/app/` — SitePage (with BodyStreamField), SiteConfig (branding + design token inlines), HTMX views, templatetags
 - `phoxtail hatch` command — renders project_template into a working project, with interactive setup wizard (env, docker, nginx, launch), project name validation, and requirements scaffolding
 
 **Remaining for v0.2.0:**
@@ -317,7 +317,7 @@ myproject/
 │   └── ...
 │
 └── app/                         # Scaffolded, project-owned
-    ├── models.py                # SitePage, SiteConfig, ScheduleItem
+    ├── models.py                # SitePage, SiteConfig
     ├── streams.py               # BodyStreamField (uses SchemaStreamField)
     ├── views.py                 # HTMX modal views
     ├── urls.py

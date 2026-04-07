@@ -5,11 +5,7 @@ from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
-from wagtail.models import Orderable, Page, TranslatableMixin
-from wagtail.search import index
-from wagtail_color_panel.fields import ColorField
-
-from phoxtail.core.mixins import TimestampMixin
+from wagtail.models import Orderable, Page
 
 from .streams import BodyStreamField
 
@@ -323,32 +319,3 @@ class SiteConfigPalette(Orderable, models.Model):
     def get_css_variables(self):
         """Generate CSS variables using the role identifier as namespace."""
         return self.palette.get_css_variables(self.role.identifier)
-
-
-class ScheduleItem(index.Indexed, TranslatableMixin, TimestampMixin):
-    title = models.CharField(
-        max_length=100,
-        help_text="Title of the schedule item",
-    )
-    description = models.CharField(
-        max_length=150,
-        help_text="Description of the schedule item",
-        blank=True,
-        null=True,
-    )
-    color = ColorField(
-        help_text="The color of the schedule item", blank=True, null=True
-    )
-
-    search_fields = [
-        index.AutocompleteField("title"),
-        index.AutocompleteField("description"),
-        index.FilterField("locale_id"),
-    ]
-
-    class Meta(TranslatableMixin.Meta):
-        verbose_name = _("Schedule Item")
-        verbose_name_plural = _("Schedule Items")
-
-    def __str__(self):
-        return f"{self.title} - {self.description}"
