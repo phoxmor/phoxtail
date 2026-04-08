@@ -22,23 +22,22 @@ _jinja_env = Environment(
 @mcp_server.tool(
     name="phoxtail_studio_get_context",
     description=(
-        "Get the full context document for working with a block variant. "
-        "Returns a rendered briefing that includes the block's field schema, "
-        "DTL syntax reference, CSS architecture rules, the variant's "
-        "collection design tokens, the current variant's code, and "
-        "optionally reference variants for inspiration. "
-        "Call this before editing a variant to understand the domain "
-        "constraints. To inspect a different collection's design system "
-        "(e.g. for cross-collection creation), use "
-        "phoxtail_studio_get_collection."
+        "Get the full context document for working with a block in a "
+        "given collection. Returns a rendered briefing that includes "
+        "the block's field schema, DTL syntax reference, CSS "
+        "architecture rules, the collection's design guidelines, "
+        "site-wide design tokens (palettes, fonts), and optionally "
+        "reference variants for inspiration. "
+        "Call this before creating or editing a variant to understand "
+        "the domain constraints."
     ),
 )
 def get_context(
     block: str,
-    variant: str,
+    collection: str,
     references: list[str] | None = None,
 ) -> str:
-    body: dict[str, Any] = {"block": block, "variant": variant}
+    body: dict[str, Any] = {"block": block, "collection": collection}
     if references:
         body["references"] = references
     resp = request("POST", "/context/", json_body=body)

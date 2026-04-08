@@ -16,25 +16,15 @@ description: Material Design 3 (Material You) is Google's most adaptive design s
 
 ## Color Strategy
 
-Material Design 3 variants map site-wide semantic color variables to M3 tokens. Use these site-wide roles to populate your theme:
-
-{% for role in palette_roles %}
-- **{{ role.name }}** (`{{ role.identifier }}`): {{ role.description }}
-{% endfor %}
+Material Design 3 variants map site-wide semantic color variables to M3 tokens. Use the site's palette roles to populate your theme by mapping `--color-{role}-{shade}` variables to M3 surface and accent tokens.
 
 ---
 
 ## Typography Strategy
 
-Material Design 3 variants map site-wide semantic font variables to M3 type scales.
-
-Available semantic font roles:
-{% for role in font_roles %}
-- **{{ role.name }}** (`{{ role.identifier }}`): {{ role.description }}
-{% endfor %}
+Material Design 3 variants map site-wide semantic font variables to M3 type scales. Map the site's font roles (`--font-{role}`) and their weight slots (`--font-{role}-weight-{slot}`) to your components.
 
 **Mapping Pattern**:
-Map the site roles (`--font-{role}`) and their weight slots (`--font-{role}-weight-{slot}`) to your components.
 
 ```css
 #component-{% verbatim %}{{ block.id }}{% endverbatim %} {

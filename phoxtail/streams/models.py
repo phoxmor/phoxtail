@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.template import Context, Template
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
@@ -185,9 +184,10 @@ class VariantCollection(index.Indexed, ClusterableModel):
         blank=True,
         default="",
         help_text=_(
-            "DTL template for design guidelines. "
-            "Use {{ settings.app.SiteConfig }} "
-            "to access site-wide design tokens."
+            "Markdown description of this collection's design "
+            "philosophy and guidelines. Plain text — no template "
+            "rendering. Design tokens (palettes, fonts) are "
+            "provided separately via the context layer."
         ),
     )
 
@@ -206,20 +206,6 @@ class VariantCollection(index.Indexed, ClusterableModel):
 
     def __str__(self):
         return self.name
-
-    def render(self) -> str:
-        """Render template with self as context"""
-        if not self.template:
-            return ""
-        from phoxtail.design.models import FontRole, PaletteRole
-
-        context = {
-            "object": self,
-            "palette_roles": PaletteRole.objects.all(),
-            "font_roles": FontRole.objects.all(),
-        }
-
-        return Template(self.template).render(Context(context))
 
 
 class BlockVariant(index.Indexed, models.Model):

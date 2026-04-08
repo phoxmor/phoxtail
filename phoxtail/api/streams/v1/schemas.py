@@ -101,15 +101,6 @@ class Collection(CollectionSummary):
     template: str
 
 
-class CollectionRendered(Schema):
-    """Response for ``POST /collections/{identifier}/render``."""
-
-    identifier: str
-    name: str
-    description: str
-    design_tokens: str
-
-
 class CollectionList(Schema):
     collections: list[CollectionSummary]
     total: int
@@ -194,16 +185,31 @@ class ContextBlockRef(Schema):
 
 
 class ContextCollectionRef(Schema):
-    """Collection data for the context document, including rendered tokens."""
+    """Collection data for the context document, including design guidelines."""
 
     identifier: str
     name: str
     description: str
-    design_tokens: str
+    design_guidelines: str
 
 
-class ContextVariant(Schema):
-    """Variant data for the context document — full content included."""
+class DesignTokenRole(Schema):
+    """A single palette or font role."""
+
+    name: str
+    identifier: str
+    description: str
+
+
+class DesignTokens(Schema):
+    """Site-wide design tokens included in the context response."""
+
+    palette_roles: list[DesignTokenRole]
+    font_roles: list[DesignTokenRole]
+
+
+class ContextReferenceVariant(Schema):
+    """Reference variant with full content and parent block reference."""
 
     identifier: str
     name: str
@@ -211,24 +217,19 @@ class ContextVariant(Schema):
     html: str
     css: str
     javascript: str
-
-
-class ContextReferenceVariant(ContextVariant):
-    """Reference variant with its parent block reference."""
-
     block: BlockRef
 
 
 class ContextRequest(Schema):
     """Body for ``POST /context/``.
 
-    Both ``block`` and ``variant`` are required. The variant's own
-    collection is always used for design tokens. ``references`` is an
-    optional list of variant identifiers from the same collection.
+    ``block`` and ``collection`` are required. ``references`` is an
+    optional list of variant identifiers from the same collection
+    to include as inspiration.
     """
 
     block: str
-    variant: str
+    collection: str
     references: list[str] = []
 
 
@@ -236,8 +237,8 @@ class ContextResponse(Schema):
     """Structured data for rendering the context template."""
 
     block: ContextBlockRef
-    variant: ContextVariant
     collection: ContextCollectionRef
+    design_tokens: DesignTokens
     references: list[ContextReferenceVariant]
 
 

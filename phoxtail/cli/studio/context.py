@@ -1,8 +1,8 @@
-"""``phoxtail studio context`` — render the context briefing for a variant.
+"""``phoxtail studio context`` — render the context briefing for a block + collection.
 
 Assembles the context document that AI agents use when editing or
 creating block variants: block schema, DTL rules, CSS architecture,
-design tokens, current variant code, and references.
+design guidelines, design tokens, and references.
 """
 
 from __future__ import annotations
@@ -32,10 +32,10 @@ def context(
         "--block",
         help="Block identifier.",
     ),
-    variant: str = typer.Option(
+    collection: str = typer.Option(
         ...,
-        "--variant",
-        help="Variant identifier.",
+        "--collection",
+        help="Collection identifier.",
     ),
     references: str | None = typer.Option(
         None,
@@ -62,7 +62,7 @@ def context(
         help="Print plain text without Rich formatting (for piping).",
     ),
 ) -> None:
-    """Render the context briefing for a block variant."""
+    """Render the context briefing for a block in a collection."""
     ref_list = (
         [r.strip() for r in references.split(",") if r.strip()] if references else []
     )
@@ -70,7 +70,7 @@ def context(
     # Assemble context from the API and render locally
     data = client.get_context(
         block=block,
-        variant=variant,
+        collection=collection,
         references=ref_list,
     )
 
@@ -95,15 +95,12 @@ def context(
 
     # Rich-formatted output
     block_data = data.get("block") or {}
-    variant_data = data.get("variant") or {}
     collection_data = data.get("collection") or {}
 
     console.print(
         Panel(
             f"[bold]{block_data.get('name', '')}[/bold] "
-            f"[dim]({block_data.get('identifier', '')})[/dim]  \u2192  "
-            f"[bold cyan]{variant_data.get('name', '')}[/bold cyan] "
-            f"[dim]({variant_data.get('identifier', '')})[/dim]  \u2014  "
+            f"[dim]({block_data.get('identifier', '')})[/dim]  \u2014  "
             f"[blue]{collection_data.get('name', '')}[/blue]",
             title="[bold]Studio Context[/bold]",
             border_style="cyan",

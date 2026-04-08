@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp._http import get_json, request
+from phoxtail.mcp._http import get_json
 
 
 @mcp_server.tool(
@@ -23,14 +23,14 @@ def list_collections() -> str:
 @mcp_server.tool(
     name="phoxtail_studio_get_collection",
     description=(
-        "Get a collection's rendered design tokens — the palette roles, "
-        "font roles, color strategy, and typography guidelines that define "
-        "the design system. Use this when creating a variant for a "
-        "different collection than the source variant, or when you need "
-        "to understand a collection's design principles."
+        "Get a collection's design guidelines — the philosophy, "
+        "principles, and design patterns that define this collection's "
+        "character. Use this when creating a variant for a different "
+        "collection than the source variant, or when you need to "
+        "understand a collection's design approach. Design tokens "
+        "(palette roles, font roles) are provided separately via "
+        "the context tool."
     ),
 )
 def get_collection(identifier: str) -> str:
-    resp = request("POST", f"/collections/{identifier}/render/")
-    resp.raise_for_status()
-    return json.dumps(resp.json(), indent=2)
+    return json.dumps(get_json(f"/collections/{identifier}/"), indent=2)

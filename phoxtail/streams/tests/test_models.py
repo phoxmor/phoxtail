@@ -28,15 +28,6 @@ class TestVariantCollection:
     def test_str(self, collection):
         assert str(collection) == collection.name
 
-    def test_render_empty_template(self):
-        col = VariantCollectionFactory(template="")
-        assert col.render() == ""
-
-    def test_render_with_template(self):
-        col = VariantCollectionFactory(template="Name: {{ object.name }}")
-        result = col.render()
-        assert col.name in result
-
 
 class TestBlockVariant:
     def test_str(self, variant):

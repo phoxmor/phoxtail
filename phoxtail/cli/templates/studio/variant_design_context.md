@@ -1,4 +1,4 @@
-{#- Phoxtail Studio — Block Variant Context
+{#- Phoxtail Studio — Block + Collection Context
 
 This template is rendered by the MCP server / CLI to brief an AI agent on
 the domain objects it will be working with. It is pure context — no task
@@ -6,11 +6,11 @@ instructions, no output format, no orchestration. The agent decides what
 to do based on the human's request and the MCP tools available to it.
 
 Context variables:
-  block      — dict with name, identifier, description, field_schema
-  variant    — dict with name, identifier, description, html, css, js
-  collection — dict with name, identifier, description,
-               design_tokens (pre-rendered collection template)
-  references — list of variant dicts (may be empty)
+  block         — dict with name, identifier, description, field_schema
+  collection    — dict with name, identifier, description,
+                  design_guidelines (plain markdown)
+  design_tokens — dict with palette_roles and font_roles lists
+  references    — list of variant dicts (may be empty)
 -#}
 You are working with a Phoxtail block variant — a self-contained UI component made of HTML (Django Template Language), scoped CSS, and optional JavaScript.
 
@@ -86,30 +86,31 @@ All variants must support `prefers-color-scheme: dark` via CSS custom properties
 **Identifier:** `{{ collection.identifier }}`
 **Philosophy:** {{ collection.description }}
 
-{% if collection.design_tokens %}{{ collection.design_tokens }}{% endif %}
+{% if collection.design_guidelines %}{{ collection.design_guidelines }}{% endif %}
 
 ---
 
-## Current Variant: {{ variant.name }}
+## Design Tokens
 
-**Identifier:** `{{ variant.identifier }}`
-**Description:** {{ variant.description }}
+### Color Palette Roles
 
-### HTML
-```django
-{{ variant.html }}
-```
-{% if variant.css %}
-### CSS
-```css
-{{ variant.css }}
-```
-{% endif %}{% if variant.javascript %}
-### JavaScript
-```javascript
-{{ variant.javascript }}
-```
-{% endif %}
+Colors use semantic CSS variables: `--color-{role}-{shade}` (e.g., `--color-surface-800`, `--color-primary-600`). Values are raw RGB triplets used with `rgb()` or `rgba()`.
+
+Available shades per role: `50`, `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900`, `950`.
+{% for role in design_tokens.palette_roles %}
+- **{{ role.name }}** (`{{ role.identifier }}`): {{ role.description }}
+{%- endfor %}
+
+### Font Roles
+
+Fonts use semantic CSS variables:
+- Family: `--font-{role}` (e.g., `--font-heading`)
+- Weight: `--font-{role}-weight-{slot}` (e.g., `--font-heading-weight-bold`)
+
+Available weight slots: `thin`, `light`, `regular`, `medium`, `semibold`, `bold`, `extrabold`, `black`.
+{% for role in design_tokens.font_roles %}
+- **{{ role.name }}** (`{{ role.identifier }}`): {{ role.description }}
+{%- endfor %}
 
 ---
 {% if references %}

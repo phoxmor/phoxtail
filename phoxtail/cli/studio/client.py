@@ -237,11 +237,11 @@ def get_block(identifier: str) -> dict[str, Any]:
 def get_context(
     *,
     block: str,
-    variant: str,
+    collection: str,
     references: list[str] | None = None,
 ) -> dict[str, Any]:
     """Fetch assembled context data for an AI agent briefing."""
-    body: dict[str, Any] = {"block": block, "variant": variant}
+    body: dict[str, Any] = {"block": block, "collection": collection}
     if references:
         body["references"] = references
     response = request("POST", "/context/", json_body=body)

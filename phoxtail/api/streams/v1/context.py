@@ -1,9 +1,12 @@
-"""``/api/streams/v1/context`` — Assemble variant editing context.
+"""``/api/streams/v1/context`` — Assemble block + collection context.
 
 Returns the structured data that the MCP server / CLI renders into a
-context document for AI agents. The variant's own collection is always
-used for design tokens — to inspect a different collection's design
-system, use the collection detail endpoint instead.
+context document for AI agents. The context is scoped to a block and a
+collection — it does not include a specific variant, since the agent may
+be creating a new one or may have already fetched the variant separately.
+
+Design tokens (palette roles, font roles) are site-wide and included
+directly in the response.
 """
 
 from __future__ import annotations
@@ -15,13 +18,14 @@ from ninja import Router
 
 from phoxtail.api.streams.v1._helpers import (
     resolve_block,
-    resolve_variant,
+    resolve_collection,
 )
 from phoxtail.api.streams.v1.schemas import (
     ContextRequest,
     ContextResponse,
     Error,
 )
+from phoxtail.design.models import FontRole, PaletteRole
 from phoxtail.streams.models import BlockVariant, VariantCollection
 
 router = Router()
@@ -30,28 +34,42 @@ router = Router()
 @router.post(
     "/",
     response={200: ContextResponse, 404: Error, 409: Error},
-    summary="Assemble context for AI agent editing",
+    summary="Assemble context for AI agent",
 )
 def get_context(request: HttpRequest, payload: ContextRequest):
     """Assemble the context data needed to brief an AI agent.
 
-    Resolves the block, the variant being edited, its collection (with
-    rendered design tokens), and any reference variants. Returns
-    structured data that the MCP server renders into a context document
-    using its local Jinja2 template.
+    Resolves the block and collection, fetches design tokens
+    (palette/font roles), and resolves any reference variants.
+    Returns structured data that the MCP server renders into a
+    context document using its local Jinja2 template.
     """
     block = resolve_block(payload.block)
-    variant = resolve_variant(payload.variant, block=payload.block)
-    collection = variant.collection
-
-    # Render the collection's design tokens template
-    design_tokens = collection.render()
+    collection = resolve_collection(payload.collection)
 
     # Block schema as JSON
     schema_json = json.dumps(block.schema.get_prep_value(), indent=2)
 
     # Reference variants
     references = _resolve_references(payload.references, collection)
+
+    # Site-wide design tokens
+    palette_roles = [
+        {
+            "name": r.name,
+            "identifier": r.identifier,
+            "description": r.description,
+        }
+        for r in PaletteRole.objects.all()
+    ]
+    font_roles = [
+        {
+            "name": r.name,
+            "identifier": r.identifier,
+            "description": r.description,
+        }
+        for r in FontRole.objects.all()
+    ]
 
     return {
         "block": {
@@ -60,19 +78,15 @@ def get_context(request: HttpRequest, payload: ContextRequest):
             "description": block.description,
             "field_schema": schema_json,
         },
-        "variant": {
-            "identifier": variant.identifier,
-            "name": variant.name,
-            "description": variant.description,
-            "html": variant.html,
-            "css": variant.css,
-            "javascript": variant.javascript,
-        },
         "collection": {
             "identifier": collection.identifier,
             "name": collection.name,
             "description": collection.description,
-            "design_tokens": design_tokens,
+            "design_guidelines": collection.template,
+        },
+        "design_tokens": {
+            "palette_roles": palette_roles,
+            "font_roles": font_roles,
         },
         "references": [
             {

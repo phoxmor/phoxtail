@@ -134,20 +134,18 @@ class TestListBlocks:
 
 
 class TestGetCollection:
-    def test_returns_rendered_design_tokens(self, httpx_mock: HTTPXMock):
+    def test_returns_collection_detail(self, httpx_mock: HTTPXMock):
         payload = {
             "identifier": "ground-state",
             "name": "Ground State",
             "description": "Minimal design system.",
-            "design_tokens": "Primary: blue\nSurface: white",
+            "template": "## Core Principles\n\nStructure dictates form.",
+            "variant_count": 3,
         }
-        httpx_mock.add_response(
-            url=url("/collections/ground-state/render/"), json=payload
-        )
+        httpx_mock.add_response(url=url("/collections/ground-state/"), json=payload)
         result = json.loads(get_collection("ground-state"))
         assert result["identifier"] == "ground-state"
-        assert result["design_tokens"] == "Primary: blue\nSurface: white"
-        assert "template" not in result
+        assert result["template"] == "## Core Principles\n\nStructure dictates form."
 
 
 class TestGetVariant:
@@ -180,37 +178,48 @@ class TestGetContext:
             "description": "A page header with title and subtitle.",
             "field_schema": '{"fields": []}',
         },
-        "variant": {
-            "identifier": "centered",
-            "name": "Centered",
-            "description": "A centered hero section.",
-            "html": "<div>hello</div>",
-            "css": ".hero { color: red; }",
-            "javascript": "",
-        },
         "collection": {
             "identifier": "ground-state",
             "name": "Ground State",
             "description": "Minimal design system.",
-            "design_tokens": "Primary: blue",
+            "design_guidelines": "## Core Principles\n\nStructure dictates form.",
+        },
+        "design_tokens": {
+            "palette_roles": [
+                {
+                    "name": "Primary",
+                    "identifier": "primary",
+                    "description": "Main brand color.",
+                },
+            ],
+            "font_roles": [
+                {
+                    "name": "Heading",
+                    "identifier": "heading",
+                    "description": "Used for headings.",
+                },
+            ],
         },
         "references": [],
     }
 
     def test_renders_context_template(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
-        result = get_context(block="header_section", variant="centered")
+        result = get_context(block="header_section", collection="ground-state")
         assert "Header Section" in result
         assert "DTL Reference" in result
         assert "CSS Scoping" in result
-        assert "<div>hello</div>" in result
-        assert "Primary: blue" in result
+        assert "Structure dictates form" in result
+        assert "Primary" in result
+        assert "primary" in result
+        assert "Heading" in result
+        assert "Design Tokens" in result
 
     def test_sends_references(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
         get_context(
             block="header_section",
-            variant="centered",
+            collection="ground-state",
             references=["dark", "light"],
         )
         req = httpx_mock.get_request()
