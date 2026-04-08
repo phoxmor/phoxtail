@@ -23,6 +23,12 @@ nav:
       - Sync Protocol: studio/sync.md
       - Roadmap: studio/roadmap.md
 
+  - API:
+      - Architecture: api/architecture.md
+
+  - MCP:
+      - Architecture: mcp/architecture.md
+
   - Engine:
       - Core:
           - Permissions: engine/core/permissions.md
