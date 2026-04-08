@@ -1,10 +1,10 @@
-"""Tests for the Phoxtail Studio MCP server.
+"""Tests for the Phoxtail MCP server.
 
 Verifies that:
 - The MCP server exposes the correct set of tools.
 - Each tool calls the correct API endpoint and returns well-formed JSON.
 - Error responses (412, 409, 404) are surfaced gracefully, not raised.
-- The ``phoxtail studio mcp serve`` command is wired up correctly.
+- The ``phoxtail mcp serve`` command is wired up correctly.
 
 All HTTP calls are intercepted by ``pytest-httpx`` so no running Django
 app is required.
@@ -17,17 +17,16 @@ import json
 from pytest_httpx import HTTPXMock
 from typer.testing import CliRunner
 
-from phoxtail.cli.studio.mcp import (
-    _url,
+from phoxtail.mcp import mcp_server
+from phoxtail.mcp._http import url
+from phoxtail.mcp.studio.blocks import list_blocks
+from phoxtail.mcp.studio.collections import get_collection, list_collections
+from phoxtail.mcp.studio.context import get_context
+from phoxtail.mcp.studio.variants import (
     create_variant,
     diff_variant,
-    get_collection,
-    get_context,
     get_variant,
-    list_blocks,
-    list_collections,
     list_variants,
-    mcp_server,
     update_variant,
 )
 
@@ -63,19 +62,19 @@ class TestMCPToolRegistration:
     """The MCP server advertises exactly the tools specified in the roadmap."""
 
     def test_server_name(self):
-        assert mcp_server.name == "phoxtail-studio"
+        assert mcp_server.name == "phoxtail"
 
     def test_expected_tools_registered(self):
         expected = {
-            "phoxtail_list_variants",
-            "phoxtail_list_collections",
-            "phoxtail_list_blocks",
-            "phoxtail_get_collection",
-            "phoxtail_get_variant",
-            "phoxtail_get_context",
-            "phoxtail_diff_variant",
-            "phoxtail_update_variant",
-            "phoxtail_create_variant",
+            "phoxtail_studio_list_variants",
+            "phoxtail_studio_list_collections",
+            "phoxtail_studio_list_blocks",
+            "phoxtail_studio_get_collection",
+            "phoxtail_studio_get_variant",
+            "phoxtail_studio_get_context",
+            "phoxtail_studio_diff_variant",
+            "phoxtail_studio_update_variant",
+            "phoxtail_studio_create_variant",
         }
         registered = set(mcp_server._tool_manager._tools.keys())
         assert expected == registered
@@ -89,7 +88,7 @@ class TestMCPToolRegistration:
 class TestListVariants:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"variants": [SAMPLE_VARIANT_SUMMARY], "total": 1}
-        httpx_mock.add_response(url=_url("/variants/"), json=payload)
+        httpx_mock.add_response(url=url("/variants/"), json=payload)
         result = json.loads(list_variants())
         assert result["total"] == 1
         assert result["variants"][0]["identifier"] == "centered"
@@ -106,7 +105,7 @@ class TestListVariants:
 class TestListCollections:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"collections": [], "total": 0}
-        httpx_mock.add_response(url=_url("/collections/"), json=payload)
+        httpx_mock.add_response(url=url("/collections/"), json=payload)
         result = json.loads(list_collections())
         assert result["total"] == 0
 
@@ -114,7 +113,7 @@ class TestListCollections:
 class TestListBlocks:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"blocks": [], "total": 0}
-        httpx_mock.add_response(url=_url("/blocks/"), json=payload)
+        httpx_mock.add_response(url=url("/blocks/"), json=payload)
         result = json.loads(list_blocks())
         assert result["total"] == 0
 
@@ -133,7 +132,7 @@ class TestGetCollection:
             "design_tokens": "Primary: blue\nSurface: white",
         }
         httpx_mock.add_response(
-            url=_url("/collections/ground-state/render/"), json=payload
+            url=url("/collections/ground-state/render/"), json=payload
         )
         result = json.loads(get_collection("ground-state"))
         assert result["identifier"] == "ground-state"
@@ -162,7 +161,7 @@ class TestGetVariant:
 
 
 class TestGetContext:
-    """The ``phoxtail_get_context`` tool renders the context template."""
+    """The ``phoxtail_studio_get_context`` tool renders the context template."""
 
     CONTEXT_RESPONSE = {
         "block": {
@@ -366,11 +365,11 @@ class TestCreateVariant:
 
 
 class TestServeCommand:
-    """The ``phoxtail studio mcp serve`` command is registered and reachable."""
+    """The ``phoxtail mcp serve`` command is registered and reachable."""
 
     def test_help_text(self):
-        from phoxtail.cli.studio import app as studio_app
+        from phoxtail.__main__ import app as main_app
 
-        result = runner.invoke(studio_app, ["mcp", "serve", "--help"])
+        result = runner.invoke(main_app, ["mcp", "serve", "--help"])
         assert result.exit_code == 0
         assert "MCP" in result.output or "stdio" in result.output

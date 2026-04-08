@@ -18,12 +18,10 @@ app = typer.Typer(help="Design, refine, and exchange block variants.")
 def _register_commands() -> None:
     # Nested verb groups
     from phoxtail.cli.studio.list import app as list_app
-    from phoxtail.cli.studio.mcp import app as mcp_app
     from phoxtail.cli.studio.show import app as show_app
 
     app.add_typer(list_app, name="list")
     app.add_typer(show_app, name="show")
-    app.add_typer(mcp_app, name="mcp")
 
     # Flat verbs
     from phoxtail.cli.studio.commit import commit
