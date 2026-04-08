@@ -28,11 +28,11 @@ Every hatched Phoxtail project ships with a `.mcp.json` file in the project root
 That is the entire setup. When Claude Code starts, it reads `.mcp.json`, spawns `phoxtail studio mcp serve` as a subprocess, and gains access to every Studio tool.
 
 !!! note
-    The MCP server talks to your running Django app at `http://localhost:8000` (the default). If your project uses a different port or you have configured `[studio] api_url` in `phoxtail.toml`, the MCP server picks that up automatically.
+    The MCP server talks to your running Django app at `http://localhost` (the default). If your project uses a different port or you have configured `[studio] api_url` in `phoxtail.toml`, the MCP server picks that up automatically.
 
 ## Step 2: Open a Wagtail preview
 
-Before editing, open a Wagtail page that uses the variant you plan to change. Navigate to your site in the browser — for a fresh project, `http://localhost:8000` will render the home page with its default variants.
+Before editing, open a Wagtail page that uses the variant you plan to change. Navigate to your site in the browser — for a fresh project, `http://localhost` will render the home page with its default variants.
 
 Keep this tab open. Every time you save a variant, Wagtail's template cache is invalidated and a browser refresh shows the updated design. If your project uses `django-browser-reload`, the tab refreshes automatically.
 

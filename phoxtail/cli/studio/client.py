@@ -26,8 +26,8 @@ EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
 # Default base URL when a project has not configured one explicitly.
-# Matches the port docker-compose exposes for the dev app.
-DEFAULT_BASE_URL = "http://localhost:8000"
+# Matches the nginx proxy docker-compose exposes for the dev app.
+DEFAULT_BASE_URL = "http://localhost"
 API_PREFIX = "/api/streams/v1"
 
 # Generous enough for prompt-render (LLM-size templates) but short enough
