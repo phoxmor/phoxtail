@@ -45,5 +45,5 @@ def get_context(
     resp.raise_for_status()
 
     data = resp.json()
-    template = _jinja_env.get_template("context.md")
+    template = _jinja_env.get_template("variant_design_context.md")
     return template.render(**data)

@@ -94,6 +94,7 @@ def create_variant(
         html=payload.html,
         css=payload.css,
         javascript=payload.javascript,
+        is_default=payload.is_default,
     )
     response["ETag"] = variant_etag(v)
     return 201, variant_detail(v)
@@ -163,6 +164,8 @@ def update_variant(
         v.css = payload.css
     if payload.javascript is not None:
         v.javascript = payload.javascript
+    if payload.is_default is not None:
+        v.is_default = payload.is_default
     v.save()
 
     response["ETag"] = variant_etag(v)

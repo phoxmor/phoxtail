@@ -17,17 +17,26 @@ mcp_server = FastMCP(
     "phoxtail",
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. "
-        "Tools are organized by domain: studio (variant editing). "
-        "Use phoxtail_studio_* tools for block variant operations. "
+        "Tools are organized by domain: studio (block and variant editing). "
+        "Use phoxtail_studio_* tools for block and variant operations. "
         "Always fetch a resource before updating it to get the "
-        "current ETag for concurrency control."
+        "current ETag for concurrency control. "
+        "Use the design_block prompt and phoxtail://schema-reference "
+        "resource when creating new blocks."
     ),
 )
 
 
 def _register_tools() -> None:
-    """Import domain modules to trigger tool registration."""
-    from phoxtail.mcp.studio import blocks, collections, context, variants  # noqa: F401
+    """Import domain modules to trigger tool/resource/prompt registration."""
+    from phoxtail.mcp.studio import (  # noqa: F401
+        blocks,
+        collections,
+        context,
+        prompts,
+        resources,
+        variants,
+    )
 
 
 _register_tools()

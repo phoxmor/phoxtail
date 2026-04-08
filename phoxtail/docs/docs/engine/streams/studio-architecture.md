@@ -7,7 +7,7 @@
 
 ## What replaced it
 
-- **Context assembly**: `POST /api/streams/v1/context/` assembles structured context data. A static Jinja2 template (`cli/templates/studio/context.md`) renders the context document.
+- **Context assembly**: `POST /api/streams/v1/context/` assembles structured context data. A static Jinja2 template (`cli/templates/studio/variant_design_context.md`) renders the context document.
 - **CLI**: `phoxtail studio context`, `phoxtail studio edit`, `phoxtail studio commit`
 - **MCP tools**: `phoxtail_get_context`, `phoxtail_get_variant`, `phoxtail_update_variant`, etc.
 - **Design tokens**: `VariantCollection.render()` still renders collection design tokens via DTL.

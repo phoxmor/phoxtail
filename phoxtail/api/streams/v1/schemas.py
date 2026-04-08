@@ -69,6 +69,7 @@ class VariantCreate(Schema):
     html: str = ""
     css: str = ""
     javascript: str = ""
+    is_default: bool = False
 
 
 class VariantUpdate(Schema):
@@ -81,6 +82,7 @@ class VariantUpdate(Schema):
     html: str | None = None
     css: str | None = None
     javascript: str | None = None
+    is_default: bool | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -140,11 +142,41 @@ class BlockVariantRef(Schema):
 class Block(BlockSummary):
     page_types: list[str]
     variants: list[BlockVariantRef]
+    field_schema: str = ""
 
 
 class BlockList(Schema):
     blocks: list[BlockSummary]
     total: int
+
+
+class BlockCreate(Schema):
+    """Request body for ``POST /blocks/``."""
+
+    identifier: str
+    name: str
+    description: str = ""
+    icon: str = ""
+    group: str = ""
+    is_shared: bool = False
+    page_types: list[str] = []
+    schema: list[dict] = []
+
+
+class BlockUpdate(Schema):
+    """Request body for ``PATCH /blocks/{identifier}/``.
+
+    All fields are optional; omitted fields are left untouched. The ETag
+    check happens via the ``If-Match`` header, not in the body.
+    """
+
+    name: str | None = None
+    description: str | None = None
+    icon: str | None = None
+    group: str | None = None
+    is_shared: bool | None = None
+    page_types: list[str] | None = None
+    schema: list[dict] | None = None
 
 
 # ---------------------------------------------------------------------------

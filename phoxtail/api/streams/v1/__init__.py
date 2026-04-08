@@ -12,6 +12,7 @@ from ninja import Router
 from phoxtail.api.streams.v1.blocks import router as blocks_router
 from phoxtail.api.streams.v1.collections import router as collections_router
 from phoxtail.api.streams.v1.context import router as context_router
+from phoxtail.api.streams.v1.schema_catalog import router as schema_catalog_router
 from phoxtail.api.streams.v1.variants import router as variants_router
 
 router = Router()
@@ -19,3 +20,4 @@ router.add_router("/variants", variants_router)
 router.add_router("/collections", collections_router)
 router.add_router("/blocks", blocks_router)
 router.add_router("/context", context_router)
+router.add_router("/schema-catalog", schema_catalog_router)

@@ -19,9 +19,16 @@ from typer.testing import CliRunner
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import url
-from phoxtail.mcp.studio.blocks import list_blocks
+from phoxtail.mcp.studio.blocks import (
+    create_block,
+    get_block,
+    list_blocks,
+    update_block,
+)
 from phoxtail.mcp.studio.collections import get_collection, list_collections
 from phoxtail.mcp.studio.context import get_context
+from phoxtail.mcp.studio.prompts import design_block
+from phoxtail.mcp.studio.resources import schema_reference
 from phoxtail.mcp.studio.variants import (
     create_variant,
     diff_variant,
@@ -71,10 +78,13 @@ class TestMCPToolRegistration:
             "phoxtail_studio_list_blocks",
             "phoxtail_studio_get_collection",
             "phoxtail_studio_get_variant",
+            "phoxtail_studio_get_block",
             "phoxtail_studio_get_context",
             "phoxtail_studio_diff_variant",
             "phoxtail_studio_update_variant",
+            "phoxtail_studio_update_block",
             "phoxtail_studio_create_variant",
+            "phoxtail_studio_create_block",
         }
         registered = set(mcp_server._tool_manager._tools.keys())
         assert expected == registered
@@ -357,6 +367,196 @@ class TestCreateVariant:
             )
         )
         assert result["error"] == "not_found"
+
+
+# ---------------------------------------------------------------------------
+# Block tools
+# ---------------------------------------------------------------------------
+
+SAMPLE_BLOCK_DETAIL = {
+    "identifier": "stats",
+    "name": "Stats",
+    "description": "Data statistics display.",
+    "group": "Data Display",
+    "icon": "table",
+    "is_shared": False,
+    "variant_count": 0,
+    "page_types": [],
+    "variants": [],
+    "field_schema": '[{"type": "char_field", "value": {"name": "title"}}]',
+}
+
+
+class TestGetBlock:
+    def test_includes_etag(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            json=SAMPLE_BLOCK_DETAIL,
+            headers={"ETag": 'W/"block123"'},
+        )
+        result = json.loads(get_block("stats"))
+        assert result["identifier"] == "stats"
+        assert result["field_schema"] is not None
+        assert result["_etag"] == 'W/"block123"'
+
+
+class TestCreateBlock:
+    def test_success(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=201,
+            json=SAMPLE_BLOCK_DETAIL,
+            headers={"ETag": 'W/"new_block"'},
+        )
+        result = json.loads(
+            create_block(
+                identifier="stats",
+                name="Stats",
+                description="Data statistics display.",
+                group="Data Display",
+                icon="table",
+                schema=[{"type": "char_field", "value": {"name": "title"}}],
+            )
+        )
+        assert result["identifier"] == "stats"
+        assert result["_etag"] == 'W/"new_block"'
+
+    def test_sends_payload(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=201,
+            json=SAMPLE_BLOCK_DETAIL,
+            headers={"ETag": 'W/"x"'},
+        )
+        create_block(
+            identifier="stats",
+            name="Stats",
+            schema=[{"type": "char_field", "value": {"name": "title"}}],
+        )
+        req = httpx_mock.get_request()
+        body = json.loads(req.content)
+        assert body["identifier"] == "stats"
+        assert body["schema"] == [{"type": "char_field", "value": {"name": "title"}}]
+
+    def test_conflict_existing(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=409,
+            json={"detail": "Block 'stats' already exists."},
+        )
+        result = json.loads(create_block(identifier="stats", name="Stats"))
+        assert result["error"] == "conflict"
+
+    def test_validation_error(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=400,
+            json={"detail": "schema: Invalid block type 'bad_field'."},
+        )
+        result = json.loads(
+            create_block(
+                identifier="bad",
+                name="Bad",
+                schema=[{"type": "bad_field", "value": {}}],
+            )
+        )
+        assert result["error"] == "validation_error"
+
+
+class TestUpdateBlock:
+    def test_success(self, httpx_mock: HTTPXMock):
+        updated = {**SAMPLE_BLOCK_DETAIL, "name": "Stats v2"}
+        httpx_mock.add_response(
+            json=updated,
+            headers={"ETag": 'W/"updated"'},
+        )
+        result = json.loads(update_block("stats", etag='W/"block123"', name="Stats v2"))
+        assert result["name"] == "Stats v2"
+        assert result["_etag"] == 'W/"updated"'
+
+    def test_sends_if_match_header(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            json=SAMPLE_BLOCK_DETAIL,
+            headers={"ETag": 'W/"x"'},
+        )
+        update_block("stats", etag='W/"block123"', name="New Name")
+        req = httpx_mock.get_request()
+        assert req.headers["If-Match"] == 'W/"block123"'
+
+    def test_conflict_returns_error(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=412,
+            json={"detail": "ETag mismatch"},
+        )
+        result = json.loads(update_block("stats", etag='W/"stale"', name="x"))
+        assert result["error"] == "conflict"
+
+    def test_precondition_required(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=428,
+            json={"detail": "If-Match required"},
+        )
+        result = json.loads(update_block("stats", etag="", name="x"))
+        assert result["error"] == "precondition_required"
+
+    def test_validation_error(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=400,
+            json={"detail": "Invalid schema."},
+        )
+        result = json.loads(
+            update_block(
+                "stats",
+                etag='W/"block123"',
+                schema=[{"type": "bad", "value": {}}],
+            )
+        )
+        assert result["error"] == "validation_error"
+
+
+# ---------------------------------------------------------------------------
+# Resource and prompt
+# ---------------------------------------------------------------------------
+
+SAMPLE_CATALOG = {
+    "common_parameters": {"name": {"type": "CharBlock"}},
+    "field_types": {"char_field": {"label": "Char", "parameters": {}}},
+    "structure_types": {"struct": {"label": "Struct", "parameters": {}}},
+    "layer_types": {},
+}
+
+
+class TestSchemaResource:
+    def test_returns_catalog_json(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(json=SAMPLE_CATALOG)
+        result = json.loads(schema_reference())
+        assert "field_types" in result
+        assert "char_field" in result["field_types"]
+
+    def test_registered(self):
+        resources = mcp_server._resource_manager._resources
+        assert "phoxtail://schema-reference" in resources
+
+
+class TestDesignBlockPrompt:
+    def test_renders_with_catalog(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(json=SAMPLE_CATALOG)
+        result = design_block(description="A stats block for dashboards")
+        assert "A stats block for dashboards" in result
+        assert "Available Field Types" in result
+
+    def test_renders_with_reference_url(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(json=SAMPLE_CATALOG)
+        result = design_block(
+            description="A stats block",
+            reference_url="https://example.com/stats",
+        )
+        assert "https://example.com/stats" in result
+        assert "Reference" in result
+
+    def test_renders_without_reference_url(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(json=SAMPLE_CATALOG)
+        result = design_block(description="A simple block")
+        assert "Reference" not in result
+
+    def test_registered(self):
+        prompts = mcp_server._prompt_manager._prompts
+        assert "design_block" in prompts
 
 
 # ---------------------------------------------------------------------------

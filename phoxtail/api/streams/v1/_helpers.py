@@ -11,6 +11,7 @@ layer is pure Django/Ninja/Django ORM.
 from __future__ import annotations
 
 import hashlib
+import json
 
 from ninja.errors import HttpError
 
@@ -145,6 +146,7 @@ def block_detail(b: Block) -> dict:
         **block_summary(b, len(variants)),
         "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
         "variants": variants,
+        "field_schema": json.dumps(b.schema.get_prep_value(), indent=2),
     }
 
 
@@ -188,3 +190,42 @@ def etag_matches(header_value: str | None, current: str) -> bool:
 
 def _strip_weak_prefix(tag: str) -> str:
     return tag[2:] if tag.startswith("W/") else tag
+
+
+# ---------------------------------------------------------------------------
+# Block ETags
+# ---------------------------------------------------------------------------
+
+
+def block_etag(b: Block) -> str:
+    """Compute a weak ETag for a block's schema and metadata."""
+    h = hashlib.sha256()
+    fields = (b.name, b.identifier, b.description, b.icon, b.group, str(b.is_shared))
+    for field in fields:
+        h.update(field.encode("utf-8"))
+        h.update(b"\x00")
+    h.update(json.dumps(b.schema.get_prep_value(), sort_keys=True).encode("utf-8"))
+    return f'W/"{h.hexdigest()[:16]}"'
+
+
+# ---------------------------------------------------------------------------
+# Page-type resolution
+# ---------------------------------------------------------------------------
+
+
+def resolve_page_types(page_type_strings: list[str]) -> list:
+    """Convert ``["blog.BlogPage", ...]`` to ContentType objects.
+
+    Raises ``HttpError(400)`` for invalid entries.
+    """
+    from django.contrib.contenttypes.models import ContentType
+
+    content_types = []
+    for app_model in page_type_strings:
+        try:
+            app_label, model_name = app_model.rsplit(".", 1)
+            ct = ContentType.objects.get(app_label=app_label, model=model_name.lower())
+            content_types.append(ct)
+        except (ValueError, ContentType.DoesNotExist):
+            raise HttpError(400, f"Invalid page type: '{app_model}'.")
+    return content_types

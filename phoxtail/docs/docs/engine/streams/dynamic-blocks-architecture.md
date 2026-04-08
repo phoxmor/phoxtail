@@ -171,7 +171,7 @@ class BlockVariant(models.Model):
 ### 4. Context Assembly (replaced BlockSystemPrompt)
 
 !!! note "Removed"
-    The `BlockSystemPrompt` model has been removed. AI context is now assembled via `POST /api/streams/v1/context/` and rendered through a static Jinja2 template (`cli/templates/studio/context.md`). See the [Studio Architecture](../../studio/architecture.md) docs for details.
+    The `BlockSystemPrompt` model has been removed. AI context is now assembled via `POST /api/streams/v1/context/` and rendered through a static Jinja2 template (`cli/templates/studio/variant_design_context.md`). See the [Studio Architecture](../../studio/architecture.md) docs for details.
 
 ### 5. Schema Definition Blocks (`streams/blocks/schema.py`)
 
@@ -629,7 +629,7 @@ This ensures AI-generated variants use the exact colors and fonts defined for th
 
 ### AI Context Assembly
 
-The `BlockSystemPrompt` model has been removed. AI context is now assembled via the streams API and rendered through a static Jinja2 context template (`cli/templates/studio/context.md`). The context includes block schema, design tokens, variant code, and references.
+The `BlockSystemPrompt` model has been removed. AI context is now assembled via the streams API and rendered through a static Jinja2 context template (`cli/templates/studio/variant_design_context.md`). The context includes block schema, design tokens, variant code, and references.
 
 **Using the context API:**
 ```python

@@ -51,7 +51,7 @@ def edit(
             block=variant_data["block"]["identifier"],
             variant=variant_data["identifier"],
         )
-        jinja_template = _jinja_env.get_template("context.md")
+        jinja_template = _jinja_env.get_template("variant_design_context.md")
         context_md = jinja_template.render(**data)
     except Exception:
         # Non-fatal: the session is still usable without context.

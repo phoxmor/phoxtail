@@ -120,6 +120,8 @@ def diff_variant(
         "for optimistic concurrency control — if the variant has been "
         "modified since you read it, the update will fail with a conflict "
         "error. Omitted fields are left untouched. "
+        "Set is_default=true to mark as the block's default variant "
+        "(only one default per block is allowed). "
         "On success, returns the updated variant with a new ETag."
     ),
 )
@@ -130,6 +132,7 @@ def update_variant(
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
+    is_default: bool | None = None,
     collection: str | None = None,
 ) -> str:
     body: dict[str, Any] = {}
@@ -139,6 +142,8 @@ def update_variant(
         body["css"] = css
     if javascript is not None:
         body["javascript"] = javascript
+    if is_default is not None:
+        body["is_default"] = is_default
 
     resp = request(
         "PUT",
@@ -182,6 +187,8 @@ def update_variant(
         "the block+collection pair), a human-readable name, and the "
         "identifiers of an existing block and collection. "
         "Content fields (html, css, javascript) default to empty strings. "
+        "Set is_default=true to mark as the block's default variant "
+        "(only one default per block is allowed). "
         "Returns the created variant with its ETag."
     ),
 )
@@ -194,6 +201,7 @@ def create_variant(
     html: str = "",
     css: str = "",
     javascript: str = "",
+    is_default: bool = False,
 ) -> str:
     resp = request(
         "POST",
@@ -207,6 +215,7 @@ def create_variant(
             "html": html,
             "css": css,
             "javascript": javascript,
+            "is_default": is_default,
         },
     )
     if resp.status_code == 409:

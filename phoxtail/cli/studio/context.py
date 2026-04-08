@@ -78,7 +78,7 @@ def context(
         client.emit_json(data)
         return
 
-    jinja_template = _jinja_env.get_template("context.md")
+    jinja_template = _jinja_env.get_template("variant_design_context.md")
     rendered = jinja_template.render(**data)
 
     if output is not None:

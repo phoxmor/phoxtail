@@ -3,7 +3,7 @@
 ## What we did
 
 Replaced the database-backed `BlockSystemPrompt` rendering pipeline with a static
-Jinja2 context template (`cli/templates/studio/context.md`) shipped with phoxtail.
+Jinja2 context template (`cli/templates/studio/variant_design_context.md`) shipped with phoxtail.
 
 **Why**: In the MCP/agent era, system prompts no longer need to carry task
 instructions or output format directives — the agent has tools for that. The three
