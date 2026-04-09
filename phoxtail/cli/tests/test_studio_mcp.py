@@ -85,6 +85,8 @@ class TestMCPToolRegistration:
             "phoxtail_studio_update_block",
             "phoxtail_studio_create_variant",
             "phoxtail_studio_create_block",
+            "phoxtail_studio_create_collection",
+            "phoxtail_studio_update_collection",
         }
         registered = set(mcp_server._tool_manager._tools.keys())
         assert expected == registered

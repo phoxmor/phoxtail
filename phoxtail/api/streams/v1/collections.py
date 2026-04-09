@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Count
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from ninja import Router
+from ninja.errors import HttpError
 
 from phoxtail.api.streams.v1._helpers import (
     collection_detail,
+    collection_etag,
     collection_summary,
+    etag_matches,
     resolve_collection,
 )
 from phoxtail.api.streams.v1.schemas import (
     Collection,
+    CollectionCreate,
     CollectionList,
+    CollectionUpdate,
     Error,
 )
 from phoxtail.streams.models import VariantCollection
@@ -35,6 +42,94 @@ def list_collections(request: HttpRequest):
     response={200: Collection, 404: Error},
     summary="Show a VariantCollection",
 )
-def get_collection(request: HttpRequest, identifier: str):
+def get_collection(request: HttpRequest, response: HttpResponse, identifier: str):
     c = resolve_collection(identifier)
+    response["ETag"] = collection_etag(c)
     return collection_detail(c, c.variants.count())
+
+
+@router.post(
+    "/",
+    response={201: Collection, 400: Error, 409: Error},
+    summary="Create a VariantCollection",
+)
+def create_collection(
+    request: HttpRequest, response: HttpResponse, payload: CollectionCreate
+):
+    c = VariantCollection(
+        identifier=payload.identifier,
+        name=payload.name,
+        description=payload.description,
+        template=payload.template,
+    )
+
+    try:
+        c.full_clean()
+    except ValidationError as exc:
+        detail = _format_validation_error(exc)
+        raise HttpError(400, detail)
+
+    try:
+        c.save()
+    except IntegrityError:
+        raise HttpError(409, f"Collection '{payload.identifier}' already exists.")
+
+    response["ETag"] = collection_etag(c)
+    return 201, collection_detail(c, 0)
+
+
+@router.patch(
+    "/{identifier}/",
+    response={200: Collection, 400: Error, 404: Error, 412: Error, 428: Error},
+    summary="Update a VariantCollection",
+)
+def update_collection(
+    request: HttpRequest,
+    response: HttpResponse,
+    identifier: str,
+    payload: CollectionUpdate,
+):
+    if_match = request.headers.get("If-Match")
+    if not if_match:
+        raise HttpError(
+            428,
+            "If-Match header is required. Send the ETag from your most "
+            "recent GET of this collection.",
+        )
+
+    c = resolve_collection(identifier)
+    current = collection_etag(c)
+
+    if not etag_matches(if_match, current):
+        raise HttpError(
+            412,
+            "ETag mismatch: the collection has changed since you last read it. "
+            "Re-fetch and retry.",
+        )
+
+    if payload.name is not None:
+        c.name = payload.name
+    if payload.description is not None:
+        c.description = payload.description
+    if payload.template is not None:
+        c.template = payload.template
+
+    try:
+        c.full_clean()
+    except ValidationError as exc:
+        detail = _format_validation_error(exc)
+        raise HttpError(400, detail)
+
+    c.save()
+
+    response["ETag"] = collection_etag(c)
+    return collection_detail(c, c.variants.count())
+
+
+def _format_validation_error(exc: ValidationError) -> str:
+    if hasattr(exc, "message_dict"):
+        return "; ".join(
+            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}"
+            for k, v in exc.message_dict.items()
+        )
+    return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)

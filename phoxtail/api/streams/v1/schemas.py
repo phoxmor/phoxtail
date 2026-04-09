@@ -106,6 +106,27 @@ class CollectionList(Schema):
     total: int
 
 
+class CollectionCreate(Schema):
+    """Request body for ``POST /collections/``."""
+
+    identifier: str
+    name: str
+    description: str = ""
+    template: str = ""
+
+
+class CollectionUpdate(Schema):
+    """Request body for ``PATCH /collections/{identifier}/``.
+
+    All fields are optional; omitted fields are left untouched. The ETag
+    check happens via the ``If-Match`` header, not in the body.
+    """
+
+    name: str | None = None
+    description: str | None = None
+    template: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # Blocks
 # ---------------------------------------------------------------------------

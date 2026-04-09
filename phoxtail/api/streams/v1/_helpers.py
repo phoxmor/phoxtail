@@ -197,6 +197,18 @@ def _strip_weak_prefix(tag: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def collection_etag(c: VariantCollection) -> str:
+    """Compute a weak ETag for a collection's content.
+
+    Hashes the mutable content fields (name, description, template).
+    """
+    h = hashlib.sha256()
+    for field in (c.name, c.identifier, c.description, c.template):
+        h.update(field.encode("utf-8"))
+        h.update(b"\x00")
+    return f'W/"{h.hexdigest()[:16]}"'
+
+
 def block_etag(b: Block) -> str:
     """Compute a weak ETag for a block's schema and metadata."""
     h = hashlib.sha256()
