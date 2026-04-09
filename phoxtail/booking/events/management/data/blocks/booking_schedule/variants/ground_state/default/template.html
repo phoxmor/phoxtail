@@ -1,4 +1,4 @@
-{% load events_tags tz %}
+{% load phoxtail_booking_events_tags tz %}
 {% get_weekly_schedule value.location as schedule %}
 <section id="bsched-{{ block.id }}" class="bsched-wrapper">
     {% if schedule.time_slots %}
