@@ -54,12 +54,20 @@
                                             <div class="ts-card-footer">
                                                 <div class="ts-card-button-wrap">
                                                     {% for btn_block in member.buttons %}
-                                                        {% if btn_block.block_type == 'internal_link' %}
+                                                        {% if btn_block.block_type == 'page' %}
                                                             {% with btn=btn_block.value %}
                                                                 <a href="{{ btn.link.url }}"
                                                                    class="ts-btn ts-btn--primary"
                                                                    {% if btn.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
                                                                     {{ btn.label|default:btn.link.title }}
+                                                                </a>
+                                                            {% endwith %}
+                                                        {% elif btn_block.block_type == 'internal_link' %}
+                                                            {% with button=btn_block.value snippet=btn_block.value.link %}
+                                                                <a href="{{ snippet.url }}"
+                                                                   class="ts-btn ts-btn--primary"
+                                                                   {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                                    {{ button.label|default:snippet.label }}
                                                                 </a>
                                                             {% endwith %}
                                                         {% elif btn_block.block_type == 'external_link' %}

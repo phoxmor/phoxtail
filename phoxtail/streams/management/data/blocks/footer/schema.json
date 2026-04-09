@@ -58,7 +58,7 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "page_link",
+                        "name": "page",
                         "icon": "doc-empty",
                         "blocks": [
                           {
@@ -75,6 +75,39 @@
                               "name": "label",
                               "required": false,
                               "help_text": "Link text (if empty, page title will be used)"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Button text (if empty, link label will be used)"
+                            }
+                          },
+                          {
+                            "type": "snippet_chooser_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "target_model": "phoxtail_core.InternalLink",
+                              "help_text": "Internal application link"
                             }
                           },
                           {
@@ -133,10 +166,22 @@
                               "name": "type",
                               "required": true,
                               "choices": [
-                                {"value": "phone", "label": "Phone"},
-                                {"value": "mobile", "label": "Mobile"},
-                                {"value": "email", "label": "Email"},
-                                {"value": "address", "label": "Address"}
+                                {
+                                  "value": "phone",
+                                  "label": "Phone"
+                                },
+                                {
+                                  "value": "mobile",
+                                  "label": "Mobile"
+                                },
+                                {
+                                  "value": "email",
+                                  "label": "Email"
+                                },
+                                {
+                                  "value": "address",
+                                  "label": "Address"
+                                }
                               ],
                               "help_text": "Type of contact information"
                             }
@@ -242,7 +287,7 @@
         {
           "type": "struct",
           "value": {
-            "name": "page_link",
+            "name": "page",
             "icon": "doc-empty",
             "blocks": [
               {
@@ -259,6 +304,39 @@
                   "name": "label",
                   "required": false,
                   "help_text": "Link text (if empty, page title will be used)"
+                }
+              },
+              {
+                "type": "boolean_field",
+                "value": {
+                  "name": "open_in_new_tab",
+                  "required": false,
+                  "help_text": "Open link in new tab"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "struct",
+          "value": {
+            "name": "internal_link",
+            "blocks": [
+              {
+                "type": "char_field",
+                "value": {
+                  "name": "label",
+                  "required": false,
+                  "help_text": "Button text (if empty, link label will be used)"
+                }
+              },
+              {
+                "type": "snippet_chooser_field",
+                "value": {
+                  "name": "link",
+                  "required": true,
+                  "target_model": "phoxtail_core.InternalLink",
+                  "help_text": "Internal application link"
                 }
               },
               {

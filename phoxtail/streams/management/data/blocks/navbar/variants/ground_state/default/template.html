@@ -24,7 +24,7 @@
             {% if value.links %}
                 <div class="nb-links-desktop">
                     {% for link_block in value.links %}
-                        {% if link_block.block_type == 'internal_link' %}
+                        {% if link_block.block_type == 'page' %}
                             {% with link=link_block.value %}
                                 {% if link.page %}
                                     {% pageurl link.page as page_url %}
@@ -47,6 +47,14 @@
                                     {% endwith %}
                                 {% endif %}
                             {% endwith %}
+                        {% elif link_block.block_type == 'internal_link' %}
+                            {% with button=link_block.value snippet=link_block.value.link %}
+                                <a href="{{ snippet.url }}"
+                                   class="nb-link"
+                                   {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                    {{ button.label|default:snippet.label }}
+                                </a>
+                            {% endwith %}
                         {% elif link_block.block_type == 'external_link' %}
                             {% with link=link_block.value %}
                                 <a href="{{ link.url }}"
@@ -68,7 +76,7 @@
                                         <div class="nb-dropdown-pad"></div>
                                         <div class="nb-dropdown-menu">
                                             {% for item_block in dd.items %}
-                                                {% if item_block.block_type == 'internal_link' %}
+                                                {% if item_block.block_type == 'page' %}
                                                     {% with item=item_block.value %}
                                                         {% if item.page %}
                                                             {% pageurl item.page as item_url %}
@@ -90,6 +98,14 @@
                                                                 {% endif %}
                                                             {% endwith %}
                                                         {% endif %}
+                                                    {% endwith %}
+                                                {% elif item_block.block_type == 'internal_link' %}
+                                                    {% with button=item_block.value snippet=item_block.value.link %}
+                                                        <a href="{{ snippet.url }}"
+                                                           class="nb-dropdown-link"
+                                                           {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                            {{ button.label|default:snippet.label }}
+                                                        </a>
                                                     {% endwith %}
                                                 {% elif item_block.block_type == 'external_link' %}
                                                     {% with item=item_block.value %}
@@ -239,7 +255,7 @@
             {% if value.links %}
                 <div class="nb-sidebar-links">
                     {% for link_block in value.links %}
-                        {% if link_block.block_type == 'internal_link' %}
+                        {% if link_block.block_type == 'page' %}
                             {% with link=link_block.value %}
                                 {% if link.page %}
                                     {% pageurl link.page as page_url %}
@@ -262,6 +278,14 @@
                                     {% endwith %}
                                 {% endif %}
                             {% endwith %}
+                        {% elif link_block.block_type == 'internal_link' %}
+                            {% with button=link_block.value snippet=link_block.value.link %}
+                                <a href="{{ snippet.url }}"
+                                   class="nb-sidebar-link"
+                                   {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                    {{ button.label|default:snippet.label }}
+                                </a>
+                            {% endwith %}
                         {% elif link_block.block_type == 'external_link' %}
                             {% with link=link_block.value %}
                                 <a href="{{ link.url }}"
@@ -283,7 +307,7 @@
                                     </button>
                                     <div class="nb-accordion-content{% if is_active %} nb-expanded{% endif %}">
                                         {% for item_block in dd.items %}
-                                            {% if item_block.block_type == 'internal_link' %}
+                                            {% if item_block.block_type == 'page' %}
                                                 {% with item=item_block.value %}
                                                     {% if item.page %}
                                                         {% pageurl item.page as item_url %}
@@ -305,6 +329,14 @@
                                                             {% endif %}
                                                         {% endwith %}
                                                     {% endif %}
+                                                {% endwith %}
+                                            {% elif item_block.block_type == 'internal_link' %}
+                                                {% with button=item_block.value snippet=item_block.value.link %}
+                                                    <a href="{{ snippet.url }}"
+                                                       class="nb-sidebar-sublink"
+                                                       {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                        {{ button.label|default:snippet.label }}
+                                                    </a>
                                                 {% endwith %}
                                             {% elif item_block.block_type == 'external_link' %}
                                                 {% with item=item_block.value %}

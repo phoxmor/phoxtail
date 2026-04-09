@@ -22,12 +22,20 @@
                                                     {% if card.button %}
                                                         <div class="ic-card-button-wrap">
                                                             {% for btn_block in card.button %}
-                                                                {% if btn_block.block_type == 'internal_link' %}
+                                                                {% if btn_block.block_type == 'page' %}
                                                                     {% with btn=btn_block.value %}
                                                                         <a href="{{ btn.link.url }}"
                                                                            class="ic-btn ic-btn--primary"
                                                                            {% if btn.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
                                                                             {{ btn.label|default:btn.link.title }}
+                                                                        </a>
+                                                                    {% endwith %}
+                                                                {% elif btn_block.block_type == 'internal_link' %}
+                                                                    {% with button=btn_block.value snippet=btn_block.value.link %}
+                                                                        <a href="{{ snippet.url }}"
+                                                                           class="ic-btn ic-btn--primary"
+                                                                           {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                                            {{ button.label|default:snippet.label }}
                                                                         </a>
                                                                     {% endwith %}
                                                                 {% elif btn_block.block_type == 'external_link' %}

@@ -32,7 +32,7 @@
                                 {% if slide.buttons %}
                                     <div class="vb-buttons{% if slide.supertitle or slide.title or slide.subtitle %} vb-buttons-spacing{% endif %}">
                                         {% for button_block in slide.buttons %}
-                                            {% if button_block.block_type == 'internal_link' %}
+                                            {% if button_block.block_type == 'page' %}
                                                 {% with button=button_block.value page=button_block.value.link.specific %}
                                                     {% if not page.live %}
                                                         {% if perms.wagtailadmin.access_admin %}
@@ -53,6 +53,14 @@
                                                             {{ button.label|default:page.title }}
                                                         </a>
                                                     {% endif %}
+                                                {% endwith %}
+                                            {% elif button_block.block_type == 'internal_link' %}
+                                                {% with button=button_block.value snippet=button_block.value.link %}
+                                                    <a href="{{ snippet.url }}"
+                                                       class="vb-btn vb-btn--primary"
+                                                       {% if button.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                        {{ button.label|default:snippet.label }}
+                                                    </a>
                                                 {% endwith %}
                                             {% elif button_block.block_type == 'external_link' %}
                                                 {% with button=button_block.value %}

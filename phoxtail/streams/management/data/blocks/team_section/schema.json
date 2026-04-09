@@ -101,7 +101,7 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "internal_link",
+                        "name": "page",
                         "blocks": [
                           {
                             "type": "char_field",
@@ -117,6 +117,39 @@
                               "name": "link",
                               "required": true,
                               "help_text": "Internal page to link to"
+                            }
+                          },
+                          {
+                            "type": "boolean_field",
+                            "value": {
+                              "name": "open_in_new_tab",
+                              "required": false,
+                              "help_text": "Open link in new tab"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "struct",
+                      "value": {
+                        "name": "internal_link",
+                        "blocks": [
+                          {
+                            "type": "char_field",
+                            "value": {
+                              "name": "label",
+                              "required": false,
+                              "help_text": "Button text (if empty, link label will be used)"
+                            }
+                          },
+                          {
+                            "type": "snippet_chooser_field",
+                            "value": {
+                              "name": "link",
+                              "required": true,
+                              "target_model": "phoxtail_core.InternalLink",
+                              "help_text": "Internal application link"
                             }
                           },
                           {

@@ -22,7 +22,7 @@ def has_active_child(context, items, request_path):
     request = context.get("request")
 
     for item in items:
-        if item.block_type == "internal_link":
+        if item.block_type == "page":
             page = item.value.get("page")
             if page and isinstance(page, Page):
                 # Use the same URL generation logic as pageurl tag

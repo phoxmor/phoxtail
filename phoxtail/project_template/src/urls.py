@@ -32,6 +32,7 @@ urlpatterns = [
     path("phoxtail_core/", include("phoxtail.core.urls")),
     path("users/", include("phoxtail.users.urls")),
     path("app/", include("app.urls")),
+    # {{ phoxtail_optional_urls }}
 ]
 
 # Development
@@ -48,6 +49,5 @@ if settings.DEBUG:
 # Wagtail — i18n catch-all at the bottom
 urlpatterns += i18n_patterns(
     path("accounts/", include("allauth.urls")),
-    # {{ phoxtail_optional_urls }}
     path("", include(wagtail_urls)),
 )

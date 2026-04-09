@@ -67,7 +67,7 @@
                                     <ul class="ft-nav-list">
                                         {% for item_block in section.items %}
                                             {# Internal Page Link #}
-                                            {% if item_block.block_type == 'page_link' %}
+                                            {% if item_block.block_type == 'page' %}
                                                 {% with item=item_block.value %}
                                                     {% if item.page %}
                                                         {% with current_page=item.page.specific %}
@@ -93,6 +93,16 @@
                                                     {% endif %}
                                                 {% endwith %}
                                                 {# External URL #}
+                                            {% elif item_block.block_type == 'internal_link' %}
+                                                {% with item=item_block.value snippet=item_block.value.link %}
+                                                    <li class="ft-nav-item">
+                                                        <a href="{{ snippet.url }}"
+                                                           class="ft-link"
+                                                           {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                                            {{ item.label|default:snippet.label }}
+                                                        </a>
+                                                    </li>
+                                                {% endwith %}
                                             {% elif item_block.block_type == 'external_link' %}
                                                 {% with item=item_block.value %}
                                                     <li class="ft-nav-item">
@@ -147,7 +157,7 @@
             {% if value.bottom_links %}
                 <ul class="ft-legal-list">
                     {% for link_block in value.bottom_links %}
-                        {% if link_block.block_type == 'page_link' %}
+                        {% if link_block.block_type == 'page' %}
                             {% with link=link_block.value %}
                                 {% if link.page %}
                                     {% with current_page=link.page.specific %}
@@ -172,6 +182,16 @@
                                         {% endif %}
                                     {% endwith %}
                                 {% endif %}
+                            {% endwith %}
+                        {% elif link_block.block_type == 'internal_link' %}
+                            {% with link=link_block.value snippet=link_block.value.link %}
+                                <li>
+                                    <a href="{{ snippet.url }}"
+                                       class="ft-legal-link"
+                                       {% if link.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                                        {{ link.label|default:snippet.label }}
+                                    </a>
+                                </li>
                             {% endwith %}
                         {% elif link_block.block_type == 'external_link' %}
                             {% with link=link_block.value %}
