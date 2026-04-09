@@ -8,7 +8,7 @@ breaking-change territory: any change forces a v2.
 
 from __future__ import annotations
 
-from ninja import Schema
+from ninja import Field, Schema
 
 # ---------------------------------------------------------------------------
 # Shared references
@@ -172,7 +172,7 @@ class BlockCreate(Schema):
     group: str = ""
     is_shared: bool = False
     page_types: list[str] = []
-    schema: list[dict] = []
+    block_schema: list[dict] = Field([], alias="schema")
 
 
 class BlockUpdate(Schema):
@@ -188,7 +188,7 @@ class BlockUpdate(Schema):
     group: str | None = None
     is_shared: bool | None = None
     page_types: list[str] | None = None
-    schema: list[dict] | None = None
+    block_schema: list[dict] | None = Field(None, alias="schema")
 
 
 # ---------------------------------------------------------------------------

@@ -62,7 +62,7 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
         icon=payload.icon,
         group=payload.group,
         is_shared=payload.is_shared,
-        schema=payload.schema,
+        schema=payload.block_schema,
     )
 
     try:
@@ -125,8 +125,8 @@ def update_block(
         b.group = payload.group
     if payload.is_shared is not None:
         b.is_shared = payload.is_shared
-    if payload.schema is not None:
-        b.schema = payload.schema
+    if payload.block_schema is not None:
+        b.schema = payload.block_schema
 
     try:
         b.full_clean()
