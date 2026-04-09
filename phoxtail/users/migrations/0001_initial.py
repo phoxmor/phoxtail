@@ -239,7 +239,6 @@ class Migration(migrations.Migration):
                 modelsearch.index.Indexed,
             ),
             managers=[
-                ("objects", phoxtail.users.managers.UserManager()),
             ],
         ),
         migrations.AddIndex(
