@@ -9,7 +9,7 @@
 
 @media (prefers-color-scheme: dark) {
     #cs-{{ block.id }} {
-        background-color: rgb(var(--color-surface-800));
+        background-color: rgb(var(--color-surface-900));
     }
 }
 

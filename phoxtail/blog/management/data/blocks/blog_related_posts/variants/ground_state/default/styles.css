@@ -19,8 +19,8 @@
 
 @media (prefers-color-scheme: dark) {
     #brp-{{ block.id }} {
-        /* Dark mode overrides - Max surface 800 */
-        --brp-bg: var(--color-surface-800);
+        /* Dark mode overrides - Max surface 900 */
+        --brp-bg: var(--color-surface-900);
         --brp-text: var(--color-surface-50);
         --brp-text-muted: var(--color-surface-400);
         --brp-border: var(--color-surface-700);

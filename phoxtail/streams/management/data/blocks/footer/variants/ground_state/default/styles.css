@@ -27,7 +27,7 @@
 /* ── Dark Mode Overrides ── */
 @media (prefers-color-scheme: dark) {
     #ft-{{ block.id }} {
-        --ft-surface: var(--color-surface-800);
+        --ft-surface: var(--color-surface-900);
         --ft-surface-hover: var(--color-surface-700);
         --ft-border: var(--color-surface-600);
         --ft-text-primary: var(--color-surface-50);

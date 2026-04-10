@@ -47,7 +47,7 @@
 /* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
     #bph-{{ block.id }} {
-        --bph-bg: var(--color-surface-800);
+        --bph-bg: var(--color-surface-900);
         --bph-text-main: var(--color-surface-50);
         --bph-text-muted: var(--color-surface-300);
         --bph-text-subtle: var(--color-surface-400);

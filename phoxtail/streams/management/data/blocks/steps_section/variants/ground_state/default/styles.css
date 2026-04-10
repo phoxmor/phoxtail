@@ -345,7 +345,7 @@
 
 @media (prefers-color-scheme: dark) {
     #ss-{{ block.id }} {
-        --ss-bg: var(--color-surface-800);
+        --ss-bg: var(--color-surface-900);
         --ss-text-main: var(--color-surface-100);
         --ss-text-muted: var(--color-surface-400);
         --ss-accent: var(--color-primary-400);

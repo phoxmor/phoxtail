@@ -178,7 +178,7 @@
 
 @media (prefers-color-scheme: dark) {
     #hs-{{ block.id }} {
-        --hs-bg: var(--color-surface-800);
+        --hs-bg: var(--color-surface-900);
         --hs-text-main: var(--color-surface-100);
         --hs-text-muted: var(--color-surface-400);
         --hs-accent: var(--color-primary-400);

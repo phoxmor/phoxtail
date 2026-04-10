@@ -317,7 +317,7 @@
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
     #pricings-{{ block.id }} {
-        background-color: rgb(var(--color-surface-800));
+        background-color: rgb(var(--color-surface-900));
         color: rgb(var(--color-surface-100));
     }
 

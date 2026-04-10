@@ -219,8 +219,8 @@
 
 /* ── Dark mode ───────────────────────────────────────────────────────────── */ 
 @media (prefers-color-scheme: dark) { 
-  #image-cards-{{ block.id }} { 
-    background-color: rgb(var(--color-surface-800)); 
+  #image-cards-{{ block.id }} {
+    background-color: rgb(var(--color-surface-900));
   } 
   
   #image-cards-{{ block.id }} .ic-dot { 

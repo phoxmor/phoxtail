@@ -52,7 +52,7 @@
         --rt-th-borders:    var(--color-surface-600);
         --rt-td-borders:    var(--color-surface-700);
 
-        background-color: rgb(var(--color-surface-800));
+        background-color: rgb(var(--color-surface-900));
     }
 }
 
