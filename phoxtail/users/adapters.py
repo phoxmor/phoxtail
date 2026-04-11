@@ -5,7 +5,7 @@ from django.conf import settings
 
 class AccountAdapter(DefaultAccountAdapter):
     def is_open_for_signup(self, request):
-        return settings.FEATURE_ALLOW_SIGNUP
+        return settings.PHOXTAIL_ALLOW_SIGNUP
 
     def populate_username(self, request, user):
         # Guard against names that are purely non-ASCII (e.g. Greek) with

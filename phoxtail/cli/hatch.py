@@ -14,14 +14,21 @@ from rich.prompt import Confirm
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
+from phoxtail.core.wiring import find_phoxtail_config
 
 console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
 APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
-CTX_MARKER = "                # {{ phoxtail_context_processors }}\n"
-URLS_MARKER = "    # {{ phoxtail_optional_urls }}\n"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
+
+# Files that are only copied into a hatched project when a predicate holds.
+# The predicate receives the list of selected optional-app dotted names.
+CONDITIONAL_FILES: dict[str, callable] = {
+    "src/celery.py": lambda apps: any(
+        _get_app_info(app)["requires_celery"] for app in apps
+    ),
+}
 
 # Optional phoxtail apps available during hatching.
 OPTIONAL_APPS = [
@@ -30,36 +37,31 @@ OPTIONAL_APPS = [
     {"name": "Booking", "value": "phoxtail.booking"},
 ]
 
-# App groups: selecting a single value expands into multiple INSTALLED_APPS entries.
-APP_GROUPS = {
-    "phoxtail.booking": [
-        "phoxtail.booking.core",
-        "phoxtail.booking.services",
-        "phoxtail.booking.events",
-        "phoxtail.booking.subscriptions",
-        "phoxtail.booking.reservations",
-    ],
-}
 
-# Implicit dependencies: selecting an app auto-includes its dependencies.
-APP_DEPENDENCIES = {
-    "phoxtail.booking": ["phoxtail.dashboard"],
-}
+def _get_app_info(dotted_app: str) -> dict:
+    """Read celery + requirements metadata from an optional app's PhoxtailAppConfig.
 
-# Context processors to inject when specific optional apps are selected.
-APP_CONTEXT_PROCESSORS = {
-    "phoxtail.dashboard": [
-        "phoxtail.dashboard.context_processors.dashboard_nav",
-    ],
-}
+    Apps that don't ship a PhoxtailAppConfig (e.g. plain-AppConfig apps like
+    blog) return empty defaults.
+    """
+    config = find_phoxtail_config(dotted_app)
+    if config is None:
+        return {"requires_celery": False, "requirements": []}
+    return {
+        "requires_celery": config.requires_celery,
+        "requirements": list(config.requirements),
+    }
 
-# URL patterns to inject when specific optional apps are selected.
-# Each value is a line of code to insert into urls.py (with correct indent).
-APP_URL_PATTERNS = {
-    "phoxtail.dashboard": (
-        '    path("dashboard/", include("phoxtail.dashboard.urls")),\n'
-    ),
-}
+
+def _collect_extra_requirements(selected_apps: list[str]) -> list[str]:
+    """Collect deduplicated extra requirements from selected optional apps."""
+    extras: list[str] = []
+    for app in selected_apps:
+        for req in _get_app_info(app)["requirements"]:
+            if req not in extras:
+                extras.append(req)
+    return extras
+
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
@@ -157,8 +159,10 @@ def _copy_template(
     files contain Django template syntax that must be left untouched.
 
     *optional_apps* is a list of dotted app names to inject into
-    INSTALLED_APPS (replacing the ``APPS_MARKER`` line).  When empty or
-    ``None`` the marker is simply removed so the file stays clean.
+    INSTALLED_APPS (replacing the ``APPS_MARKER`` line). Per-app
+    integration (context processors, URL mounts, celery settings,
+    dependencies) is handled at runtime by ``phoxtail.core.wiring`` via
+    each app's ``PhoxtailAppConfig``.
 
     Returns the number of files copied.
     """
@@ -169,41 +173,17 @@ def _copy_template(
             "install of the full repository."
         )
 
-    # Resolve implicit dependencies (e.g. booking requires dashboard).
-    resolved_apps: list[str] = []
-    for app in optional_apps or []:
-        for dep in APP_DEPENDENCIES.get(app, []):
-            if dep not in resolved_apps:
-                resolved_apps.append(dep)
-        if app not in resolved_apps:
-            resolved_apps.append(app)
+    selected = optional_apps or []
 
-    # Expand app groups into individual INSTALLED_APPS entries.
-    installed_apps: list[str] = []
-    for app in resolved_apps:
-        installed_apps.extend(APP_GROUPS.get(app, [app]))
-
-    if installed_apps:
-        apps_replacement = "".join(f'    "{app}",\n' for app in installed_apps)
+    if selected:
+        apps_replacement = "".join(f'    "{app}",\n' for app in selected)
     else:
         apps_replacement = ""
 
-    # Collect context processors for selected/resolved apps.
-    ctx_processors = []
-    for app in resolved_apps:
-        ctx_processors.extend(APP_CONTEXT_PROCESSORS.get(app, []))
-    if ctx_processors:
-        ctx_replacement = "".join(f'                "{cp}",\n' for cp in ctx_processors)
-    else:
-        ctx_replacement = ""
-
-    # Collect URL patterns for selected/resolved apps.
-    url_lines = []
-    for app in resolved_apps:
-        line = APP_URL_PATTERNS.get(app)
-        if line:
-            url_lines.append(line)
-    urls_replacement = "".join(url_lines)
+    # Evaluate which conditional files should be skipped for this project.
+    skipped_rel_paths = {
+        rel for rel, predicate in CONDITIONAL_FILES.items() if not predicate(selected)
+    }
 
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
@@ -211,6 +191,9 @@ def _copy_template(
             continue
 
         rel_path = src_path.relative_to(TEMPLATE_DIR)
+        if rel_path.as_posix() in skipped_rel_paths:
+            continue
+
         dest_path = target_dir / rel_path
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -221,10 +204,6 @@ def _copy_template(
                 content = content.replace(PLACEHOLDER, project_name)
             if APPS_MARKER in content:
                 content = content.replace(APPS_MARKER, apps_replacement)
-            if CTX_MARKER in content:
-                content = content.replace(CTX_MARKER, ctx_replacement)
-            if URLS_MARKER in content:
-                content = content.replace(URLS_MARKER, urls_replacement)
             dest_path.write_text(content, encoding="utf-8")
         except UnicodeDecodeError:
             shutil.copy2(src_path, dest_path)
@@ -645,8 +624,14 @@ def hatch(
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             file_count = _copy_template(project_name, target_dir, selected_apps)
 
-            # Generate requirements.in from template
+            # Generate requirements.in from template, then append any
+            # extra requirements contributed by selected optional apps
+            # (e.g. booking brings in celery + django-celery-beat).
             requirements_in = render_template("requirements/requirements.in", {})
+            extras = _collect_extra_requirements(selected_apps)
+            if extras:
+                suffix = "\n# Optional phoxtail apps\n" + "\n".join(extras) + "\n"
+                requirements_in = requirements_in.rstrip("\n") + "\n" + suffix
             (target_dir / "requirements.in").write_text(
                 requirements_in, encoding="utf-8"
             )

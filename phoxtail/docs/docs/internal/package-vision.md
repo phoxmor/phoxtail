@@ -134,6 +134,46 @@ This split creates two distinct upgrade paths:
 
 This means the package's compatibility contract is only about the library apps. The scaffolded code, once generated, is the project's responsibility.
 
+## Optional apps and the `PhoxtailAppConfig` interface
+
+The long-term goal is for optional clusters like `phoxtail.booking`,
+`phoxtail.dashboard`, or a future `phoxtail-blog` to ship as separate
+PyPI packages that a project can install independently. To make that
+possible, optional apps cannot require changes to the project's
+settings, URL conf, or scaffold when they are added or removed.
+
+The enabling abstraction is the `PhoxtailAppConfig` base class in
+`phoxtail.core.app_config`. Every optional app subclasses it in its
+`apps.py` and declares — in one place — everything it needs to be
+wired into a Django project:
+
+- `depends_on` — other phoxtail apps this one pulls in
+- `url_mount` — where to mount its URL conf and under which namespace
+- `context_processors` / `middleware` — appended to the project's
+  `TEMPLATES` / `MIDDLEWARE`
+- `default_settings` — setting defaults, applied only when the
+  project hasn't already set them
+- `requires_celery` — toggles `PHOXTAIL_CELERY_ENABLED` for the
+  project's celery integration
+- `requirements` — extra pip requirements appended to the generated
+  `requirements.in` at hatch time
+
+At Django startup, each generated settings module calls
+`wire_apps(globals())` from `phoxtail.core.wiring`. That function
+walks `INSTALLED_APPS`, finds every `PhoxtailAppConfig`, expands
+`depends_on`, and merges the declared fields into the settings
+module. Nothing about the project template, the hatch command, or
+the settings scaffold needs to know which optional apps exist. Adding
+a new optional app means: ship a package, subclass
+`PhoxtailAppConfig`, and users put its dotted name in
+`INSTALLED_APPS`. Removing an app means: take its dotted name out.
+
+This is what makes the eventual `phoxtail-blog` / `phoxtail-booking`
+package split a purely administrative change rather than a coupled
+refactor of the engine, the scaffold, and the CLI. See the
+[PhoxtailAppConfig reference](../apps/phoxtail-app-config.md) for the
+full field list, precedence rules, and examples.
+
 ## Publication strategy
 
 Library apps and scaffold templates are developed in-repo but **excluded from the published package until v0.2.0**. The current v0.1.x releases distribute the CLI only:

@@ -51,7 +51,6 @@ INSTALLED_APPS = [
     "app",
     "allauth",
     "allauth.account",
-    "django_celery_beat",
     "sorl.thumbnail",
     "wagtail_color_panel",
 ]
@@ -107,7 +106,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "wagtail.contrib.settings.context_processors.settings",
-                # {{ phoxtail_context_processors }}
             ],
         },
     },
@@ -225,15 +223,9 @@ WAGTAIL_SITE_NAME = env("SITE_NAME", default="{{ phoxtail_project_name }}")
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Features
-FEATURE_ALLOW_SIGNUP = env.bool("FEATURE_ALLOW_SIGNUP", default=False)
-FEATURE_ACTIVATE_DASHBOARD = env.bool("FEATURE_ACTIVATE_DASHBOARD", default=False)
+PHOXTAIL_ALLOW_SIGNUP = env.bool("PHOXTAIL_ALLOW_SIGNUP", default=False)
 
-# Celery Configuration
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://redis:6379/0")
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+# NOTE: PhoxtailAppConfig wiring (wire_apps) is intentionally NOT called
+# here. It runs in the concrete settings modules (development.py,
+# production.py, test.py) AFTER they finish modifying INSTALLED_APPS, so
+# declarations from test-only or env-specific apps are never missed.

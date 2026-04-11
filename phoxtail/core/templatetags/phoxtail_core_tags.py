@@ -43,19 +43,23 @@ def get_proper_page_range(paginator, current_page, show_adjacent=1):
 
 
 @register.simple_tag
-def is_feature_enabled(name):
-    """
-    Check if a feature flag 'FEATURE_<NAME>' is enabled in settings.
-
-    Args:
-        name (str): Feature name (e.g., 'allow_signup').
-
-    Returns:
-        bool: True if enabled, False if not.
+def app_installed(dotted_name):
+    """Return True if the given app is in INSTALLED_APPS.
 
     Example:
-        {% if is_feature_enabled 'allow_signup' %}
-            Signup is enabled!
-        {% endif %}
+        {% app_installed 'phoxtail.dashboard' as is_dashboard_enabled %}
+        {% if is_dashboard_enabled %}...{% endif %}
     """
-    return getattr(settings, f"FEATURE_{name.upper()}", False)
+    from django.apps import apps
+
+    return apps.is_installed(dotted_name)
+
+
+@register.simple_tag
+def setting_enabled(name):
+    """Return True if the named setting is truthy.
+
+    Example:
+        {% setting_enabled 'PHOXTAIL_ALLOW_SIGNUP' as signup_allowed %}
+    """
+    return bool(getattr(settings, name, False))

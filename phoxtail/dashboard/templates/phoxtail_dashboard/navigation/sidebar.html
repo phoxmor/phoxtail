@@ -1,4 +1,4 @@
-{% load wagtailimages_tags wagtailsettings_tags phoxtail_core_tags phoxtail_dashboard_tags %}
+{% load wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
 <div class="dash-sidebar-wrapper">
     <div class="dash-sidebar-spacer" id="dash-sidebar-spacer">
         <div class="dash-sidebar" id="dash-sidebar">
@@ -23,24 +23,21 @@
             <!-- Navigation -->
             <div class="dash-sidebar__nav">
                 <nav class="dash-sidebar__nav-list">
-                    {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
-                    {% if is_dashboard_enabled %}
-                        {% url 'dashboard:index' as dashboard_path %}
-                        <a href="{{ dashboard_path }}"
-                           class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
-                            <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
-                            <span class="dash-nav-label">Dashboard</span>
+                    {% url 'dashboard:index' as dashboard_path %}
+                    <a href="{{ dashboard_path }}"
+                       class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
+                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+                        <span class="dash-nav-label">Dashboard</span>
+                    </a>
+                    {% for item in dashboard_nav_items %}
+                        {% url item.url_name as item_path %}
+                        {% dashboard_icon_path item.icon as svg_path %}
+                        <a href="{{ item_path }}"
+                           class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
+                            <span class="dash-nav-icon">{% include svg_path %}</span>
+                            <span class="dash-nav-label">{{ item.label }}</span>
                         </a>
-                        {% for item in dashboard_nav_items %}
-                            {% url item.url_name as item_path %}
-                            {% dashboard_icon_path item.icon as svg_path %}
-                            <a href="{{ item_path }}"
-                               class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
-                                <span class="dash-nav-icon">{% include svg_path %}</span>
-                                <span class="dash-nav-label">{{ item.label }}</span>
-                            </a>
-                        {% endfor %}
-                    {% endif %}
+                    {% endfor %}
                 </nav>
             </div>
             <!-- Footer Controls -->
@@ -52,14 +49,12 @@
                     <span class="dash-nav-icon dash-sidebar__collapse-icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
                     <span class="dash-nav-label" id="sidebar-collapse-label">Collapse Menu</span>
                 </button>
-                {% if is_dashboard_enabled %}
-                    {% url 'users:profile' as profile_path %}
-                    <a href="{{profile_path}}"
-                       class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
-                        <span class="dash-nav-label">Profile</span>
-                    </a>
-                {% endif %}
+                {% url 'users:profile' as profile_path %}
+                <a href="{{profile_path}}"
+                   class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
+                    <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                    <span class="dash-nav-label">Profile</span>
+                </a>
                 {% url 'wagtailadmin_home' as admin_path %}
                 {% if perms.wagtailadmin.access_admin %}
                     <a href="{{ admin_path }}"

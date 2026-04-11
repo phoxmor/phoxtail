@@ -56,25 +56,26 @@ phoxtail test --coverage
 
 Tests run under `src/settings/test.py`, pointed to by `DJANGO_SETTINGS_MODULE = "src.settings.test"` in `pyproject.toml`.
 
-This file does two things before importing base settings:
-
 ```python
 # src/settings/test.py
-import os
-
-os.environ["FEATURE_ACTIVATE_BOOKING"] = "True"  # (1)
-
 from .base import *  # noqa
+
+# Add any optional apps the test suite needs. Runtime wiring
+# (wire_apps) will pick up their PhoxtailAppConfig declarations below.
+INSTALLED_APPS += ["phoxtail.booking"]  # (1)
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # (2)
 STORAGES = { ... "staticfiles": StaticFilesStorage ... }              # (3)
+
+from phoxtail.core.wiring import wire_apps
+wire_apps(globals())
 ```
 
-1. **Feature flag override.** `FEATURE_ACTIVATE_BOOKING` defaults to `False` in `.env`. Setting it in `os.environ` *before* `base.py` is imported means `environ.Env.read_env()` (which uses `setdefault` semantics) never overwrites it. The booking apps are then added to `INSTALLED_APPS` by the conditional block in `base.py`.
+1. **Install optional apps directly.** No env-var juggling. Add the dotted app name to `INSTALLED_APPS` before `wire_apps(globals())` runs; the runtime wiring pulls in its declared `depends_on`, context processors, middleware, and default settings.
 2. **Fast password hashing.** `MD5PasswordHasher` skips the expensive PBKDF2 key stretching. Tests that create users run orders of magnitude faster.
 3. **No collectstatic requirement.** `ManifestStaticFilesStorage` (used in production/development) requires a pre-built manifest file. `StaticFilesStorage` skips that, so tests never fail because `collectstatic` hasn't been run.
 
-When adding a new feature-flagged application that should be covered by tests, add the same pattern to `test.py`.
+When adding a new optional phoxtail app that should be covered by tests, append its dotted name to `INSTALLED_APPS` in `test.py`.
 
 ---
 
@@ -299,6 +300,6 @@ When a new Django app acquires service layer logic that needs coverage:
 
 4. **Write test files** under `tests/services/`, mirroring the layout of the service layer. One file per operation class is a good default.
 
-5. **If the app is feature-flagged**, add `os.environ["FEATURE_ACTIVATE_X"] = "True"` to `src/settings/test.py` so its apps are included in `INSTALLED_APPS` during the test run.
+5. **If the app is optional**, append its dotted name to `INSTALLED_APPS` in `src/settings/test.py` (before `wire_apps(globals())`) so the test run picks up its `PhoxtailAppConfig` declarations.
 
 No changes to `pyproject.toml` are needed — pytest discovers tests recursively from the project root.

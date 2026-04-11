@@ -46,6 +46,6 @@ class TestReadEnvValue:
         assert read_env_value("DOMAIN", env_file=path) == "first.com"
 
     def test_boolean_value(self, env_file):
-        path = env_file("FEATURE_ACTIVATE_BOOKING=true")
-        result = read_env_value("FEATURE_ACTIVATE_BOOKING", env_file=path)
+        path = env_file("PHOXTAIL_ALLOW_SIGNUP=true")
+        result = read_env_value("PHOXTAIL_ALLOW_SIGNUP", env_file=path)
         assert result == "true"

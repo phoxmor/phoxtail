@@ -8,7 +8,6 @@ django-allauth
 django-htmx
 django-countries[pyuca]
 django-phonenumber-field[phonenumbers]
-django-celery-beat
 django-filter
 django-timezone-field
 sorl-thumbnail
@@ -24,8 +23,7 @@ wagtail-color-panel
 # Database
 psycopg[binary]
 
-# Task queue
-celery
+# Cache / broker
 redis
 
 # Production server

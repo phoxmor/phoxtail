@@ -157,7 +157,7 @@
                         {% endif %}
                         <div class="nb-glass-hoverfill"></div>
                         <div class="nb-glass-user-menu">
-                            {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+                            {% app_installed 'phoxtail.dashboard' as is_dashboard_enabled %}
                             {% if is_dashboard_enabled %}
                                 {% url 'dashboard:index' as dashboard_path %}
                                 <a href="{{ dashboard_path }}"
@@ -369,7 +369,7 @@
             {# Sidebar User Section #}
             {% if user.is_authenticated %}
                 <div class="nb-glass-sidebar-section">
-                    {% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}
+                    {% app_installed 'phoxtail.dashboard' as is_dashboard_enabled %}
                     {% if is_dashboard_enabled %}
                         {% url 'dashboard:index' as dashboard_path %}
                         <a href="{{ dashboard_path }}"

@@ -134,7 +134,7 @@ All DB writes run inside `transaction.atomic()`.
 The admin management UI (forms, views, viewsets, templates) lives in `booking/core/admin/users/`, **not** in `users/`. This is because:
 
 - The admin UI depends on `BookingGroup` (a `booking.core` model) for group assignment
-- The `booking` cluster is feature-flagged (`FEATURE_ACTIVATE_BOOKING`) and may not exist in every deployment
+- The `booking` cluster is optional and may not be installed in every deployment — check with `apps.is_installed('phoxtail.booking')`
 - The `users` app must remain independent of the booking cluster
 
 The views in `booking/core/admin/users/views.py` call the user service for create/update operations and handle `BookingGroup` membership separately.

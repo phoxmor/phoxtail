@@ -12,3 +12,13 @@ if USE_SMTP_EMAIL_BACKEND:
     EMAIL_HOST_USER = env("EMAIL_HOST_USER")  # noqa: F405
     EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")  # noqa: F405
     DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")  # noqa: F405
+
+# Autonomous app wiring — must run AFTER INSTALLED_APPS / TEMPLATES /
+# MIDDLEWARE and any user-authored settings that apps should not
+# override. Merges PhoxtailAppConfig declarations into this module.
+from phoxtail.core.wiring import wire_apps  # noqa: E402
+
+wire_apps(globals())
+
+if PHOXTAIL_CELERY_ENABLED:  # noqa: F405
+    CELERY_TIMEZONE = TIME_ZONE  # noqa: F405

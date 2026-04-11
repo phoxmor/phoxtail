@@ -7,7 +7,6 @@ from typer.testing import CliRunner
 
 from phoxtail.__main__ import app
 from phoxtail.cli.hatch import (
-    APP_GROUPS,
     APPS_MARKER,
     PLACEHOLDER,
     TEMPLATE_DIR,
@@ -20,12 +19,21 @@ runner = CliRunner()
 class TestCopyTemplate:
     """Unit tests for the _copy_template helper."""
 
-    def test_copies_all_template_files(self, tmp_path):
+    def test_copies_all_template_files_minus_conditional(self, tmp_path):
         target = tmp_path / "myproject"
         target.mkdir()
         count = _copy_template("myproject", target)
 
-        # Should have copied every file from project_template
+        # Without booking, src/celery.py is skipped as a conditional file.
+        template_files = [f for f in TEMPLATE_DIR.rglob("*") if f.is_file()]
+        assert count == len(template_files) - 1
+
+    def test_copies_all_template_files_with_booking(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        count = _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
+
+        # With booking selected, src/celery.py is included.
         template_files = [f for f in TEMPLATE_DIR.rglob("*") if f.is_file()]
         assert count == len(template_files)
 
@@ -38,14 +46,21 @@ class TestCopyTemplate:
         assert PLACEHOLDER not in toml
         assert 'name = "acme"' in toml
 
-    def test_replaces_placeholder_in_celery(self, tmp_path):
+    def test_replaces_placeholder_in_celery_when_booking_selected(self, tmp_path):
         target = tmp_path / "acme"
         target.mkdir()
-        _copy_template("acme", target)
+        _copy_template("acme", target, optional_apps=["phoxtail.booking"])
 
         celery = (target / "src" / "celery.py").read_text()
         assert PLACEHOLDER not in celery
         assert '"acme"' in celery
+
+    def test_celery_file_skipped_without_booking(self, tmp_path):
+        target = tmp_path / "acme"
+        target.mkdir()
+        _copy_template("acme", target)
+
+        assert not (target / "src" / "celery.py").exists()
 
     def test_replaces_placeholder_in_settings(self, tmp_path):
         target = tmp_path / "acme"
@@ -95,19 +110,21 @@ class TestCopyTemplate:
         assert APPS_MARKER.strip() not in settings
         assert "phoxtail.blog" not in settings
 
-    def test_booking_expands_into_five_sub_apps(self, tmp_path):
+    def test_booking_writes_umbrella_dotted_name_only(self, tmp_path):
+        """Hatch writes the umbrella app name. depends_on expansion happens
+        at runtime via PhoxtailBookingConfig."""
         target = tmp_path / "myproject"
         target.mkdir()
         _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
 
         settings = (target / "src" / "settings" / "base.py").read_text()
-        # Booking dependency: dashboard should be auto-included
-        assert '"phoxtail.dashboard",' in settings
-        # All five booking sub-apps should be injected
-        for sub_app in APP_GROUPS["phoxtail.booking"]:
-            assert f'"{sub_app}",' in settings
+        assert '"phoxtail.booking",' in settings
+        # No hatch-time expansion: subapps should NOT appear in base.py
+        assert '"phoxtail.booking.core",' not in settings
+        # Dashboard is NOT hatch-injected; booking pulls it via depends_on at runtime
+        assert '"phoxtail.dashboard",' not in settings
 
-    def test_booking_does_not_duplicate_dashboard_when_both_selected(self, tmp_path):
+    def test_both_selected_writes_both_once(self, tmp_path):
         target = tmp_path / "myproject"
         target.mkdir()
         _copy_template(
@@ -117,22 +134,8 @@ class TestCopyTemplate:
         )
 
         settings = (target / "src" / "settings" / "base.py").read_text()
-        # Dashboard should appear exactly once
         assert settings.count('"phoxtail.dashboard",') == 1
-        # All five booking sub-apps should be present
-        for sub_app in APP_GROUPS["phoxtail.booking"]:
-            assert f'"{sub_app}",' in settings
-
-    def test_booking_without_dashboard_auto_includes_dashboard(self, tmp_path):
-        target = tmp_path / "myproject"
-        target.mkdir()
-        _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
-
-        settings = (target / "src" / "settings" / "base.py").read_text()
-        # Dashboard should be auto-included as a dependency
-        assert '"phoxtail.dashboard",' in settings
-        # Dashboard context processor should be injected
-        assert "phoxtail.dashboard.context_processors.dashboard_nav" in settings
+        assert settings.count('"phoxtail.booking",') == 1
 
     def test_no_booking_removes_all_booking_apps(self, tmp_path):
         target = tmp_path / "myproject"
@@ -171,6 +174,30 @@ class TestHatchCommand:
         assert "wagtail" in content
         assert "django-environ" in content
         assert "gunicorn" in content
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    def test_requirements_in_omits_celery_by_default(
+        self, mock_run, tmp_path, monkeypatch
+    ):
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
+        content = (tmp_path / "myproject" / "requirements.in").read_text()
+        assert "\ncelery\n" not in content
+        assert "django-celery-beat" not in content
+
+    def test_requirements_in_adds_celery_when_booking_selected(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target, optional_apps=["phoxtail.booking"])
+
+        # _copy_template doesn't write requirements.in (hatch() does).
+        # Verify via _collect_extra_requirements directly.
+        from phoxtail.cli.hatch import _collect_extra_requirements
+
+        extras = _collect_extra_requirements(["phoxtail.booking"])
+        assert "celery" in extras
+        assert "django-celery-beat" in extras
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     def test_compiles_requirements(self, mock_run, tmp_path, monkeypatch):

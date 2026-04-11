@@ -11,3 +11,13 @@ STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
+
+# Autonomous app wiring — must run AFTER INSTALLED_APPS / TEMPLATES /
+# MIDDLEWARE and any user-authored settings that apps should not
+# override. Merges PhoxtailAppConfig declarations into this module.
+from phoxtail.core.wiring import wire_apps  # noqa: E402
+
+wire_apps(globals())
+
+if PHOXTAIL_CELERY_ENABLED:  # noqa: F405
+    CELERY_TIMEZONE = TIME_ZONE  # noqa: F405

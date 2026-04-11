@@ -24,7 +24,7 @@ POSTGRES_HOST=db
 POSTGRES_PORT=5432
 
 # Features
-FEATURE_ALLOW_SIGNUP=true
+PHOXTAIL_ALLOW_SIGNUP=true
 
 # Backup
 BACKUP_FILE=yyyy-mm-dd.sql
@@ -63,7 +63,7 @@ EMAIL_HOST_PASSWORD=<smtp_password>
 DEFAULT_FROM_EMAIL=admin@example.com
 
 # Features
-FEATURE_ALLOW_SIGNUP=false
+PHOXTAIL_ALLOW_SIGNUP=false
 
 # Backup
 BACKUP_FILE=yyyy-mm-dd.sql

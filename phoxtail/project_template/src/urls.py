@@ -7,6 +7,8 @@ from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
+from phoxtail.core.wiring import collect_url_patterns
+
 
 def login_redirect_view(request):
     if not request.user.is_authenticated:
@@ -32,8 +34,9 @@ urlpatterns = [
     path("phoxtail_core/", include("phoxtail.core.urls")),
     path("users/", include("phoxtail.users.urls")),
     path("app/", include("app.urls")),
-    # {{ phoxtail_optional_urls }}
 ]
+
+urlpatterns += collect_url_patterns()
 
 # Development
 if settings.DEBUG:

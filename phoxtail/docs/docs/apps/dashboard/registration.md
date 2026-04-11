@@ -187,28 +187,23 @@ The namespace is derived from `url_prefix.strip("/")`, so `url_prefix="booking/"
    - `dashboard_mobile_nav_items` — only items with `mobile=True`, used by the mobile bottom dock
 7. `dashboard/views.py` collects widget data on the home page
 
-## How Feature Flags Gate App Inclusion
+## How App Inclusion Gates Registration
 
-In `src/settings/base.py`:
+App presence in `INSTALLED_APPS` is the single source of truth. Optional
+apps like booking are wired in via their umbrella `PhoxtailAppConfig`:
+selecting them at hatch time adds `"phoxtail.booking"` to
+`INSTALLED_APPS`, and the runtime wiring in `phoxtail.core.wiring`
+expands `PhoxtailBookingConfig.depends_on` into the full subapp list.
 
-```python
-FEATURE_ACTIVATE_BOOKING = env.bool("FEATURE_ACTIVATE_BOOKING", default=False)
-
-if FEATURE_ACTIVATE_BOOKING:
-    INSTALLED_APPS += [
-        "booking.core",
-        "booking.services",
-        "booking.events",
-        "booking.subscriptions",
-        "booking.reservations",
-    ]
-```
-
-When `FEATURE_ACTIVATE_BOOKING=False`:
-- Booking apps are not in `INSTALLED_APPS`
-- `autodiscover_modules` never finds `booking.core.dashboard`
+When `"phoxtail.booking"` is not in `INSTALLED_APPS`:
+- Booking subapps are never installed
+- `autodiscover_modules` never finds `phoxtail.booking.core.dashboard`
 - No booking nav items, URLs, or widgets are registered
 - No import errors — the booking code is never loaded
+
+No env flag. No parallel `FEATURE_ACTIVATE_*` state. The check from
+templates is `{% app_installed 'phoxtail.booking' %}` or, from Python,
+`django.apps.apps.is_installed('phoxtail.booking')`.
 
 ## CSS Classes
 

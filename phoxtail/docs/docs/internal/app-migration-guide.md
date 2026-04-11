@@ -27,7 +27,7 @@ Create `phoxtail/<app_name>/` with the standard layout:
 ```
 phoxtail/<app_name>/
 ├── __init__.py
-├── apps.py            # AppConfig with name="phoxtail.<app_name>"
+├── apps.py            # PhoxtailAppConfig subclass, name="phoxtail.<app_name>"
 ├── models.py
 ├── streams.py         # StreamField block definitions (if any)
 ├── migrations/
@@ -45,6 +45,24 @@ Key conventions:
 | `AppConfig.name` | `phoxtail.<app_name>` | `phoxtail.blog` |
 | `AppConfig.label` | `phoxtail_<app_name>` | `phoxtail_blog` |
 | Template tags module | Named to avoid collisions | `phoxtail_blog_tags` |
+
+The `AppConfig` should subclass `phoxtail.core.app_config.PhoxtailAppConfig`
+and declare any integration the app needs (URL mount, context processors,
+middleware, default settings, celery requirement, pip requirements,
+dependencies on other phoxtail apps). See
+[PhoxtailAppConfig reference](../apps/phoxtail-app-config.md) for the
+full field list.
+
+```python
+# phoxtail/<app_name>/apps.py
+from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
+
+class PhoxtailMyAppConfig(PhoxtailAppConfig):
+    name = "phoxtail.my_app"
+    label = "phoxtail_my_app"
+    url_mount = UrlMount(prefix="my-app/", module="phoxtail.my_app.urls")
+    context_processors = ["phoxtail.my_app.context_processors.my_ctx"]
+```
 
 ### 2. Move block data out of streams
 
@@ -92,9 +110,18 @@ OPTIONAL_APPS = [
 ```
 
 The hatch wizard presents a checkbox prompt **before** scaffolding.
-Selected apps are injected into the generated `INSTALLED_APPS` via the
-`# {{ phoxtail_optional_apps }}` marker in the project template's
-`base.py`.
+Selected apps are written verbatim into the generated project's
+`INSTALLED_APPS`. At Django startup, `wire_apps(globals())` in
+`src/settings/<env>.py` walks those entries, finds each
+`PhoxtailAppConfig`, expands `depends_on`, and merges the app's
+URL mount, context processors, middleware, default settings, and
+celery requirement into the settings module. **No hatch-time injection,
+markers, or context-processor bookkeeping — declare it in `apps.py`
+and the runtime does the rest.**
+
+If your app needs extra pip requirements (e.g. `celery`), declare them
+in `PhoxtailAppConfig.requirements`. Hatch collects requirements from
+the selected apps and appends them to `requirements.in` after rendering.
 
 ### 5. Validate block app references
 
@@ -111,8 +138,9 @@ whose referenced apps are not installed. This means:
 
 - Mock `questionary.checkbox` (returns `[]`) in any hatch test that
   doesn't use `--no-wizard`.
-- Add `_copy_template` unit tests verifying the marker is replaced when
-  optional apps are selected and removed when they are not.
+- Add wiring tests for your app's `PhoxtailAppConfig` if it declares
+  non-trivial integration (url mount, context processors, celery,
+  etc.), using the same pattern as `phoxtail/core/tests/test_wiring.py`.
 
 ### 7. Verify
 
@@ -124,18 +152,21 @@ make test
 Confirm:
 
 - All existing tests pass.
-- `_copy_template` correctly injects / removes the apps marker.
+- A hatched project with the new app selected starts up with the app's
+  URLs mounted and context processors active.
 - `populate_streams` discovers blocks from the new app's data directory.
 
 ## Checklist
 
 Use this as a quick reference when migrating the next app:
 
-- [ ] Create `phoxtail/<app>/` with `AppConfig`, models, templates
+- [ ] Create `phoxtail/<app>/` with a `PhoxtailAppConfig` subclass, models, templates
+- [ ] Declare `url_mount`, `context_processors`, `middleware`,
+      `default_settings`, `requires_celery`, `requirements`, and
+      `depends_on` on the `PhoxtailAppConfig` as needed
 - [ ] Move block data from `streams/management/data/` → `<app>/management/data/`
 - [ ] Add optional dependency extra in `pyproject.toml`
 - [ ] Add package-data entry in `pyproject.toml`
 - [ ] Add entry to `OPTIONAL_APPS` in `hatch.py`
-- [ ] Ensure `# {{ phoxtail_optional_apps }}` marker exists in template `base.py`
 - [ ] Mock `questionary.checkbox` in hatch tests
 - [ ] `make lint-check && make test` — all green

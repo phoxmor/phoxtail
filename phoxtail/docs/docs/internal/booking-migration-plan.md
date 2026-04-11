@@ -303,36 +303,49 @@ OPTIONAL_APPS = [
 ]
 ```
 
-The hatch template's `# {{ phoxtail_optional_apps }}` marker injects
-**all five sub-apps** when "Booking" is selected:
+Hatch writes the single dotted name `"phoxtail.booking"` into the
+generated project's `INSTALLED_APPS`. At Django startup, `wire_apps()`
+finds the umbrella `PhoxtailBookingConfig` in `phoxtail/booking/apps.py`
+and expands its `depends_on` list — `phoxtail.dashboard` plus the five
+booking sub-apps plus `django_celery_beat` — into `INSTALLED_APPS`.
 
-```python
-"phoxtail.booking.core",
-"phoxtail.booking.services",
-"phoxtail.booking.events",
-"phoxtail.booking.subscriptions",
-"phoxtail.booking.reservations",
-```
+Because `PhoxtailBookingConfig.requires_celery = True` and its
+`requirements = ["celery", "django-celery-beat"]`, hatch also:
 
-This requires updating `_copy_template` to expand a single
-`"phoxtail.booking"` selection into all five app entries. Alternatively,
-use five separate OPTIONAL_APPS entries — but a single "Booking" toggle
-is better UX.
+- Appends celery + django-celery-beat to the generated
+  `requirements.in`.
+- Copies `src/celery.py` into the project (gated by the
+  `CONDITIONAL_FILES` predicate in `hatch.py`).
+
+At runtime, `wire_apps()` sets `PHOXTAIL_CELERY_ENABLED = True`, which
+the generated settings modules use to switch on the Celery config
+block.
 
 ### 15. Copy tests
 
 Move all test files, factories, and conftest.py files. Rewrite all
 imports. Add `phoxtail/booking/*/tests` to `testpaths` in
 `pyproject.toml`. Tests depend on a Django test database with all five
-booking apps installed, so a separate test settings module may be needed.
+booking apps installed. The test settings module pattern is:
+
+```python
+# src/settings/test.py
+from .base import *  # noqa
+INSTALLED_APPS += ["phoxtail.booking"]
+from phoxtail.core.wiring import wire_apps
+wire_apps(globals())
+```
 
 ### 16. Update hatch tests
 
 - Mock `questionary.checkbox` to return `["phoxtail.booking"]`.
-- Add `_copy_template` tests verifying all five apps are injected when
-  booking is selected.
-- Add `_copy_template` tests verifying all five apps are removed when
-  booking is not selected.
+- Verify that the rendered `INSTALLED_APPS` contains the single
+  `"phoxtail.booking"` dotted name (not an expanded sub-app list).
+- Verify that `src/celery.py` is copied when booking is selected and
+  skipped otherwise.
+- Verify that `requirements.in` contains `celery` and
+  `django-celery-beat` when booking is selected and omits them
+  otherwise.
 
 ### 17. Lint and verify
 

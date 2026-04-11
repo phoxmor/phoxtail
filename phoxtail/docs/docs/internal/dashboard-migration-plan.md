@@ -300,48 +300,37 @@ OPTIONAL_APPS = [
 ]
 ```
 
-When "Dashboard" is selected, inject `"phoxtail.dashboard"` into
-`INSTALLED_APPS`.
+When "Dashboard" is selected, `"phoxtail.dashboard"` is written into
+the generated project's `INSTALLED_APPS`. No extra hatch-time logic
+is needed for transitive dependencies: booking's umbrella
+`PhoxtailBookingConfig` lists `"phoxtail.dashboard"` in `depends_on`,
+so `wire_apps()` pulls dashboard in automatically at startup whenever
+booking is installed.
 
-**Important**: If "Booking" is selected, "Dashboard" should be
-auto-selected as a dependency (booking's `dashboard.py` imports from
-the registry). This can be handled either:
-- In the hatch wizard (auto-check Dashboard when Booking is checked).
-- In `pyproject.toml` (make `booking` extra depend on
-  `phoxtail[dashboard]`).
+### 13. Wire context processor via PhoxtailAppConfig
 
-**Recommendation**: Handle in `pyproject.toml`:
-
-```toml
-booking = [
-    "phoxtail[engine,dashboard]",
-    ...
-]
-```
-
-And in the hatch wizard, auto-add `"phoxtail.dashboard"` to
-`INSTALLED_APPS` when booking is selected (even if not explicitly
-checked).
-
-### 13. Wire context processor in project template
-
-The project template's `base.py` settings needs to include the
-dashboard context processor when the dashboard app is selected:
+Dashboard's `AppConfig` subclasses `PhoxtailAppConfig` and declares:
 
 ```python
-"phoxtail.dashboard.context_processors.dashboard_nav",
+# phoxtail/dashboard/apps.py
+from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
+
+class PhoxtailDashboardConfig(PhoxtailAppConfig):
+    name = "phoxtail.dashboard"
+    label = "phoxtail_dashboard"
+    url_mount = UrlMount(
+        prefix="dashboard/", module="phoxtail.dashboard.urls",
+    )
+    context_processors = [
+        "phoxtail.dashboard.context_processors.dashboard_nav",
+    ]
 ```
 
-This should be injected by `_copy_template` alongside the
-`INSTALLED_APPS` entries, using either a new marker in the settings
-template or by having the dashboard app's `AppConfig.ready()` handle
-it programmatically.
-
-**Recommendation**: Add a
-`# {{ phoxtail_context_processors }}` marker to the project template's
-settings, similar to `# {{ phoxtail_optional_apps }}`. Or simpler:
-always include the context processor in the template and let Django
-handle the case where the app isn't installed (it will just do nothing).
+At Django startup, `wire_apps(globals())` in the project's settings
+walks `INSTALLED_APPS`, finds this config, and merges the URL mount
+and context processor into `TEMPLATES[0]["OPTIONS"]["context_processors"]`
+and the dynamic URL conf. No template markers, no hatch-time
+injection — the app describes its integration in one place.
 
 ### 14. Write tests
 

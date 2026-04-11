@@ -178,7 +178,7 @@ class TestEnvDevelopmentTemplate:
         assert "SECRET_KEY=test-secret" in result
         assert "SITE_NAME=My Site" in result
         assert "POSTGRES_DB=mydb" in result
-        assert "FEATURE_ALLOW_SIGNUP=true" in result
+        assert "PHOXTAIL_ALLOW_SIGNUP=true" in result
         assert "FEATURE_ACTIVATE_DASHBOARD" not in result
         assert "FEATURE_ACTIVATE_BOOKING" not in result
 
