@@ -52,3 +52,6 @@ certbot/
 # AI Agents
 # --------------------
 CLAUDE.md
+GEMINI.md
+.claude
+.gemini

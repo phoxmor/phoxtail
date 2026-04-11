@@ -37,7 +37,6 @@ class TestCopyTemplate:
         toml = (target / "phoxtail.toml").read_text()
         assert PLACEHOLDER not in toml
         assert 'name = "acme"' in toml
-        assert 'image_prefix = "acme"' in toml
 
     def test_replaces_placeholder_in_celery(self, tmp_path):
         target = tmp_path / "acme"

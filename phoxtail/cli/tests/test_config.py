@@ -7,7 +7,6 @@ from phoxtail.cli.utils.config import (
     _topological_sort,
     get_cluster_names,
     get_clusters,
-    get_image_prefix,
     get_project_name,
     load_config,
     resolve_cluster_order,
@@ -21,10 +20,6 @@ class TestLoadConfig:
     def test_loads_project_name(self):
         config = load_config()
         assert config["project"]["name"] == "phoxtail"
-
-    def test_loads_image_prefix(self):
-        config = load_config()
-        assert config["project"]["image_prefix"] == "phoxmor"
 
     def test_loads_clusters(self):
         config = load_config()
@@ -50,9 +45,6 @@ class TestAccessors:
     def test_get_project_name(self):
         assert get_project_name() == "phoxtail"
 
-    def test_get_image_prefix(self):
-        assert get_image_prefix() == "phoxmor"
-
     def test_get_cluster_names(self):
         names = get_cluster_names()
         assert "cms" in names
@@ -66,10 +58,10 @@ class TestDeepMerge:
         assert base == {"a": 1, "b": 3}
 
     def test_nested_merge(self):
-        base = {"project": {"name": "old", "image_prefix": "old"}}
+        base = {"project": {"name": "old", "version": "1"}}
         _deep_merge(base, {"project": {"name": "new"}})
         assert base["project"]["name"] == "new"
-        assert base["project"]["image_prefix"] == "old"
+        assert base["project"]["version"] == "1"
 
     def test_adds_new_keys(self):
         base = {"a": 1}

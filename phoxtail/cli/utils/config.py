@@ -13,7 +13,6 @@ CONFIG_FILENAME = "phoxtail.toml"
 DEFAULTS = {
     "project": {
         "name": "phoxtail",
-        "image_prefix": "phoxmor",
     },
     "db": {
         "clusters": {},
@@ -57,10 +56,6 @@ def _deep_merge(base: dict, override: dict) -> None:
 
 def get_project_name() -> str:
     return load_config()["project"]["name"]
-
-
-def get_image_prefix() -> str:
-    return load_config()["project"]["image_prefix"]
 
 
 def validate_project_name(name: str) -> str | None:

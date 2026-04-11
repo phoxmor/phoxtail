@@ -40,7 +40,7 @@
         <a href="{{ dashboard_path }}"
            class="dash-dock__item{% if request.path == dashboard_path %} dash-dock__item--active{% endif %}">
             <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
-            <span class="dash-dock__label">Dash</span>
+            <span class="dash-dock__label">Dashboard</span>
         </a>
         {% for item in dashboard_mobile_nav_items|slice:":3" %}
             {% url item.url_name as item_path %}

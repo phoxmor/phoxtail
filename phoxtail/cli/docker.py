@@ -9,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.cli.utils.config import get_image_prefix
+from phoxtail.cli.utils.config import get_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
 
@@ -98,7 +98,7 @@ def restart(ctx: typer.Context) -> None:
 PYTHON_VERSIONS = ["3.11", "3.12", "3.13"]
 POSTGRES_VERSIONS = ["15", "16", "17", "18"]
 
-IMAGE_PREFIX = get_image_prefix()
+IMAGE_PREFIX = get_project_name()
 
 
 def _get_postgres_data_path(version: str) -> str:
@@ -296,7 +296,7 @@ def compose(
         console.print("\n[bold]Docker Configuration:[/bold]")
         project_name = Prompt.ask(
             "Project name for Docker image",
-            default=get_image_prefix(),
+            default=get_project_name(),
         )
 
     project_name = project_name.lower().strip().replace(" ", "-")

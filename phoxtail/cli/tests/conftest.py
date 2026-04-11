@@ -7,7 +7,6 @@ from phoxtail.cli.utils.config import load_config
 SAMPLE_TOML = """\
 [project]
 name = "phoxtail"
-image_prefix = "phoxmor"
 
 [db.clusters.cms]
 apps = [
