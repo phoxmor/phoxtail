@@ -1,24 +1,22 @@
 [
   {
+    "id": "dd98261f-71f6-43d6-b1f6-ee2fa27bda0d",
     "type": "stream",
     "value": {
       "name": "plans",
-      "required": false,
-      "collapsed": true,
       "blocks": [
         {
           "type": "struct",
           "value": {
             "name": "plan",
-            "collapsed": true,
             "blocks": [
               {
                 "type": "char_field",
                 "value": {
                   "name": "name",
                   "required": true,
-                  "max_length": 100,
-                  "help_text": "Name of the pricing plan (e.g., Hobby, Enterprise)"
+                  "help_text": "Name of the pricing plan (e.g., Hobby, Enterprise)",
+                  "max_length": 100
                 }
               },
               {
@@ -26,8 +24,8 @@
                 "value": {
                   "name": "price",
                   "required": true,
-                  "max_length": 50,
-                  "help_text": "Price of the plan (e.g., $29)"
+                  "help_text": "Price of the plan (e.g., $29)",
+                  "max_length": 50
                 }
               },
               {
@@ -35,8 +33,8 @@
                 "value": {
                   "name": "period",
                   "required": false,
-                  "max_length": 50,
-                  "help_text": "Billing period (e.g., /month, /year)"
+                  "help_text": "Billing period (e.g., /month, /year)",
+                  "max_length": 50
                 }
               },
               {
@@ -52,8 +50,8 @@
                 "value": {
                   "name": "tag",
                   "required": false,
-                  "max_length": 20,
-                  "help_text": "A tag of the plan (e.g., Popular)"
+                  "help_text": "A tag of the plan (e.g., Popular)",
+                  "max_length": 20
                 }
               },
               {
@@ -68,8 +66,6 @@
                 "type": "stream",
                 "value": {
                   "name": "features",
-                  "required": false,
-                  "collapsed": true,
                   "blocks": [
                     {
                       "type": "struct",
@@ -81,8 +77,8 @@
                             "value": {
                               "name": "feature",
                               "required": true,
-                              "max_length": 200,
-                              "help_text": "A single feature of the plan"
+                              "help_text": "A single feature of the plan",
+                              "max_length": 200
                             }
                           },
                           {
@@ -97,16 +93,16 @@
                       }
                     }
                   ],
+                  "max_num": 50,
                   "min_num": 0,
-                  "max_num": 50
+                  "required": false,
+                  "collapsed": true
                 }
               },
               {
                 "type": "stream",
                 "value": {
                   "name": "buttons",
-                  "required": false,
-                  "collapsed": true,
                   "blocks": [
                     {
                       "type": "struct",
@@ -158,8 +154,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -206,16 +202,21 @@
                       }
                     }
                   ],
+                  "max_num": 3,
                   "min_num": 0,
-                  "max_num": 3
+                  "required": false,
+                  "collapsed": true
                 }
               }
-            ]
+            ],
+            "collapsed": true
           }
         }
       ],
+      "max_num": 10,
       "min_num": 0,
-      "max_num": 10
+      "required": false,
+      "collapsed": true
     }
   }
 ]

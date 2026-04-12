@@ -95,13 +95,13 @@
 }
 
 #pricings-{{ block.id }} .pricing-header-with-tag {
-    padding-top: 2.75rem;
+    padding-top: 1.5rem;
 }
 
 #pricings-{{ block.id }} .pricing-header-content {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.25rem;
 }
 
 #pricings-{{ block.id }} .pricing-name {
@@ -110,7 +110,8 @@
     font-weight: var(--font-heading-weight-bold, 700);
     
     font-size: 1.25rem;
-    line-height: 1.5;
+    line-height: 1.2;
+    margin: 0.5rem 0;
     color: rgb(var(--color-surface-800));
 }
 
@@ -443,7 +444,7 @@
     }
 
     #pricings-{{ block.id }} .pricing-header-with-tag {
-        padding-top: 2.75rem;
+        padding-top: 2rem;
     }
 
     #pricings-{{ block.id }} .pricing-content {

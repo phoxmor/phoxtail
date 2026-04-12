@@ -1,10 +1,9 @@
 [
   {
+    "id": "403493b0-b2ac-48d2-aa6a-32c454067513",
     "type": "struct",
     "value": {
       "name": "branding",
-      "collapsed": true,
-      "help_text": "Navigation logos",
       "blocks": [
         {
           "type": "image_chooser_field",
@@ -22,22 +21,22 @@
             "help_text": "Site logo for dark mode"
           }
         }
-      ]
+      ],
+      "collapsed": true,
+      "help_text": "Navigation logos"
     }
   },
   {
+    "id": "56d4ca68-308f-477d-ab8f-fbcc89894a26",
     "type": "stream",
     "value": {
       "name": "links",
-      "required": false,
-      "collapsed": true,
-      "help_text": "Navigation links",
       "blocks": [
         {
           "type": "struct",
           "value": {
-            "name": "page",
             "icon": "doc-empty",
+            "name": "page",
             "blocks": [
               {
                 "type": "page_chooser_field",
@@ -84,8 +83,8 @@
                 "value": {
                   "name": "link",
                   "required": true,
-                  "target_model": "phoxtail_core.InternalLink",
-                  "help_text": "Internal application link"
+                  "help_text": "Internal application link",
+                  "target_model": "phoxtail_core.InternalLink"
                 }
               },
               {
@@ -102,8 +101,8 @@
         {
           "type": "struct",
           "value": {
-            "name": "external_link",
             "icon": "link",
+            "name": "external_link",
             "blocks": [
               {
                 "type": "url_field",
@@ -135,30 +134,28 @@
         {
           "type": "struct",
           "value": {
-            "name": "dropdown",
             "icon": "arrow-down",
+            "name": "dropdown",
             "blocks": [
               {
                 "type": "char_field",
                 "value": {
                   "name": "label",
                   "required": true,
-                  "max_length": 50,
-                  "help_text": "Dropdown label"
+                  "help_text": "Dropdown label",
+                  "max_length": 50
                 }
               },
               {
                 "type": "stream",
                 "value": {
                   "name": "items",
-                  "help_text": "Links inside this dropdown",
-                  "max_num": 20,
                   "blocks": [
                     {
                       "type": "struct",
                       "value": {
-                        "name": "page",
                         "icon": "doc-empty",
+                        "name": "page",
                         "blocks": [
                           {
                             "type": "page_chooser_field",
@@ -205,8 +202,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -223,8 +220,8 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "external_link",
                         "icon": "link",
+                        "name": "external_link",
                         "blocks": [
                           {
                             "type": "url_field",
@@ -256,29 +253,34 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "separator",
                         "icon": "horizontalrule",
+                        "name": "separator",
                         "blocks": [
                           {
                             "type": "char_field",
                             "value": {
                               "name": "label",
                               "required": false,
-                              "max_length": 50,
-                              "help_text": "Optional label for the separator. If empty, renders as a line."
+                              "help_text": "Optional label for the separator. If empty, renders as a line.",
+                              "max_length": 50
                             }
                           }
                         ]
                       }
                     }
-                  ]
+                  ],
+                  "max_num": 20,
+                  "help_text": "Links inside this dropdown"
                 }
               }
             ]
           }
         }
       ],
-      "max_num": 20
+      "max_num": 20,
+      "required": false,
+      "collapsed": true,
+      "help_text": "Navigation links"
     }
   }
 ]

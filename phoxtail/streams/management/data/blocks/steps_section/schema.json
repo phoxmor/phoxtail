@@ -1,11 +1,9 @@
 [
   {
+    "id": "187d2545-268b-4f17-b964-482544149db1",
     "type": "stream",
     "value": {
       "name": "steps",
-      "min_num": 1,
-      "max_num": 10,
-      "collapsed": true,
       "blocks": [
         {
           "type": "struct",
@@ -48,9 +46,6 @@
                 "type": "stream",
                 "value": {
                   "name": "buttons",
-                  "required": false,
-                  "min_num": 0,
-                  "max_num": 3,
                   "blocks": [
                     {
                       "type": "struct",
@@ -102,8 +97,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -149,13 +144,19 @@
                         ]
                       }
                     }
-                  ]
+                  ],
+                  "max_num": 3,
+                  "min_num": 0,
+                  "required": false
                 }
               }
             ]
           }
         }
-      ]
+      ],
+      "max_num": 10,
+      "min_num": 1,
+      "collapsed": true
     }
   }
 ]

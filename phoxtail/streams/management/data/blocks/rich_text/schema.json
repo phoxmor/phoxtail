@@ -1,10 +1,9 @@
 [
   {
+    "id": "b33fe6fa-b34d-4c16-8544-b494e7edbab2",
     "type": "rich_text_field",
     "value": {
       "name": "content",
-      "required": true,
-      "help_text": "Rich text content with formatting",
       "features": [
         "h1",
         "h2",
@@ -23,7 +22,9 @@
         "superscript",
         "subscript",
         "strikethrough"
-      ]
+      ],
+      "required": true,
+      "help_text": "Rich text content with formatting"
     }
   }
 ]

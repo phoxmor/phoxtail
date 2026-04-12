@@ -1,0 +1,238 @@
+#bsched-{{ block.id }} {
+    font-family: var(--font-body, sans-serif);
+    padding: 2rem 1rem;
+}
+
+#bsched-{{ block.id }} .bsched-panel {
+    border: 1px solid rgb(var(--color-surface-300));
+    border-radius: 1.25rem;
+    background: rgb(var(--color-surface-50));
+    max-width: 80rem;
+    margin-inline: auto;
+    overflow: hidden;
+}
+
+#bsched-{{ block.id }} .bsched-scroll {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+#bsched-{{ block.id }} .bsched-table {
+    min-width: 50rem;
+    margin: 3.5rem;
+    margin-top: 0;
+}
+
+/* ── Header row ── */
+
+#bsched-{{ block.id }} .bsched-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid rgb(var(--color-surface-200));
+}
+
+#bsched-{{ block.id }} .bsched-day-header {
+    padding: 0.75rem;
+    text-align: center;
+    border-right: 1px solid rgb(var(--color-surface-200));
+}
+
+#bsched-{{ block.id }} .bsched-day-header:last-child {
+    border-right: none;
+}
+
+#bsched-{{ block.id }} .bsched-day-header__weekday {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(var(--color-surface-700));
+    margin: 0;
+}
+
+#bsched-{{ block.id }} .bsched-day-header--today .bsched-day-header__weekday {
+    color: rgb(var(--color-primary-600));
+}
+
+#bsched-{{ block.id }} .bsched-day-header__date {
+    font-size: 0.75rem;
+    color: rgb(var(--color-surface-500));
+    margin: 0.25rem 0 0;
+}
+
+/* ── Time slot rows ── */
+
+#bsched-{{ block.id }} .bsched-time-row {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid rgb(var(--color-surface-200));
+    position: relative;
+}
+
+#bsched-{{ block.id }} .bsched-time-label {
+    position: absolute;
+    top: 0;
+    left: -3rem;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-600));
+    pointer-events: none;
+    width: 2.5rem;
+    text-align: center;
+}
+
+/* ── Day cells ── */
+
+#bsched-{{ block.id }} .bsched-cell {
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+    min-height: 6rem;
+    background: rgb(255 255 255);
+    border-right: 1px solid rgb(var(--color-surface-200));
+    position: relative;
+}
+
+#bsched-{{ block.id }} .bsched-cell--first {
+    border-left: 1px solid rgb(var(--color-surface-200));
+}
+
+/* ── Event chips ── */
+
+#bsched-{{ block.id }} .bsched-chip-wrap + .bsched-chip-wrap {
+    margin-top: 0.25rem;
+}
+
+#bsched-{{ block.id }} .bsched-chip {
+    position: relative;
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    border: 1px solid rgb(var(--color-surface-200));
+    background: rgb(255 255 255);
+}
+
+#bsched-{{ block.id }} .bsched-chip__service {
+    font-weight: 600;
+    color: rgb(var(--color-surface-900));
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+#bsched-{{ block.id }} .bsched-chip__service::before {
+    content: '';
+    display: block;
+    flex-shrink: 0;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: rgb(var(--chip-p-light-text, var(--color-surface-300)));
+    box-shadow: 0 0 0 2px rgb(var(--chip-p-light-text, var(--color-surface-300)) / 0.15);
+}
+
+#bsched-{{ block.id }} .bsched-chip__service span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+#bsched-{{ block.id }} .bsched-chip__row {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: rgb(var(--color-surface-500));
+    margin-top: 0.125rem;
+    position: relative;
+    z-index: 10;
+}
+
+#bsched-{{ block.id }} .bsched-chip__row svg {
+    width: 0.625rem;
+    height: 0.625rem;
+    flex-shrink: 0;
+}
+
+#bsched-{{ block.id }} .bsched-chip__row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+}
+
+/* ── Empty state ── */
+
+#bsched-{{ block.id }} .bsched-empty {
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-500));
+    padding: 1.5rem 0;
+    text-align: center;
+}
+
+/* ── Dark mode ── */
+
+@media (prefers-color-scheme: dark) {
+    #bsched-{{ block.id }} .bsched-panel {
+        border-color: rgb(var(--color-surface-700));
+        background: rgb(var(--color-surface-900));
+    }
+
+    #bsched-{{ block.id }} .bsched-header-row {
+        border-bottom-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-day-header {
+        border-right-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-day-header__weekday {
+        color: rgb(var(--color-surface-300));
+    }
+
+    #bsched-{{ block.id }} .bsched-day-header--today .bsched-day-header__weekday {
+        color: rgb(var(--color-primary-400));
+    }
+
+    #bsched-{{ block.id }} .bsched-day-header__date {
+        color: rgb(var(--color-surface-400));
+    }
+
+    #bsched-{{ block.id }} .bsched-time-row {
+        border-bottom-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-time-label {
+        color: rgb(var(--color-surface-400));
+    }
+
+    #bsched-{{ block.id }} .bsched-cell {
+        background: transparent;
+        border-right-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-cell--first {
+        border-left-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-chip {
+        background: rgb(var(--color-surface-800));
+        border-color: rgb(var(--color-surface-700));
+    }
+
+    #bsched-{{ block.id }} .bsched-chip__service {
+        color: rgb(var(--color-surface-100));
+    }
+
+    #bsched-{{ block.id }} .bsched-chip__service::before {
+        background: rgb(var(--chip-p-dark-text, var(--color-surface-600)));
+        box-shadow: 0 0 0 2px rgb(var(--chip-p-dark-text, var(--color-surface-600)) / 0.2);
+    }
+
+    #bsched-{{ block.id }} .bsched-chip__row {
+        color: rgb(var(--color-surface-500));
+    }
+}

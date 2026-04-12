@@ -1,20 +1,19 @@
 [
   {
+    "id": "25c2496c-8fdf-4c6b-b2ff-7527b0afc832",
     "type": "image_chooser_field",
     "value": {
+      "icon": "image",
       "name": "image",
       "required": true,
-      "help_text": "Background image for the banner",
-      "icon": "image"
+      "help_text": "Background image for the banner"
     }
   },
   {
+    "id": "2be998da-cf61-4688-986a-c5018322617c",
     "type": "stream",
     "value": {
       "name": "slides",
-      "required": false,
-      "collapsed": true,
-      "help_text": "Add and reorder text slides for your image banner",
       "blocks": [
         {
           "type": "struct",
@@ -24,21 +23,21 @@
               {
                 "type": "char_field",
                 "value": {
+                  "icon": "title",
                   "name": "supertitle",
                   "required": false,
-                  "max_length": 100,
                   "help_text": "Short, contextual text above the main title (e.g., Featured Content)",
-                  "icon": "title"
+                  "max_length": 100
                 }
               },
               {
                 "type": "char_field",
                 "value": {
+                  "icon": "title",
                   "name": "title",
                   "required": false,
-                  "max_length": 100,
                   "help_text": "Main title for the slide",
-                  "icon": "title"
+                  "max_length": 100
                 }
               },
               {
@@ -53,8 +52,6 @@
                 "type": "stream",
                 "value": {
                   "name": "buttons",
-                  "required": false,
-                  "collapsed": true,
                   "blocks": [
                     {
                       "type": "struct",
@@ -106,8 +103,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -154,14 +151,19 @@
                       }
                     }
                   ],
+                  "max_num": 5,
                   "min_num": 0,
-                  "max_num": 5
+                  "required": false,
+                  "collapsed": true
                 }
               }
             ]
           }
         }
-      ]
+      ],
+      "required": false,
+      "collapsed": true,
+      "help_text": "Add and reorder text slides for your image banner"
     }
   }
 ]

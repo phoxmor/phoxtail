@@ -16,13 +16,13 @@
 #hs-{{ block.id }} .hs-container {
     max-width: 80rem;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 3rem 1rem;
 }
 
 #hs-{{ block.id }} .hs-layout {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     align-items: center;
     text-align: center;
 }
@@ -60,6 +60,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 1.25rem;
     width: 100%;
 }
 
@@ -70,7 +71,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: rgb(var(--hs-accent));
-    margin-bottom: 0.75rem;
+    margin: 0;
 }
 
 #hs-{{ block.id }} .hs-title {
@@ -79,7 +80,7 @@
     font-weight: var(--font-heading-weight-bold, 700);
     line-height: 1.1;
     letter-spacing: -0.025em;
-    margin-bottom: 1.5rem;
+    margin: 0;
     text-wrap: balance;
 }
 
@@ -88,7 +89,7 @@
     line-height: 1.6;
     color: rgb(var(--hs-text-muted));
     max-width: 65ch;
-    margin-bottom: 2rem;
+    margin: 0;
 }
 
 /* Buttons — base (layout & shape only) */
@@ -150,7 +151,7 @@
 
 @media (min-width: 1024px) {
     #hs-{{ block.id }} .hs-container {
-        padding: 5rem 2rem;
+        padding: 6rem 2rem;
     }
 
     #hs-{{ block.id }} .hs-layout--with-image {

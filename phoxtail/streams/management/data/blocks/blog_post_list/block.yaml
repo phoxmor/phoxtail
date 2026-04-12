@@ -1,0 +1,7 @@
+name: Blog Post List
+identifier: blog_post_list
+description: Searchable, paginated blog post grid for the Blog Index page. All data comes from the page context — no schema fields required.
+icon: list-ul
+group: Blog
+page_types:
+- phoxtail_blog.blogindexpage

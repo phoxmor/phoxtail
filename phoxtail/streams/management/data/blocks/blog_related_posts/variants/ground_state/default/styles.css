@@ -1,0 +1,212 @@
+/* =========================================
+   Related Blog Posts — Ground State
+   ========================================= */
+
+#brp-{{ block.id }} {
+    /* Light mode semantics */
+    --brp-bg: var(--color-surface-50);
+    --brp-text: var(--color-surface-900);
+    --brp-text-muted: var(--color-surface-600);
+    --brp-border: var(--color-surface-200);
+    --brp-card-bg: var(--color-surface-100);
+    --brp-tag-bg: var(--color-surface-200);
+
+    background-color: rgb(var(--brp-bg));
+    color: rgb(var(--brp-text));
+    padding: 4rem 0;
+    font-family: var(--font-body);
+}
+
+@media (prefers-color-scheme: dark) {
+    #brp-{{ block.id }} {
+        /* Dark mode overrides - Max surface 900 */
+        --brp-bg: var(--color-surface-900);
+        --brp-text: var(--color-surface-50);
+        --brp-text-muted: var(--color-surface-400);
+        --brp-border: var(--color-surface-700);
+        --brp-card-bg: var(--color-surface-800); 
+        --brp-tag-bg: var(--color-surface-700);
+    }
+}
+
+/* ===== Container & Grid ===== */
+#brp-{{ block.id }} .brp-container {
+    max-width: 1280px; 
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+#brp-{{ block.id }} .brp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: stretch; /* Ensures equal height cards naturally */
+}
+
+@media (min-width: 1024px) {
+    #brp-{{ block.id }} .brp-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ===== Card Base ===== */
+#brp-{{ block.id }} .brp-card {
+    background-color: rgb(var(--brp-card-bg));
+    border: 1px solid rgb(var(--brp-border));
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease;
+}
+
+#brp-{{ block.id }} .brp-card:hover {
+    border-color: rgb(var(--color-primary-500));
+}
+
+#brp-{{ block.id }} .brp-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ===== Image ===== */
+#brp-{{ block.id }} .brp-card-image-wrap {
+    position: relative;
+    width: 100%;
+    background-color: rgb(var(--brp-border));
+    border-bottom: 1px solid rgb(var(--brp-border));
+}
+
+#brp-{{ block.id }} .brp-card-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+}
+
+/* ===== Content Body ===== */
+#brp-{{ block.id }} .brp-card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 1rem;
+}
+
+#brp-{{ block.id }} .brp-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+#brp-{{ block.id }} .brp-card-tag {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    background-color: rgb(var(--brp-tag-bg));
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+/* ===== Metadata (Date & Read Time) ===== */
+#brp-{{ block.id }} .brp-card-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    color: rgb(var(--brp-text-muted));
+}
+
+#brp-{{ block.id }} .brp-card-meta-separator {
+    opacity: 0.5;
+}
+
+#brp-{{ block.id }} .brp-card-read-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+#brp-{{ block.id }} .brp-card-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* ===== Typography ===== */
+#brp-{{ block.id }} .brp-card-title {
+    font-family: var(--font-heading);
+    font-weight: var(--font-heading-weight-bold, 700);
+    font-size: 1.25rem;
+    line-height: 1.3;
+    margin: 0;
+}
+
+#brp-{{ block.id }} .brp-card-intro {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgb(var(--brp-text-muted));
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ===== Author Footer ===== */
+#brp-{{ block.id }} .brp-card-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: auto; /* Pushes footer to the bottom, grouping whitespace organically */
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(var(--brp-border));
+}
+
+#brp-{{ block.id }} .brp-card-avatar-img,
+#brp-{{ block.id }} .brp-card-avatar-fallback {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: cover; /* Fixes distortion for non-square uploads */
+    display: block;
+}
+
+#brp-{{ block.id }} .brp-card-avatar-fallback {
+    background-color: rgb(var(--brp-tag-bg));
+    color: rgb(var(--brp-text));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#brp-{{ block.id }} .brp-card-avatar-initials {
+    font-family: var(--font-ui);
+    font-weight: var(--font-ui-weight-bold, 700);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+#brp-{{ block.id }} .brp-card-author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+#brp-{{ block.id }} .brp-card-author-name {
+    font-family: var(--font-ui);
+    font-weight: var(--font-ui-weight-semibold, 600);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+#brp-{{ block.id }} .brp-card-author-title {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    color: rgb(var(--brp-text-muted));
+    margin: 0;
+}

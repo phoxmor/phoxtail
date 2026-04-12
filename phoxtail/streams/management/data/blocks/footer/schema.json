@@ -1,10 +1,9 @@
 [
   {
+    "id": "73ee0a70-add4-4ace-84b5-3fc4f0ec0008",
     "type": "struct",
     "value": {
       "name": "branding",
-      "collapsed": true,
-      "help_text": "Footer logos",
       "blocks": [
         {
           "type": "image_chooser_field",
@@ -22,44 +21,42 @@
             "help_text": "Footer logo for dark mode"
           }
         }
-      ]
+      ],
+      "collapsed": true,
+      "help_text": "Footer logos"
     }
   },
   {
+    "id": "ac5eb4aa-a14d-4b4d-a51c-987d18fe457a",
     "type": "stream",
     "value": {
       "name": "sections",
-      "required": false,
-      "collapsed": true,
-      "help_text": "Footer link sections (e.g., Company, Resources, Support)",
       "blocks": [
         {
           "type": "struct",
           "value": {
-            "name": "section",
             "icon": "list-ul",
+            "name": "section",
             "blocks": [
               {
                 "type": "char_field",
                 "value": {
                   "name": "title",
                   "required": true,
-                  "max_length": 50,
-                  "help_text": "Section title"
+                  "help_text": "Section title",
+                  "max_length": 50
                 }
               },
               {
                 "type": "stream",
                 "value": {
                   "name": "items",
-                  "help_text": "Links in this section",
-                  "max_num": 20,
                   "blocks": [
                     {
                       "type": "struct",
                       "value": {
-                        "name": "page",
                         "icon": "doc-empty",
+                        "name": "page",
                         "blocks": [
                           {
                             "type": "page_chooser_field",
@@ -106,8 +103,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -124,8 +121,8 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "external_link",
                         "icon": "link",
+                        "name": "external_link",
                         "blocks": [
                           {
                             "type": "url_field",
@@ -157,32 +154,32 @@
                     {
                       "type": "struct",
                       "value": {
-                        "name": "contact_item",
                         "icon": "info-circle",
+                        "name": "contact_item",
                         "blocks": [
                           {
                             "type": "choice_field",
                             "value": {
                               "name": "type",
-                              "required": true,
                               "choices": [
                                 {
-                                  "value": "phone",
-                                  "label": "Phone"
+                                  "label": "Phone",
+                                  "value": "phone"
                                 },
                                 {
-                                  "value": "mobile",
-                                  "label": "Mobile"
+                                  "label": "Mobile",
+                                  "value": "mobile"
                                 },
                                 {
-                                  "value": "email",
-                                  "label": "Email"
+                                  "label": "Email",
+                                  "value": "email"
                                 },
                                 {
-                                  "value": "address",
-                                  "label": "Address"
+                                  "label": "Address",
+                                  "value": "address"
                                 }
                               ],
+                              "required": true,
                               "help_text": "Type of contact information"
                             }
                           },
@@ -205,43 +202,45 @@
                         ]
                       }
                     }
-                  ]
+                  ],
+                  "max_num": 20,
+                  "help_text": "Links in this section"
                 }
               }
             ]
           }
         }
-      ]
+      ],
+      "required": false,
+      "collapsed": true,
+      "help_text": "Footer link sections (e.g., Company, Resources, Support)"
     }
   },
   {
+    "id": "f6e35df8-555b-4205-8dc7-5b5f6c5fed71",
     "type": "struct",
     "value": {
       "name": "social_media",
-      "collapsed": true,
-      "help_text": "Social media section",
       "blocks": [
         {
           "type": "char_field",
           "value": {
             "name": "title",
             "required": false,
-            "max_length": 100,
-            "help_text": "Title displayed above social media icons"
+            "help_text": "Title displayed above social media icons",
+            "max_length": 100
           }
         },
         {
           "type": "stream",
           "value": {
             "name": "links",
-            "required": false,
-            "help_text": "Social media links with icons",
             "blocks": [
               {
                 "type": "struct",
                 "value": {
-                  "name": "social_link",
                   "icon": "link",
+                  "name": "social_link",
                   "blocks": [
                     {
                       "type": "image_chooser_field",
@@ -270,25 +269,27 @@
                   ]
                 }
               }
-            ]
+            ],
+            "required": false,
+            "help_text": "Social media links with icons"
           }
         }
-      ]
+      ],
+      "collapsed": true,
+      "help_text": "Social media section"
     }
   },
   {
+    "id": "81af67e9-867c-4269-bf53-defa724f9fc4",
     "type": "stream",
     "value": {
       "name": "bottom_links",
-      "required": false,
-      "collapsed": true,
-      "help_text": "Links at the bottom of the footer (e.g., Privacy Policy, Terms)",
       "blocks": [
         {
           "type": "struct",
           "value": {
-            "name": "page",
             "icon": "doc-empty",
+            "name": "page",
             "blocks": [
               {
                 "type": "page_chooser_field",
@@ -335,8 +336,8 @@
                 "value": {
                   "name": "link",
                   "required": true,
-                  "target_model": "phoxtail_core.InternalLink",
-                  "help_text": "Internal application link"
+                  "help_text": "Internal application link",
+                  "target_model": "phoxtail_core.InternalLink"
                 }
               },
               {
@@ -353,8 +354,8 @@
         {
           "type": "struct",
           "value": {
-            "name": "external_link",
             "icon": "link",
+            "name": "external_link",
             "blocks": [
               {
                 "type": "url_field",
@@ -383,16 +384,20 @@
             ]
           }
         }
-      ]
+      ],
+      "required": false,
+      "collapsed": true,
+      "help_text": "Links at the bottom of the footer (e.g., Privacy Policy, Terms)"
     }
   },
   {
+    "id": "f74ea82a-dc70-402a-ad06-9d825e7bbaef",
     "type": "char_field",
     "value": {
       "name": "copyright",
       "required": false,
-      "max_length": 255,
-      "help_text": "Copyright text (e.g., 2024 Company Name)"
+      "help_text": "Copyright text (e.g., 2024 Company Name)",
+      "max_length": 255
     }
   }
 ]

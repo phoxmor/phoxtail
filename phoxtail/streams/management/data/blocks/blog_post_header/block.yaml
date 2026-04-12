@@ -1,0 +1,7 @@
+name: Blog Post Header
+identifier: blog_post_header
+description: Context-reader block that renders the blog post header (title, intro, author, date, tags) from the page model fields. Scoped to BlogPostPage only.
+icon: title
+group: Blog
+page_types:
+- phoxtail_blog.blogpostpage

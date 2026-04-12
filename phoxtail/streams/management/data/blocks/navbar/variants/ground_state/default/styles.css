@@ -36,15 +36,19 @@
         --nb-text-muted: var(--color-surface-400);
         --nb-accent: var(--color-primary-400);
         --nb-border: var(--color-surface-700);
-        --nb-dropdown-bg: var(--color-surface-800);
+        --nb-dropdown-bg: var(--color-surface-900);
         --nb-hover: var(--color-surface-700);
+    }
+
+    #nb-{{ block.id }} .nb-toggle {
+        color: rgb(var(--nb-text)) !important;
     }
 }
 
 #nb-{{ block.id }} .nb-container {
     max-width: 80rem;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 1rem !important;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -54,17 +58,31 @@
 
 #nb-{{ block.id }} .nb-brand {
     flex-shrink: 0;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 #nb-{{ block.id }} .nb-logo-link {
-    display: flex;
-    align-items: center;
+    height: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#nb-{{ block.id }} .nb-logo-link picture {
+    height: 100% !important;
+    display: block !important;
 }
 
 #nb-{{ block.id }} .nb-logo {
-    height: 2rem;
-    width: auto;
-    display: block;
+    height: 100% !important;
+    width: auto !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: contain !important;
 }
 
 #nb-{{ block.id }} .nb-right {
@@ -497,7 +515,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1rem;
+    padding: 0 1rem !important;
     height: 4rem;
     border-bottom: 1px solid rgb(var(--nb-border));
 }
@@ -678,14 +696,13 @@
 
 @media (min-width: 1024px) {
     #nb-{{ block.id }} .nb-container { height: 4.5rem; }
-    #nb-{{ block.id }} .nb-logo { height: 2.25rem; }
     #nb-{{ block.id }} .nb-toggle { display: none; }
     #nb-{{ block.id }} .nb-links-desktop { display: flex; }
     #nb-{{ block.id }} .nb-divider { display: block; }
     #nb-{{ block.id }} .nb-signup-btn { display: inline-flex; }
 }
 
-/* ── Scroll to Top Button ── */
+/* ─── Scroll to Top Button ─── */
 .nb-scroll-top {
     position: fixed;
     bottom: 2rem;

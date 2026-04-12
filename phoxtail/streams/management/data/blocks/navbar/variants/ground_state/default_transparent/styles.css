@@ -444,6 +444,7 @@
 }
 
 #nb-{{ block.id }} .nb-glass-toggle {
+    color: rgb(var(--nbg-text) / 0.82);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -463,6 +464,7 @@
 #nb-{{ block.id }} .nb-glass-toggle:hover {
     background-color: rgb(0 0 0 / 0.06);
     border-color: rgb(0 0 0 / 0.15);
+    color: rgb(var(--nbg-text));
 }
 
 #nb-{{ block.id }} .nb-glass-backdrop {
@@ -510,10 +512,27 @@
     border-bottom: 1px solid rgb(var(--nbg-surface-border));
 }
 
+#nb-{{ block.id }} .nb-glass-sidebar-brand {
+    height: 100%;
+    flex-shrink: 0;
+}
+
+#nb-{{ block.id }} .nb-glass-sidebar-brand .nb-glass-logo-link {
+    height: 100%;
+    display: flex;
+    align-items: stretch;
+}
+
+#nb-{{ block.id }} .nb-glass-sidebar-brand picture {
+    height: 100%;
+    display: block;
+}
+
 #nb-{{ block.id }} .nb-glass-sidebar-logo {
-    height: 2rem;
+    height: 100%;
     width: auto;
     display: block;
+    object-fit: contain;
 }
 
 #nb-{{ block.id }} .nb-glass-sidebar-close {
@@ -669,12 +688,7 @@
     color: white;
 }
 
-@media (prefers-color-scheme: dark) {
-    #nb-{{ block.id }} .nb-glass-sidebar-auth-btn.nb-glass-signup-btn:hover {
-        background-color: rgb(var(--color-primary-300));
-        border-color: rgb(var(--color-primary-300));
-    }
-}
+
 
 @media (min-width: 1024px) {
     #nb-{{ block.id }} .nb-glass-container {
@@ -749,6 +763,7 @@
     #nb-{{ block.id }} .nb-glass-signup-btn {
         background-color: rgb(var(--nbg-accent));
         border-color: rgb(var(--nbg-accent));
+        color: rgb(var(--color-surface-950));
     }
     #nb-{{ block.id }} .nb-glass-ctrl-btn:hover,
     #nb-{{ block.id }} .nb-glass-toggle:hover {
@@ -758,7 +773,17 @@
     #nb-{{ block.id }} .nb-glass-signup-btn:hover {
         background-color: rgb(var(--color-primary-300));
         border-color: rgb(var(--color-primary-300));
-        color: white;
+        color: rgb(var(--color-surface-950));
+    }
+    #nb-{{ block.id }} .nb-glass-sidebar-auth-btn.nb-glass-signup-btn {
+        background-color: rgb(var(--nbg-accent));
+        border-color: rgb(var(--nbg-accent));
+        color: rgb(var(--color-surface-950));
+    }
+    #nb-{{ block.id }} .nb-glass-sidebar-auth-btn.nb-glass-signup-btn:hover {
+        background-color: rgb(var(--color-primary-300));
+        border-color: rgb(var(--color-primary-300));
+        color: rgb(var(--color-surface-950));
     }
     #nb-{{ block.id }} .nb-glass-dropdown-menu,
     #nb-{{ block.id }} .nb-glass-user-menu,

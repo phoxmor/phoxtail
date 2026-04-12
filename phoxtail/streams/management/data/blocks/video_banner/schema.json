@@ -1,14 +1,16 @@
 [
   {
+    "id": "2b8bbe03-ffb0-4da8-ad4d-f8b09a7277e4",
     "type": "video_chooser_field",
     "value": {
+      "icon": "media",
       "name": "file",
       "required": true,
-      "help_text": "Upload a video file (e.g., MP4, WebM) to play in the background",
-      "icon": "media"
+      "help_text": "Upload a video file (e.g., MP4, WebM) to play in the background"
     }
   },
   {
+    "id": "671db4cf-5b58-4c88-9a04-ce3532e5731a",
     "type": "image_chooser_field",
     "value": {
       "name": "thumbnail",
@@ -17,12 +19,10 @@
     }
   },
   {
+    "id": "7f33f540-ac79-4367-8111-001f8ad3f489",
     "type": "stream",
     "value": {
       "name": "slides",
-      "required": false,
-      "collapsed": true,
-      "help_text": "Add and reorder text slides for your video banner",
       "blocks": [
         {
           "type": "struct",
@@ -32,21 +32,21 @@
               {
                 "type": "char_field",
                 "value": {
+                  "icon": "title",
                   "name": "supertitle",
                   "required": false,
-                  "max_length": 100,
                   "help_text": "Short, contextual text above the main title (e.g., Featured Video)",
-                  "icon": "title"
+                  "max_length": 100
                 }
               },
               {
                 "type": "char_field",
                 "value": {
+                  "icon": "title",
                   "name": "title",
                   "required": false,
-                  "max_length": 100,
                   "help_text": "Main title for the slide",
-                  "icon": "title"
+                  "max_length": 100
                 }
               },
               {
@@ -61,8 +61,6 @@
                 "type": "stream",
                 "value": {
                   "name": "buttons",
-                  "required": false,
-                  "collapsed": true,
                   "blocks": [
                     {
                       "type": "struct",
@@ -114,8 +112,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -162,14 +160,19 @@
                       }
                     }
                   ],
+                  "max_num": 5,
                   "min_num": 0,
-                  "max_num": 5
+                  "required": false,
+                  "collapsed": true
                 }
               }
             ]
           }
         }
-      ]
+      ],
+      "required": false,
+      "collapsed": true,
+      "help_text": "Add and reorder text slides for your video banner"
     }
   }
 ]

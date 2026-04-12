@@ -1,9 +1,9 @@
 [
   {
+    "id": "750f47d3-93c8-48f9-ab3d-603c8b2c6dee",
     "type": "struct",
     "value": {
       "name": "text",
-      "collapsed": "true",
       "blocks": [
         {
           "type": "char_field",
@@ -29,14 +29,15 @@
             "help_text": "Supporting text below the main title"
           }
         }
-      ]
+      ],
+      "collapsed": "true"
     }
   },
   {
+    "id": "ae34c36f-6c02-4e95-b005-6c0a0d3967bd",
     "type": "struct",
     "value": {
       "name": "image",
-      "collapsed": "true",
       "blocks": [
         {
           "type": "image_chooser_field",
@@ -46,15 +47,15 @@
             "help_text": "Header image"
           }
         }
-      ]
+      ],
+      "collapsed": "true"
     }
   },
   {
+    "id": "170c0db6-9569-475c-ade2-9db6e74462e5",
     "type": "stream",
     "value": {
       "name": "buttons",
-      "required": false,
-      "collapsed": "true",
       "blocks": [
         {
           "type": "struct",
@@ -106,8 +107,8 @@
                 "value": {
                   "name": "link",
                   "required": true,
-                  "target_model": "phoxtail_core.InternalLink",
-                  "help_text": "Internal application link"
+                  "help_text": "Internal application link",
+                  "target_model": "phoxtail_core.InternalLink"
                 }
               },
               {
@@ -154,8 +155,10 @@
           }
         }
       ],
+      "max_num": 5,
       "min_num": 0,
-      "max_num": 5
+      "required": false,
+      "collapsed": "true"
     }
   }
 ]

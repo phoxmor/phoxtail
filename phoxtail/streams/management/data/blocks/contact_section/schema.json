@@ -1,9 +1,9 @@
 [
   {
+    "id": "4bb328d1-0a7f-4a87-89a1-0268d034020a",
     "type": "stream",
     "value": {
       "name": "items",
-      "required": false,
       "blocks": [
         {
           "type": "struct",
@@ -14,14 +14,26 @@
                 "type": "choice_field",
                 "value": {
                   "name": "type",
-                  "required": true,
-                  "help_text": "Type of contact information",
                   "choices": [
-                    {"value": "phone", "label": "Phone"},
-                    {"value": "mobile", "label": "Mobile"},
-                    {"value": "email", "label": "Email"},
-                    {"value": "address", "label": "Address"}
-                  ]
+                    {
+                      "label": "Phone",
+                      "value": "phone"
+                    },
+                    {
+                      "label": "Mobile",
+                      "value": "mobile"
+                    },
+                    {
+                      "label": "Email",
+                      "value": "email"
+                    },
+                    {
+                      "label": "Address",
+                      "value": "address"
+                    }
+                  ],
+                  "required": true,
+                  "help_text": "Type of contact information"
                 }
               },
               {
@@ -43,7 +55,8 @@
             ]
           }
         }
-      ]
+      ],
+      "required": false
     }
   }
 ]

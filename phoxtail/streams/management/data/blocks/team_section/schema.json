@@ -1,11 +1,10 @@
 [
   {
+    "id": "f371e975-0ebf-424d-99e9-76f0084ec480",
     "type": "stream",
     "value": {
       "name": "members",
       "label": "Members",
-      "required": true,
-      "collapsed": true,
       "blocks": [
         {
           "type": "struct",
@@ -27,8 +26,8 @@
                 "value": {
                   "name": "name",
                   "label": "Name",
-                  "max_length": 100,
-                  "help_text": "Team member's full name"
+                  "help_text": "Team member's full name",
+                  "max_length": 100
                 }
               },
               {
@@ -37,8 +36,8 @@
                   "name": "role",
                   "label": "Role",
                   "required": false,
-                  "max_length": 100,
-                  "help_text": "Team member's job title or role"
+                  "help_text": "Team member's job title or role",
+                  "max_length": 100
                 }
               },
               {
@@ -55,8 +54,6 @@
                 "value": {
                   "name": "social_media",
                   "label": "Social Media Links",
-                  "required": false,
-                  "collapsed": false,
                   "blocks": [
                     {
                       "type": "struct",
@@ -85,7 +82,9 @@
                         ]
                       }
                     }
-                  ]
+                  ],
+                  "required": false,
+                  "collapsed": false
                 }
               },
               {
@@ -93,10 +92,6 @@
                 "value": {
                   "name": "buttons",
                   "label": "Buttons",
-                  "required": false,
-                  "collapsed": true,
-                  "min_num": 0,
-                  "max_num": 5,
                   "blocks": [
                     {
                       "type": "struct",
@@ -148,8 +143,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -195,13 +190,19 @@
                         ]
                       }
                     }
-                  ]
+                  ],
+                  "max_num": 5,
+                  "min_num": 0,
+                  "required": false,
+                  "collapsed": true
                 }
               }
             ]
           }
         }
-      ]
+      ],
+      "required": true,
+      "collapsed": true
     }
   }
 ]

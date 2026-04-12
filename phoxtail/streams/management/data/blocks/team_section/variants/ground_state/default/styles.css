@@ -120,12 +120,14 @@
     overflow: hidden;
     border-radius: var(--ts-radius);
     aspect-ratio: 3 / 4;
-    background-color: rgb(var(--color-surface-200));
+    background-color: transparent;
     transform: translateZ(0);
     backface-visibility: hidden;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
+    will-change: transform, opacity;
     isolation: isolate;
     width: 100%;
+    will-change: transform;
 }
 
 #team-section-{{ block.id }} .ts-card::after {
@@ -133,7 +135,7 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     pointer-events: none;
     z-index: 2;
 }
@@ -329,9 +331,12 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transform: scale(0.95);
+    transform: translateZ(0) scale(0.95);
     opacity: 0;
     transition: transform 300ms var(--ts-ease), opacity 300ms var(--ts-ease);
+    backface-visibility: hidden;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    will-change: transform, opacity;
 }
 
 @media (min-width: 768px) {
@@ -341,7 +346,7 @@
 }
 
 #team-section-{{ block.id }} .ts-modal[aria-hidden="false"] .ts-modal-content {
-    transform: scale(1);
+    transform: translateZ(0) scale(1);
     opacity: 1;
 }
 
@@ -549,21 +554,21 @@
 }
 
 @keyframes ts-slide-out-left-{{ block.id }} {
-    to { transform: translateX(-8%) scale(0.95); opacity: 0; }
+    to { transform: translateX(-8%) translateZ(0) scale(0.95); opacity: 0; }
 }
 
 @keyframes ts-slide-out-right-{{ block.id }} {
-    to { transform: translateX(8%) scale(0.95); opacity: 0; }
+    to { transform: translateX(8%) translateZ(0) scale(0.95); opacity: 0; }
 }
 
 @keyframes ts-slide-in-left-{{ block.id }} {
-    from { transform: translateX(8%) scale(0.95); opacity: 0; }
-    to { transform: translateX(0) scale(1); opacity: 1; }
+    from { transform: translateX(8%) translateZ(0) scale(0.95); opacity: 0; }
+    to { transform: translateX(0) translateZ(0) scale(1); opacity: 1; }
 }
 
 @keyframes ts-slide-in-right-{{ block.id }} {
-    from { transform: translateX(-8%) scale(0.95); opacity: 0; }
-    to { transform: translateX(0) scale(1); opacity: 1; }
+    from { transform: translateX(-8%) translateZ(0) scale(0.95); opacity: 0; }
+    to { transform: translateX(0) translateZ(0) scale(1); opacity: 1; }
 }
 
 /* Reduced motion */

@@ -1,16 +1,14 @@
 [
   {
+    "id": "5bf26f8d-4634-4b3f-a0e6-bae8b69c3ee9",
     "type": "stream",
     "value": {
       "name": "cards",
-      "required": false,
-      "collapsed": true,
       "blocks": [
         {
           "type": "struct",
           "value": {
             "name": "card",
-            "collapsed": true,
             "blocks": [
               {
                 "type": "image_chooser_field",
@@ -25,8 +23,8 @@
                 "value": {
                   "name": "title",
                   "required": false,
-                  "max_length": 150,
-                  "help_text": "Card title"
+                  "help_text": "Card title",
+                  "max_length": 150
                 }
               },
               {
@@ -41,8 +39,6 @@
                 "type": "stream",
                 "value": {
                   "name": "button",
-                  "required": false,
-                  "collapsed": true,
                   "blocks": [
                     {
                       "type": "struct",
@@ -94,8 +90,8 @@
                             "value": {
                               "name": "link",
                               "required": true,
-                              "target_model": "phoxtail_core.InternalLink",
-                              "help_text": "Internal application link"
+                              "help_text": "Internal application link",
+                              "target_model": "phoxtail_core.InternalLink"
                             }
                           },
                           {
@@ -142,15 +138,20 @@
                       }
                     }
                   ],
-                  "min_num": 0
+                  "min_num": 0,
+                  "required": false,
+                  "collapsed": true
                 }
               }
-            ]
+            ],
+            "collapsed": true
           }
         }
       ],
+      "max_num": 20,
       "min_num": 0,
-      "max_num": 20
+      "required": false,
+      "collapsed": true
     }
   }
 ]
