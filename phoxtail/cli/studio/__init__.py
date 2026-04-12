@@ -27,7 +27,9 @@ def _register_commands() -> None:
     from phoxtail.cli.studio.commit import commit
     from phoxtail.cli.studio.context import context
     from phoxtail.cli.studio.discard import discard
+    from phoxtail.cli.studio.dump import dump
     from phoxtail.cli.studio.edit import edit
+    from phoxtail.cli.studio.load import load
     from phoxtail.cli.studio.sessions import sessions
     from phoxtail.cli.studio.version import version
 
@@ -37,6 +39,8 @@ def _register_commands() -> None:
     app.command("commit")(commit)
     app.command("discard")(discard)
     app.command("sessions")(sessions)
+    app.command("dump")(dump)
+    app.command("load")(load)
 
 
 _register_commands()

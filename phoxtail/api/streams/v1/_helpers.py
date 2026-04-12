@@ -147,6 +147,7 @@ def block_detail(b: Block) -> dict:
         "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
         "variants": variants,
         "field_schema": json.dumps(b.schema.get_prep_value(), indent=2),
+        "sort_order": b.sort_order or 0,
     }
 
 

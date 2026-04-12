@@ -63,6 +63,7 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
         group=payload.group,
         is_shared=payload.is_shared,
         schema=payload.block_schema,
+        sort_order=payload.sort_order,
     )
 
     try:

@@ -155,6 +155,7 @@ class Block(BlockSummary):
     page_types: list[str]
     variants: list[BlockVariantRef]
     field_schema: str = ""
+    sort_order: int = 0
 
 
 class BlockList(Schema):
@@ -173,6 +174,7 @@ class BlockCreate(Schema):
     is_shared: bool = False
     page_types: list[str] = []
     block_schema: list[dict] = Field([], alias="schema")
+    sort_order: int = 0
 
 
 class BlockUpdate(Schema):

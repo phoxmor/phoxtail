@@ -30,6 +30,20 @@ EXIT_ENVIRONMENT = 2
 DEFAULT_BASE_URL = "http://localhost"
 API_PREFIX = "/api/streams/v1"
 
+# Module-level override set by commands that accept a --peer flag.
+# When set, this takes precedence over phoxtail.toml and the default.
+_peer_url_override: str | None = None
+
+
+def set_peer(url: str | None) -> None:
+    """Override the API base URL for the lifetime of the current command.
+
+    Call this early in any command that accepts ``--peer``.  Pass ``None``
+    to clear (used in tests).
+    """
+    global _peer_url_override
+    _peer_url_override = url.rstrip("/") if url else None
+
 # Generous enough for prompt-render (LLM-size templates) but short enough
 # that a stopped container surfaces as an error quickly.
 DEFAULT_TIMEOUT = 30.0
@@ -40,10 +54,13 @@ console = Console()
 def _api_base_url() -> str:
     """Resolve the API base URL for the current project.
 
-    Looks for ``[studio] api_url`` in ``phoxtail.toml``; falls back to
-    ``DEFAULT_BASE_URL``. Trailing slashes are normalized so callers can
-    safely concatenate path segments.
+    Priority order:
+    1. ``set_peer()`` override (set by commands that accept ``--peer``)
+    2. ``[studio] api_url`` in ``phoxtail.toml``
+    3. ``DEFAULT_BASE_URL`` (localhost)
     """
+    if _peer_url_override is not None:
+        return _peer_url_override
     if _find_config_file() is None:
         return DEFAULT_BASE_URL
     try:
@@ -207,8 +224,12 @@ def create_variant(
     html: str = "",
     css: str = "",
     javascript: str = "",
-) -> tuple[dict[str, Any], str | None]:
-    """Create a new variant and return ``(body, etag)``."""
+    is_default: bool = False,
+) -> tuple[dict[str, Any], int]:
+    """Create a new variant. Returns ``(body, status_code)``.
+
+    201 = created, 409 = already exists (skip).
+    """
     response = request(
         "POST",
         "/variants/",
@@ -221,13 +242,76 @@ def create_variant(
             "html": html,
             "css": css,
             "javascript": javascript,
+            "is_default": is_default,
         },
+        allow_status=(409,),
     )
-    return response.json(), response.headers.get("ETag")
+    return response.json(), response.status_code
 
 
 def get_collection(identifier: str) -> dict[str, Any]:
     return get_json(f"/collections/{identifier}/")
+
+
+def create_collection(
+    *,
+    identifier: str,
+    name: str,
+    description: str = "",
+    template: str = "",
+) -> tuple[dict[str, Any], int]:
+    """Create a new collection. Returns ``(body, status_code)``.
+
+    The caller is responsible for checking status_code: 201 = created,
+    409 = already exists (skip).
+    """
+    response = request(
+        "POST",
+        "/collections/",
+        json_body={
+            "identifier": identifier,
+            "name": name,
+            "description": description,
+            "template": template,
+        },
+        allow_status=(409,),
+    )
+    return response.json(), response.status_code
+
+
+def create_block(
+    *,
+    identifier: str,
+    name: str,
+    description: str = "",
+    icon: str = "",
+    group: str = "",
+    is_shared: bool = False,
+    page_types: list[str] | None = None,
+    schema: list[dict] | None = None,
+    sort_order: int = 0,
+) -> tuple[dict[str, Any], int]:
+    """Create a new block. Returns ``(body, status_code)``.
+
+    201 = created, 409 = already exists (skip).
+    """
+    response = request(
+        "POST",
+        "/blocks/",
+        json_body={
+            "identifier": identifier,
+            "name": name,
+            "description": description,
+            "icon": icon,
+            "group": group,
+            "is_shared": is_shared,
+            "page_types": page_types or [],
+            "schema": schema or [],
+            "sort_order": sort_order,
+        },
+        allow_status=(409,),
+    )
+    return response.json(), response.status_code
 
 
 def get_block(identifier: str) -> dict[str, Any]:
