@@ -1,4 +1,4 @@
-{% load static app_tags wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+{% load static wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
 <div id="image-banner-{{ block.id }}" class="ib-wrapper">
     {% if value.image %}
         {% srcset_image value.image width-{768,1280,1920} class="ib-bg-image" sizes="100vw" alt=value.image.title loading="eager" %}

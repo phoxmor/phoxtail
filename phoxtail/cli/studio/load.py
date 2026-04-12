@@ -172,7 +172,9 @@ def _load_collections(root: Path) -> None:
             console.print(f"  [dim]{identifier} already exists, skipping[/dim]")
             skipped += 1
         else:
-            console.print(f"  [green]created[/green] collection [cyan]{identifier}[/cyan]")
+            console.print(
+                f"  [green]created[/green] collection [cyan]{identifier}[/cyan]"
+            )
             created += 1
 
     console.print(f"  Collections: {created} created, {skipped} skipped")
@@ -267,7 +269,9 @@ def _load_variants(root: Path) -> None:
         for collection_dir in sorted(d for d in variants_dir.iterdir() if d.is_dir()):
             collection_identifier = collection_dir.name
 
-            for variant_dir in sorted(d for d in collection_dir.iterdir() if d.is_dir()):
+            for variant_dir in sorted(
+                d for d in collection_dir.iterdir() if d.is_dir()
+            ):
                 metadata_file = variant_dir / "variant.yaml"
                 description_file = variant_dir / "description.md"
                 html_file = variant_dir / "template.html"
@@ -309,8 +313,12 @@ def _load_variants(root: Path) -> None:
                     collection=collection_identifier,
                     description=description_file.read_text(encoding="utf-8"),
                     html=html_file.read_text(encoding="utf-8"),
-                    css=css_file.read_text(encoding="utf-8") if css_file.exists() else "",
-                    javascript=js_file.read_text(encoding="utf-8") if js_file.exists() else "",
+                    css=css_file.read_text(encoding="utf-8")
+                    if css_file.exists()
+                    else "",
+                    javascript=js_file.read_text(encoding="utf-8")
+                    if js_file.exists()
+                    else "",
                     is_default=metadata.get("is_default", False),
                 )
                 if status == 409:

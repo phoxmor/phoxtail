@@ -155,7 +155,9 @@ def _write_collection(collections_dir: Path, detail: dict) -> None:
     body = detail.get("template", "").strip()
 
     content = f"---\n{fm_text}\n---\n\n{body}\n" if body else f"---\n{fm_text}\n---\n"
-    (collections_dir / f"{detail['identifier']}.md").write_text(content, encoding="utf-8")
+    (collections_dir / f"{detail['identifier']}.md").write_text(
+        content, encoding="utf-8"
+    )
 
 
 # ---------------------------------------------------------------------------

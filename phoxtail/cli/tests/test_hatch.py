@@ -89,7 +89,6 @@ class TestCopyTemplate:
         _copy_template("myproject", target)
 
         assert (target / "src" / "settings").is_dir()
-        assert (target / "app" / "templatetags").is_dir()
         assert (target / "app" / "templates" / "app" / "pages").is_dir()
 
     def test_injects_optional_apps_into_settings(self, tmp_path):

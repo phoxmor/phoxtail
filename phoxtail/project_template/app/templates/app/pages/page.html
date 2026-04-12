@@ -1,5 +1,5 @@
 {% extends "app/pages/base.html" %}
-{% load app_tags wagtailcore_tags %}
+{% load wagtailcore_tags %}
 {% block content %}
     {% for block in page.body %}
         {% with streamfield_name="body" block_index=forloop.counter0 %}

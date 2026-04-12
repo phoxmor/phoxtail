@@ -1,4 +1,4 @@
-{% load static app_tags wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
+{% load static wagtailcore_tags wagtailimages_tags phoxtail_design_tags %}
 <div id="video-banner-{{ block.id }}" class="vb-wrapper">
     {% if value.thumbnail %}
         {% srcset_image value.thumbnail width-{768,1280,1920} class="vb-thumbnail" sizes="100vw" alt=value.thumbnail.title loading="eager" %}

@@ -50,7 +50,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <!-- Global App Stylesheets -->
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
-        <link rel="stylesheet" href="{% static 'app/css/main.css' %}" />
         <!-- HTMX -->
         <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
         {% django_htmx_script %}
@@ -70,7 +69,7 @@
         </style>
         {% block extra_css %}{% endblock %}
     </head>
-    <body class="fw-body">
+    <body>
         {% include "account/messages_static.html" %}
         {% include "account/messages.html" %}
         <main>

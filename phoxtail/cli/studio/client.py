@@ -44,6 +44,7 @@ def set_peer(url: str | None) -> None:
     global _peer_url_override
     _peer_url_override = url.rstrip("/") if url else None
 
+
 # Generous enough for prompt-render (LLM-size templates) but short enough
 # that a stopped container surfaces as an error quickly.
 DEFAULT_TIMEOUT = 30.0
