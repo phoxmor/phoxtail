@@ -17,9 +17,9 @@
     {% get_settings %}
     <style>
         :root {
-            {{ settings.app.SiteConfig.css_variables|safe }}
+            {{ settings.phoxtail_cms.SiteConfig.css_variables|safe }}
         }
-        {{ settings.app.SiteConfig.font_face_declarations|safe }}
+        {{ settings.phoxtail_cms.SiteConfig.font_face_declarations|safe }}
     </style>
 {% endblock %}
 {% block content %}

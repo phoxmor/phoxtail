@@ -78,7 +78,7 @@ class VariantCollection(models.Model):
 **Purpose:** Centralizes design system definitions, allowing variants across different blocks to share consistent styling principles.
 
 **Design Token Integration:**
-Collections leverage the global site design tokens defined in `app.SiteConfig`. This ensures that all variants generated within a collection are aware of the site's brand palettes and typography.
+Collections leverage the global site design tokens defined in `phoxtail_cms.SiteConfig`. This ensures that all variants generated within a collection are aware of the site's brand palettes and typography.
 
 **Benefits:**
 - **Design Consistency**: Define design principles once, apply across multiple block variants.

@@ -1,13 +1,13 @@
 {% load wagtailimages_tags wagtailsettings_tags %}
 {% get_settings %}
-{% if settings.app.SiteConfig.logo %}
+{% if settings.phoxtail_cms.SiteConfig.logo %}
     <div class="auth-logo-wrapper">
-        {% image settings.app.SiteConfig.logo height-256 as logo %}
-        {% if settings.app.SiteConfig.logo_dark %}
-            {% image settings.app.SiteConfig.logo_dark height-256 as logo_dark %}
+        {% image settings.phoxtail_cms.SiteConfig.logo height-256 as logo %}
+        {% if settings.phoxtail_cms.SiteConfig.logo_dark %}
+            {% image settings.phoxtail_cms.SiteConfig.logo_dark height-256 as logo_dark %}
         {% endif %}
-        {% if settings.app.SiteConfig.site.root_page.url %}
-            <a href="{{ settings.app.SiteConfig.site.root_page.url }}"
+        {% if settings.phoxtail_cms.SiteConfig.site.root_page.url %}
+            <a href="{{ settings.phoxtail_cms.SiteConfig.site.root_page.url }}"
                class="auth-logo-link">
                 <picture>
                     {% if logo_dark %}
@@ -15,7 +15,7 @@
                                 media="(prefers-color-scheme: dark)" />
                     {% endif %}
                     <img src="{{ logo.file.url }}"
-                         alt="{{ settings.app.SiteConfig.logo.title }}"
+                         alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                          class="auth-logo-img" />
                 </picture>
             </a>
@@ -26,7 +26,7 @@
                             media="(prefers-color-scheme: dark)" />
                 {% endif %}
                 <img src="{{ logo.file.url }}"
-                     alt="{{ settings.app.SiteConfig.logo.title }}"
+                     alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                      class="auth-logo-img" />
             </picture>
         {% endif %}

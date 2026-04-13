@@ -2,7 +2,7 @@
 
 ## Overview
 
-SiteConfig (`app.SiteConfig`) is the single source of truth for all design tokens
+SiteConfig (`phoxtail_cms.SiteConfig`) is the single source of truth for all design tokens
 across the platform. It generates CSS custom properties that are injected into every
 page via Wagtail's site settings mechanism, eliminating the need for custom context
 processors.
@@ -59,9 +59,9 @@ Every base template follows the same three-step pattern in `<head>`:
 {% get_settings %}
 <style>
     :root {
-        {{ settings.app.SiteConfig.css_variables|safe }}
+        {{ settings.phoxtail_cms.SiteConfig.css_variables|safe }}
     }
-    {{ settings.app.SiteConfig.font_face_declarations|safe }}
+    {{ settings.phoxtail_cms.SiteConfig.font_face_declarations|safe }}
 </style>
 ```
 
@@ -73,7 +73,7 @@ If `SiteConfig` has no palettes or fonts configured (e.g. a fresh install), the 
 `<style>` emits nothing and the fallbacks from `main.css` remain in effect.
 
 No context processor is needed for design tokens. Wagtail's `wagtail.contrib.settings`
-context processor (already required by Wagtail) provides `settings.app.SiteConfig` to all
+context processor (already required by Wagtail) provides `settings.phoxtail_cms.SiteConfig` to all
 templates automatically.
 
 #### Injection points
@@ -172,7 +172,7 @@ This had several problems:
 ### After: SiteConfig + Wagtail Settings
 
 - **Zero context processors** for design tokens. The `wagtail.contrib.settings`
-  context processor (already required by Wagtail) provides `settings.app.SiteConfig`
+  context processor (already required by Wagtail) provides `settings.phoxtail_cms.SiteConfig`
   to all templates.
 - **Fallbacks live in CSS** (`main.css` `:root`), not in Python.
 - **Role assignment is explicit** -- admins choose which palette serves which semantic

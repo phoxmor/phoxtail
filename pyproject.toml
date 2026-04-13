@@ -96,6 +96,7 @@ exclude = [
 "phoxtail.users" = ["templates/**/*", "static/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.design" = ["management/data/**/*"]
+"phoxtail.cms" = ["templates/**/*"]
 "phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
 "phoxtail.blog" = ["templates/**/*", "management/data/**/*"]
 "phoxtail.dashboard" = ["templates/**/*", "static/**/*"]

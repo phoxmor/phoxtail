@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "phoxtail.users",
     "phoxtail.design",
     "phoxtail.streams",
+    "phoxtail.cms",
     # {{ phoxtail_optional_apps }}
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
@@ -48,7 +49,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django_htmx",
     "wagtail.users",
-    "app",
+    "{{ phoxtail_project_name }}",
     "allauth",
     "allauth.account",
     "sorl.thumbnail",

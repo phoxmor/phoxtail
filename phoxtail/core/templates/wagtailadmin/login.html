@@ -3,14 +3,14 @@
 {% block branding_login %}
     <div class="logo-container">
         {% get_settings %}
-        {% if settings.app.SiteConfig.logo_admin and settings.app.SiteConfig.logo_admin_dark %}
-            {% image settings.app.SiteConfig.logo_admin height-256 as logo_admin %}
-            {% image settings.app.SiteConfig.logo_admin_dark height-256 as logo_admin_dark %}
+        {% if settings.phoxtail_cms.SiteConfig.logo_admin and settings.phoxtail_cms.SiteConfig.logo_admin_dark %}
+            {% image settings.phoxtail_cms.SiteConfig.logo_admin height-256 as logo_admin %}
+            {% image settings.phoxtail_cms.SiteConfig.logo_admin_dark height-256 as logo_admin_dark %}
             <img src="{{ logo_admin.file.url }}"
-                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                 alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                  class="logo-light" />
             <img src="{{ logo_admin_dark.file.url }}"
-                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                 alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                  class="logo-dark" />
         {% else %}
             <img class="logo-light"

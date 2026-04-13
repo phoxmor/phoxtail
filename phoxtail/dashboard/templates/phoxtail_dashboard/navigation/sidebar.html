@@ -5,16 +5,16 @@
             <!-- Logo -->
             <div class="dash-sidebar__logo">
                 {% get_settings %}
-                {% if settings.app.SiteConfig.logo %}
-                    {% image settings.app.SiteConfig.logo height-256 as logo %}
+                {% if settings.phoxtail_cms.SiteConfig.logo %}
+                    {% image settings.phoxtail_cms.SiteConfig.logo height-256 as logo %}
                     <a href="/" class="dash-sidebar__logo-link">
                         <picture>
-                            {% if settings.app.SiteConfig.logo_dark %}
-                                {% image settings.app.SiteConfig.logo_dark height-256 as logo_dark %}
+                            {% if settings.phoxtail_cms.SiteConfig.logo_dark %}
+                                {% image settings.phoxtail_cms.SiteConfig.logo_dark height-256 as logo_dark %}
                                 <source srcset="{{ logo_dark.url }}" media="(prefers-color-scheme: dark)">
                             {% endif %}
                             <img src="{{ logo.url }}"
-                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                                  class="dash-sidebar__logo-img" />
                         </picture>
                     </a>

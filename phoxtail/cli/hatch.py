@@ -20,6 +20,10 @@ console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
 APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
+# Sentinel used in template directory and file names that should be renamed
+# to the user's project name at scaffold time (e.g. the user app directory
+# and its Django template namespace).
+DIR_SENTINEL = "__project_name__"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 
 # Files that are only copied into a hatched project when a predicate holds.
@@ -71,6 +75,7 @@ WIZARD_STEPS = [
     ("nginx", "Nginx"),
     ("migrate", "Migrate Database"),
     ("stream_engine", "Stream Engine"),
+    ("bootstrap_site", "Bootstrap Site"),
     ("superuser", "Create Superuser"),
     ("docker_up", "Launch App"),
 ]
@@ -194,7 +199,12 @@ def _copy_template(
         if rel_path.as_posix() in skipped_rel_paths:
             continue
 
-        dest_path = target_dir / rel_path
+        # Rename sentinel path components (e.g. __project_name__/) to the
+        # concrete project name — both for directories and file names.
+        rel_parts = tuple(
+            project_name if part == DIR_SENTINEL else part for part in rel_path.parts
+        )
+        dest_path = target_dir.joinpath(*rel_parts)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Try text replacement; fall back to binary copy for non-text files
@@ -450,6 +460,43 @@ def _run_wizard(
                 prev_failed = True
     else:
         steps["stream_engine"] = "skipped"
+        prev_failed = False
+
+    # --- Step: Bootstrap Site ---
+    _clear_and_show_progress(
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["bootstrap_site"],
+        pause=prev_failed,
+    )
+    console.print("  Create homepage and wire the default site\n")
+    if Confirm.ask("  Run [cyan]phoxtail manage bootstrap_site[/cyan]?", default=True):
+        if steps.get("stream_engine") != "done":
+            console.print(
+                "  [yellow]Warning: stream_engine was not completed — "
+                "the hatchling variant may be missing.[/yellow]"
+            )
+        if not _ensure_migrated(target_dir, steps, details):
+            steps["bootstrap_site"] = "failed"
+            details["bootstrap_site"] = "migration required"
+            prev_failed = True
+        else:
+            console.print()
+            if _run_step(
+                target_dir,
+                ["manage", "bootstrap_site", "--app-label", project_name],
+            ):
+                steps["bootstrap_site"] = "done"
+                prev_failed = False
+            else:
+                steps["bootstrap_site"] = "failed"
+                details["bootstrap_site"] = "command failed"
+                prev_failed = True
+    else:
+        steps["bootstrap_site"] = "skipped"
         prev_failed = False
 
     # --- Step: Create Superuser ---
@@ -714,6 +761,11 @@ def hatch(
             "stream_engine",
             "phoxtail manage populate_design && phoxtail manage populate_streams",
             "populate design tokens and stream blocks",
+        )
+        _check(
+            "bootstrap_site",
+            f"phoxtail manage bootstrap_site --app-label {project_name}",
+            "create homepage and wire the default site",
         )
         _check(
             "superuser",

@@ -2,9 +2,9 @@
 {% load static wagtailimages_tags wagtailsettings_tags %}
 {% block branding_favicon %}
     {% get_settings %}
-    {% if settings.app.SiteConfig.favicon and settings.app.SiteConfig.favicon_dark %}
-        {% image settings.app.SiteConfig.favicon height-100 as favicon %}
-        {% image settings.app.SiteConfig.favicon_dark height-100 as favicon_dark %}
+    {% if settings.phoxtail_cms.SiteConfig.favicon and settings.phoxtail_cms.SiteConfig.favicon_dark %}
+        {% image settings.phoxtail_cms.SiteConfig.favicon height-100 as favicon %}
+        {% image settings.phoxtail_cms.SiteConfig.favicon_dark height-100 as favicon_dark %}
         <link rel="shortcut icon"
               href="{{ favicon.file.url }}"
               media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AppConfig(AppConfig):
+class ProjectConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "app"
+    name = "{{ phoxtail_project_name }}"

@@ -20,7 +20,8 @@ class SitePage(Page):
             " and won't redirect."
         ),
     )
-    template = "app/pages/page.html"
+
+    template = "phoxtail_cms/pages/page.html"
 
     content_panels = Page.content_panels + [
         FieldPanel("body"),

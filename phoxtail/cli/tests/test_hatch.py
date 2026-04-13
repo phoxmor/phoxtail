@@ -89,7 +89,7 @@ class TestCopyTemplate:
         _copy_template("myproject", target)
 
         assert (target / "src" / "settings").is_dir()
-        assert (target / "app" / "templates" / "app" / "pages").is_dir()
+        assert (target / "myproject" / "templates" / "myproject" / "pages").is_dir()
 
     def test_injects_optional_apps_into_settings(self, tmp_path):
         target = tmp_path / "myproject"
@@ -257,10 +257,12 @@ class TestHatchCommand:
             app, ["hatch", "myproject", str(tmp_path), "--no-wizard"]
         )
         assert result.exit_code == 0
-        # Files should be in tmp_path directly, not in a "myproject" subdirectory
+        # Files should be in tmp_path directly, not wrapped in an extra
+        # "myproject" project folder. The user-app directory (also named
+        # "myproject") IS expected as a subdirectory of the scaffold.
         assert (tmp_path / "manage.py").exists()
         assert (tmp_path / "phoxtail.toml").exists()
-        assert not (tmp_path / "myproject").exists()
+        assert (tmp_path / "myproject" / "apps.py").exists()
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     def test_directory_argument_explicit_path(self, mock_run, tmp_path, monkeypatch):
@@ -311,15 +313,15 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + 4 config + migrate(y) + stream_engine(y)
-        # + superuser(y) + launch(y) = 9 y's
+        # + bootstrap_site(y) + superuser(y) + launch(y) = 10 y's
         result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n"
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
         )
         assert result.exit_code == 0
         # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate
-        # + 2 superuser (createsuperuser + verify_email)
-        # + 1 docker-compose-down + 1 launch = 11
-        assert mock_run.call_count == 11
+        # + 1 bootstrap_site + 2 superuser (createsuperuser + verify_email)
+        # + 1 docker-compose-down + 1 launch = 12
+        assert mock_run.call_count == 12
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -332,7 +334,9 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y)
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(
+            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
+        )
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
@@ -346,11 +350,13 @@ class TestHatchCommand:
         # Stream Engine: populate_design then populate_streams
         assert calls[5][-2:] == ["manage", "populate_design"]
         assert calls[6][-2:] == ["manage", "populate_streams"]
+        # Bootstrap site
+        assert calls[7][-4:] == ["manage", "bootstrap_site", "--app-label", "myproject"]
         # Superuser: createsuperuser + verify_email
-        assert calls[7][-2:] == ["manage", "createsuperuser"]
-        assert calls[8][-3:] == ["manage", "verify_email", "--all-superusers"]
+        assert calls[8][-2:] == ["manage", "createsuperuser"]
+        assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
         # Cleanup + launch (always foreground)
-        assert calls[9] == ["docker", "compose", "down"]
+        assert calls[10] == ["docker", "compose", "down"]
         assert calls[-1][-4:] == ["docker", "up", "--build", "--no-detach"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
@@ -382,8 +388,8 @@ class TestHatchCommand:
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard, skip 3 config steps (no nginx in dev), accept migrate,
-        # skip stream_engine, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\nn\ny\nn\n")
+        # skip stream_engine, skip bootstrap_site, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\nn\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)

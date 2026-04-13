@@ -5,17 +5,17 @@
     <div class="dash-topbar__inner">
         <div class="dash-topbar__row">
             <div class="dash-topbar__logo">
-                {% if settings.app.SiteConfig.logo %}
-                    {% image settings.app.SiteConfig.logo height-256 as topbar_logo %}
+                {% if settings.phoxtail_cms.SiteConfig.logo %}
+                    {% image settings.phoxtail_cms.SiteConfig.logo height-256 as topbar_logo %}
                     <a href="/" class="dash-topbar__logo-link">
                         <picture>
-                            {% if settings.app.SiteConfig.logo_dark %}
-                                {% image settings.app.SiteConfig.logo_dark height-256 as topbar_logo_dark %}
+                            {% if settings.phoxtail_cms.SiteConfig.logo_dark %}
+                                {% image settings.phoxtail_cms.SiteConfig.logo_dark height-256 as topbar_logo_dark %}
                                 <source srcset="{{ topbar_logo_dark.url }}"
                                         media="(prefers-color-scheme: dark)">
                             {% endif %}
                             <img src="{{ topbar_logo.url }}"
-                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                                  class="dash-topbar__logo-img" />
                         </picture>
                     </a>
@@ -36,18 +36,18 @@
 <div id="drawer" class="dash-mobile-sidebar">
     <div class="dash-mobile-sidebar__header">
         <div class="dash-mobile-sidebar__logo-row">
-            {% if settings.app.SiteConfig.logo %}
-                {% image settings.app.SiteConfig.logo height-256 as drawer_logo %}
+            {% if settings.phoxtail_cms.SiteConfig.logo %}
+                {% image settings.phoxtail_cms.SiteConfig.logo height-256 as drawer_logo %}
                 <div class="dash-mobile-sidebar__logo">
                     <a href="/" class="dash-mobile-sidebar__logo-link">
                         <picture>
-                            {% if settings.app.SiteConfig.logo_dark %}
-                                {% image settings.app.SiteConfig.logo_dark height-256 as drawer_logo_dark %}
+                            {% if settings.phoxtail_cms.SiteConfig.logo_dark %}
+                                {% image settings.phoxtail_cms.SiteConfig.logo_dark height-256 as drawer_logo_dark %}
                                 <source srcset="{{ drawer_logo_dark.url }}"
                                         media="(prefers-color-scheme: dark)">
                             {% endif %}
                             <img src="{{ drawer_logo.url }}"
-                                 alt="{{ settings.app.SiteConfig.logo.title }}"
+                                 alt="{{ settings.phoxtail_cms.SiteConfig.logo.title }}"
                                  class="dash-mobile-sidebar__logo-img" />
                         </picture>
                     </a>
