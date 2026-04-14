@@ -69,15 +69,10 @@ def _collect_extra_requirements(selected_apps: list[str]) -> list[str]:
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
-    ("env", "Environment"),
-    ("dockerfile", "Dockerfile"),
-    ("compose", "Docker Compose"),
-    ("nginx", "Nginx"),
-    ("migrate", "Migrate Database"),
-    ("stream_engine", "Stream Engine"),
-    ("bootstrap_site", "Bootstrap Site"),
-    ("superuser", "Create Superuser"),
-    ("docker_up", "Launch App"),
+    ("configure", "Configure"),
+    ("setup_db", "Populate"),
+    ("superuser", "Access"),
+    ("docker_up", "Launch"),
 ]
 
 # Status icons
@@ -235,38 +230,6 @@ def _run_step(target_dir: Path, args: list[str]) -> bool:
     return result.returncode == 0
 
 
-def _ensure_migrated(
-    target_dir: Path,
-    steps: dict[str, str],
-    details: dict[str, str],
-) -> bool:
-    """Ensure the database is migrated, prompting if the migrate step was skipped.
-
-    Returns True if the database is migrated (either previously or just now).
-    """
-    if steps.get("migrate") == "done":
-        return True
-
-    if steps.get("migrate") == "failed":
-        console.print("  [red]Database migration previously failed.[/red]")
-        if not Confirm.ask("  Retry migration now?", default=True):
-            return False
-
-    # Migration was skipped or needs retry — offer to run it
-    if steps.get("migrate") == "skipped":
-        console.print("  [yellow]This step requires a migrated database.[/yellow]")
-        if not Confirm.ask("  Run migration now?", default=True):
-            return False
-
-    if _run_step(target_dir, ["manage", "migrate"]):
-        steps["migrate"] = "done"
-        return True
-
-    steps["migrate"] = "failed"
-    details["migrate"] = "command failed"
-    return False
-
-
 def _run_wizard(
     project_name: str, target_dir: Path, environment: str
 ) -> dict[str, str]:
@@ -283,12 +246,7 @@ def _run_wizard(
 
     nginx_sub = "production"
 
-    # Nginx is only relevant for production — omit the step entirely in dev.
-    active_steps = [
-        step
-        for step in WIZARD_STEPS
-        if not (step[0] == "nginx" and environment == "development")
-    ]
+    active_steps = list(WIZARD_STEPS)
     step_idx = {key: i for i, (key, _) in enumerate(active_steps)}
 
     prev_failed = False
@@ -296,210 +254,165 @@ def _run_wizard(
     # Show initial progress with all steps pending
     _clear_and_show_progress(project_name, steps, details, active_steps, environment)
 
-    # --- Step: Environment ---
+    # --- Step: Configure Project ---
+    # Generates all configuration files: .env, Dockerfile, docker-compose.yaml,
+    # and (production only) nginx.conf. None of these touch a container or
+    # database — they are purely file-generation operations that belong together.
     _clear_and_show_progress(
         project_name,
         steps,
         details,
         active_steps,
         environment=environment,
-        current_index=step_idx["env"],
+        current_index=step_idx["configure"],
         pause=prev_failed,
     )
-    console.print(f"  Generate [bold]{environment}[/bold] .env configuration\n")
-    if Confirm.ask(
-        f"  Run [cyan]phoxtail env create {environment}[/cyan]?", default=True
-    ):
-        if _run_step(target_dir, ["env", "create", environment]):
-            steps["env"] = "done"
-            prev_failed = False
-        else:
-            steps["env"] = "failed"
-            details["env"] = "command failed"
-            prev_failed = True
-    else:
-        steps["env"] = "skipped"
-        prev_failed = False
-
-    # --- Step: Dockerfile ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["dockerfile"],
-        pause=prev_failed,
+    console.print(
+        f"  Generate [bold]{environment}[/bold] configuration files"
+        + (
+            " (.env, Dockerfile, docker-compose.yaml, nginx.conf)"
+            if environment == "production"
+            else " (.env, Dockerfile, docker-compose.yaml)"
+        )
+        + "\n"
     )
-    console.print("  Generate Dockerfile\n")
-    if Confirm.ask(
-        "  Run [cyan]phoxtail docker create dockerfile[/cyan]?", default=True
-    ):
-        if _run_step(target_dir, ["docker", "create", "dockerfile"]):
-            steps["dockerfile"] = "done"
-            prev_failed = False
-        else:
-            steps["dockerfile"] = "failed"
-            details["dockerfile"] = "command failed"
-            prev_failed = True
-    else:
-        steps["dockerfile"] = "skipped"
-        prev_failed = False
 
-    # --- Step: Docker Compose ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["compose"],
-        pause=prev_failed,
-    )
-    console.print(f"  Generate [bold]{environment}[/bold] docker-compose.yaml\n")
-    if Confirm.ask(
-        f"  Run [cyan]phoxtail docker create compose {environment}[/cyan]?",
-        default=True,
-    ):
-        if _run_step(target_dir, ["docker", "create", "compose", environment]):
-            steps["compose"] = "done"
-            prev_failed = False
-        else:
-            steps["compose"] = "failed"
-            details["compose"] = "command failed"
-            prev_failed = True
-    else:
-        steps["compose"] = "skipped"
-        prev_failed = False
-
-    # --- Step: Nginx (production only) ---
-    if environment == "production":
+    def _redraw(detail: str = "") -> None:
+        """Clear and redraw the progress panel, updating the current step detail."""
+        if detail:
+            details["configure"] = detail
         _clear_and_show_progress(
             project_name,
             steps,
             details,
             active_steps,
             environment=environment,
-            current_index=step_idx["nginx"],
-            pause=prev_failed,
+            current_index=step_idx["configure"],
         )
-        console.print(f"  Generate [bold]{nginx_sub}[/bold] nginx.conf\n")
-        if Confirm.ask(
-            f"  Run [cyan]phoxtail nginx create {nginx_sub}[/cyan]?", default=True
-        ):
-            if _run_step(target_dir, ["nginx", "create", nginx_sub]):
-                steps["nginx"] = "done"
-                prev_failed = False
-            else:
-                steps["nginx"] = "failed"
-                details["nginx"] = "command failed"
+
+    if Confirm.ask("  Generate project configuration?", default=True):
+        _redraw("generating .env…")
+        env_ok = _run_step(target_dir, ["env", "create", environment])
+
+        if not env_ok:
+            steps["configure"] = "failed"
+            details["configure"] = "env create failed"
+            prev_failed = True
+        else:
+            _redraw("generating Dockerfile…")
+            dockerfile_ok = _run_step(target_dir, ["docker", "create", "dockerfile"])
+
+            if not dockerfile_ok:
+                steps["configure"] = "failed"
+                details["configure"] = "dockerfile failed"
                 prev_failed = True
-        else:
-            steps["nginx"] = "skipped"
-            prev_failed = False
-
-    # --- Step: Migrate Database ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["migrate"],
-        pause=prev_failed,
-    )
-    console.print("  Apply database migrations\n")
-    if Confirm.ask("  Run [cyan]phoxtail manage migrate[/cyan]?", default=True):
-        if _run_step(target_dir, ["manage", "migrate"]):
-            steps["migrate"] = "done"
-            prev_failed = False
-        else:
-            steps["migrate"] = "failed"
-            details["migrate"] = "command failed"
-            prev_failed = True
-    else:
-        steps["migrate"] = "skipped"
-        prev_failed = False
-
-    # --- Step: Stream Engine ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["stream_engine"],
-        pause=prev_failed,
-    )
-    console.print("  Populate design tokens and stream blocks\n")
-    if Confirm.ask("  Run [cyan]Stream Engine[/cyan]?", default=True):
-        if not _ensure_migrated(target_dir, steps, details):
-            steps["stream_engine"] = "failed"
-            details["stream_engine"] = "migration required"
-            prev_failed = True
-        else:
-            # Run populate_design first (streams depend on design tokens)
-            console.print()
-            console.print("  [bold]Populating design tokens…[/bold]")
-            design_ok = _run_step(target_dir, ["manage", "populate_design"])
-            if design_ok:
-                console.print("  [bold]Populating stream blocks…[/bold]")
-                streams_ok = _run_step(target_dir, ["manage", "populate_streams"])
             else:
-                streams_ok = False
+                _redraw("generating docker-compose.yaml…")
+                compose_ok = _run_step(
+                    target_dir, ["docker", "create", "compose", environment]
+                )
 
-            if design_ok and streams_ok:
-                steps["stream_engine"] = "done"
-                prev_failed = False
-            else:
-                steps["stream_engine"] = "failed"
-                if not design_ok:
-                    details["stream_engine"] = "populate_design failed"
+                if not compose_ok:
+                    steps["configure"] = "failed"
+                    details["configure"] = "docker compose failed"
+                    prev_failed = True
+                elif environment == "production":
+                    _redraw("generating nginx.conf…")
+                    nginx_ok = _run_step(target_dir, ["nginx", "create", nginx_sub])
+
+                    if nginx_ok:
+                        steps["configure"] = "done"
+                        prev_failed = False
+                    else:
+                        steps["configure"] = "failed"
+                        details["configure"] = "nginx failed"
+                        prev_failed = True
                 else:
-                    details["stream_engine"] = "populate_streams failed"
-                prev_failed = True
+                    steps["configure"] = "done"
+                    prev_failed = False
     else:
-        steps["stream_engine"] = "skipped"
+        steps["configure"] = "skipped"
         prev_failed = False
 
-    # --- Step: Bootstrap Site ---
+    # Clear sub-step detail so the panel is clean when the next step renders.
+    details.pop("configure", None)
+
+    # --- Step: Create Database ---
+    # Runs four operations in sequence: migrate → populate_design →
+    # populate_streams → bootstrap_site. They are non-negotiable as a unit —
+    # each depends on the previous — so they share one user-facing prompt.
     _clear_and_show_progress(
         project_name,
         steps,
         details,
         active_steps,
         environment=environment,
-        current_index=step_idx["bootstrap_site"],
+        current_index=step_idx["setup_db"],
         pause=prev_failed,
     )
-    console.print("  Create homepage and wire the default site\n")
-    if Confirm.ask("  Run [cyan]phoxtail manage bootstrap_site[/cyan]?", default=True):
-        if steps.get("stream_engine") != "done":
-            console.print(
-                "  [yellow]Warning: stream_engine was not completed — "
-                "the hatchling variant may be missing.[/yellow]"
-            )
-        if not _ensure_migrated(target_dir, steps, details):
-            steps["bootstrap_site"] = "failed"
-            details["bootstrap_site"] = "migration required"
+    console.print(
+        "  Run migrations, seed design tokens, populate blocks, and create the homepage\n"
+    )
+
+    def _redraw_db(detail: str = "") -> None:
+        """Clear and redraw the progress panel for the database step."""
+        if detail:
+            details["setup_db"] = detail
+        _clear_and_show_progress(
+            project_name,
+            steps,
+            details,
+            active_steps,
+            environment=environment,
+            current_index=step_idx["setup_db"],
+        )
+
+    if Confirm.ask("  Set up the database?", default=True):
+        _redraw_db("running migrations…")
+        migrate_ok = _run_step(target_dir, ["manage", "migrate"])
+
+        if not migrate_ok:
+            steps["setup_db"] = "failed"
+            details["setup_db"] = "migrate failed"
             prev_failed = True
         else:
-            console.print()
-            if _run_step(
-                target_dir,
-                ["manage", "bootstrap_site", "--app-label", project_name],
-            ):
-                steps["bootstrap_site"] = "done"
-                prev_failed = False
-            else:
-                steps["bootstrap_site"] = "failed"
-                details["bootstrap_site"] = "command failed"
+            _redraw_db("populating design tokens…")
+            design_ok = _run_step(target_dir, ["manage", "populate_design"])
+
+            if not design_ok:
+                steps["setup_db"] = "failed"
+                details["setup_db"] = "populate_design failed"
                 prev_failed = True
+            else:
+                _redraw_db("populating stream blocks…")
+                streams_ok = _run_step(target_dir, ["manage", "populate_streams"])
+
+                if not streams_ok:
+                    steps["setup_db"] = "failed"
+                    details["setup_db"] = "populate_streams failed"
+                    prev_failed = True
+                else:
+                    _redraw_db("creating homepage…")
+                    site_ok = _run_step(
+                        target_dir,
+                        ["manage", "bootstrap_site", "--app-label", project_name],
+                    )
+
+                    if site_ok:
+                        steps["setup_db"] = "done"
+                        prev_failed = False
+                    else:
+                        steps["setup_db"] = "failed"
+                        details["setup_db"] = "bootstrap_site failed"
+                        prev_failed = True
     else:
-        steps["bootstrap_site"] = "skipped"
+        steps["setup_db"] = "skipped"
         prev_failed = False
 
-    # --- Step: Create Superuser ---
+    # Clear sub-step detail so the panel is clean when the next step renders.
+    details.pop("setup_db", None)
+
+    # --- Step: Create Admin Account ---
     _clear_and_show_progress(
         project_name,
         steps,
@@ -511,21 +424,16 @@ def _run_wizard(
     )
     console.print("  Create an admin superuser account\n")
     if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
-        if not _ensure_migrated(target_dir, steps, details):
-            steps["superuser"] = "failed"
-            details["superuser"] = "migration required"
-            prev_failed = True
+        console.print()
+        if _run_step(target_dir, ["manage", "createsuperuser"]):
+            # Verify the superuser's email in allauth automatically
+            _run_step(target_dir, ["manage", "verify_email", "--all-superusers"])
+            steps["superuser"] = "done"
+            prev_failed = False
         else:
-            console.print()
-            if _run_step(target_dir, ["manage", "createsuperuser"]):
-                # Verify the superuser's email in allauth automatically
-                _run_step(target_dir, ["manage", "verify_email", "--all-superusers"])
-                steps["superuser"] = "done"
-                prev_failed = False
-            else:
-                steps["superuser"] = "failed"
-                details["superuser"] = "command failed"
-                prev_failed = True
+            steps["superuser"] = "failed"
+            details["superuser"] = "command failed"
+            prev_failed = True
         # Clean up containers started by docker compose run (e.g. db)
         subprocess.run(
             ["docker", "compose", "down"],
@@ -751,31 +659,26 @@ def hatch(
             elif status != "done":
                 next_steps.append(f"  • [cyan]{cmd}[/cyan]{hint}")
 
-        _check("env", "phoxtail env create", "generate .env configuration")
-        _check("dockerfile", "phoxtail docker create dockerfile", "generate Dockerfile")
-        _check(
-            "compose", "phoxtail docker create compose", "generate docker-compose.yaml"
-        )
-        if environment != "development":
-            _check(
-                "nginx",
-                "phoxtail nginx create production",
-                "generate nginx.conf",
+        configure_cmd = (
+            f"phoxtail env create {environment or 'development'}"
+            " && phoxtail docker create dockerfile"
+            f" && phoxtail docker create compose {environment or 'development'}"
+            + (
+                " && phoxtail nginx create production"
+                if environment == "production"
+                else ""
             )
-        _check(
-            "migrate",
-            "phoxtail manage migrate",
-            "apply database migrations",
         )
+        _check("configure", configure_cmd, "generate project configuration files")
         _check(
-            "stream_engine",
-            "phoxtail manage populate_design && phoxtail manage populate_streams",
-            "populate design tokens and stream blocks",
-        )
-        _check(
-            "bootstrap_site",
-            f"phoxtail manage bootstrap_site --app-label {project_name}",
-            "create homepage and wire the default site",
+            "setup_db",
+            (
+                "phoxtail manage migrate"
+                " && phoxtail manage populate_design"
+                " && phoxtail manage populate_streams"
+                f" && phoxtail manage bootstrap_site --app-label {project_name}"
+            ),
+            "set up the database (migrate, seed tokens/blocks, create homepage)",
         )
         _check(
             "superuser",

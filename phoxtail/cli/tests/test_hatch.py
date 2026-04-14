@@ -397,9 +397,8 @@ class TestHatchCommand:
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip 3 config steps (no nginx in dev), accept migrate,
-        # skip stream_engine, skip bootstrap_site, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\nn\nn\ny\nn\n")
+        # Accept wizard, skip configure, skip populate, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)
@@ -501,28 +500,26 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_stream_engine_runs_design_then_streams(
+    def test_populate_step_runs_design_before_streams(
         self, mock_q, mock_run, tmp_path, monkeypatch
     ):
-        """Stream Engine runs populate_design before populate_streams."""
+        """populate_design runs before populate_streams within the populate step."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip 4 config, accept migrate, accept stream_engine,
-        # skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
+        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
-        # Find populate commands
         design_idx = next(i for i, c in enumerate(calls) if "populate_design" in c)
         streams_idx = next(i for i, c in enumerate(calls) if "populate_streams" in c)
         assert design_idx < streams_idx
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_stream_engine_skips_streams_on_design_failure(
+    def test_populate_step_skips_streams_on_design_failure(
         self, mock_q, mock_run, tmp_path, monkeypatch
     ):
         """If populate_design fails, populate_streams is not attempted."""
@@ -544,9 +541,8 @@ class TestHatchCommand:
 
         mock_run.side_effect = side_effect
 
-        # Accept wizard, skip 4 config, accept migrate, accept stream_engine,
-        # skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
+        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert any("populate_design" in c for c in calls)
@@ -554,22 +550,21 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_ensure_migrated_prompts_when_skipped(
+    def test_populate_step_runs_all_db_operations(
         self, mock_q, mock_run, tmp_path, monkeypatch
     ):
-        """Stream Engine prompts to migrate if migrate step was skipped."""
+        """Accepting the populate step runs migrate, populate_design, populate_streams,
+        and bootstrap_site as a single unit."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip 3 config (no nginx in dev), SKIP migrate,
-        # accept _ensure_migrated prompt, skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\ny\nn\nn\n")
+        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
-        # Migration should have been triggered by _ensure_migrated
         assert any("migrate" in c for c in calls)
-        # And populate commands should have run
         assert any("populate_design" in c for c in calls)
         assert any("populate_streams" in c for c in calls)
+        assert any("bootstrap_site" in c for c in calls)

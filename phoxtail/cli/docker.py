@@ -177,7 +177,7 @@ def dockerfile(
         python_version = questionary.select(
             "Select Python version:",
             choices=PYTHON_VERSIONS,
-            default="3.12",
+            default="3.13",
         ).ask()
 
         if python_version is None:
