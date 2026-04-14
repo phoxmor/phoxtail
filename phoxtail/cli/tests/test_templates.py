@@ -52,12 +52,13 @@ class TestDockerfileTemplate:
 
 
 class TestComposeTemplate:
-    def _render(self, environment="development"):
+    def _render(self, environment="development", requires_celery=False):
         context = {
             "environment": environment,
             "image_name": "phoxmor/test:latest",
             "postgres_version": "17",
             "pg_data_path": "/var/lib/postgresql/data",
+            "requires_celery": requires_celery,
         }
         if environment == "development":
             context["phoxtail_source"] = "/opt/src/phoxtail"
@@ -104,6 +105,40 @@ class TestComposeTemplate:
     def test_postgres_version_rendered(self):
         result = self._render("development")
         assert "postgres:17" in result
+
+    def test_no_celery_services_by_default(self):
+        result = self._render("development")
+        assert "celery-worker:" not in result
+        assert "celery-beat:" not in result
+        assert "redis:" not in result
+        assert "redis_data:" not in result
+
+    def test_celery_services_rendered(self):
+        result = self._render("development", requires_celery=True)
+        assert "celery-worker:" in result
+        assert "celery-beat:" in result
+        assert "redis:" in result
+        assert "redis_data:" in result
+
+    def test_celery_web_depends_on_redis(self):
+        result = self._render("development", requires_celery=True)
+        assert "- redis" in result
+
+    def test_celery_commands_correct(self):
+        result = self._render("development", requires_celery=True)
+        assert "celery -A src worker" in result
+        assert "celery -A src beat" in result
+        assert "DatabaseScheduler" in result
+
+    def test_dev_celery_mounts_phoxtail_source(self):
+        result = self._render("development", requires_celery=True)
+        # web + celery-worker + celery-beat each get the source mount
+        assert result.count("/opt/phoxtail/phoxtail:ro") == 3
+
+    def test_prod_celery_no_phoxtail_mount(self):
+        result = self._render("production", requires_celery=True)
+        assert "/opt/phoxtail" not in result
+        assert "PYTHONPATH" not in result
 
 
 class TestNginxInitialTemplate:

@@ -9,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.cli.utils.config import get_project_name
+from phoxtail.cli.utils.config import any_app_requires_celery, get_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
 
@@ -324,6 +324,7 @@ def compose(
             "image_name": f"{IMAGE_PREFIX}/{project_name}:latest",
             "postgres_version": postgres_version,
             "pg_data_path": _get_postgres_data_path(postgres_version),
+            "requires_celery": any_app_requires_celery(),
         }
         if env_lower == "development":
             context["phoxtail_source"] = _get_phoxtail_source()

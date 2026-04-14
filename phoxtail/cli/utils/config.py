@@ -13,6 +13,7 @@ CONFIG_FILENAME = "phoxtail.toml"
 DEFAULTS = {
     "project": {
         "name": "phoxtail",
+        "apps": [],
     },
     "db": {
         "clusters": {},
@@ -56,6 +57,21 @@ def _deep_merge(base: dict, override: dict) -> None:
 
 def get_project_name() -> str:
     return load_config()["project"]["name"]
+
+
+def get_project_apps() -> list[str]:
+    return list(load_config()["project"].get("apps", []))
+
+
+def any_app_requires_celery() -> bool:
+    """Return True if any registered phoxtail app declares requires_celery."""
+    from phoxtail.core.wiring import find_phoxtail_config
+
+    for app in get_project_apps():
+        config = find_phoxtail_config(app)
+        if config is not None and config.requires_celery:
+            return True
+    return False
 
 
 def validate_project_name(name: str) -> str | None:

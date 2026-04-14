@@ -20,6 +20,9 @@ services:
 {% endif %}
     depends_on:
       - db
+{% if requires_celery %}
+      - redis
+{% endif %}
 
   db:
     image: postgres:{{ postgres_version }}
@@ -34,6 +37,51 @@ services:
       - postgres_data:{{ pg_data_path }}
       - ./db-backups:/db-backups
 
+{% if requires_celery %}
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  celery-worker:
+    image: {{ image_name }}
+    restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/app
+{% if environment == "development" and phoxtail_source is defined %}
+      - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
+    environment:
+      - PYTHONPATH=/opt/phoxtail
+{% endif %}
+    env_file:
+      - ./.env
+    command: celery -A src worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    image: {{ image_name }}
+    restart: always
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/app
+{% if environment == "development" and phoxtail_source is defined %}
+      - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
+    environment:
+      - PYTHONPATH=/opt/phoxtail
+{% endif %}
+    env_file:
+      - ./.env
+    command: celery -A src beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      - db
+      - redis
+
+{% endif %}
 {% if environment == "development" %}
   docs:
     image: {{ image_name }}
@@ -77,3 +125,6 @@ services:
 {% endif %}
 volumes:
   postgres_data:
+{% if requires_celery %}
+  redis_data:
+{% endif %}

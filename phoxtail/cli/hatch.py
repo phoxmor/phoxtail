@@ -671,6 +671,16 @@ def hatch(
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             file_count = _copy_template(project_name, target_dir, selected_apps)
 
+            # Write the selected optional apps into phoxtail.toml so that
+            # subsequent CLI commands (e.g. docker create compose) can
+            # introspect each app's PhoxtailAppConfig without re-asking.
+            if selected_apps:
+                toml_path = target_dir / "phoxtail.toml"
+                apps_toml = "[" + ", ".join(f'"{a}"' for a in selected_apps) + "]"
+                content = toml_path.read_text(encoding="utf-8")
+                content = content.replace("apps = []", f"apps = {apps_toml}")
+                toml_path.write_text(content, encoding="utf-8")
+
             # Generate requirements.in from template, then append any
             # extra requirements contributed by selected optional apps
             # (e.g. booking brings in celery + django-celery-beat).

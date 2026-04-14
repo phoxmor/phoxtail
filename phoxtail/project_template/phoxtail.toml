@@ -1,2 +1,3 @@
 [project]
 name = "{{ phoxtail_project_name }}"
+apps = []
