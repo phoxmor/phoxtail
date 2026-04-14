@@ -8,8 +8,6 @@ class HomePage(SitePage):
     additional page types.
     """
 
-    template = "{{ phoxtail_project_name }}/pages/home.html"
-
     class Meta:
         verbose_name = _("Home Page")
         verbose_name_plural = _("Home Pages")

@@ -19,6 +19,3 @@ if USE_SMTP_EMAIL_BACKEND:
 from phoxtail.core.wiring import wire_apps  # noqa: E402
 
 wire_apps(globals())
-
-if PHOXTAIL_CELERY_ENABLED:  # noqa: F405
-    CELERY_TIMEZONE = TIME_ZONE  # noqa: F405

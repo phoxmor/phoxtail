@@ -23,6 +23,21 @@ class SitePage(Page):
 
     template = "phoxtail_cms/pages/page.html"
 
+    def get_template(self, request, *args, **kwargs):
+        cls = type(self)
+        # Wagtail's PageBase metaclass stamps cls.template = "{app}/{model}.html" on
+        # every subclass whose class body does not explicitly declare template. We
+        # detect that auto-generated value and fall back to the shared CMS template,
+        # so SitePage subclasses work without boilerplate. A subclass that explicitly
+        # declares template = "..." in its own class body will have a different value
+        # and its choice is respected.
+        from wagtail.coreutils import camelcase_to_underscore
+
+        auto = f"{cls._meta.app_label}/{camelcase_to_underscore(cls.__name__)}.html"
+        if cls.template == auto:
+            return "phoxtail_cms/pages/page.html"
+        return cls.template
+
     content_panels = Page.content_panels + [
         FieldPanel("body"),
     ]

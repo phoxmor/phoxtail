@@ -108,6 +108,10 @@ def wire_apps(settings_globals: dict) -> None:
         settings_globals.setdefault(key, value)
 
     settings_globals.setdefault("PHOXTAIL_CELERY_ENABLED", celery_enabled)
+    if celery_enabled:
+        settings_globals.setdefault(
+            "CELERY_TIMEZONE", settings_globals.get("TIME_ZONE", "UTC")
+        )
 
 
 def collect_url_patterns():

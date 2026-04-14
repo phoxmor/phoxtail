@@ -89,7 +89,9 @@ class TestCopyTemplate:
         _copy_template("myproject", target)
 
         assert (target / "src" / "settings").is_dir()
-        assert (target / "myproject" / "templates" / "myproject" / "pages").is_dir()
+        # No templates directory in the scaffold — SitePage.get_template() routes
+        # all SitePage subclasses to phoxtail_cms/pages/page.html by default.
+        assert not (target / "myproject" / "templates").exists()
 
     def test_injects_optional_apps_into_settings(self, tmp_path):
         target = tmp_path / "myproject"

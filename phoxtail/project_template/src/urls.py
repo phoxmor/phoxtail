@@ -1,28 +1,13 @@
 from django.conf import settings
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
-from django.shortcuts import redirect
 from django.urls import include, path
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from phoxtail.core.wiring import collect_url_patterns
-
-
-def login_redirect_view(request):
-    if not request.user.is_authenticated:
-        return redirect("account_login")
-
-    if request.user.has_perm("wagtailadmin.access_admin"):
-        return redirect("wagtailadmin_home")
-
-    return redirect("/")
-
-
-def redirect_to_allauth_login(request):
-    return redirect("account_login")
-
+from phoxtail.users.views import login_redirect_view, redirect_to_allauth_login
 
 urlpatterns = [
     path("login-redirect/", login_redirect_view, name="login_redirect"),
