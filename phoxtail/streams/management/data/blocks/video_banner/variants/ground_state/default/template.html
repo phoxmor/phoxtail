@@ -41,11 +41,6 @@
                                                                 {% icon "cloud_off" class="vb-btn-icon" %}
                                                             </span>
                                                         {% endif %}
-                                                    {% elif page.is_locked_for_references %}
-                                                        <span class="vb-btn vb-btn--disabled">
-                                                            {{ button.label|default:page.title }}
-                                                            {% icon "lock" class="vb-btn-icon" %}
-                                                        </span>
                                                     {% else %}
                                                         <a href="{{ page.url }}"
                                                            class="vb-btn vb-btn--primary"

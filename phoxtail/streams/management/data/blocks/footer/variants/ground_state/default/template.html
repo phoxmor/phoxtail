@@ -79,8 +79,6 @@
                                                                             {{ item.label|default:current_page.title }}
                                                                         </span>
                                                                     {% endif %}
-                                                                {% elif current_page.is_locked_for_references %}
-                                                                    <span class="ft-link ft-link--disabled" title="Page locked">{{ item.label|default:current_page.title }}</span>
                                                                 {% else %}
                                                                     <a href="{% pageurl item.page %}"
                                                                        class="ft-link"
@@ -167,10 +165,6 @@
                                                     <span class="ft-legal-link ft-link--disabled">{{ link.label|default:current_page.title }}</span>
                                                 </li>
                                             {% endif %}
-                                        {% elif current_page.is_locked_for_references %}
-                                            <li>
-                                                <span class="ft-legal-link ft-link--disabled">{{ link.label|default:current_page.title }}</span>
-                                            </li>
                                         {% else %}
                                             <li>
                                                 <a href="{% pageurl link.page %}"

@@ -8,6 +8,7 @@ from modelcluster.fields import ParentalKey
 from taggit.models import TaggedItemBase
 from wagtail.admin.panels import (
     FieldPanel,
+    MultiFieldPanel,
     ObjectList,
     TabbedInterface,
     TitleFieldPanel,
@@ -79,21 +80,20 @@ class BlogIndexPage(Page):
     posts_per_page = models.PositiveIntegerField(
         default=10, help_text=_("How many blog posts to display per page")
     )
-    is_locked_for_references = models.BooleanField(
-        default=False,
-        verbose_name=_("Lock References"),
-        help_text=_(
-            "If checked, links to this page will appear disabled"
-            " on the website and won't redirect."
-        ),
-    )
 
     content_panels = Page.content_panels + [
         FieldPanel("body"),
         FieldPanel("posts_per_page"),
     ]
-    promote_panels = Page.promote_panels + [
-        FieldPanel("is_locked_for_references"),
+    promote_panels = [
+        MultiFieldPanel(
+            [
+                FieldPanel("slug"),
+                FieldPanel("seo_title"),
+                FieldPanel("search_description"),
+            ],
+            heading=_("For search engines"),
+        ),
     ]
 
     def get_context(self, request, *args, **kwargs):
@@ -176,15 +176,6 @@ class BlogPostPage(TimestampMixin, Page):
         help_text=_("The author of this post"),
     )
 
-    is_locked_for_references = models.BooleanField(
-        default=False,
-        verbose_name=_("Lock References"),
-        help_text=_(
-            "If checked, links to this page will appear disabled"
-            " on the website and won't redirect."
-        ),
-    )
-
     first_published_at_override = models.DateTimeField(
         null=True,
         blank=True,
@@ -227,7 +218,6 @@ class BlogPostPage(TimestampMixin, Page):
     ]
 
     publishing_panels = [
-        FieldPanel("is_locked_for_references"),
         FieldPanel("hide_dates"),
         FieldPanel("first_published_at_override"),
         FieldPanel("last_published_at_override"),
@@ -238,7 +228,19 @@ class BlogPostPage(TimestampMixin, Page):
             ObjectList(content_panels, heading=_("Content")),
             ObjectList(details_panels, heading=_("Details")),
             ObjectList(publishing_panels, heading=_("Publishing")),
-            ObjectList(Page.promote_panels, heading=_("Promote")),
+            ObjectList(
+                [
+                    MultiFieldPanel(
+                        [
+                            FieldPanel("slug"),
+                            FieldPanel("seo_title"),
+                            FieldPanel("search_description"),
+                        ],
+                        heading=_("For search engines"),
+                    ),
+                ],
+                heading=_("Promote"),
+            ),
             ObjectList(Page.settings_panels, heading=_("Settings")),
         ]
     )

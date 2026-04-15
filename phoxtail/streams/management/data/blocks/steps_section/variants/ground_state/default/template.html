@@ -61,11 +61,6 @@
                                                         {% icon "cloud_off" class="ss-icon" %}
                                                     </span>
                                                 {% endif %}
-                                            {% elif page.is_locked_for_references %}
-                                                <span class="ss-btn ss-btn--disabled">
-                                                    {{ button.label|default:page.title }}
-                                                    {% icon "lock" class="ss-icon" %}
-                                                </span>
                                             {% else %}
                                                 <a href="{{ page.url }}"
                                                    class="ss-btn ss-btn--primary"

@@ -14,14 +14,6 @@ class SitePage(Page):
     is_creatable = False
 
     body = BodyStreamField
-    is_locked_for_references = models.BooleanField(
-        default=False,
-        verbose_name=_("Lock References"),
-        help_text=_(
-            "If checked, links to this page will appear disabled on the website"
-            " and won't redirect."
-        ),
-    )
 
     template = "phoxtail_cms/pages/page.html"
 
@@ -44,8 +36,15 @@ class SitePage(Page):
         FieldPanel("body"),
     ]
 
-    promote_panels = Page.promote_panels + [
-        FieldPanel("is_locked_for_references"),
+    promote_panels = [
+        MultiFieldPanel(
+            [
+                FieldPanel("slug"),
+                FieldPanel("seo_title"),
+                FieldPanel("search_description"),
+            ],
+            heading=_("For search engines"),
+        ),
     ]
 
     class Meta:

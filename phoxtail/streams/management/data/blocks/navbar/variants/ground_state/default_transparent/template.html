@@ -40,8 +40,6 @@
                                             {% if perms.wagtailadmin.access_admin %}
                                                 <span class="nb-glass-link nb-glass-link-disabled">{{ link.label|default:current_page.title }}</span>
                                             {% endif %}
-                                        {% elif current_page.is_locked_for_references %}
-                                            <span class="nb-glass-link nb-glass-link-disabled">{{ link.label|default:current_page.title }}</span>
                                         {% elif request.path == decoded_url %}
                                             <a href="{{ page_url }}"
                                                class="nb-glass-link nb-glass-link-active"
@@ -92,8 +90,6 @@
                                                                     {% if perms.wagtailadmin.access_admin %}
                                                                         <span class="nb-glass-dd-link nb-glass-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                     {% endif %}
-                                                                {% elif current_page.is_locked_for_references %}
-                                                                    <span class="nb-glass-dd-link nb-glass-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                 {% elif request.path == decoded_url %}
                                                                     <a href="{{ item_url }}"
                                                                        class="nb-glass-dd-link nb-glass-dd-link-active"
@@ -277,8 +273,6 @@
                                             {% if perms.wagtailadmin.access_admin %}
                                                 <span class="nb-glass-sidebar-link nb-glass-link-disabled">{{ link.label|default:current_page.title }}</span>
                                             {% endif %}
-                                        {% elif current_page.is_locked_for_references %}
-                                            <span class="nb-glass-sidebar-link nb-glass-link-disabled">{{ link.label|default:current_page.title }}</span>
                                         {% elif request.path == decoded_url %}
                                             <a href="{{ page_url }}"
                                                class="nb-glass-sidebar-link nb-glass-sidebar-link-active"
@@ -329,8 +323,6 @@
                                                                 {% if perms.wagtailadmin.access_admin %}
                                                                     <span class="nb-glass-sidebar-sublink nb-glass-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                 {% endif %}
-                                                            {% elif current_page.is_locked_for_references %}
-                                                                <span class="nb-glass-sidebar-sublink nb-glass-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                             {% elif request.path == decoded_url %}
                                                                 <a href="{{ item_url }}"
                                                                    class="nb-glass-sidebar-sublink nb-glass-sidebar-link-active"

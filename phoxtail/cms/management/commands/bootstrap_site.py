@@ -103,7 +103,6 @@ class Command(BaseCommand):
             numchild=0,
             url_path="/home/",
             locale=locale,
-            is_locked_for_references=False,
         )
 
         # Write body JSON via raw SQL — SchemaStreamField.get_prep_value()

@@ -111,17 +111,6 @@ class Migration(migrations.Migration):
                         help_text="How many blog posts to display per page",
                     ),
                 ),
-                (
-                    "is_locked_for_references",
-                    models.BooleanField(
-                        default=False,
-                        help_text=(
-                            "If checked, links to this page will appear"
-                            " disabled on the website and won't redirect."
-                        ),
-                        verbose_name="Lock References",
-                    ),
-                ),
             ],
             options={
                 "verbose_name": "Blog",
@@ -174,17 +163,6 @@ class Migration(migrations.Migration):
                             )
                         ],
                         verbose_name="Reading Time",
-                    ),
-                ),
-                (
-                    "is_locked_for_references",
-                    models.BooleanField(
-                        default=False,
-                        help_text=(
-                            "If checked, links to this page will appear"
-                            " disabled on the website and won't redirect."
-                        ),
-                        verbose_name="Lock References",
                     ),
                 ),
                 (

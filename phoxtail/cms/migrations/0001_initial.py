@@ -20,7 +20,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('page_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='wagtailcore.page')),
                 ('body', phoxtail.streams.fields.SchemaStreamField([], blank=True, block_lookup={}, null=True)),
-                ('is_locked_for_references', models.BooleanField(default=False, help_text="If checked, links to this page will appear disabled on the website and won't redirect.", verbose_name='Lock References')),
             ],
             options={
                 'verbose_name': 'Page',

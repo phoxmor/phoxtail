@@ -33,8 +33,6 @@
                                             {% if perms.wagtailadmin.access_admin %}
                                                 <span class="nb-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
                                             {% endif %}
-                                        {% elif current_page.is_locked_for_references %}
-                                            <span class="nb-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
                                         {% elif request.path == decoded_url %}
                                             <a href="{{ page_url }}"
                                                class="nb-link nb-link-active"
@@ -85,8 +83,6 @@
                                                                     {% if perms.wagtailadmin.access_admin %}
                                                                         <span class="nb-dropdown-link nb-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                     {% endif %}
-                                                                {% elif current_page.is_locked_for_references %}
-                                                                    <span class="nb-dropdown-link nb-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                 {% elif request.path == decoded_url %}
                                                                     <a href="{{ item_url }}"
                                                                        class="nb-dropdown-link nb-dropdown-link-active"
@@ -264,8 +260,6 @@
                                             {% if perms.wagtailadmin.access_admin %}
                                                 <span class="nb-sidebar-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
                                             {% endif %}
-                                        {% elif current_page.is_locked_for_references %}
-                                            <span class="nb-sidebar-link nb-link-disabled">{{ link.label|default:current_page.title }}</span>
                                         {% elif request.path == decoded_url %}
                                             <a href="{{ page_url }}"
                                                class="nb-sidebar-link nb-sidebar-link-active"
@@ -316,8 +310,6 @@
                                                                 {% if perms.wagtailadmin.access_admin %}
                                                                     <span class="nb-sidebar-sublink nb-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                                 {% endif %}
-                                                            {% elif current_page.is_locked_for_references %}
-                                                                <span class="nb-sidebar-sublink nb-link-disabled">{{ item.label|default:current_page.title }}</span>
                                                             {% elif request.path == decoded_url %}
                                                                 <a href="{{ item_url }}"
                                                                    class="nb-sidebar-sublink nb-sidebar-link-active"

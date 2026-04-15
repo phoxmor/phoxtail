@@ -37,11 +37,6 @@
                                                                 {% icon "cloud_off" class="ib-btn-icon" %}
                                                             </span>
                                                         {% endif %}
-                                                    {% elif page.is_locked_for_references %}
-                                                        <span class="ib-btn ib-btn--disabled">
-                                                            {{ button.label|default:page.title }}
-                                                            {% icon "lock" class="ib-btn-icon" %}
-                                                        </span>
                                                     {% else %}
                                                         <a href="{{ page.url }}"
                                                            class="ib-btn ib-btn--primary"

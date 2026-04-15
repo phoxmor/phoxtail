@@ -61,11 +61,6 @@
                                                                 {% icon "cloud_off" class="pricing-btn-icon" %}
                                                             </span>
                                                         {% endif %}
-                                                    {% elif current_page.is_locked_for_references %}
-                                                        <span class="pricing-btn pricing-btn-disabled">
-                                                            {{ button.label|default:current_page.title }}
-                                                            {% icon "lock" class="pricing-btn-icon" %}
-                                                        </span>
                                                     {% else %}
                                                         <a href="{{ button.link.url }}"
                                                            class="pricing-btn {% if plan.is_highlighted %}pricing-btn-highlighted{% endif %}"
