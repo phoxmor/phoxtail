@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="HomePage",
+            name="ContentPage",
             fields=[
                 (
                     "sitepage_ptr",
@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "verbose_name": "Home Page",
-                "verbose_name_plural": "Home Pages",
+                "verbose_name": "Page",
+                "verbose_name_plural": "Pages",
             },
             bases=("phoxtail_cms.sitepage",),
         ),

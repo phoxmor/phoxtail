@@ -351,7 +351,7 @@ def _run_wizard(
         pause=prev_failed,
     )
     console.print(
-        "  Run migrations, seed design tokens, populate blocks, and create the homepage\n"
+        "  Run migrations, seed design tokens, populate blocks, and bootstrap the site\n"
     )
 
     def _redraw_db(detail: str = "") -> None:
@@ -392,7 +392,7 @@ def _run_wizard(
                     details["setup_db"] = "populate_streams failed"
                     prev_failed = True
                 else:
-                    _redraw_db("creating homepage…")
+                    _redraw_db("bootstrapping site…")
                     site_ok = _run_step(
                         target_dir,
                         ["manage", "bootstrap_site", "--app-label", project_name],
@@ -678,7 +678,7 @@ def hatch(
                 " && phoxtail manage populate_streams"
                 f" && phoxtail manage bootstrap_site --app-label {project_name}"
             ),
-            "set up the database (migrate, seed tokens/blocks, create homepage)",
+            "set up the database (migrate, seed tokens/blocks, bootstrap site)",
         )
         _check(
             "superuser",

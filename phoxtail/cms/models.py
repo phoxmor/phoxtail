@@ -11,6 +11,8 @@ from .streams import BodyStreamField
 
 
 class SitePage(Page):
+    is_creatable = False
+
     body = BodyStreamField
     is_locked_for_references = models.BooleanField(
         default=False,

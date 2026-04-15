@@ -1,6 +1,6 @@
-"""Bootstrap the site's homepage for a freshly hatched Phoxtail project.
+"""Bootstrap the site's home page for a freshly hatched Phoxtail project.
 
-Replaces Wagtail's default welcome page with a HomePage instance containing
+Replaces Wagtail's default welcome page with a ContentPage instance containing
 the hatchling block, and wires the default Site to point at it.
 
 This command is idempotent: if a non-welcome page already exists at depth 2
@@ -21,7 +21,7 @@ from django.db import connection
 
 class Command(BaseCommand):
     help = (
-        "Replace Wagtail's welcome page with a project HomePage "
+        "Replace Wagtail's welcome page with a project ContentPage "
         "and wire the default Site."
     )
 
@@ -42,10 +42,10 @@ class Command(BaseCommand):
         site_name = options["site_name"] or app_label.replace("_", " ").title()
 
         try:
-            HomePage = django_apps.get_model(app_label, "HomePage")
+            ContentPage = django_apps.get_model(app_label, "ContentPage")
         except LookupError:
             raise CommandError(
-                f"No model 'HomePage' found in app '{app_label}'. "
+                f"No model 'ContentPage' found in app '{app_label}'. "
                 "Ensure the app is in INSTALLED_APPS and migrations have been applied."
             )
 
@@ -91,10 +91,10 @@ class Command(BaseCommand):
         Page.objects.filter(depth=2, slug="home").delete()
 
         homepage_ct, _ = ContentType.objects.get_or_create(
-            model="homepage", app_label=app_label
+            model="contentpage", app_label=app_label
         )
 
-        homepage = HomePage.objects.create(
+        homepage = ContentPage.objects.create(
             title="Home",
             slug="home",
             content_type=homepage_ct,
