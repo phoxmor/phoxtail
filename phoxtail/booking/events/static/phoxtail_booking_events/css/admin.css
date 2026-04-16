@@ -1868,61 +1868,39 @@
     color: #fff;
 }
 
-/* ── Impact Cards (Cancel) ── */
+/* ── Inline Notices ── */
 
-.evta-impact-card {
-    border-radius: 1rem;
-    padding: 1rem;
-    background: rgb(var(--color-surface-50) / 0.3);
-    border: 1px solid rgb(var(--color-surface-200) / 0.3);
-}
-
-.evta-impact-card--safe {
-    border-color: rgb(var(--color-success-200));
-}
-
-.evta-impact-card--warning {
-    border-color: rgb(var(--color-warning-200));
-}
-
-.evta-impact-card__heading {
+.evta-notice {
     display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
 }
 
-.evta-impact-card__heading svg {
-    width: 1.25rem;
-    height: 1.25rem;
+.evta-notice svg {
+    width: 0.875rem;
+    height: 0.875rem;
     flex-shrink: 0;
+    margin-top: 2px;
 }
 
-.evta-impact-card__heading-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: inherit;
+.evta-notice p {
+    margin: 0;
 }
 
-.evta-impact-card--safe .evta-impact-card__heading {
-    color: rgb(var(--color-success-600));
+.evta-notice--safe {
+    background: rgb(var(--color-success-50) / 0.5);
+    border-color: rgb(var(--color-success-400));
+    color: rgb(var(--color-success-700));
 }
 
-.evta-impact-card--warning .evta-impact-card__heading {
-    color: rgb(var(--color-warning-600));
-}
-
-.evta-impact-card__text {
-    font-size: 0.9375rem;
-    padding-left: 2rem;
-}
-
-.evta-impact-card--safe .evta-impact-card__text {
-    color: rgb(var(--color-success-400));
-}
-
-.evta-impact-card--warning .evta-impact-card__text {
-    color: rgb(var(--color-warning-400));
+.evta-notice--warning {
+    background: rgb(var(--color-warning-50) / 0.5);
+    border-color: rgb(var(--color-warning-400));
+    color: rgb(var(--color-warning-700));
 }
 
 /* ── Subscription Info Card (used in confirm forms) ── */
@@ -3045,33 +3023,16 @@
         color: rgb(var(--color-surface-400));
     }
 
-    /* Impact cards */
-    .evta-impact-card {
-        background: rgb(var(--color-surface-800) / 0.3);
-        border-color: rgb(var(--color-surface-700) / 0.3);
-    }
-
-    .evta-impact-card--safe {
-        border-color: rgb(var(--color-success-700));
-    }
-
-    .evta-impact-card--warning {
-        border-color: rgb(var(--color-warning-700));
-    }
-
-    .evta-impact-card--safe .evta-impact-card__heading {
-        color: rgb(var(--color-success-500));
-    }
-
-    .evta-impact-card--warning .evta-impact-card__heading {
-        color: rgb(var(--color-warning-500));
-    }
-
-    .evta-impact-card--safe .evta-impact-card__text {
+    /* Inline notices */
+    .evta-notice--safe {
+        background: rgb(var(--color-success-900) / 0.2);
+        border-color: rgb(var(--color-success-600));
         color: rgb(var(--color-success-300));
     }
 
-    .evta-impact-card--warning .evta-impact-card__text {
+    .evta-notice--warning {
+        background: rgb(var(--color-warning-900) / 0.2);
+        border-color: rgb(var(--color-warning-600));
         color: rgb(var(--color-warning-300));
     }
 
