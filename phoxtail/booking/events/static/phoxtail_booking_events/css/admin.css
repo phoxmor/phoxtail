@@ -287,6 +287,11 @@
     filter: grayscale(1);
 }
 
+.evta-card-wrap--past:hover .evta-card {
+    opacity: 1;
+    filter: grayscale(0);
+}
+
 .evta-card {
     position: relative;
     background: rgb(255 255 255);
@@ -2231,7 +2236,8 @@
     filter: grayscale(1);
 }
 
-.evta-chip-wrap--past:hover {
+.evta-chip-wrap--past:hover,
+.evta-chip-wrap--past:has(.series-highlight) {
     opacity: 1;
     filter: grayscale(0);
 }
