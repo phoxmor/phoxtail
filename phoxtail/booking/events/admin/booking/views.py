@@ -405,6 +405,7 @@ class ReservationCreateSearchUserView(_ReservationCreateSingleSelectBase):
     field_name = "user"
     search_url_name = "booking_management:admin_reservation_create_search_user"
     oob_response_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/user_search_response.html"
+    item_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/user_item_display.html"
 
     def get_extra_context(self, form):
         context = super().get_extra_context(form)
@@ -429,6 +430,7 @@ class ReservationCreateSearchSubscriptionView(_ReservationCreateSingleSelectBase
         "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/"
         "subscription_search_response.html"
     )
+    item_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/subscription_item_display.html"
 
 
 @booking_permission_required("access_booking_management")

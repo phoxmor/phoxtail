@@ -119,6 +119,7 @@ select.fw-input {
 
 select.fw-input {
     cursor: pointer;
+    line-height: 1.75rem;
 }
 
 textarea.fw-input {
@@ -161,7 +162,7 @@ textarea.fw-input {
 }
 
 .fw-choice-input--radio {
-    border-radius: 50% !important;
+    border-radius: 0.25rem !important;
 }
 
 .fw-choice-input:checked {
@@ -169,8 +170,27 @@ textarea.fw-input {
     border-color: rgb(var(--color-primary-600)) !important;
 }
 
+.fw-choice-input--radio:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 0.75rem !important;
+}
+
+.fw-choice-input--checkbox:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 0.75rem !important;
+}
+
 .fw-choice-input:focus-visible {
     box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.4);
+}
+
+.fw-choice-label:has(.fw-choice-input:checked) {
+    border-color: rgb(var(--color-primary-400));
+    background-color: rgb(var(--color-primary-50));
 }
 
 /* ── Choice Option Label (shared by single checkbox, multi-checkbox, radio) ── */
@@ -722,6 +742,11 @@ textarea.fw-input {
     .fw-choice-input {
         border-color: rgb(var(--color-surface-600)) !important;
         background-color: rgb(var(--color-surface-700)) !important;
+    }
+
+    .fw-choice-label:has(.fw-choice-input:checked) {
+        border-color: rgb(var(--color-primary-500));
+        background-color: rgb(var(--color-primary-900) / 0.3);
     }
 
     .fw-choice-label {

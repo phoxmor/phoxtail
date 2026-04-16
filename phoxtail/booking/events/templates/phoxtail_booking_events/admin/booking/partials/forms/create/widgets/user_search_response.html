@@ -4,10 +4,10 @@
 {# OOB update: re-render subscription widget when user changes #}
 <div hx-swap-oob="innerHTML:#subscription-field-wrapper">
     {% if selected_item %}
-        {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=subscription_field search_url=subscription_search_url hx_include=subscription_hx_include only %}
+        {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=subscription_field search_url=subscription_search_url hx_include=subscription_hx_include item_template="phoxtail_booking_events/admin/booking/partials/forms/create/widgets/subscription_item_display.html" only %}
     {% else %}
         {% trans "Select a user first..." as sub_placeholder %}
-        {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=subscription_field search_url=subscription_search_url hx_include=subscription_hx_include is_active=False search_placeholder=sub_placeholder only %}
+        {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=subscription_field search_url=subscription_search_url hx_include=subscription_hx_include is_active=False search_placeholder=sub_placeholder item_template="phoxtail_booking_events/admin/booking/partials/forms/create/widgets/subscription_item_display.html" only %}
     {% endif %}
 </div>
 {# OOB update: sync hidden form placeholder with current state #}

@@ -57,6 +57,7 @@ class AbstractPhoxtailUser(
         index.AutocompleteField("username"),
         index.AutocompleteField("first_name"),
         index.AutocompleteField("last_name"),
+        index.AutocompleteField("get_short_id"),
         index.FilterField("is_active"),
     ]
 

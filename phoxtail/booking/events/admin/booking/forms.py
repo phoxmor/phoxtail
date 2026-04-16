@@ -27,6 +27,7 @@ class ReservationCreateForm(forms.Form):
         choices=ReservationStatus.choices,
         initial=ReservationStatus.CONFIRMED,
         required=True,
+        widget=forms.RadioSelect,
     )
 
     def __init__(self, *args, event=None, **kwargs):
