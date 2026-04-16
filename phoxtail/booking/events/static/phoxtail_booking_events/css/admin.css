@@ -282,8 +282,9 @@
     min-width: 0;
 }
 
-.evta-card-wrap--past {
+.evta-card-wrap--past .evta-card {
     opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .evta-card {
@@ -2227,10 +2228,12 @@
 
 .evta-chip-wrap--past {
     opacity: 0.5;
+    filter: grayscale(1);
 }
 
 .evta-chip-wrap--past:hover {
     opacity: 1;
+    filter: grayscale(0);
 }
 
 .evta-chip {

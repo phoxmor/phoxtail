@@ -32,20 +32,8 @@
                                             </span>
                                         </div>
                                         <div class="evta-card__row">
-                                            <span class="evta-card__icon">{% include 'phoxtail_core/svgs/groups.html' %}</span>
-                                            <span class="evta-card__value{% if event.is_full %} evta-card__value--full{% endif %}">{{ event.reserved_spots_count }} / {{ event.capacity }}</span>
-                                        </div>
-                                        <div class="evta-card__row">
                                             <span class="evta-card__icon">{% include 'phoxtail_core/svgs/door_front.html' %}</span>
                                             <span class="evta-card__value">{{ event.space.name }}</span>
-                                        </div>
-                                        <div class="evta-card__row">
-                                            <span class="evta-card__icon">{% include 'phoxtail_core/svgs/equalizer.html' %}</span>
-                                            {% if event.group %}
-                                                <span class="evta-card__value">{{ event.group.name }}</span>
-                                            {% else %}
-                                                <span class="evta-card__value">Open to all</span>
-                                            {% endif %}
                                         </div>
                                         {% if event.staff.all %}
                                             <div class="evta-card__row">
@@ -59,8 +47,10 @@
                                             </div>
                                         {% endif %}
                                         <div class="evta-card__row">
-                                            <span class="evta-card__icon">{% include 'phoxtail_core/svgs/key.html' %}</span>
-                                            <span class="evta-card__value">{{ event.short_id }}</span>
+                                            <span class="evta-card__icon">{% include 'phoxtail_core/svgs/groups.html' %}</span>
+                                            <span class="evta-card__value{% if event.reserved_spots_count >= event.capacity %} evta-card__value--full{% endif %}">
+                                                {{ event.reserved_spots_count }} / {{ event.capacity }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
