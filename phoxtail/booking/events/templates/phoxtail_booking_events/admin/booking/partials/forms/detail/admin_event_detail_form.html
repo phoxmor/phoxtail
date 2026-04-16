@@ -8,7 +8,14 @@
             <!-- Header -->
             <div class="evta-drawer__header">
                 <div class="evta-drawer__title-row">
-                    <h2 class="evta-drawer__title">Manage Event</h2>
+                    <div class="evta-drawer__title-group">
+                        <h2 class="evta-drawer__title">Manage Event</h2>
+                        <span class="evta-drawer__event-key">
+                            {% include 'phoxtail_core/svgs/key.html' %}
+                            <span class="evta-drawer__event-key-value">{{ event.short_id }}</span>
+                            {% include 'phoxtail_core/copy_key_button.html' with key=event.short_id %}
+                        </span>
+                    </div>
                     <button class="evta-close-btn"
                             onclick="closeModal()"
                             aria-label="Close modal"
@@ -16,22 +23,22 @@
                         <span class="evta-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
                     </button>
                 </div>
-                <!-- Event Details Card -->
-                <div id="event-details">{% include "phoxtail_booking_events/admin/booking/partials/forms/components/event_details.html" %}</div>
             </div>
             <!-- Body -->
             <div class="evta-drawer__body">
-                <!-- Reservations -->
-                <div class="evta-section">
-                    <div class="evta-section__header">
-                        <h4 class="evta-section__title">
-                            {% include 'phoxtail_core/svgs/groups.html' %}
-                            Reservations
-                        </h4>
-                        <span class="evta-section__badge">{{ reservations.count }}</span>
-                    </div>
-                    <div class="evta-section__list">
-                        {% if reservations %}
+                <!-- Event Details Card -->
+                <div id="event-details">{% include "phoxtail_booking_events/admin/booking/partials/forms/components/event_details.html" %}</div>
+                {% if reservations %}
+                    <!-- Reservations -->
+                    <div class="evta-section">
+                        <div class="evta-section__header">
+                            <h4 class="evta-section__title">
+                                {% include 'phoxtail_core/svgs/groups.html' %}
+                                Reservations
+                            </h4>
+                            <span class="evta-section__badge">{{ reservations.count }}</span>
+                        </div>
+                        <div class="evta-section__list">
                             {% for reservation in reservations %}
                                 <div class="evta-section__item">
                                     <div class="evta-res-row">
@@ -93,14 +100,15 @@
                                     </div>
                                 </div>
                             {% endfor %}
-                        {% else %}
-                            <div class="evta-section__empty">
-                                {% include 'phoxtail_core/svgs/group_off.html' with class="icon-sm" %}
-                                <span>No reservations</span>
-                            </div>
-                        {% endif %}
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="evta-body__empty-state">
+                        {% include 'phoxtail_core/svgs/groups.html' with class="evta-body__empty-icon" %}
+                        <h5 class="evta-body__empty-title">No Bookings Yet</h5>
+                        <p class="evta-body__empty-subtitle">No bookings have been made for this event yet. Use the button below to create the first one.</p>
+                    </div>
+                {% endif %}
             </div>
             <!-- Footer -->
             <div class="evta-drawer__footer"
@@ -115,7 +123,6 @@
                             hx-vals='{"content_url": "{{create_reservation_url}}"}'
                             hx-target="#core-modal-level-1-placeholder-wrapper"
                             hx-swap="innerHTML">
-                        {% include 'phoxtail_core/svgs/plus.html' %}
                         <span>Create Booking</span>
                     </button>
                     {% url 'booking_management:admin_booking_event_update_form' event.uuid as update_event_url %}
@@ -125,7 +132,6 @@
                             hx-vals='{"content_url": "{{ update_event_url }}"}'
                             hx-target="#core-modal-level-1-placeholder-wrapper"
                             hx-swap="innerHTML">
-                        {% include 'phoxtail_core/svgs/edit.html' %}
                         <span>Edit Event</span>
                     </button>
                 </div>

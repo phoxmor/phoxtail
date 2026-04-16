@@ -613,11 +613,52 @@
     margin-bottom: 0;
 }
 
+.evta-drawer__title-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
 .evta-drawer__title {
+    margin: 0;
     font-size: 1.5rem;
     font-weight: 700;
     color: rgb(var(--color-surface-900));
     line-height: 1.3;
+    flex-shrink: 0;
+}
+
+.evta-drawer__event-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    background: rgb(var(--color-surface-100));
+    border: 1px solid rgb(var(--color-surface-200));
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgb(var(--color-surface-500));
+    font-family: ui-monospace, monospace;
+    letter-spacing: 0.04em;
+}
+
+.evta-drawer__event-key > svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
+    opacity: 0.5;
+}
+
+.evta-drawer__event-key .copy-key-btn {
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    margin-left: 0.1rem;
+    border-radius: 4px;
 }
 
 .evta-drawer__body {
@@ -687,7 +728,7 @@
 /* ── Collapsible Details ── */
 
 .evta-details-collapsible {
-    margin-top: 1rem;
+    margin-top: 0;
     border-radius: 0.75rem;
     overflow: hidden;
     border: 1px solid rgb(var(--color-surface-200) / 0.8);
@@ -903,7 +944,7 @@
 }
 
 .evta-section__header {
-    padding: 1rem 1.5rem;
+    padding: 0.625rem 1rem;
     border-bottom: 1px solid rgb(var(--color-surface-200) / 0.6);
     display: flex;
     align-items: center;
@@ -983,6 +1024,46 @@
     width: 1rem;
     height: 1rem;
     flex-shrink: 0;
+}
+
+.evta-drawer__body--empty {
+    justify-content: center;
+    align-items: center;
+}
+
+.evta-body__empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+}
+
+.evta-body__empty-state .evta-body__empty-icon,
+.evta-body__empty-state svg {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    color: rgb(var(--color-surface-500));
+    margin-bottom: 0.25rem;
+}
+
+.evta-body__empty-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-600));
+    letter-spacing: -0.01em;
+}
+
+.evta-body__empty-subtitle {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-surface-400));
+    max-width: 22rem;
+    line-height: 1.5;
 }
 
 /* ── Reservation List Items ── */
@@ -2634,6 +2715,12 @@
         color: rgb(var(--color-surface-100));
     }
 
+    .evta-drawer__event-key {
+        background: rgb(var(--color-surface-800));
+        border-color: rgb(var(--color-surface-700));
+        color: rgb(var(--color-surface-400));
+    }
+
     .evta-drawer__footer {
         border-top-color: rgb(var(--color-surface-700) / 0.3);
         background: rgb(var(--color-surface-800) / 0.5);
@@ -2694,6 +2781,18 @@
     }
 
     .evta-section__empty {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .evta-body__empty-state svg {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .evta-body__empty-title {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .evta-body__empty-subtitle {
         color: rgb(var(--color-surface-500));
     }
 
