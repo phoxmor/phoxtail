@@ -48,6 +48,7 @@ nav:
 
   - Patterns:
       - Testing: patterns/testing.md
+      - Personal Access Tokens: patterns/personal-access-tokens.md
       - Service Layer:
           - Overview: patterns/service-layer-overview.md
           - Users: patterns/service-layer-users.md
@@ -68,6 +69,7 @@ nav:
       - Booking Migration Plan: internal/booking-migration-plan.md
       - Dashboard Migration Plan: internal/dashboard-migration-plan.md
       - Autonomous Apps Refactor: internal/autonomous-apps-refactor.md
+      - Manual Server Hardening: internal/server-hardening-guide.md
 
 theme:
   name: material
