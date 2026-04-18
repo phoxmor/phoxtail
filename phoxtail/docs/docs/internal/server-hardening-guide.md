@@ -363,13 +363,11 @@ phoxtail docker create compose production
 phoxtail nginx create initial
 ```
 
-**Edit `docker-compose.yaml` to mount phoxtail into every service that runs Django code.**
+The generated `docker-compose.yaml` already includes the phoxtail source mount on every service that runs Django code (`web`, `celery-worker`, `celery-beat`). `phoxtail docker create compose` derives the mount source from where the CLI itself is installed — so on the server, install the CLI first (Step 9), then generate compose, and the mount points at the CLI's package dir automatically.
 
-The production compose template does not include the phoxtail mount. Since phoxtail is not on PyPI and is installed from a local clone, any service that imports it needs the volume and `PYTHONPATH` set. This is `web`, `celery-worker`, and `celery-beat`.
+If you want `git pull` in `~/phoxtail` to hot-reload into the containers without reinstalling, use an editable install in Step 9: `uv tool install --editable ~/phoxtail`.
 
-`PYTHONPATH=/opt/phoxtail` is required because the volume mounts the package at `/opt/phoxtail/phoxtail`. Python does not search `/opt/phoxtail` by default, so without this env var `import phoxtail` would fail inside the container.
-
-The complete corrected `docker-compose.yaml` looks like this:
+For reference, the generated production compose looks like this:
 
 ```yaml
 services:

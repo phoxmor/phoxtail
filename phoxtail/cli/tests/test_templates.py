@@ -78,9 +78,8 @@ class TestComposeTemplate:
             "postgres_version": "17",
             "pg_data_path": "/var/lib/postgresql/data",
             "requires_celery": requires_celery,
+            "phoxtail_source": "/opt/src/phoxtail",
         }
-        if environment == "development":
-            context["phoxtail_source"] = "/opt/src/phoxtail"
         return render_template("docker/docker-compose.yaml", context)
 
     def test_dev_has_docs_service(self):
@@ -128,10 +127,12 @@ class TestComposeTemplate:
         assert "docs:" not in result
         assert "mkdocs" not in result
 
-    def test_prod_does_not_mount_phoxtail(self):
+    def test_prod_mounts_phoxtail(self):
+        # Until phoxtail is published to PyPI, containers need the local
+        # package mounted into every service that runs Django code.
         result = self._render("production")
-        assert "/opt/phoxtail" not in result
-        assert "PYTHONPATH" not in result
+        assert "/opt/src/phoxtail:/opt/phoxtail/phoxtail:ro" in result
+        assert "PYTHONPATH=/opt/phoxtail" in result
 
     def test_image_name_rendered(self):
         result = self._render("development")
@@ -170,10 +171,11 @@ class TestComposeTemplate:
         # web + celery-worker + celery-beat each get the source mount
         assert result.count("/opt/phoxtail/phoxtail:ro") == 3
 
-    def test_prod_celery_no_phoxtail_mount(self):
+    def test_prod_celery_mounts_phoxtail(self):
+        # web + celery-worker + celery-beat each get the phoxtail mount
+        # (production needs it too until phoxtail is on PyPI).
         result = self._render("production", requires_celery=True)
-        assert "/opt/phoxtail" not in result
-        assert "PYTHONPATH" not in result
+        assert result.count("/opt/phoxtail/phoxtail:ro") == 3
 
 
 class TestNginxInitialTemplate:

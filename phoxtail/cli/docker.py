@@ -378,8 +378,10 @@ def compose(
             "pg_data_path": _get_postgres_data_path(postgres_version),
             "requires_celery": any_app_requires_celery(),
         }
-        if env_lower == "development":
-            context["phoxtail_source"] = _get_phoxtail_source()
+        # Mount the local phoxtail source into every container that runs
+        # Django code — phoxtail is not yet on PyPI, so containers cannot
+        # `pip install phoxtail`. Remove this once phoxtail is published.
+        context["phoxtail_source"] = _get_phoxtail_source()
 
         content = render_template("docker/docker-compose.yaml", context)
         output.write_text(content)
