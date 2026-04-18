@@ -1,0 +1,137 @@
+<!-- Tokens Header -->
+<div class="tka-page-header">
+    <div class="tka-page-header__inner">
+        <!-- Title Section -->
+        <div class="tka-page-header__title-section">
+            <h1 class="tka-page-header__title">Access Tokens</h1>
+            <div class="tka-page-header__meta">
+                <div class="tka-page-header__count">
+                    {% include 'phoxtail_core/svgs/fingerprint.html' %}
+                    <span class="tka-page-header__count-text">{{ tokens.paginator.count }} Token{{ tokens.paginator.count|pluralize }}</span>
+                </div>
+                {% if can_manage_all %}
+                    <span class="tka-scope-pill tka-scope-pill--all">All users</span>
+                {% else %}
+                    <span class="tka-scope-pill">Your tokens</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="tka-page-header__controls">
+            <!-- Search Input -->
+            {% include 'phoxtail_tokens/admin/partials/searchbar.html' %}
+            <!-- Filters Button -->
+            {% url 'access_tokens_management:admin_tokens_filters_form' as filters_url %}
+            <button type="button"
+                    class="tka-header-btn"
+                    hx-get="{% url 'phoxtail_core:modal' %}"
+                    hx-vals='{"content_url": "{{ filters_url }}"}'
+                    hx-include="#tokens-filters-form-placeholder"
+                    hx-target="#core-modal-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% include 'phoxtail_core/svgs/filter_alt.html' %}
+                <span>Filters</span>
+                {% if filter_count > 0 %}<span class="tka-header-btn__badge">{{ filter_count }}</span>{% endif %}
+            </button>
+            {% if can_create %}
+                {% url 'access_tokens_management:admin_token_create_form' as create_url %}
+                <button type="button"
+                        class="tka-header-btn"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ create_url }}"}'
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML">
+                    {% include 'phoxtail_core/svgs/plus.html' %}
+                    <span>Create</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Hidden forms so HTMX requests carry filter/search state -->
+<div id="tokens-filters-form-placeholder" style="display: none;">{{ filterset.form }}</div>
+<div id="tokens-filters-without-search-form-placeholder"
+     style="display: none">{% include 'phoxtail_tokens/admin/partials/forms/filters/form_content.html' %}</div>
+<!-- Token Cards -->
+<div class="tka-cards-section">
+    <div class="tka-cards-wrap">
+        <div class="tka-cards-inner">
+            {% if tokens %}
+                <div class="tka-grid">
+                    {% for t in tokens %}
+                        {% url 'access_tokens_management:admin_token_detail_form' t.uuid as detail_url %}
+                        <div class="tka-card {% if not t.is_active %}tka-card--inactive{% endif %}">
+                            <div class="tka-card__inner">
+                                <div class="tka-card__body">
+                                    <div class="tka-card__content">
+                                        <h4 class="tka-card__title">{{ t.name }}</h4>
+                                        <code class="tka-card__fingerprint">{{ t.prefix }}…{{ t.suffix }}</code>
+                                        <div class="tka-card__meta">
+                                            {% if can_manage_all %}
+                                                <div class="tka-card__meta-row">
+                                                    {% include 'phoxtail_core/svgs/user.html' %}
+                                                    <span class="tka-card__meta-value tka-card__meta-value--truncate">{{ t.user.get_full_name|default:t.user.email }}</span>
+                                                </div>
+                                            {% endif %}
+                                            <div class="tka-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/calendar.html' %}
+                                                <span class="tka-card__meta-value">Created {{ t.created_at|date:"M j, Y" }}</span>
+                                            </div>
+                                            <div class="tka-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/clock.html' %}
+                                                <span class="tka-card__meta-value">
+                                                    {% if t.last_used_at %}
+                                                        Last used {{ t.last_used_at|date:"M j, Y H:i" }}
+                                                    {% else %}
+                                                        Never used
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            {% if t.expires_at %}
+                                                <div class="tka-card__meta-row">
+                                                    {% include 'phoxtail_core/svgs/calendar_lock.html' %}
+                                                    <span class="tka-card__meta-value">Expires {{ t.expires_at|date:"M j, Y" }}</span>
+                                                </div>
+                                            {% endif %}
+                                            {% if t.revoked_at %}
+                                                <div class="tka-card__meta-row tka-card__meta-row--warn">
+                                                    {% include 'phoxtail_core/svgs/cancel.html' %}
+                                                    <span class="tka-card__meta-value">Revoked {{ t.revoked_at|date:"M j, Y H:i" }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="tka-card__button"
+                                    type="button"
+                                    hx-get="{% url 'phoxtail_core:modal' %}"
+                                    hx-vals='{"content_url": "{{ detail_url }}"}'
+                                    hx-target="#core-modal-placeholder-wrapper"
+                                    hx-swap="innerHTML"
+                                    aria-label="View details for token {{ t.name }}">
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="tka-empty-state">
+                    <div class="tka-empty-state__icon">{% include 'phoxtail_core/svgs/fingerprint.html' %}</div>
+                    <h3 class="tka-empty-state__title">No tokens found</h3>
+                    <p class="tka-empty-state__text">
+                        {% if filter_count > 0 or filterset.form.search.value %}
+                            Try clearing your search or filters.
+                        {% elif can_create %}
+                            Click <strong>Create</strong> to mint your first API token.
+                        {% else %}
+                            You don't have permission to create tokens.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Pagination -->
+<div class="tka-pagination">
+    {% include 'phoxtail_tokens/admin/partials/forms/navigate/paginator.html' with paginator=tokens %}
+</div>

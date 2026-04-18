@@ -1,0 +1,55 @@
+<!-- Reveal modal — shown exactly once, immediately after a successful create.
+     The raw token is only present in this server response; it is never
+     stored in session/messages and the response carries no-store headers. -->
+<div class="tka-center-overlay"
+     data-modal-animation="fade"
+     data-animation-duration="300ms">
+    <div class="tka-center-backdrop"></div>
+    <div class="tka-center-modal" onclick="event.stopPropagation()">
+        <div class="tka-center-modal__scroll">
+            <div class="tka-dialog__header">
+                <div class="tka-dialog__header-row">
+                    <h2 class="tka-dialog__title tka-dialog__title--success">
+                        {% include 'phoxtail_core/svgs/check_circle.html' %}
+                        Token Created
+                    </h2>
+                    <button class="tka-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="tka-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+                <p class="tka-dialog__hint">Copy this token now — you won't be able to see it again.</p>
+            </div>
+            <div class="tka-dialog__body">
+                <div class="tka-reveal">
+                    <div class="tka-reveal__label">
+                        {% include 'phoxtail_core/svgs/warning.html' %}
+                        <span>One-time reveal</span>
+                    </div>
+                    <div class="tka-reveal__row">
+                        <code class="tka-reveal__value">{{ raw_token }}</code>
+                        {% include 'phoxtail_core/copy_key_button.html' with key=raw_token %}
+                    </div>
+                    <p class="tka-reveal__hint">
+                        Use as <code>Authorization: Bearer &lt;token&gt;</code>
+                    </p>
+                </div>
+                <dl class="tka-kv">
+                    <dt>Name</dt><dd>{{ token.name }}</dd>
+                    <dt>Fingerprint</dt><dd><code>{{ token.prefix }}…{{ token.suffix }}</code></dd>
+                    <dt>Scopes</dt><dd>{{ token.scopes|join:", " }}</dd>
+                    <dt>Expires</dt><dd>{% if token.expires_at %}{{ token.expires_at|date:"M j, Y H:i" }}{% else %}Never{% endif %}</dd>
+                </dl>
+            </div>
+            <div class="tka-dialog__footer">
+                <button class="tka-btn tka-btn--primary"
+                        type="button"
+                        onclick="closeModal()">
+                    <span>I've saved it — close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+<!-- Filters Modal Content -->
+<div class="tka-center-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade"
+     data-animation-duration="300ms"
+     id="modal-filters-content">
+    <div class="tka-center-backdrop"></div>
+    <div class="tka-center-modal" onclick="event.stopPropagation();">
+        <div class="tka-center-modal__scroll">
+            <form id="tokens-filters-form"
+                  hx-include="#tokens-search-form, #tokens-filters-form">
+                {% include 'phoxtail_tokens/admin/partials/forms/filters/form_content.html' %}
+            </form>
+        </div>
+    </div>
+</div>

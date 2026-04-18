@@ -1,0 +1,42 @@
+<!-- Revoke confirmation dialog -->
+<div class="tka-center-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade"
+     data-animation-duration="300ms">
+    <div class="tka-center-backdrop"></div>
+    <div class="tka-center-modal" onclick="event.stopPropagation()">
+        <div class="tka-center-modal__scroll">
+            <div class="tka-dialog__header">
+                <h2 class="tka-dialog__title">
+                    {% include 'phoxtail_core/svgs/warning.html' %}
+                    Revoke this token?
+                </h2>
+            </div>
+            <div class="tka-dialog__body">
+                <p>
+                    You are about to revoke
+                    <strong>{{ token.name }}</strong>
+                    (<code>{{ token.prefix }}…{{ token.suffix }}</code>).
+                </p>
+                <p class="tka-dialog__hint">
+                    Any client or script using this token will stop working immediately.
+                    This cannot be undone — you would need to mint a fresh token.
+                </p>
+            </div>
+            <div class="tka-dialog__footer">
+                <button class="tka-btn tka-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">Cancel</button>
+                <form hx-post="{% url 'access_tokens_management:admin_token_revoke' token.uuid %}"
+                      hx-swap="none"
+                      style="display: inline-block; margin: 0;">
+                    {% csrf_token %}
+                    <button class="tka-btn tka-btn--danger" type="submit">
+                        {% include 'phoxtail_core/svgs/cancel.html' %}
+                        <span>Revoke token</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

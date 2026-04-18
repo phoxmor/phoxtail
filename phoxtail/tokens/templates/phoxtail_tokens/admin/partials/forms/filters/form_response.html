@@ -1,0 +1,6 @@
+{# Update the tokens list with filtered results #}
+<div hx-swap-oob="innerHTML:#tokens-container">{% include 'phoxtail_tokens/admin/partials/tokens.html' %}</div>
+{# Update the filters form to reflect current selections #}
+<div hx-swap-oob="innerHTML:#tokens-filters-form">
+    {% include 'phoxtail_tokens/admin/partials/forms/filters/form_content.html' %}
+</div>

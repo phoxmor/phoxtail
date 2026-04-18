@@ -1,0 +1,20 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if created %}
+    {# Swap the list first (OOB) so it's up-to-date behind the reveal drawer. #}
+    <div hx-swap-oob="innerHTML:#tokens-container">
+        {% include 'phoxtail_tokens/admin/partials/tokens.html' %}
+    </div>
+    {# Replace the create form content with the one-time reveal drawer.
+       Targeting #core-modal-placeholder (not the wrapper) preserves the
+       #base-modal shell so the backdrop and close handler stay intact. #}
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder">
+        {% include 'phoxtail_tokens/admin/partials/forms/create/revealed.html' %}
+    </div>
+{% else %}
+    {# Validation failed: re-render the form with errors in place. #}
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder">
+        {% include 'phoxtail_tokens/admin/partials/forms/create/form.html' %}
+    </div>
+{% endif %}

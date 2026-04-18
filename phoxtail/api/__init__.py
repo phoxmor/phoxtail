@@ -24,6 +24,7 @@ from __future__ import annotations
 from ninja import NinjaAPI
 
 from phoxtail.api.streams.v1 import router as streams_v1_router
+from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
 api = NinjaAPI(
     title="Phoxtail API",
@@ -35,6 +36,10 @@ api = NinjaAPI(
     ),
     urls_namespace="phoxtail_api",
     docs_url="/docs/",
+    # Default-deny: every endpoint requires a valid AccessToken unless it
+    # explicitly opts out with ``auth=None``. Routes can still override this
+    # per-endpoint, but the safe posture is enforced by default.
+    auth=PhoxtailTokenAuth(),
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])

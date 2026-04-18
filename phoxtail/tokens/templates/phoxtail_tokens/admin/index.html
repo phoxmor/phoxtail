@@ -1,0 +1,43 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailsettings_tags django_htmx %}
+{% block titletag %}Access Tokens{% endblock %}
+{% block extra_css %}
+    <!-- HTMX -->
+    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% django_htmx_script %}
+    <!-- Fallback design token properties -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+    <!-- Modal CSS / JS -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+    <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+    <!-- Shared form widget styles -->
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+    <!-- Tokens admin CSS -->
+    <link rel="stylesheet" href="{% static 'phoxtail_tokens/css/admin.css' %}">
+    <!-- SiteConfig design tokens (overrides fallback defaults) -->
+    {% get_settings %}
+    <style>
+        :root {
+            {{ settings.phoxtail_cms.SiteConfig.css_variables|safe }}
+        }
+        {{ settings.phoxtail_cms.SiteConfig.font_face_declarations|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+    {% include "account/messages_static.html" %}
+    <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+    <!-- Modal Placeholders -->
+    <div id="core-modal-placeholder-wrapper"></div>
+    <div id="core-modal-level-1-placeholder-wrapper"></div>
+    <div class="tka-page">
+        <!-- Loading Indicator -->
+        <div class="tka-loading htmx-indicator">
+            <div class="tka-loading__spinner"></div>
+            <span class="tka-loading__text">Loading...</span>
+        </div>
+        <!-- Tokens Container -->
+        <div id="tokens-container" class="tka-tokens-container">
+            {% include 'phoxtail_tokens/admin/partials/tokens.html' %}
+        </div>
+    </div>
+{% endblock %}

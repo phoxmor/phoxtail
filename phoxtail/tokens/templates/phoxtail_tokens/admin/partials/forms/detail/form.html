@@ -1,0 +1,149 @@
+{% load tz %}
+<div class="tka-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="tka-drawer" onclick="event.stopPropagation()">
+        <div class="tka-drawer__scroll">
+            <!-- Header -->
+            <div class="tka-drawer__header">
+                <div class="tka-drawer__title-row">
+                    <div>
+                        <h2 class="tka-drawer__title">Token Details</h2>
+                        <p class="tka-drawer__subtitle">
+                            {% include 'phoxtail_core/svgs/fingerprint.html' %}
+                            <span>{{ token.prefix }}…{{ token.suffix }}</span>
+                        </p>
+                    </div>
+                    <button class="tka-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="tka-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="tka-drawer__body">
+                <div class="tka-form-stack">
+                    <!-- Identity -->
+                    <div class="tka-section-card">
+                        <h3 class="tka-section-card__title">
+                            {% include 'phoxtail_core/svgs/fingerprint.html' %}
+                            Identity
+                        </h3>
+                        <div class="tka-section-card__fields">
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Name</span>
+                                <span class="tka-detail-row__value">{{ token.name }}</span>
+                            </div>
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Fingerprint</span>
+                                <code class="tka-detail-row__value">{{ token.prefix }}…{{ token.suffix }}</code>
+                            </div>
+                            {% if token.description %}
+                                <div class="tka-detail-row">
+                                    <span class="tka-detail-row__label">Description</span>
+                                    <span class="tka-detail-row__value">{{ token.description }}</span>
+                                </div>
+                            {% endif %}
+                            {% if can_manage_all %}
+                                <div class="tka-detail-row">
+                                    <span class="tka-detail-row__label">Owner</span>
+                                    <span class="tka-detail-row__value">{{ token.user.get_full_name|default:token.user.email }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Scope & Expiry -->
+                    <div class="tka-section-card">
+                        <h3 class="tka-section-card__title">
+                            {% include 'phoxtail_core/svgs/lock.html' %}
+                            Scope &amp; Expiry
+                        </h3>
+                        <div class="tka-section-card__fields">
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Scopes</span>
+                                <span class="tka-detail-row__value">{{ token.scopes|join:", " }}</span>
+                            </div>
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Expires</span>
+                                <span class="tka-detail-row__value">
+                                    {% if token.expires_at %}
+                                        {{ token.expires_at|date:"M j, Y" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Activity -->
+                    <div class="tka-section-card">
+                        <h3 class="tka-section-card__title">
+                            {% include 'phoxtail_core/svgs/clock.html' %}
+                            Activity
+                        </h3>
+                        <div class="tka-section-card__fields">
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Created</span>
+                                <span class="tka-detail-row__value">{{ token.created_at|date:"M j, Y H:i" }}</span>
+                            </div>
+                            <div class="tka-detail-row">
+                                <span class="tka-detail-row__label">Last used</span>
+                                <span class="tka-detail-row__value">
+                                    {% if token.last_used_at %}
+                                        {{ token.last_used_at|date:"M j, Y H:i" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if token.revoked_at %}
+                                <div class="tka-detail-row">
+                                    <span class="tka-detail-row__label">Revoked</span>
+                                    <span class="tka-detail-row__value">{{ token.revoked_at|date:"M j, Y H:i" }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if can_revoke and token.is_active %}
+                        <!-- Hidden CSRF for HTMX include -->
+                        <div id="tka-detail-csrf" style="display: none;">{% csrf_token %}</div>
+                        <!-- Danger Zone -->
+                        <div class="tka-danger-section">
+                            <div class="tka-danger-section__header">
+                                <div class="tka-danger-section__icon-wrap">{% include 'phoxtail_core/svgs/cancel.html' %}</div>
+                                <div>
+                                    <h3 class="tka-danger-section__title">Revoke Token</h3>
+                                    <p class="tka-danger-section__text">
+                                        Any client or script using this token will stop working immediately. This action cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+                            <button class="tka-btn tka-btn--danger tka-btn--full"
+                                    type="button"
+                                    hx-post="{% url 'access_tokens_management:admin_token_revoke' token.uuid %}"
+                                    hx-include="#tka-detail-csrf"
+                                    hx-swap="none"
+                                    hx-confirm="Are you sure you want to revoke '{{ token.name }}'? This cannot be undone.">
+                                {% include 'phoxtail_core/svgs/cancel.html' %}
+                                <span>Revoke Token</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="tka-drawer__footer">
+                <div class="tka-drawer__footer-actions">
+                    <button class="tka-btn tka-btn--secondary"
+                            onclick="closeModal()"
+                            type="button">
+                        <span>Close</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

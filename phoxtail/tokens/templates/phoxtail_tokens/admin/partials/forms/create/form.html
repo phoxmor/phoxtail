@@ -1,0 +1,73 @@
+<div class="tka-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="tka-drawer" onclick="event.stopPropagation()">
+        <div class="tka-drawer__scroll">
+            <!-- Header -->
+            <div class="tka-drawer__header">
+                <div class="tka-drawer__title-row">
+                    <h2 class="tka-drawer__title">Create API Token</h2>
+                    <button class="tka-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close modal"
+                            type="button">
+                        <span class="tka-close-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
+                    </button>
+                </div>
+                <p class="tka-drawer__subtitle">
+                    {% include 'phoxtail_core/svgs/warning.html' %}
+                    <span>You'll only see the raw token once. Copy it somewhere safe before closing the next screen.</span>
+                </p>
+            </div>
+            <!-- Body -->
+            <div class="tka-drawer__body">
+                <form id="create-token-form"
+                      hx-post="{% url 'access_tokens_management:admin_token_create' %}"
+                      hx-target="#core-modal-placeholder-wrapper"
+                      hx-swap="none">
+                    {% csrf_token %}
+                    <div class="tka-form-stack">
+                        <div class="tka-section-card">
+                            <h3 class="tka-section-card__title">
+                                {% include 'phoxtail_core/svgs/fingerprint.html' %}
+                                Token details
+                            </h3>
+                            <div class="tka-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.name show_label=True show_help_text=True %}
+                                {% include "phoxtail_core/forms/widgets/textarea.html" with field=form.description show_label=True show_help_text=True %}
+                            </div>
+                        </div>
+                        <div class="tka-section-card">
+                            <h3 class="tka-section-card__title">
+                                {% include 'phoxtail_core/svgs/lock.html' %}
+                                Scope &amp; expiry
+                            </h3>
+                            <div class="tka-section-card__fields">
+                                {% include "phoxtail_core/forms/widgets/input.html" with field=form.scopes show_label=True show_help_text=True %}
+                                {% include "phoxtail_core/forms/widgets/datetime.html" with field=form.expires_at show_label=True show_help_text=True %}
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <!-- Footer -->
+            <div class="tka-drawer__footer"
+                 style="flex-direction: column; align-items: stretch">
+                <div class="tka-admin-actions">
+                    <button class="tka-btn tka-btn--primary"
+                            type="submit"
+                            form="create-token-form">
+                        {% include 'phoxtail_core/svgs/plus.html' %}
+                        <span>Create Token</span>
+                    </button>
+                </div>
+                <button class="tka-btn tka-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">
+                    <span>Cancel</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
