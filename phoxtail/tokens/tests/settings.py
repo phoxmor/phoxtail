@@ -1,4 +1,4 @@
-"""Minimal Django settings for running phoxtail.core tests."""
+"""Minimal Django settings for running phoxtail.tokens tests."""
 
 SECRET_KEY = "test-secret-key-not-for-production"
 
@@ -14,6 +14,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "django_htmx",
+    "django_filters",
     "taggit",
     "modelcluster",
     "wagtail",
@@ -24,21 +25,6 @@ INSTALLED_APPS = [
     "wagtail.locales",
     "wagtail.users",
     "phoxtail.core",
-    "phoxtail.core.tests.testapp",
-    "phoxtail.design",
-    "phoxtail.streams",
-    "phoxtail.dashboard",
-    "django_countries",
-    "phonenumber_field",
-    "timezone_field",
-    "django_celery_beat",
-    "django_filters",
-    "wagtailmedia",
-    "phoxtail.booking.core",
-    "phoxtail.booking.events",
-    "phoxtail.booking.services",
-    "phoxtail.booking.subscriptions",
-    "phoxtail.booking.reservations",
     "phoxtail.tokens",
 ]
 

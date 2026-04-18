@@ -19,6 +19,9 @@ test-engine:
 test-booking:
 	uv run pytest phoxtail/booking/core/tests/ phoxtail/booking/events/tests/ phoxtail/booking/subscriptions/tests/ phoxtail/booking/reservations/tests/ $(ARGS)
 
+test-tokens:
+	DJANGO_SETTINGS_MODULE=phoxtail.tokens.tests.settings uv run pytest phoxtail/tokens/tests/ $(ARGS)
+
 test:
 	uv run pytest $(ARGS)
 
