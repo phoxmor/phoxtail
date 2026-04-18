@@ -34,6 +34,7 @@ api = NinjaAPI(
         "projects acting as sync remotes."
     ),
     urls_namespace="phoxtail_api",
+    docs_url="/docs/",
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])

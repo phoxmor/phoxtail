@@ -44,6 +44,24 @@ DJANGO_SETTINGS_MODULE=phoxtail.core.tests.settings pytest phoxtail/core/tests/p
 > `phoxtail/core/tests/settings.py` and are completely separate from the CLI
 > tests — each suite can run independently.
 
+### API tests
+
+API tests cover Django-level concerns (middleware, routing) and also require Django:
+
+```bash
+# Run the API test suite
+DJANGO_SETTINGS_MODULE=phoxtail.core.tests.settings pytest phoxtail/api/tests/
+
+# Run a specific API test file
+DJANGO_SETTINGS_MODULE=phoxtail.core.tests.settings pytest phoxtail/api/tests/test_middleware.py
+```
+
+> API tests reuse the core test settings — they need Django configured but not
+> a dedicated settings module. The `phoxtail.api` package cannot host its own
+> settings module because importing it as `phoxtail.api.tests.settings` would
+> trigger `phoxtail/api/__init__.py`, loading Django models before the app
+> registry is ready.
+
 ## Structure
 
 Tests live in `phoxtail/cli/tests/`, co-located with the CLI subsystem:

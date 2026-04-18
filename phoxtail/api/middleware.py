@@ -18,16 +18,26 @@ The middleware is scoped to paths starting with ``/api/`` so non-API
 routes (wagtail pages, admin, i18n) keep Django's default slash
 semantics.
 
+File-like paths (last segment contains a dot, e.g. ``/api/openapi.json``)
+are intentionally excluded from slash-appending — a trailing slash on a
+file extension URL is invalid.
+
 See vitalik/django-ninja#1058 for the upstream discussion.
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
 API_PREFIX = "/api/"
+
+# Matches a path whose first segment is a BCP-47 language tag, which is
+# the shape of URLs that Django's LocaleMiddleware produces when it hijacks
+# an API 404 (e.g. "/en/api/...", "/fr/api/...").
+_LANG_PREFIX_RE = re.compile(r"^/[a-z]{2,3}(-[a-zA-Z]{2,4})?/")
 
 
 class ApiTrailingSlashMiddleware:
@@ -42,9 +52,10 @@ class ApiTrailingSlashMiddleware:
     302 redirect, and the client ends up with an HTML error page instead
     of the JSON 404 it should have received.
 
-    To prevent this, any 3xx redirect originating from an ``/api/`` path
-    is replaced with a JSON 404.  API routes should never redirect to a
-    language-prefixed URL.
+    To prevent this, any 3xx redirect whose ``Location`` header matches a
+    language prefix is replaced with a JSON 404.  Legitimate redirects
+    originating from ``/api/`` paths (e.g. OAuth callbacks) are left
+    untouched.
     """
 
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
@@ -53,12 +64,15 @@ class ApiTrailingSlashMiddleware:
     def __call__(self, request: HttpRequest) -> HttpResponse:
         path = request.path
         is_api = path.startswith(API_PREFIX)
-        if is_api and not path.endswith("/"):
+        last_segment = path.rsplit("/", 1)[-1]
+        if is_api and not path.endswith("/") and "." not in last_segment:
             new_path = f"{path}/"
             request.path = new_path
             request.path_info = new_path
         response = self.get_response(request)
-        # Block LocaleMiddleware's i18n redirects for API paths.
+        # Block LocaleMiddleware's i18n redirects for API paths only.
         if is_api and 300 <= response.status_code < 400:
-            return JsonResponse({"detail": "Not found."}, status=404)
+            location = response.get("Location", "")
+            if _LANG_PREFIX_RE.match(location):
+                return JsonResponse({"detail": "Not found."}, status=404)
         return response

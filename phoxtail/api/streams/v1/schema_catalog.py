@@ -7,7 +7,7 @@ from typing import Any
 from django.http import HttpRequest
 from ninja import Router
 
-router = Router(tags=["schema-catalog"])
+router = Router()
 
 # Common parameters inherited from FieldSchemaBlock that every field type has.
 _COMMON_PARAM_NAMES = frozenset({"name", "required", "help_text", "icon"})
