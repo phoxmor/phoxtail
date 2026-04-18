@@ -355,6 +355,8 @@ phoxtail docker create dockerfile
 phoxtail docker create compose production
 ```
 
+`phoxtail docker create dockerfile` emits both `Dockerfile` and `.dockerignore`. The `.dockerignore` excludes runtime-state directories (`certbot/`, `db-backups/`, `media/`, `static/`) and secrets (`.env`) from the Docker build context — this is not optional, it is required for builds to work once certbot has written root-owned files.
+
 **Do not run `phoxtail nginx create production` yet** — you need the initial HTTP-only nginx config first so certbot can verify your domain. Generate that instead:
 
 ```bash
@@ -443,8 +445,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./static:/usr/share/nginx/html/static
       - ./media:/usr/share/nginx/html/media
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
@@ -457,8 +459,8 @@ services:
     env_file:
       - ./.env
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
       - ./static:/usr/share/nginx/html/static
       - ./media:/usr/share/nginx/html/media
     depends_on:
@@ -467,7 +469,11 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  certbot_conf:
+  certbot_www:
 ```
+
+Certbot state lives in **named Docker volumes** (`certbot_conf`, `certbot_www`), not in bind mounts under the project directory. This is deliberate — certbot writes its account key, certificates, and renewal config as root, and when those root-owned files sit inside the project directory they break the Docker build context for any non-root deploy user. Named volumes avoid the whole problem class. To inspect certs later: `docker compose exec nginx ls /etc/letsencrypt/live/`.
 
 ---
 
@@ -534,6 +540,30 @@ docker compose exec nginx nginx -s reload
 ```
 
 Your site is now serving over HTTPS.
+
+---
+
+### Step 12.5 — Schedule automatic certificate renewal
+
+Let's Encrypt certificates are valid for 90 days. Schedule a daily renewal check via cron, running **as the deploy user** (not root):
+
+```bash
+# Edit phoxtail user's crontab
+crontab -e
+```
+
+Add:
+
+```
+0 3 * * * cd /home/phoxtail/project && /home/phoxtail/.local/bin/phoxtail ssl renew >> /home/phoxtail/cert-renew.log 2>&1
+```
+
+Two details that commonly trip people up:
+
+1. **Use the absolute path to `phoxtail`**. Cron runs with a minimal `PATH` and won't find `~/.local/bin/phoxtail` by default. Either spell it out as shown, or set `PATH=` at the top of the crontab.
+2. **Log into the user's home, not `/var/log/`**. The deploy user cannot write to `/var/log/` — silent failure.
+
+Do **not** run the renewal as root via `sudo crontab -e`. The whole point of the deploy user is that the project and its Docker resources belong to them; root doesn't need access to any of this.
 
 ---
 

@@ -217,11 +217,63 @@ def dockerfile(
         console.print(f"[dim]Python version:[/dim] {python_version}")
         console.print(f"[dim]Port:[/dim] {port}")
         console.print(f"[dim]Gunicorn workers:[/dim] {gunicorn_workers}")
+
+        # A Dockerfile without a matching .dockerignore is always wrong in
+        # this project layout (runtime state dirs like certbot/, media/,
+        # static/, db-backups/ live alongside code), so emit it here too.
+        ignore_path = output.parent / ".dockerignore"
+        if not ignore_path.exists() or force:
+            ignore_path.write_text(render_template("docker/dockerignore", {}))
+            console.print(
+                f"[green]✓[/green] .dockerignore created: [bold]{ignore_path}[/bold]"
+            )
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")
         raise typer.Exit(0)
     except Exception as e:
         console.print(f"[red]Error creating Dockerfile:[/red] {e}")
+        raise typer.Exit(1)
+
+
+@create_app.command("dockerignore")
+def dockerignore(
+    output: Path = typer.Option(
+        Path(".dockerignore"),
+        "--output",
+        "-o",
+        help="Output file path",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing file without prompting",
+    ),
+) -> None:
+    """Create a .dockerignore file.
+
+    Excludes runtime state (certbot, media, static, db-backups), secrets,
+    VCS and cache dirs from the Docker build context. This is generated
+    automatically by ``phoxtail docker create dockerfile`` — use this
+    command to regenerate it standalone.
+
+    Examples:
+        phoxtail docker create dockerignore
+        phoxtail docker create dockerignore --force
+    """
+    if output.exists() and not force:
+        if not Confirm.ask(
+            f"[yellow]Warning:[/yellow] {output} already exists. Overwrite?",
+            default=False,
+        ):
+            console.print("[dim]Cancelled.[/dim]")
+            raise typer.Exit(0)
+
+    try:
+        output.write_text(render_template("docker/dockerignore", {}))
+        console.print(f"[green]✓[/green] .dockerignore created: [bold]{output}[/bold]")
+    except Exception as e:
+        console.print(f"[red]Error creating .dockerignore:[/red] {e}")
         raise typer.Exit(1)
 
 

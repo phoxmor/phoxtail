@@ -1,0 +1,52 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.egg-info
+.Python
+.venv
+venv
+env
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+
+# Node
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment / secrets
+.env
+.env.*
+
+# Runtime state (bind-mounted at runtime, must not be in the build context)
+certbot
+db-backups
+media
+static
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+
+# Docker / deploy artefacts
+Dockerfile
+docker-compose*.yaml
+docker-compose*.yml
+.dockerignore
+
+# Docs
+docs/_build
+site

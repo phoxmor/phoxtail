@@ -51,6 +51,25 @@ class TestDockerfileTemplate:
         assert "AS production" in result
 
 
+class TestDockerignoreTemplate:
+    def test_excludes_runtime_state_dirs(self):
+        result = render_template("docker/dockerignore", {})
+        assert "certbot" in result
+        assert "db-backups" in result
+        assert "media" in result
+        assert "static" in result
+
+    def test_excludes_secrets_and_vcs(self):
+        result = render_template("docker/dockerignore", {})
+        assert ".env" in result
+        assert ".git" in result
+
+    def test_excludes_python_caches(self):
+        result = render_template("docker/dockerignore", {})
+        assert "__pycache__" in result
+        assert ".venv" in result
+
+
 class TestComposeTemplate:
     def _render(self, environment="development", requires_celery=False):
         context = {
@@ -87,6 +106,22 @@ class TestComposeTemplate:
         result = self._render("production")
         assert "nginx:" in result
         assert "certbot" in result
+
+    def test_prod_uses_named_certbot_volumes(self):
+        result = self._render("production")
+        # Named volumes, not bind mounts — avoids root-owned files
+        # polluting the project dir and the Docker build context.
+        assert "./certbot/conf" not in result
+        assert "./certbot/www" not in result
+        assert "certbot_conf:/etc/letsencrypt" in result
+        assert "certbot_www:/var/www/certbot" in result
+        assert "  certbot_conf:" in result
+        assert "  certbot_www:" in result
+
+    def test_dev_has_no_certbot_volumes(self):
+        result = self._render("development")
+        assert "certbot_conf" not in result
+        assert "certbot_www" not in result
 
     def test_prod_does_not_have_docs(self):
         result = self._render("production")

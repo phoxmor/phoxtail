@@ -32,6 +32,12 @@ _APP_STEPS = [
         True,
     ),
     (
+        ".dockerignore",
+        "phoxtail docker create dockerignore",
+        ".dockerignore",
+        False,
+    ),
+    (
         "Docker Compose",
         "phoxtail docker create compose production",
         "docker-compose.yaml",
