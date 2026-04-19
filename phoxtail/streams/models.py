@@ -380,7 +380,7 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
                 }
             )
         # Ensure the content block type matches the block FK
-        if self.content and len(self.content) > 0:
+        if self.block_id and self.content and len(self.content) > 0:
             content_block_type = self.content[0].block_type
             if content_block_type != self.block.identifier:
                 raise ValidationError(
