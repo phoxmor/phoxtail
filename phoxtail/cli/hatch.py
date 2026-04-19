@@ -13,6 +13,7 @@ from rich.prompt import Confirm
 
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
+from phoxtail.cli.utils.env import read_env_value
 from phoxtail.cli.utils.templates import render_template
 from phoxtail.core.wiring import find_phoxtail_config
 
@@ -393,10 +394,13 @@ def _run_wizard(
                     prev_failed = True
                 else:
                     _redraw_db("bootstrapping site…")
-                    site_ok = _run_step(
-                        target_dir,
-                        ["manage", "bootstrap_site", "--app-label", project_name],
-                    )
+                    bootstrap_args = [
+                        "manage", "bootstrap_site", "--app-label", project_name,
+                    ]
+                    site_name = read_env_value("SITE_NAME", target_dir / ".env")
+                    if site_name:
+                        bootstrap_args += ["--site-name", site_name]
+                    site_ok = _run_step(target_dir, bootstrap_args)
 
                     if site_ok:
                         steps["setup_db"] = "done"
