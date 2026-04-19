@@ -6,6 +6,7 @@ from phoxtail.cli.utils.config import (
     _deep_merge,
     _topological_sort,
     any_app_requires_celery,
+    docker_image_slug,
     get_cluster_names,
     get_clusters,
     get_project_apps,
@@ -170,6 +171,23 @@ class TestValidateProjectName:
 
     def test_does_not_conflict_with_novel_name(self):
         assert validate_project_name("xyzzy_unique_name") is None
+
+
+class TestDockerImageSlug:
+    def test_replaces_underscores_with_hyphens(self):
+        assert docker_image_slug("my_project") == "my-project"
+
+    def test_lowercases(self):
+        assert docker_image_slug("MyProject") == "myproject"
+
+    def test_mixed_case_and_underscores(self):
+        assert docker_image_slug("My_Project") == "my-project"
+
+    def test_no_underscores_passthrough(self):
+        assert docker_image_slug("myproject") == "myproject"
+
+    def test_multiple_underscores(self):
+        assert docker_image_slug("my_great_project") == "my-great-project"
 
 
 class TestTopologicalSort:

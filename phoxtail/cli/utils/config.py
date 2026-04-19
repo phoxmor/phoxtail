@@ -59,6 +59,15 @@ def get_project_name() -> str:
     return load_config()["project"]["name"]
 
 
+def docker_image_slug(name: str) -> str:
+    """Convert a validated project name (Python identifier) to a Docker image slug.
+
+    Replaces underscores with hyphens and lowercases — the only transformation
+    needed because validate_project_name already guarantees ASCII identifiers.
+    """
+    return name.replace("_", "-").lower()
+
+
 def get_project_apps() -> list[str]:
     return list(load_config()["project"].get("apps", []))
 

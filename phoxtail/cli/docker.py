@@ -9,7 +9,11 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
-from phoxtail.cli.utils.config import any_app_requires_celery, get_project_name
+from phoxtail.cli.utils.config import (
+    any_app_requires_celery,
+    docker_image_slug,
+    get_project_name,
+)
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.templates import render_template
 
@@ -98,7 +102,7 @@ def restart(ctx: typer.Context) -> None:
 PYTHON_VERSIONS = ["3.11", "3.12", "3.13"]
 POSTGRES_VERSIONS = ["15", "16", "17", "18"]
 
-IMAGE_PREFIX = get_project_name()
+IMAGE_PREFIX = docker_image_slug(get_project_name())
 
 
 def _get_postgres_data_path(version: str) -> str:
@@ -348,10 +352,10 @@ def compose(
         console.print("\n[bold]Docker Configuration:[/bold]")
         project_name = Prompt.ask(
             "Project name for Docker image",
-            default=get_project_name(),
+            default=docker_image_slug(get_project_name()),
         )
 
-    project_name = project_name.lower().strip().replace(" ", "-")
+    project_name = docker_image_slug(project_name.strip())
 
     if postgres_version is None:
         postgres_version = questionary.select(
