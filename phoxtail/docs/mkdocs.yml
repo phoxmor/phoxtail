@@ -70,6 +70,7 @@ nav:
       - Dashboard Migration Plan: internal/dashboard-migration-plan.md
       - Autonomous Apps Refactor: internal/autonomous-apps-refactor.md
       - Manual Server Hardening: internal/server-hardening-guide.md
+      - Shared Blocks Refactor: internal/shared-blocks-refactor-plan.md
 
 theme:
   name: material
