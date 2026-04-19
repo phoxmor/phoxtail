@@ -21,10 +21,17 @@ other app along. Adding a new app is a two-line change in this file.
 
 from __future__ import annotations
 
+from django.conf import settings
 from ninja import NinjaAPI
 
 from phoxtail.api.streams.v1 import router as streams_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
+
+# Swagger UI and the OpenAPI schema are development conveniences only; in
+# production they leak the endpoint surface with no runtime consumer, so we
+# close both when DEBUG is off. Passing ``openapi_url=None`` disables the
+# schema, which also disables the docs UI that renders it.
+_docs_enabled = bool(getattr(settings, "DEBUG", False))
 
 api = NinjaAPI(
     title="Phoxtail API",
@@ -35,7 +42,8 @@ api = NinjaAPI(
         "projects acting as sync remotes."
     ),
     urls_namespace="phoxtail_api",
-    docs_url="/docs/",
+    docs_url="/docs/" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
     # Default-deny: every endpoint requires a valid AccessToken unless it
     # explicitly opts out with ``auth=None``. Routes can still override this
     # per-endpoint, but the safe posture is enforced by default.
