@@ -17,10 +17,10 @@ from .views import (
 
 class AccessTokensManagementViewSet(AccessTokensViewSet):
     name = "access_tokens_management"
-    menu_label = _("Access Tokens")
-    icon = "fingerprint"
-    menu_order = 500
-    add_to_admin_menu = True
+    menu_label = _("API Tokens")
+    icon = "vpn-key"
+    menu_order = 601
+    add_to_settings_menu = True
     required_permissions = ["access_tokens_management"]
 
     def get_urlpatterns(self):

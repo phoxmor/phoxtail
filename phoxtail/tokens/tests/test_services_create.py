@@ -48,9 +48,7 @@ class TestCreateValidation:
         # Boundary: ``<=`` in validate, so equality must be rejected too.
         now = timezone.now()
         with pytest.raises(ValidationError):
-            AccessTokenService().admin.create(
-                user_id=user.id, name="t", expires_at=now
-            )
+            AccessTokenService().admin.create(user_id=user.id, name="t", expires_at=now)
 
 
 class TestCreateDefaults:
@@ -69,9 +67,7 @@ class TestCreateDefaults:
         assert token.token_type == TokenType.PERSONAL
 
     def test_name_is_stripped(self, user):
-        token, _ = AccessTokenService().admin.create(
-            user_id=user.id, name="  spaced  "
-        )
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="  spaced  ")
         assert token.name == "spaced"
 
     def test_default_description_blank(self, user):

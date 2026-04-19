@@ -22,9 +22,9 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
             ],
             options={
-                'verbose_name': 'Access Tokens',
-                'verbose_name_plural': 'Access Tokens',
-                'permissions': [('access_tokens_management', 'Can access Access Tokens management'), ('create_access_tokens', 'Can create Access Tokens'), ('revoke_access_tokens', 'Can revoke Access Tokens'), ('manage_all_tokens', 'Can view and revoke tokens across all users')],
+                'verbose_name': 'API Tokens',
+                'verbose_name_plural': 'API Tokens',
+                'permissions': [('access_tokens_management', 'Can access API Tokens management'), ('create_access_tokens', 'Can create API Tokens'), ('revoke_access_tokens', 'Can revoke API Tokens'), ('manage_all_tokens', 'Can view and revoke tokens across all users')],
                 'default_permissions': (),
             },
         ),

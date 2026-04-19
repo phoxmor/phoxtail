@@ -14,13 +14,13 @@ class AccessTokensAdminPermission(models.Model):
         default_permissions = ()
         permissions = [
             # ── Access gate ─────────────────────────────────────
-            # Required to see the "Access Tokens" menu item at all.
-            ("access_tokens_management", "Can access Access Tokens management"),
+            # Required to see the "API Tokens" menu item at all.
+            ("access_tokens_management", "Can access API Tokens management"),
             # ── Self-service actions ────────────────────────────
             # Holders of these can mint and revoke tokens, but only ever
             # within the scope of their own user account.
-            ("create_access_tokens", "Can create Access Tokens"),
-            ("revoke_access_tokens", "Can revoke Access Tokens"),
+            ("create_access_tokens", "Can create API Tokens"),
+            ("revoke_access_tokens", "Can revoke API Tokens"),
             # ── Org-wide elevation ──────────────────────────────
             # Widens the list view to cover every user's tokens and
             # permits revoking tokens that belong to other users. Gate
@@ -28,5 +28,5 @@ class AccessTokensAdminPermission(models.Model):
             ("manage_all_tokens", "Can view and revoke tokens across all users"),
         ]
 
-        verbose_name = _("Access Tokens")
-        verbose_name_plural = _("Access Tokens")
+        verbose_name = _("API Tokens")
+        verbose_name_plural = _("API Tokens")

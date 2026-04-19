@@ -39,9 +39,11 @@ class TestRevokePerform:
 
 class TestRevokeIdempotent:
     def test_re_revoke_preserves_original_timestamp(self, user):
-        original = timezone.now() - timezone.timedelta(days=1) if hasattr(
-            timezone, "timedelta"
-        ) else None
+        original = (
+            timezone.now() - timezone.timedelta(days=1)
+            if hasattr(timezone, "timedelta")
+            else None
+        )
         # Build a token already revoked at a known past time.
         from datetime import timedelta
 

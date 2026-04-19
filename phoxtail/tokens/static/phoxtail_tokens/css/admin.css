@@ -647,6 +647,25 @@
     right: 1rem;
 }
 
+.tka-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    pointer-events: none;
+}
+
+.tka-tag--revoked {
+    background: rgb(var(--color-destructive-100));
+    border-color: rgb(var(--color-destructive-200));
+    color: rgb(var(--color-destructive-700));
+}
+
 .tka-card__body {
     display: flex;
     flex-direction: column;
@@ -1372,6 +1391,12 @@
 
     .tka-card__meta-row--warn svg {
         color: rgb(var(--color-warning-500));
+    }
+
+    .tka-tag--revoked {
+        background: rgb(var(--color-destructive-900) / 0.4);
+        border-color: rgb(var(--color-destructive-700));
+        color: rgb(var(--color-destructive-300));
     }
 
     .tka-empty-state__title {

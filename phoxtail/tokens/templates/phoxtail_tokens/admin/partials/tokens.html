@@ -3,14 +3,14 @@
     <div class="tka-page-header__inner">
         <!-- Title Section -->
         <div class="tka-page-header__title-section">
-            <h1 class="tka-page-header__title">Access Tokens</h1>
+            <h1 class="tka-page-header__title">API Tokens</h1>
             <div class="tka-page-header__meta">
                 <div class="tka-page-header__count">
-                    {% include 'phoxtail_core/svgs/fingerprint.html' %}
+                    {% include 'phoxtail_core/svgs/vpn_key.html' %}
                     <span class="tka-page-header__count-text">{{ tokens.paginator.count }} Token{{ tokens.paginator.count|pluralize }}</span>
                 </div>
                 {% if can_manage_all %}
-                    <span class="tka-scope-pill tka-scope-pill--all">All users</span>
+                    <span class="tka-scope-pill">All users</span>
                 {% else %}
                     <span class="tka-scope-pill">Your tokens</span>
                 {% endif %}
@@ -92,16 +92,15 @@
                                                     <span class="tka-card__meta-value">Expires {{ t.expires_at|date:"M j, Y" }}</span>
                                                 </div>
                                             {% endif %}
-                                            {% if t.revoked_at %}
-                                                <div class="tka-card__meta-row tka-card__meta-row--warn">
-                                                    {% include 'phoxtail_core/svgs/cancel.html' %}
-                                                    <span class="tka-card__meta-value">Revoked {{ t.revoked_at|date:"M j, Y H:i" }}</span>
-                                                </div>
-                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            {% if t.revoked_at %}
+                                <div class="tka-card__badge-area">
+                                    <span class="tka-tag tka-tag--revoked">Revoked</span>
+                                </div>
+                            {% endif %}
                             <button class="tka-card__button"
                                     type="button"
                                     hx-get="{% url 'phoxtail_core:modal' %}"
@@ -115,7 +114,7 @@
                 </div>
             {% else %}
                 <div class="tka-empty-state">
-                    <div class="tka-empty-state__icon">{% include 'phoxtail_core/svgs/fingerprint.html' %}</div>
+                    <div class="tka-empty-state__icon">{% include 'phoxtail_core/svgs/vpn_key.html' %}</div>
                     <h3 class="tka-empty-state__title">No tokens found</h3>
                     <p class="tka-empty-state__text">
                         {% if filter_count > 0 or filterset.form.search.value %}

@@ -74,18 +74,14 @@ class TestPolicyEvaluation:
         )
         # Did not grant unrelated permissions.
         assert (
-            access_tokens_permission_policy.user_has_permission(
-                u, "manage_all_tokens"
-            )
+            access_tokens_permission_policy.user_has_permission(u, "manage_all_tokens")
             is False
         )
 
     def test_superuser_short_circuits(self, superuser):
         for action in EXPECTED_PERMS:
             assert (
-                access_tokens_permission_policy.user_has_permission(
-                    superuser, action
-                )
+                access_tokens_permission_policy.user_has_permission(superuser, action)
                 is True
             )
 

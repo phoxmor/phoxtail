@@ -70,16 +70,12 @@ class TestCanUserRevoke:
         self, user, other_user, can_user_revoke
     ):
         token = AccessTokenFactory(user=other_user)
-        u = grant_token_permissions(
-            user, "revoke_access_tokens", "manage_all_tokens"
-        )
+        u = grant_token_permissions(user, "revoke_access_tokens", "manage_all_tokens")
         req = RequestFactory().get("/")
         req.user = u
         assert can_user_revoke(req, token) is True
 
-    def test_manage_all_alone_is_insufficient(
-        self, user, other_user, can_user_revoke
-    ):
+    def test_manage_all_alone_is_insufficient(self, user, other_user, can_user_revoke):
         token = AccessTokenFactory(user=other_user)
         u = grant_token_permissions(user, "manage_all_tokens")
         req = RequestFactory().get("/")
@@ -176,9 +172,7 @@ class TestContextBuilderPagination:
         assert len(ctx["tokens"].object_list) == PAGE_SIZE
         assert ctx["total_tokens"] == PAGE_SIZE + 5
 
-    def test_page_param_advances(
-        self, user, PAGE_SIZE, AccessTokensContextBuilder
-    ):
+    def test_page_param_advances(self, user, PAGE_SIZE, AccessTokensContextBuilder):
         for _ in range(PAGE_SIZE + 3):
             AccessTokenFactory(user=user)
         req = RequestFactory().get("/", {"filter-page": "2"})
@@ -201,9 +195,7 @@ class TestContextBuilderFilterCount:
         # Only status counts.
         assert ctx["filter_count"] == 1
 
-    def test_filter_count_zero_with_no_filters(
-        self, user, AccessTokensContextBuilder
-    ):
+    def test_filter_count_zero_with_no_filters(self, user, AccessTokensContextBuilder):
         req = RequestFactory().get("/")
         req.user = user
         ctx = AccessTokensContextBuilder.get_full_context(req)
@@ -225,9 +217,7 @@ class TestFiltersContext:
 
 
 class TestPostMethodReadsPostParams:
-    def test_post_uses_post_params_for_filters(
-        self, user, AccessTokensContextBuilder
-    ):
+    def test_post_uses_post_params_for_filters(self, user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user)
         req = RequestFactory().post("/", {"filter-status": "active"})
         req.user = user
