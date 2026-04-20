@@ -395,7 +395,10 @@ def _run_wizard(
                 else:
                     _redraw_db("bootstrapping site…")
                     bootstrap_args = [
-                        "manage", "bootstrap_site", "--app-label", project_name,
+                        "manage",
+                        "bootstrap_site",
+                        "--app-label",
+                        project_name,
                     ]
                     site_name = read_env_value("SITE_NAME", target_dir / ".env")
                     if site_name:
