@@ -16,9 +16,9 @@ from typing import Any
 
 import httpx
 
-from phoxtail.cli.utils.config import _find_config_file, load_config
+from phoxtail.cli.utils.config import get_api_base_url
+from phoxtail.cli.utils.credentials import resolve_token
 
-DEFAULT_BASE_URL = "http://localhost"
 API_PREFIX = "/api/streams/v1"
 DEFAULT_TIMEOUT = 30.0
 
@@ -26,18 +26,11 @@ DEFAULT_TIMEOUT = 30.0
 def api_base_url() -> str:
     """Resolve the API base URL for the current project.
 
-    Reads ``[studio] api_url`` from ``phoxtail.toml``; falls back to
-    :data:`DEFAULT_BASE_URL`.
+    Thin wrapper around ``phoxtail.cli.utils.config.get_api_base_url`` —
+    kept as a module-level name so tool modules can keep importing
+    ``from phoxtail.mcp._http import api_base_url``.
     """
-    if _find_config_file() is None:
-        return DEFAULT_BASE_URL
-    try:
-        config = load_config()
-    except Exception:
-        return DEFAULT_BASE_URL
-    studio = config.get("studio") or {}
-    url = studio.get("api_url") or DEFAULT_BASE_URL
-    return url.rstrip("/")
+    return get_api_base_url()
 
 
 def url(path: str) -> str:
@@ -60,12 +53,17 @@ def request(
     tools, Rich output for CLI commands).
     """
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
+    final_headers = dict(headers or {})
+    if "Authorization" not in final_headers:
+        token = resolve_token(api_base_url())
+        if token:
+            final_headers["Authorization"] = f"Bearer {token}"
     return httpx.request(
         method,
         url(path),
         params=clean_params or None,
         json=json_body,
-        headers=headers,
+        headers=final_headers or None,
         timeout=DEFAULT_TIMEOUT,
         follow_redirects=True,
     )

@@ -3,10 +3,12 @@
 import pytest
 
 from phoxtail.cli.utils.config import (
+    DEFAULT_API_BASE_URL,
     _deep_merge,
     _topological_sort,
     any_app_requires_celery,
     docker_image_slug,
+    get_api_base_url,
     get_cluster_names,
     get_clusters,
     get_project_apps,
@@ -67,6 +69,41 @@ class TestProjectApps:
         monkeypatch.chdir(tmp_path)
         load_config.cache_clear()
         assert get_project_apps() == ["phoxtail.blog", "phoxtail.booking"]
+
+
+class TestApiBaseUrl:
+    """Shared resolver used by the Studio CLI client, the MCP client, and
+    ``phoxtail auth``. Keeping them on one helper means a change to the
+    fallback rule or key normalization can't drift across call sites."""
+
+    def test_falls_back_when_no_studio_section(self):
+        # conftest SAMPLE_TOML has no [studio] — fallback applies.
+        assert get_api_base_url() == DEFAULT_API_BASE_URL
+
+    def test_reads_studio_api_url(self, tmp_path, monkeypatch):
+        toml = tmp_path / "phoxtail.toml"
+        toml.write_text(
+            '[project]\nname = "test"\n\n[studio]\napi_url = "http://localhost:8080"\n'
+        )
+        monkeypatch.chdir(tmp_path)
+        load_config.cache_clear()
+        assert get_api_base_url() == "http://localhost:8080"
+
+    def test_strips_trailing_slash(self, tmp_path, monkeypatch):
+        toml = tmp_path / "phoxtail.toml"
+        toml.write_text(
+            '[project]\nname = "t"\n\n[studio]\napi_url = "https://x.example.com/"\n'
+        )
+        monkeypatch.chdir(tmp_path)
+        load_config.cache_clear()
+        assert get_api_base_url() == "https://x.example.com"
+
+    def test_empty_api_url_falls_back(self, tmp_path, monkeypatch):
+        toml = tmp_path / "phoxtail.toml"
+        toml.write_text('[project]\nname = "t"\n\n[studio]\napi_url = ""\n')
+        monkeypatch.chdir(tmp_path)
+        load_config.cache_clear()
+        assert get_api_base_url() == DEFAULT_API_BASE_URL
 
 
 class TestAccessors:

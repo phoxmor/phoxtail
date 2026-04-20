@@ -49,6 +49,7 @@ nav:
   - Patterns:
       - Testing: patterns/testing.md
       - Personal Access Tokens: patterns/personal-access-tokens.md
+      - CLI Authentication: patterns/cli-authentication.md
       - Service Layer:
           - Overview: patterns/service-layer-overview.md
           - Users: patterns/service-layer-users.md

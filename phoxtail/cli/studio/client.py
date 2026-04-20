@@ -19,15 +19,13 @@ import httpx
 import typer
 from rich.console import Console
 
-from phoxtail.cli.utils.config import _find_config_file, load_config
+from phoxtail.cli.utils.config import get_api_base_url
+from phoxtail.cli.utils.credentials import resolve_token
 
 # Exit codes are documented in docs/studio/cli.md:
 EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
-# Default base URL when a project has not configured one explicitly.
-# Matches the nginx proxy docker-compose exposes for the dev app.
-DEFAULT_BASE_URL = "http://localhost"
 API_PREFIX = "/api/streams/v1"
 
 # Module-level override set by commands that accept a --peer flag.
@@ -57,20 +55,12 @@ def _api_base_url() -> str:
 
     Priority order:
     1. ``set_peer()`` override (set by commands that accept ``--peer``)
-    2. ``[studio] api_url`` in ``phoxtail.toml``
-    3. ``DEFAULT_BASE_URL`` (localhost)
+    2. Shared ``get_api_base_url()`` — reads ``[studio] api_url`` or falls
+       back to ``http://localhost``.
     """
     if _peer_url_override is not None:
         return _peer_url_override
-    if _find_config_file() is None:
-        return DEFAULT_BASE_URL
-    try:
-        config = load_config()
-    except Exception:
-        return DEFAULT_BASE_URL
-    studio = config.get("studio") or {}
-    url = studio.get("api_url") or DEFAULT_BASE_URL
-    return url.rstrip("/")
+    return get_api_base_url()
 
 
 def _url(path: str) -> str:
@@ -103,13 +93,18 @@ def request(
     """
     # Filter out None params so httpx does not send empty query values.
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
+    final_headers = dict(headers or {})
+    if "Authorization" not in final_headers:
+        token = resolve_token(_api_base_url())
+        if token:
+            final_headers["Authorization"] = f"Bearer {token}"
     try:
         response = httpx.request(
             method,
             _url(path),
             params=clean_params or None,
             json=json_body,
-            headers=headers,
+            headers=final_headers or None,
             timeout=DEFAULT_TIMEOUT,
             follow_redirects=True,
         )
@@ -133,6 +128,11 @@ def request(
 def _raise_for_error(response: httpx.Response) -> None:
     detail = _extract_detail(response)
     console.print(f"[red]Error:[/red] {detail}")
+    if response.status_code == 401:
+        console.print(
+            "Run [bold]phoxtail auth login[/bold] to store an API token, "
+            "or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
+        )
     raise typer.Exit(code=EXIT_GENERAL_FAILURE)
 
 

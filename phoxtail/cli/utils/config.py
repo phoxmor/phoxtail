@@ -72,6 +72,28 @@ def get_project_apps() -> list[str]:
     return list(load_config()["project"].get("apps", []))
 
 
+DEFAULT_API_BASE_URL = "http://localhost"
+
+
+def get_api_base_url() -> str:
+    """Return the project's API base URL, without trailing slash.
+
+    Reads ``[studio] api_url`` from ``phoxtail.toml``; falls back to
+    :data:`DEFAULT_API_BASE_URL` when no project is in scope, the file
+    cannot be loaded, or the key is absent. Used by the Studio CLI
+    client, the MCP client, and ``phoxtail auth`` so they all agree on
+    where the API lives and which host key indexes stored credentials.
+    """
+    if _find_config_file() is None:
+        return DEFAULT_API_BASE_URL
+    try:
+        config = load_config()
+    except Exception:
+        return DEFAULT_API_BASE_URL
+    url = (config.get("studio") or {}).get("api_url") or DEFAULT_API_BASE_URL
+    return url.rstrip("/")
+
+
 def any_app_requires_celery() -> bool:
     """Return True if any registered phoxtail app declares requires_celery."""
     from phoxtail.core.wiring import find_phoxtail_config

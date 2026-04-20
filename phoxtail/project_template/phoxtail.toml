@@ -1,3 +1,6 @@
 [project]
 name = "{{ phoxtail_project_name }}"
 apps = []
+
+[studio]
+api_url = "http://localhost"

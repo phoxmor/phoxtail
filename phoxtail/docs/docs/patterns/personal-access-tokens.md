@@ -261,28 +261,13 @@ If `expires_at` is set, `authenticate()` rejects the token silently after that t
 
 ## Integration
 
-### CLI
+See [CLI Authentication](cli-authentication.md) for the full client-side picture — credential storage format, the `phoxtail auth login/status/logout` commands, bearer injection in both the Studio CLI client and the MCP client, and a step-by-step tutorial.
 
-The CLI reads the token from the environment or from a credentials file. The recommended convention mirrors git's credential storage:
+Summary:
 
-```toml
-# ~/.phoxtail/credentials (chmod 600)
-[myproject.example.com]
-token = "phxt_..."
-```
-
-CLI commands that call the API inject the token as a `Bearer` header via the shared HTTP client in `phoxtail/mcp/_http.py` (or the analogous CLI client).
-
-### MCP server
-
-The MCP server's `_http.py` reads the token from the environment:
-
-```python
-import os
-headers = {"Authorization": f"Bearer {os.environ['PHOXTAIL_API_TOKEN']}"}
-```
-
-The `phoxtail mcp serve` command exports this automatically when the user has configured credentials.
+- Tokens are stored in `~/.phoxtail/credentials` (TOML, `chmod 600`), keyed by host.
+- `$PHOXTAIL_API_TOKEN` overrides the file — use this in CI and containers.
+- Both `phoxtail/cli/studio/client.py` and `phoxtail/mcp/_http.py` call `resolve_token()` before every request and attach the result as `Authorization: Bearer …` automatically.
 
 ### Future: OAuth2 for external agents
 

@@ -5,6 +5,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from phoxtail.cli import (
+    auth,
     db,
     docker,
     docs,
@@ -32,7 +33,7 @@ app = typer.Typer(
 console = Console()
 
 # Commands that don't require a phoxtail project.
-NO_PROJECT_COMMANDS = {"version", "hatch", "docs", "server", "mcp"}
+NO_PROJECT_COMMANDS = {"version", "hatch", "docs", "server", "mcp", "auth"}
 
 
 @app.callback(invoke_without_command=True)
@@ -68,6 +69,7 @@ app.add_typer(requirements.app, name="requirements", help="Python requirements")
 app.add_typer(server.app, name="server", help="Remote server management")
 app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
 app.add_typer(mcp.app, name="mcp", help="MCP server for AI agents")
+app.add_typer(auth.app, name="auth", help="Manage Phoxtail API credentials")
 app.add_typer(studio.app, name="studio", help="Design and exchange block variants")
 
 # Top-level commands
