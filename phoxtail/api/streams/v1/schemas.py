@@ -37,6 +37,7 @@ class CollectionRef(Schema):
 class VariantSummary(Schema):
     """List-view shape for a BlockVariant."""
 
+    id: int
     identifier: str
     name: str
     description: str
@@ -145,6 +146,7 @@ class BlockSummary(Schema):
 class BlockVariantRef(Schema):
     """Minimal variant embed used inside block detail responses."""
 
+    id: int
     identifier: str
     name: str
     is_default: bool
