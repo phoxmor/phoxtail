@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from phoxtail.api.pages.v1._helpers import serialize_body
-from phoxtail.api.pages.v1.contrib import PageSchemaContribution
+from phoxtail.api.content.v1._helpers import serialize_body
+from phoxtail.api.content.v1.contrib import PageSchemaContribution
 from phoxtail.cms.models import SitePage
 
 

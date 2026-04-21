@@ -2,7 +2,7 @@
 
 ## The problem
 
-`PUT /api/pages/v1/pages/{id}/body/` has no validation layer between `StreamBlock.to_python()` and `page.save_revision()`. Wagtail's `to_python` is intentionally permissive (it must rehydrate historical revisions with drifted schemas), so structurally-plausible but semantically wrong JSON reaches storage unchecked.
+`PUT /api/content/v1/pages/{id}/body/` has no validation layer between `StreamBlock.to_python()` and `page.save_revision()`. Wagtail's `to_python` is intentionally permissive (it must rehydrate historical revisions with drifted schemas), so structurally-plausible but semantically wrong JSON reaches storage unchecked.
 
 **Observed failure:** an agent passed `variant: "default"` (string) where the StreamField expected a numeric FK integer. `to_python` accepted it, the revision was saved, and the ETag advanced. The subsequent GET returned a 500 because rendering tried to use `"default"` as a database PK. The page was in a corrupted-but-saved state.
 

@@ -2,15 +2,15 @@
 
 This package is the API counterpart to the app packages at the top level
 (``phoxtail/streams/``, ``phoxtail/design/``, ``phoxtail/booking/``, ...).
-Core domains (``streams``, ``pages``) ship their routers here; every
+Core domains (``streams``, ``content``) ship their routers here; every
 optional app that declares ``api_version_router`` on its
 ``PhoxtailAppConfig`` is auto-mounted at ``/api/<short_label>/v1/``
 after Django's app registry is ready.
 
 URL shape:
 
-    /api/streams/v1/...     — core studio API
-    /api/pages/v1/...       — core pages API (generic Wagtail surface)
+    /api/streams/v1/...     — core studio API (block variants, collections)
+    /api/content/v1/...     — core content API (pages, sites, locales)
     /api/<label>/v1/...     — contributed by any optional app
 
 Per-app versioning means ``streams`` can ship a v2 without dragging every
@@ -26,7 +26,7 @@ import importlib
 from django.conf import settings
 from ninja import NinjaAPI
 
-from phoxtail.api.pages.v1 import router as pages_v1_router
+from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.api.streams.v1 import router as streams_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
@@ -54,12 +54,12 @@ api = NinjaAPI(
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])
-api.add_router("/pages/v1/", pages_v1_router, tags=["pages/v1"])
+api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
 
 
 # Core router short labels — contributors cannot reuse these, or they
 # would shadow a core domain.
-_CORE_SHORT_LABELS = frozenset({"streams", "pages"})
+_CORE_SHORT_LABELS = frozenset({"streams", "content", "pages"})
 
 
 def _short_label(config) -> str:

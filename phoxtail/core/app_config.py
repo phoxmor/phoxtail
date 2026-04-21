@@ -44,7 +44,7 @@ class PhoxtailAppConfig(AppConfig):
     #   short_label = self.label.removeprefix("phoxtail_").
     #
     # page_schema_contributors: dotted paths to zero-arg callables
-    #   returning a phoxtail.api.pages.v1.contrib.PageSchemaContribution.
+    #   returning a phoxtail.api.content.v1.contrib.PageSchemaContribution.
     #   Consumed by the pages domain to power /page-types/,
     #   GET /pages/{id}/ per-type fields, and PATCH validation.
     #

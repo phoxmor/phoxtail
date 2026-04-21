@@ -14,7 +14,7 @@ from django.http import HttpRequest
 from ninja.errors import HttpError
 from wagtail.models import Page
 
-from phoxtail.api.pages.v1.contrib import (
+from phoxtail.api.content.v1.contrib import (
     PageSchemaContribution,
     get_contribution_for_page,
 )
@@ -153,11 +153,15 @@ def content_type_string(page: Page) -> str:
 
 def common_fields(page: Page) -> dict[str, Any]:
     """Core Wagtail fields exposed on every page."""
+    locale_code = ""
+    if hasattr(page, "locale_id") and page.locale_id is not None:
+        locale_code = getattr(page.locale, "language_code", "")
     return {
         "id": page.pk,
         "title": page.title,
         "slug": page.slug,
         "live": page.live,
+        "locale": locale_code,
         "first_published_at": page.first_published_at,
         "last_published_at": page.last_published_at,
         "seo_title": page.seo_title,

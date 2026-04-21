@@ -1,7 +1,7 @@
-"""``/api/pages/v1/pages/`` — generic Wagtail Page endpoints.
+"""``/api/content/v1/pages/`` — generic Wagtail Page endpoints.
 
 Endpoints:
-- ``GET    /``                    — list, filtered by ?type, ?parent, ?live
+- ``GET    /``    — list pages (?type, ?parent, ?live, ?search, ?locale, ?site)
 - ``GET    /{page_id}/``          — detail, sets ETag
 - ``PATCH  /{page_id}/``          — scalar fields (common + contributed)
 - ``POST   /{page_id}/publish/``  — publish the latest draft revision
@@ -20,7 +20,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.models import Page
 
-from phoxtail.api.pages.v1._helpers import (
+from phoxtail.api.content.v1._helpers import (
     apply_common_patch,
     apply_contributed_patch,
     filter_by_content_type,
@@ -33,7 +33,7 @@ from phoxtail.api.pages.v1._helpers import (
     serialize_page_detail,
     serialize_page_summary,
 )
-from phoxtail.api.pages.v1.schemas import (
+from phoxtail.api.content.v1.schemas import (
     BodyResponse,  # noqa: F401 — re-exported for Ninja docs
     Error,
     PageDetail,
@@ -57,6 +57,13 @@ def list_pages(
     ),
     parent: int | None = Query(None, description="Filter by parent page ID."),
     live: bool | None = Query(None, description="Filter by live status."),
+    search: str | None = Query(
+        None, description="Autocomplete prefix search on title."
+    ),
+    locale: str | None = Query(
+        None, description="Filter by locale language code, e.g. 'en'."
+    ),
+    site: int | None = Query(None, description="Filter by site ID."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -67,12 +74,38 @@ def list_pages(
         qs = qs.child_of(_get_parent_page(parent))
     if live is not None:
         qs = qs.filter(live=live)
+    if locale:
+        qs = _filter_by_locale(qs, locale)
+    if site is not None:
+        qs = _filter_by_site(qs, site)
+    if search:
+        qs = qs.autocomplete(search)
 
     total = qs.count()
     page_slice = qs[offset : offset + limit]
     # Downcast each to its specific subclass so content_type resolves correctly.
     pages = [serialize_page_summary(p.specific) for p in page_slice]
     return {"pages": pages, "total": total}
+
+
+def _filter_by_locale(qs, language_code: str):
+    from wagtail.models import Locale
+
+    try:
+        locale = Locale.objects.get(language_code=language_code)
+    except Locale.DoesNotExist as exc:
+        raise HttpError(400, f"Unknown locale: '{language_code}'.") from exc
+    return qs.filter(locale=locale)
+
+
+def _filter_by_site(qs, site_pk: int):
+    from wagtail.models import Site
+
+    try:
+        site = Site.objects.get(pk=site_pk)
+    except Site.DoesNotExist as exc:
+        raise HttpError(400, f"Site {site_pk} not found.") from exc
+    return qs.descendant_of(site.root_page, inclusive=True)
 
 
 def _get_parent_page(parent_pk: int) -> Page:

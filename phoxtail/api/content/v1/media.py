@@ -1,4 +1,4 @@
-"""``/api/pages/v1/media/`` — image + document lookup endpoints.
+"""``/api/content/v1/media/`` — image + document lookup endpoints.
 
 Read-only. The pages domain owns these because ``wagtailimages`` and
 ``wagtaildocs`` are required by every Wagtail install — they are not
@@ -11,7 +11,7 @@ from __future__ import annotations
 from django.http import HttpRequest
 from ninja import Query, Router
 
-from phoxtail.api.pages.v1.schemas import MediaList
+from phoxtail.api.content.v1.schemas import MediaList
 
 router = Router()
 

@@ -1,4 +1,4 @@
-"""Pydantic v2 schemas for the pages v1 API.
+"""Pydantic v2 schemas for the content v1 API.
 
 The schemas here cover only what is **generic** to every Wagtail page
 — the common fields, the body as opaque JSON, and request/response
@@ -26,6 +26,7 @@ class PageSummary(Schema):
     title: str
     slug: str
     live: bool
+    locale: str = ""
     first_published_at: datetime | None = None
     last_published_at: datetime | None = None
     seo_title: str = ""

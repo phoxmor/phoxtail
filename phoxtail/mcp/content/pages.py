@@ -6,7 +6,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.pages._http import request
+from phoxtail.mcp.content._http import request
 
 # ---------------------------------------------------------------------------
 # List / get

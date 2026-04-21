@@ -67,8 +67,8 @@ The API is mounted at `/api/` in a hatched project's root `urls.py`. The full pa
 /api/design/v1/palettes          (future)
 /api/design/v1/fonts             (future)
 
-/api/pages/v1/sites              (future)
-/api/pages/v1/pages              (future)
+/api/content/v1/sites              (future)
+/api/content/v1/pages              (future)
 ```
 
 The app name as the second segment means each app owns its own namespace. No collision, no coordination.

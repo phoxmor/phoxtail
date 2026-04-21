@@ -6,6 +6,7 @@ from rich.panel import Panel
 
 from phoxtail.cli import (
     auth,
+    content,
     db,
     docker,
     docs,
@@ -71,6 +72,9 @@ app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
 app.add_typer(mcp.app, name="mcp", help="MCP server for AI agents")
 app.add_typer(auth.app, name="auth", help="Manage Phoxtail API credentials")
 app.add_typer(studio.app, name="studio", help="Design and exchange block variants")
+app.add_typer(
+    content.app, name="content", help="Manage CMS content (pages, locales, sites)"
+)
 
 # Top-level commands
 app.command(

@@ -1,4 +1,4 @@
-"""``/api/pages/v1/pages/{id}/body/`` — StreamField body endpoints.
+"""``/api/content/v1/pages/{id}/body/`` — StreamField body endpoints.
 
 MVP shape: read the body + replace it wholesale. Surgical per-block
 tools come later.
@@ -10,7 +10,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from ninja import Router
 
-from phoxtail.api.pages.v1._helpers import (
+from phoxtail.api.content.v1._helpers import (
     body_field_name_for,
     page_etag,
     replace_body,
@@ -20,7 +20,7 @@ from phoxtail.api.pages.v1._helpers import (
     resolve_page_for_read,
     serialize_body,
 )
-from phoxtail.api.pages.v1.schemas import BodyReplace, BodyResponse, Error
+from phoxtail.api.content.v1.schemas import BodyReplace, BodyResponse, Error
 
 router = Router()
 

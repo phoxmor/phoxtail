@@ -50,7 +50,7 @@ The contribution model strips the `phoxtail_` prefix to derive a
 |---|---|---|---|
 | `phoxtail_blog` | `blog` | `/api/blog/v1/` | `phoxtail_blog_*` |
 | `phoxtail_cms` | `cms` | `/api/cms/v1/` | `phoxtail_cms_*` |
-| `phoxtail_pages` | `pages` | `/api/pages/v1/` | `phoxtail_pages_*` |
+| `phoxtail_pages` | `pages` | `/api/content/v1/` | `phoxtail_pages_*` |
 | `phoxtail_streams` | `streams` | `/api/streams/v1/` | `phoxtail_studio_*` |
 
 The short label is stable. Moving code from `phoxtail/api/<app>/` into
@@ -169,10 +169,10 @@ A list of dotted paths to zero-arg callables, each returning a
 `PageSchemaContribution`. Consumed by `phoxtail.api.pages.v1.contrib`
 to build the page-type registry, which powers:
 
-- `GET /api/pages/v1/page-types/` — discovery resource for agents.
-- `GET /api/pages/v1/pages/{id}/` — per-type extra fields merged into
+- `GET /api/content/v1/page-types/` — discovery resource for agents.
+- `GET /api/content/v1/pages/{id}/` — per-type extra fields merged into
   the generic page response.
-- `PATCH /api/pages/v1/pages/{id}/` — per-type scalar writes applied
+- `PATCH /api/content/v1/pages/{id}/` — per-type scalar writes applied
   after common Wagtail fields.
 
 See [Page Schema Contributions](page-schema-contributions.md) for the
@@ -251,7 +251,7 @@ blog = "phoxtail.blog.mcp"
 1. `PhoxtailCoreConfig.ready()` → `mount_contributed_routers()` →
    `phoxtail.blog.api.v1.router` mounted at `/api/blog/v1/`.
 2. `collect_page_schemas()` (called lazily on first request to
-   `/api/pages/v1/page-types/` or `GET /pages/{id}/`) → imports
+   `/api/content/v1/page-types/` or `GET /pages/{id}/`) → imports
    `contribute_blog_post` and `contribute_blog_index`, adds them to the
    page-type registry.
 
@@ -311,7 +311,7 @@ migration happens.
 |---|---|---|
 | `phoxtail/api/streams/v1/` | `phoxtail/streams/api/v1/` | Not yet migrated |
 | `phoxtail/mcp/studio/` | `phoxtail/streams/mcp/studio/` | Not yet migrated |
-| `phoxtail/api/pages/v1/` | `phoxtail/pages/api/v1/` | Not yet migrated |
+| `phoxtail/api/content/v1/` | `phoxtail/pages/api/v1/` | Not yet migrated |
 | `phoxtail/mcp/pages/` | `phoxtail/pages/mcp/` | Not yet migrated |
 
 The `_CORE_SHORT_LABELS = frozenset({"streams", "pages"})` guard in
@@ -336,9 +336,9 @@ likely destination; the final decision will be recorded here when made.
 ### Why the migration is low-risk
 
 URLs are constructed from short labels derived from `app_label`, not
-from the Python import path. Moving `phoxtail/api/pages/v1/` into
+from the Python import path. Moving `phoxtail/api/content/v1/` into
 `phoxtail/pages/api/v1/` changes the import but leaves
-`/api/pages/v1/...` identical. The same applies to MCP tool names,
+`/api/content/v1/...` identical. The same applies to MCP tool names,
 which are literal strings in `@mcp_server.tool(name=...)` decorators.
 
 ### Note on existing architecture docs

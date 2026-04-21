@@ -7,7 +7,7 @@ business logic.
 
 Unlike earlier drafts, this module does **not** inject an ``/api/<domain>``
 prefix. Domain tool modules pass full paths starting with ``/api/`` so
-that tools from any domain (``/api/streams/v1/...``, ``/api/pages/v1/...``,
+that tools from any domain (``/api/streams/v1/...``, ``/api/content/v1/...``,
 ``/api/blog/v1/...``, ...) share one client.
 
 Unlike the CLI client (``phoxtail.cli.studio.client``), errors are
@@ -36,7 +36,7 @@ def url(path: str) -> str:
     """Build a full URL for the given API path.
 
     ``path`` must start with ``/api/`` — domain tool modules are
-    responsible for including their own prefix (e.g. ``/api/pages/v1/``).
+    responsible for including their own prefix (e.g. ``/api/content/v1/``).
     """
     if not path.startswith("/"):
         path = "/" + path

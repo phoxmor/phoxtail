@@ -2,7 +2,7 @@
 
 Each ``contribute_*`` callable is declared on
 ``PhoxtailBlogConfig.page_schema_contributors`` and collected by
-``phoxtail.api.pages.v1.contrib.collect_page_schemas()``.
+``phoxtail.api.content.v1.contrib.collect_page_schemas()``.
 
 Contributions are explicit: writable fields are listed by hand, and
 ``serialize`` / ``apply_patch`` callables are shipped alongside the
@@ -13,8 +13,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from phoxtail.api.pages.v1._helpers import serialize_body
-from phoxtail.api.pages.v1.contrib import PageSchemaContribution
+from phoxtail.api.content.v1._helpers import serialize_body
+from phoxtail.api.content.v1.contrib import PageSchemaContribution
 from phoxtail.blog.models import BlogAuthor, BlogIndexPage, BlogPostPage
 
 # ---------------------------------------------------------------------------

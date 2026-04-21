@@ -2,7 +2,7 @@
 
 Read-only. Exists so an agent can resolve a human-readable author name
 to the integer FK expected by ``BlogPostPage.author`` before issuing a
-``PATCH /api/pages/v1/pages/{id}/`` with ``{"author": <id>}``.
+``PATCH /api/content/v1/pages/{id}/`` with ``{"author": <id>}``.
 """
 
 from __future__ import annotations

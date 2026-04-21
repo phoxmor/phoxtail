@@ -12,7 +12,7 @@ by severity: bugs first, design drifts second, nits last.
 
 ### 1. PATCH appears to succeed but subsequent GET shows stale scalars — ✅
 
-`phoxtail/api/pages/v1/pages.py:104-128` calls `page.save_revision(user=...)`
+`phoxtail/api/content/v1/pages.py:104-128` calls `page.save_revision(user=...)`
 and returns the in-memory page, but never `page.save()`. Wagtail stores
 the revision JSON separately; the live `wagtailcore_page` row still has
 the old `title` / `slug` / contributed fields.
@@ -149,7 +149,7 @@ malformed.
 ### 12. No test suite — ⏳
 
 The spec section 17 (doc line 510-529) lays out a full test tree in
-`phoxtail/api/pages/v1/tests/` and `phoxtail/blog/api/v1/tests/`.
+`phoxtail/api/content/v1/tests/` and `phoxtail/blog/api/v1/tests/`.
 None of it exists. The spec says "the MVP is not validated until the
 tests pass against a real in-process database." Currently nothing
 would catch bug #1.
@@ -162,7 +162,7 @@ would catch bug #1.
 - `already_mounted = {"streams", "pages"}` in
   `phoxtail/api/__init__.py` is hardcoded. Easy to forget to update
   when a new core router is added above.
-- `phoxtail/api/pages/__init__.py` is empty (1 byte). Fine, but
+- `phoxtail/api/content/__init__.py` is empty (1 byte). Fine, but
   `phoxtail/mcp/pages/__init__.py` has a docstring explaining why it
   is empty — consistency would help.
 - `PagePatch` uses `title: str | None = None` etc.; `apply_common_patch`

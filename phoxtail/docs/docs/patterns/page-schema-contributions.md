@@ -1,6 +1,6 @@
 # Page Schema Contributions
 
-The pages domain (`phoxtail/api/pages/v1/`) exposes a generic Wagtail
+The pages domain (`phoxtail/api/content/v1/`) exposes a generic Wagtail
 surface: list, get, patch, publish, body editing. Those endpoints work
 for any `Page` subclass. But a `BlogPostPage` has fields that a
 `SitePage` doesn't — `intro`, `read_mins`, `author`, `tags` — and the
@@ -39,7 +39,7 @@ one place, and core is never involved.
 ## The `PageSchemaContribution` dataclass
 
 ```python
-# phoxtail/api/pages/v1/contrib.py
+# phoxtail/api/content/v1/contrib.py
 
 @dataclass(frozen=True)
 class PageSchemaContribution:
@@ -67,8 +67,8 @@ resource.
 ### `writable_fields`
 
 A `dict[str, dict]` describing each field the agent may write via
-`PATCH /api/pages/v1/pages/{id}/`. This is the JSON schema-ish
-description returned by `GET /api/pages/v1/page-types/`. Keys are
+`PATCH /api/content/v1/pages/{id}/`. This is the JSON schema-ish
+description returned by `GET /api/content/v1/page-types/`. Keys are
 field names; values are dicts with at minimum `{"type": <str>}`;
 optional keys include `required`, `help_text`, `fk_model`.
 
@@ -94,7 +94,7 @@ writable_fields = {
 serialize: Callable[[Page], dict]
 ```
 
-Called from `GET /api/pages/v1/pages/{id}/` when the page matches this
+Called from `GET /api/content/v1/pages/{id}/` when the page matches this
 contribution. Returns a JSON-ready dict of per-type fields that is
 merged into the base Wagtail page response. It receives the page
 instance (already the specific subclass via `get_latest_revision_as_object()`
@@ -115,7 +115,7 @@ Contract:
 apply_patch: Callable[[Page, dict], None]
 ```
 
-Called from `PATCH /api/pages/v1/pages/{id}/` after common Wagtail
+Called from `PATCH /api/content/v1/pages/{id}/` after common Wagtail
 fields (title, slug, seo fields) have been applied. Receives the page
 instance and a `data` dict containing only the keys the caller
 supplied.
@@ -160,7 +160,7 @@ fk_lookups: dict[str, str]
 Maps a writable FK field name to the MCP tool name an agent should
 call to resolve a human-readable title to an integer ID. This is pure
 string metadata — the pages domain never imports or calls the named
-tool. It surfaces via `GET /api/pages/v1/page-types/` so the agent
+tool. It surfaces via `GET /api/content/v1/page-types/` so the agent
 can discover the lookup without hardcoding it.
 
 Example:
@@ -287,5 +287,5 @@ specifically. The registry told it everything.
   that resolves titles to IDs.
 - [ ] Add the dotted factory path to `page_schema_contributors` on the
   app's `PhoxtailAppConfig`.
-- [ ] Verify with `GET /api/pages/v1/page-types/` that the new type
+- [ ] Verify with `GET /api/content/v1/page-types/` that the new type
   appears with the expected fields and lookups.

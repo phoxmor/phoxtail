@@ -29,10 +29,10 @@ app-scoped namespace derived from its Django `app_label`:
 
 Two consequences:
 
-1. **No cross-app URL nesting.** `phoxtail.blog`'s authors endpoint is `/api/blog/v1/authors/`, never `/api/pages/v1/authors/`. The latter would say "pages domain owns authors, blog just implements them" — wrong, and a coupling we refuse.
+1. **No cross-app URL nesting.** `phoxtail.blog`'s authors endpoint is `/api/blog/v1/authors/`, never `/api/content/v1/authors/`. The latter would say "pages domain owns authors, blog just implements them" — wrong, and a coupling we refuse.
 2. **No cross-app MCP tool names.** Blog's author-listing tool is `phoxtail_blog_list_authors`, never `phoxtail_pages_list_authors`. The agent discovers which lookup tool to use for a given field by reading the `phoxtail://page-types` resource, which names the tool explicitly per FK.
 
-The one exception — and it is unavoidable — is that the generic `GET /api/pages/v1/pages/{id}/` endpoint must be able to serialize a `BlogPostPage` with its blog-specific fields. That cross-cut happens through an **internal** contribution registry (`page_schema_contributors`, below), never through URL routing.
+The one exception — and it is unavoidable — is that the generic `GET /api/content/v1/pages/{id}/` endpoint must be able to serialize a `BlogPostPage` with its blog-specific fields. That cross-cut happens through an **internal** contribution registry (`page_schema_contributors`, below), never through URL routing.
 
 ## Extension points on `PhoxtailAppConfig`
 
@@ -74,7 +74,7 @@ The registry **must be explicit**, not introspective. Contributors name their wr
 ## The `PageSchemaContribution` dataclass
 
 ```python
-# phoxtail/api/pages/v1/contrib.py
+# phoxtail/api/content/v1/contrib.py
 from dataclasses import dataclass
 from typing import Callable
 from wagtail.models import Page
@@ -100,8 +100,8 @@ class PageSchemaContribution:
 ### Core pages domain — `phoxtail.api.pages.v1`
 
 ```
-phoxtail/api/pages/v1/
-├── __init__.py          # aggregates sub-routers, mounted at /api/pages/v1/
+phoxtail/api/content/v1/
+├── __init__.py          # aggregates sub-routers, mounted at /api/content/v1/
 ├── contrib.py           # PageSchemaContribution + collect_page_schemas()
 ├── pages.py             # list / get / patch / publish / unpublish
 ├── body.py              # body read + replace
@@ -346,7 +346,7 @@ The current `_http.py` hardcodes `API_PREFIX = "/api/streams/v1"`. That is remov
 ```python
 # phoxtail/mcp/_http.py
 def request(method: str, path: str, *, ...) -> httpx.Response:
-    # path is e.g. "/api/pages/v1/pages/3/" or "/api/blog/v1/authors/"
+    # path is e.g. "/api/content/v1/pages/3/" or "/api/blog/v1/authors/"
     ...
 
 def get_json(path: str, **params) -> dict: ...
@@ -437,7 +437,7 @@ The agent finds the right lookup tool per field by reading `phoxtail://page-type
 
 Page fields are exposed over the API following the Wagtail + Django Ninja pattern: a base schema carrying common Wagtail page fields, plus per-type fields injected via the `serialize` callable on each `PageSchemaContribution`. A discriminator field `content_type: str` (the app-label + model-name string, e.g. `"phoxtail_cms.sitepage"`) lets clients dispatch on the concrete type.
 
-### Concrete `GET /api/pages/v1/pages/3/` response
+### Concrete `GET /api/content/v1/pages/3/` response
 
 ```json
 {
@@ -527,10 +527,10 @@ revision.publish()
 
 This means:
 
-- `PATCH /api/pages/v1/pages/{id}/` — updates scalar fields (core + contributed), saves a draft revision.
-- `PUT /api/pages/v1/pages/{id}/body/` — replaces the body, saves a draft revision.
-- `POST /api/pages/v1/pages/{id}/publish/` — publishes the latest draft.
-- `POST /api/pages/v1/pages/{id}/unpublish/` — takes the page offline.
+- `PATCH /api/content/v1/pages/{id}/` — updates scalar fields (core + contributed), saves a draft revision.
+- `PUT /api/content/v1/pages/{id}/body/` — replaces the body, saves a draft revision.
+- `POST /api/content/v1/pages/{id}/publish/` — publishes the latest draft.
+- `POST /api/content/v1/pages/{id}/unpublish/` — takes the page offline.
 
 An agent workflow therefore ends with an explicit publish step. The agent cannot accidentally publish — it must call the publish tool.
 
@@ -606,8 +606,8 @@ Future apps contribute their own tools in their own `phoxtail_<label>_*` namespa
 
 The same ETag pattern used by studio tools applies here. There is one ETag per page — it covers the entire page state including the body. There is no separate per-block ETag (the body is stored as a single JSON blob in the database; per-block ETags would race).
 
-- `GET /api/pages/v1/pages/{id}/` returns an `ETag` header derived from the latest revision timestamp.
-- `GET /api/pages/v1/pages/{id}/body/` returns the same page-level ETag.
+- `GET /api/content/v1/pages/{id}/` returns an `ETag` header derived from the latest revision timestamp.
+- `GET /api/content/v1/pages/{id}/body/` returns the same page-level ETag.
 - `PATCH` (scalar fields), `PUT` (body replacement), and `POST /publish/` all require `If-Match: <etag>`.
 - `412 Precondition Failed` — the page has changed since the last read; agent must re-fetch.
 - `428 Precondition Required` — `If-Match` header is missing.
@@ -636,7 +636,7 @@ MCP tool wrappers catch non-2xx responses and return structured error JSON to th
 ## Testing
 
 ```
-phoxtail/api/pages/v1/tests/
+phoxtail/api/content/v1/tests/
 ├── conftest.py          # fixtures: test client, auth token, page tree, contrib helpers
 ├── test_pages.py        # list, get, patch, publish (generic only)
 ├── test_body.py         # body get + replace
@@ -675,15 +675,15 @@ Page creation via the API is post-MVP (see implementation order).
 
 **Core pages API endpoints:**
 
-- `GET /api/pages/v1/pages/`  (with `?type=phoxtail_blog.BlogPostPage`)
-- `GET /api/pages/v1/pages/{id}/`  (with ETag)
-- `PATCH /api/pages/v1/pages/{id}/`  (scalar fields, core + contributed)
-- `GET /api/pages/v1/pages/{id}/body/`  (with ETag)
-- `PUT /api/pages/v1/pages/{id}/body/`  (full replacement)
-- `POST /api/pages/v1/pages/{id}/publish/`
-- `GET /api/pages/v1/page-types/`
-- `GET /api/pages/v1/media/images/`
-- `GET /api/pages/v1/media/documents/`
+- `GET /api/content/v1/pages/`  (with `?type=phoxtail_blog.BlogPostPage`)
+- `GET /api/content/v1/pages/{id}/`  (with ETag)
+- `PATCH /api/content/v1/pages/{id}/`  (scalar fields, core + contributed)
+- `GET /api/content/v1/pages/{id}/body/`  (with ETag)
+- `PUT /api/content/v1/pages/{id}/body/`  (full replacement)
+- `POST /api/content/v1/pages/{id}/publish/`
+- `GET /api/content/v1/page-types/`
+- `GET /api/content/v1/media/images/`
+- `GET /api/content/v1/media/documents/`
 
 **Contributed endpoints (blog):**
 
@@ -757,7 +757,7 @@ Pages tools and studio tools are complementary and are often used together in se
 ## Implementation order
 
 1. Extend `PhoxtailAppConfig` with `api_version_router`, `mcp_modules`, `page_schema_contributors`.
-2. Build `phoxtail/api/pages/v1/contrib.py` — `PageSchemaContribution`, `collect_page_schemas()`.
+2. Build `phoxtail/api/content/v1/contrib.py` — `PageSchemaContribution`, `collect_page_schemas()`.
 3. Teach `phoxtail/api/__init__.py` to auto-mount contributed `api_version_router`s at `/api/<short_label>/v1/`.
 4. Build core generic pages endpoints: list/get + page-types + media (read-only, no risk).
 5. Wire `phoxtail.cms` contribution for `SitePage` (the one that is always present).

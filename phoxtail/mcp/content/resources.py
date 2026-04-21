@@ -11,8 +11,8 @@ from __future__ import annotations
 import json
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.pages._http import request
-from phoxtail.mcp.pages.pages import _write_error_envelope
+from phoxtail.mcp.content._http import request
+from phoxtail.mcp.content.pages import _write_error_envelope
 
 
 @mcp_server.resource(

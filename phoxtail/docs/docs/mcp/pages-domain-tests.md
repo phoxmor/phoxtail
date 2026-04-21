@@ -12,7 +12,7 @@ Your deliverable is:
 1. A working Django+Wagtail+Ninja+PAT integration-test harness covering
    the pages domain, the blog contribution, and the pages MCP layer.
 2. A comprehensive pytest suite for everything under
-   `phoxtail/api/pages/v1/`, `phoxtail/blog/api/v1/`,
+   `phoxtail/api/content/v1/`, `phoxtail/blog/api/v1/`,
    `phoxtail/blog/mcp/`, `phoxtail/mcp/pages/`, and the contributed-router
    mount logic in `phoxtail/api/__init__.py` + `phoxtail/core/apps.py`.
 3. Updates to `pages-domain-review.md` flipping drift #10 and #12 to ✅.
@@ -103,7 +103,7 @@ phoxtail/core/tests` still passes after your changes.
 Currently excludes every path we are writing to. Add:
 
 ```
-phoxtail/api/pages/v1/tests
+phoxtail/api/content/v1/tests
 phoxtail/api/tests
 phoxtail/blog/api/v1/tests
 phoxtail/blog/mcp/tests
@@ -158,7 +158,7 @@ unexpectedly.
 A one-screen cheat sheet so you aren't hopping files while writing
 assertions.
 
-### 3.1 Core pages API — `phoxtail/api/pages/v1/`
+### 3.1 Core pages API — `phoxtail/api/content/v1/`
 
 | File | Surface |
 |---|---|
@@ -240,7 +240,7 @@ from the original brief; **[ADD]** are new coverage the owner has now
 asked for. Filenames are load-bearing; test-function names are
 suggestions.
 
-### 4.1 `phoxtail/api/pages/v1/tests/test_pages.py`
+### 4.1 `phoxtail/api/content/v1/tests/test_pages.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
@@ -260,7 +260,7 @@ suggestions.
 | [ADD] | `test_unpublish_returns_200_and_drops_live` | `POST /unpublish/` → `live=false`. |
 | [ADD] | `test_get_page_url_is_null_for_never_published` | Fresh draft has `url=None`. |
 
-### 4.2 `phoxtail/api/pages/v1/tests/test_body.py`
+### 4.2 `phoxtail/api/content/v1/tests/test_body.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
@@ -271,7 +271,7 @@ suggestions.
 | [ADD] | `test_put_body_400_on_unknown_field` | Payload `{"notbody": ...}` → 400 (Pydantic). |
 | [ADD] | `test_put_body_403_for_user_without_edit_perm` | 403 when user lacks edit perm. |
 
-### 4.3 `phoxtail/api/pages/v1/tests/test_contrib.py`
+### 4.3 `phoxtail/api/content/v1/tests/test_contrib.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
@@ -282,15 +282,15 @@ suggestions.
 | [ADD] | `test_get_contribution_for_page_specific_subclass` | Pass a generic `Page` row that happens to be a `BlogPostPage` → returns blog post contribution, not the base. |
 | [ADD] | `test_apply_patch_ignores_unknown_keys` | `apply_contributed_patch(page, {"nonsense": 1})` is a no-op, no exception. |
 
-### 4.4 `phoxtail/api/pages/v1/tests/test_page_types.py`
+### 4.4 `phoxtail/api/content/v1/tests/test_page_types.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_page_types_endpoint_lists_installed_contributions` | `GET /api/pages/v1/page-types/` → `types` contains `phoxtail_cms.sitepage` and, because blog is in `INSTALLED_APPS` for tests, `phoxtail_blog.blogpostpage` and `phoxtail_blog.blogindexpage`. |
+| [ADD] | `test_page_types_endpoint_lists_installed_contributions` | `GET /api/content/v1/page-types/` → `types` contains `phoxtail_cms.sitepage` and, because blog is in `INSTALLED_APPS` for tests, `phoxtail_blog.blogpostpage` and `phoxtail_blog.blogindexpage`. |
 | [ADD] | `test_page_types_includes_fk_lookups_for_blog_post` | `types["phoxtail_blog.blogpostpage"].fk_lookups["author"] == "phoxtail_blog_list_authors"`. |
 | [ADD] | `test_page_types_writable_fields_match_contribution` | Spot-check `intro`, `read_mins`, `body`. |
 
-### 4.5 `phoxtail/api/pages/v1/tests/test_media.py`
+### 4.5 `phoxtail/api/content/v1/tests/test_media.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
@@ -391,7 +391,7 @@ for speed; reserve the live-server path for §4.12 if at all.
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_page_types_resource_omits_blog_when_absent` | With `get_project_apps()` patched to return no blog, the `phoxtail://page-types` resource payload contains `phoxtail_cms.sitepage` but not `phoxtail_blog.*`. Pins Bug #3 symmetry. Note: the resource fetches `/api/pages/v1/page-types/` — symmetry means the *server* registry must also not carry blog. In the test environment blog IS installed, so you'll need to either (a) stub the HTTP response, or (b) monkeypatch `collect_page_schemas` at the source to drop blog entries. Use (a). |
+| [MUST] | `test_page_types_resource_omits_blog_when_absent` | With `get_project_apps()` patched to return no blog, the `phoxtail://page-types` resource payload contains `phoxtail_cms.sitepage` but not `phoxtail_blog.*`. Pins Bug #3 symmetry. Note: the resource fetches `/api/content/v1/page-types/` — symmetry means the *server* registry must also not carry blog. In the test environment blog IS installed, so you'll need to either (a) stub the HTTP response, or (b) monkeypatch `collect_page_schemas` at the source to drop blog entries. Use (a). |
 | [ADD] | `test_page_types_resource_includes_blog_when_present` | Symmetric positive case. |
 | [ADD] | `test_page_types_error_envelope_on_500` | Stubbed 500 → envelope, not exception. |
 
@@ -449,7 +449,7 @@ so each landing is valuable on its own:
 1. **Harness first.** §2.1–§2.3. A green `pytest phoxtail/core/tests`
    after your settings changes is your canary.
 2. **Conftest + fixtures.** §2.3 fixtures plus one trivial smoke test
-   (`GET /api/pages/v1/page-types/` returns 200) so you know the API
+   (`GET /api/content/v1/page-types/` returns 200) so you know the API
    is reachable through auth.
 3. **The 12 [MUST] rows.** Land these as one commit; they pin every
    ✅/🧪 in `pages-domain-review.md`.

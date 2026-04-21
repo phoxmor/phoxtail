@@ -1,7 +1,7 @@
 """Phoxtail MCP server — the AI-agent interface to a Phoxtail project.
 
 A single :class:`~mcp.server.fastmcp.FastMCP` instance is defined here.
-Core domain sub-packages (``studio``, ``pages``) import it and register
+Core domain sub-packages (``studio``, ``content``) import it and register
 their tools via ``@mcp_server.tool()``. Optional apps contribute
 additional tools via the ``phoxtail.mcp_modules`` entry-point group —
 each entry point is a dotted module path that is imported once at
@@ -23,7 +23,7 @@ mcp_server = FastMCP(
     "phoxtail",
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
-        "organized by domain: studio (block + variant editing), pages "
+        "organized by domain: studio (block + variant editing), content "
         "(Wagtail page read/write + publish + body editing). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
@@ -37,10 +37,10 @@ mcp_server = FastMCP(
 
 def _register_core_tools() -> None:
     """Import core domain modules to trigger tool/resource/prompt registration."""
-    import phoxtail.mcp.pages.body  # noqa: F401
-    import phoxtail.mcp.pages.media  # noqa: F401
-    import phoxtail.mcp.pages.pages  # noqa: F401
-    import phoxtail.mcp.pages.resources  # noqa: F401
+    import phoxtail.mcp.content.body  # noqa: F401
+    import phoxtail.mcp.content.media  # noqa: F401
+    import phoxtail.mcp.content.pages  # noqa: F401
+    import phoxtail.mcp.content.resources  # noqa: F401
     import phoxtail.mcp.studio.blocks  # noqa: F401
     import phoxtail.mcp.studio.collections  # noqa: F401
     import phoxtail.mcp.studio.context  # noqa: F401
