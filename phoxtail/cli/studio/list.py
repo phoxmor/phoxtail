@@ -19,12 +19,15 @@ def list_variants(
     collection: str | None = typer.Option(
         None, "--collection", help="Filter by collection identifier."
     ),
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Prefix search on variant name and identifier."
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich table."
     ),
 ) -> None:
     """List BlockVariants, optionally filtered by block and/or collection."""
-    data = client.list_variants(block=block, collection=collection)
+    data = client.list_variants(block=block, collection=collection, search=search)
     if json_output:
         client.emit_json(data)
     else:
@@ -33,12 +36,15 @@ def list_variants(
 
 @app.command("collections")
 def list_collections(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Prefix search on collection name and identifier."
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich table."
     ),
 ) -> None:
     """List all VariantCollections."""
-    data = client.list_collections()
+    data = client.list_collections(search=search)
     if json_output:
         client.emit_json(data)
     else:
@@ -47,12 +53,15 @@ def list_collections(
 
 @app.command("blocks")
 def list_blocks(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Prefix search on block name and identifier."
+    ),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich table."
     ),
 ) -> None:
     """List all Blocks."""
-    data = client.list_blocks()
+    data = client.list_blocks(search=search)
     if json_output:
         client.emit_json(data)
     else:

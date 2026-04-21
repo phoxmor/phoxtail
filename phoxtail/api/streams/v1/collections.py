@@ -6,8 +6,9 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
-from ninja import Router
+from ninja import Query, Router
 from ninja.errors import HttpError
+from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
     collection_detail,
@@ -29,10 +30,17 @@ router = Router()
 
 
 @router.get("/", response={200: CollectionList}, summary="List VariantCollections")
-def list_collections(request: HttpRequest):
+def list_collections(
+    request: HttpRequest,
+    search: str | None = Query(
+        None, description="Prefix search on collection name and identifier."
+    ),
+):
     qs = VariantCollection.objects.annotate(
         _variant_count=Count("variants", distinct=True)
     ).order_by("name")
+    if search:
+        qs = get_search_backend().autocomplete(search, qs)
     collections = [collection_summary(c, c._variant_count) for c in qs]
     return {"collections": collections, "total": len(collections)}
 

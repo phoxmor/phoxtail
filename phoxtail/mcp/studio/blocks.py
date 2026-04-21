@@ -17,8 +17,8 @@ from phoxtail.mcp.studio._http import get_json, request
         "that variants implement."
     ),
 )
-def list_blocks() -> str:
-    return json.dumps(get_json("/blocks/"), indent=2)
+def list_blocks(search: str | None = None) -> str:
+    return json.dumps(get_json("/blocks/", search=search), indent=2)
 
 
 @mcp_server.tool(

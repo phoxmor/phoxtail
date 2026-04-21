@@ -6,8 +6,9 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
-from ninja import Router
+from ninja import Query, Router
 from ninja.errors import HttpError
+from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
     block_detail,
@@ -30,10 +31,17 @@ router = Router()
 
 
 @router.get("/", response={200: BlockList}, summary="List Blocks")
-def list_blocks(request: HttpRequest):
+def list_blocks(
+    request: HttpRequest,
+    search: str | None = Query(
+        None, description="Prefix search on block name and identifier."
+    ),
+):
     qs = BlockModel.objects.annotate(
         _variant_count=Count("variants", distinct=True)
     ).order_by("group", "name")
+    if search:
+        qs = get_search_backend().autocomplete(search, qs)
     blocks = [block_summary(b, b._variant_count) for b in qs]
     return {"blocks": blocks, "total": len(blocks)}
 

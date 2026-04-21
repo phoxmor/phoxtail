@@ -125,6 +125,13 @@ class TestListVariants:
         assert "block=hero" in str(req.url)
         assert "collection=ground-state" in str(req.url)
 
+    def test_passes_search(self, httpx_mock: HTTPXMock):
+        payload = {"variants": [], "total": 0}
+        httpx_mock.add_response(json=payload)
+        list_variants(search="hero")
+        req = httpx_mock.get_request()
+        assert "search=hero" in str(req.url)
+
 
 class TestListCollections:
     def test_returns_json(self, httpx_mock: HTTPXMock):
@@ -133,6 +140,13 @@ class TestListCollections:
         result = json.loads(list_collections())
         assert result["total"] == 0
 
+    def test_passes_search(self, httpx_mock: HTTPXMock):
+        payload = {"collections": [], "total": 0}
+        httpx_mock.add_response(json=payload)
+        list_collections(search="ground")
+        req = httpx_mock.get_request()
+        assert "search=ground" in str(req.url)
+
 
 class TestListBlocks:
     def test_returns_json(self, httpx_mock: HTTPXMock):
@@ -140,6 +154,13 @@ class TestListBlocks:
         httpx_mock.add_response(url=url("/api/streams/v1/blocks/"), json=payload)
         result = json.loads(list_blocks())
         assert result["total"] == 0
+
+    def test_passes_search(self, httpx_mock: HTTPXMock):
+        payload = {"blocks": [], "total": 0}
+        httpx_mock.add_response(json=payload)
+        list_blocks(search="her")
+        req = httpx_mock.get_request()
+        assert "search=her" in str(req.url)
 
 
 # ---------------------------------------------------------------------------
@@ -156,7 +177,9 @@ class TestGetCollection:
             "template": "## Core Principles\n\nStructure dictates form.",
             "variant_count": 3,
         }
-        httpx_mock.add_response(url=url("/api/streams/v1/collections/ground-state/"), json=payload)
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/collections/ground-state/"), json=payload
+        )
         result = json.loads(get_collection("ground-state"))
         assert result["identifier"] == "ground-state"
         assert result["template"] == "## Core Principles\n\nStructure dictates form."

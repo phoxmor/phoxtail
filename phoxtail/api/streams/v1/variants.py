@@ -15,6 +15,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
+from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
     etag_matches,
@@ -46,12 +47,17 @@ def list_variants(
     collection: str | None = Query(
         None, description="Filter by collection identifier."
     ),
+    search: str | None = Query(
+        None, description="Prefix search on variant name and identifier."
+    ),
 ):
     qs = BlockVariant.objects.select_related("block", "collection").all()
     if block:
         qs = qs.filter(block__identifier=block)
     if collection:
         qs = qs.filter(collection__identifier=collection)
+    if search:
+        qs = get_search_backend().autocomplete(search, qs)
 
     variants = [variant_summary(v) for v in qs]
     return {"variants": variants, "total": len(variants)}

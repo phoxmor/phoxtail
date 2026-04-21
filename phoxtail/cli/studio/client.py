@@ -164,17 +164,19 @@ def get_json(path: str, **params: Any) -> dict[str, Any]:
 
 
 def list_variants(
-    block: str | None = None, collection: str | None = None
+    block: str | None = None,
+    collection: str | None = None,
+    search: str | None = None,
 ) -> dict[str, Any]:
-    return get_json("/variants/", block=block, collection=collection)
+    return get_json("/variants/", block=block, collection=collection, search=search)
 
 
-def list_collections() -> dict[str, Any]:
-    return get_json("/collections/")
+def list_collections(search: str | None = None) -> dict[str, Any]:
+    return get_json("/collections/", search=search)
 
 
-def list_blocks() -> dict[str, Any]:
-    return get_json("/blocks/")
+def list_blocks(search: str | None = None) -> dict[str, Any]:
+    return get_json("/blocks/", search=search)
 
 
 def get_variant(

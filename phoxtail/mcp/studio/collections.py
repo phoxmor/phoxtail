@@ -17,8 +17,8 @@ from phoxtail.mcp.studio._http import get_json, request
         "(e.g. 'ground-state', 'material-design')."
     ),
 )
-def list_collections() -> str:
-    return json.dumps(get_json("/collections/"), indent=2)
+def list_collections(search: str | None = None) -> str:
+    return json.dumps(get_json("/collections/", search=search), indent=2)
 
 
 @mcp_server.tool(

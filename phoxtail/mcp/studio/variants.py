@@ -26,8 +26,9 @@ from phoxtail.mcp.studio._http import get_json, request
 def list_variants(
     block: str | None = None,
     collection: str | None = None,
+    search: str | None = None,
 ) -> str:
-    data = get_json("/variants/", block=block, collection=collection)
+    data = get_json("/variants/", block=block, collection=collection, search=search)
     return json.dumps(data, indent=2)
 
 
