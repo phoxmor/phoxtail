@@ -11,3 +11,7 @@ class PhoxtailCmsConfig(PhoxtailAppConfig):
         "phoxtail.design",
         "phoxtail.streams",
     ]
+
+    page_schema_contributors = [
+        "phoxtail.cms.api.v1.page_schemas.contribute_site_page",
+    ]
