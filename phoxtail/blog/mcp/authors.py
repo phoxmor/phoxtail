@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import json
 
-from phoxtail.mcp import mcp_server
 from phoxtail.blog.mcp._http import request
+from phoxtail.mcp import mcp_server
 
 
 @mcp_server.tool(
