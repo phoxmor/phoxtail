@@ -28,6 +28,8 @@ nav:
 
   - MCP:
       - Architecture: mcp/architecture.md
+      - Pages Domain: mcp/pages-domain.md
+      - Pages Domain Review: mcp/pages-domain-review.md
 
   - Engine:
       - Core:
@@ -50,6 +52,9 @@ nav:
       - Testing: patterns/testing.md
       - Personal Access Tokens: patterns/personal-access-tokens.md
       - CLI Authentication: patterns/cli-authentication.md
+      - App Contribution:
+          - Contribution Model: patterns/app-contribution-model.md
+          - Page Schema Contributions: patterns/page-schema-contributions.md
       - Service Layer:
           - Overview: patterns/service-layer-overview.md
           - Users: patterns/service-layer-users.md
