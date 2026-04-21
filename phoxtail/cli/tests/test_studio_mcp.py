@@ -72,7 +72,7 @@ class TestMCPToolRegistration:
         assert mcp_server.name == "phoxtail"
 
     def test_expected_tools_registered(self):
-        expected = {
+        studio_tools = {
             "phoxtail_studio_list_variants",
             "phoxtail_studio_list_collections",
             "phoxtail_studio_list_blocks",
@@ -88,6 +88,18 @@ class TestMCPToolRegistration:
             "phoxtail_studio_create_collection",
             "phoxtail_studio_update_collection",
         }
+        pages_tools = {
+            "phoxtail_pages_list_pages",
+            "phoxtail_pages_get_page",
+            "phoxtail_pages_update_page",
+            "phoxtail_pages_publish",
+            "phoxtail_pages_unpublish",
+            "phoxtail_pages_get_body",
+            "phoxtail_pages_replace_body",
+            "phoxtail_pages_list_images",
+            "phoxtail_pages_list_documents",
+        }
+        expected = studio_tools | pages_tools
         registered = set(mcp_server._tool_manager._tools.keys())
         assert expected == registered
 
@@ -100,7 +112,7 @@ class TestMCPToolRegistration:
 class TestListVariants:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"variants": [SAMPLE_VARIANT_SUMMARY], "total": 1}
-        httpx_mock.add_response(url=url("/variants/"), json=payload)
+        httpx_mock.add_response(url=url("/api/streams/v1/variants/"), json=payload)
         result = json.loads(list_variants())
         assert result["total"] == 1
         assert result["variants"][0]["identifier"] == "centered"
@@ -117,7 +129,7 @@ class TestListVariants:
 class TestListCollections:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"collections": [], "total": 0}
-        httpx_mock.add_response(url=url("/collections/"), json=payload)
+        httpx_mock.add_response(url=url("/api/streams/v1/collections/"), json=payload)
         result = json.loads(list_collections())
         assert result["total"] == 0
 
@@ -125,7 +137,7 @@ class TestListCollections:
 class TestListBlocks:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {"blocks": [], "total": 0}
-        httpx_mock.add_response(url=url("/blocks/"), json=payload)
+        httpx_mock.add_response(url=url("/api/streams/v1/blocks/"), json=payload)
         result = json.loads(list_blocks())
         assert result["total"] == 0
 
@@ -144,7 +156,7 @@ class TestGetCollection:
             "template": "## Core Principles\n\nStructure dictates form.",
             "variant_count": 3,
         }
-        httpx_mock.add_response(url=url("/collections/ground-state/"), json=payload)
+        httpx_mock.add_response(url=url("/api/streams/v1/collections/ground-state/"), json=payload)
         result = json.loads(get_collection("ground-state"))
         assert result["identifier"] == "ground-state"
         assert result["template"] == "## Core Principles\n\nStructure dictates form."
