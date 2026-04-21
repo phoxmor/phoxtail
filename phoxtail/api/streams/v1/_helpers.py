@@ -83,6 +83,7 @@ def resolve_block(identifier: str) -> Block:
 
 def variant_summary(v: BlockVariant) -> dict:
     return {
+        "id": v.id,
         "identifier": v.identifier,
         "name": v.name,
         "description": v.description,
@@ -106,6 +107,7 @@ def variant_detail(v: BlockVariant) -> dict:
 
 def collection_summary(c: VariantCollection, variant_count: int) -> dict:
     return {
+        "id": c.id,
         "identifier": c.identifier,
         "name": c.name,
         "description": c.description,
@@ -119,6 +121,7 @@ def collection_detail(c: VariantCollection, variant_count: int) -> dict:
 
 def block_summary(b: Block, variant_count: int) -> dict:
     return {
+        "id": b.id,
         "identifier": b.identifier,
         "name": b.name,
         "description": b.description,
@@ -132,6 +135,7 @@ def block_summary(b: Block, variant_count: int) -> dict:
 def block_detail(b: Block) -> dict:
     variants = [
         {
+            "id": v.id,
             "identifier": v.identifier,
             "name": v.name,
             "is_default": v.is_default,

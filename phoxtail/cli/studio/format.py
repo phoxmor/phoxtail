@@ -28,6 +28,7 @@ def render_variants(data: dict[str, Any], console: Console) -> None:
         return
 
     table = Table(title=f"Variants ({len(variants)})", expand=True)
+    table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")
     table.add_column("Block", style="magenta")
@@ -38,6 +39,7 @@ def render_variants(data: dict[str, Any], console: Console) -> None:
         block = v.get("block") or {}
         collection = v.get("collection") or {}
         table.add_row(
+            str(v.get("id", "")),
             v.get("identifier", ""),
             v.get("name", ""),
             block.get("identifier", ""),
@@ -55,6 +57,7 @@ def render_collections(data: dict[str, Any], console: Console) -> None:
         return
 
     table = Table(title=f"Collections ({len(collections)})", expand=True)
+    table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")
     table.add_column("Variants", justify="right")
@@ -62,6 +65,7 @@ def render_collections(data: dict[str, Any], console: Console) -> None:
 
     for c in collections:
         table.add_row(
+            str(c.get("id", "")),
             c.get("identifier", ""),
             c.get("name", ""),
             str(c.get("variant_count", 0)),
@@ -78,6 +82,7 @@ def render_blocks(data: dict[str, Any], console: Console) -> None:
         return
 
     table = Table(title=f"Blocks ({len(blocks)})", expand=True)
+    table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")
     table.add_column("Group", style="blue")
@@ -87,6 +92,7 @@ def render_blocks(data: dict[str, Any], console: Console) -> None:
 
     for b in blocks:
         table.add_row(
+            str(b.get("id", "")),
             b.get("identifier", ""),
             b.get("name", ""),
             b.get("group", ""),

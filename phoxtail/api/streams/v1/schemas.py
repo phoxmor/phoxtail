@@ -92,6 +92,7 @@ class VariantUpdate(Schema):
 
 
 class CollectionSummary(Schema):
+    id: int
     identifier: str
     name: str
     description: str
@@ -134,6 +135,7 @@ class CollectionUpdate(Schema):
 
 
 class BlockSummary(Schema):
+    id: int
     identifier: str
     name: str
     description: str
