@@ -77,6 +77,7 @@ nav:
       - Autonomous Apps Refactor: internal/autonomous-apps-refactor.md
       - Manual Server Hardening: internal/server-hardening-guide.md
       - Shared Blocks Refactor: internal/shared-blocks-refactor-plan.md
+      - Body Validation Gap: internal/body-validation-gap.md
 
 theme:
   name: material
