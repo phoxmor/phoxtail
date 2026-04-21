@@ -7,8 +7,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.studio._http import request, get_json
-
+from phoxtail.mcp.studio._http import get_json, request
 
 # -- Listing ---------------------------------------------------------------
 
@@ -18,8 +17,10 @@ from phoxtail.mcp.studio._http import request, get_json
     description=(
         "List all block variants in the project. "
         "Optionally filter by block identifier and/or collection identifier. "
-        "Returns a summary of each variant (identifier, name, description, "
-        "block, collection, is_default) without the full HTML/CSS/JS content."
+        "Returns a summary of each variant: id (integer), identifier (string), "
+        "name, description, block, collection, is_default. "
+        "IMPORTANT: when adding a block to a page body, the `variant` field "
+        "must be the integer `id`, NOT the string `identifier`."
     ),
 )
 def list_variants(

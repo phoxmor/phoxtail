@@ -6,9 +6,8 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.pages._http import request, get_json
+from phoxtail.mcp.pages._http import request
 from phoxtail.mcp.pages.pages import _write_error_envelope
-
 
 
 @mcp_server.tool(
@@ -37,7 +36,8 @@ def get_body(page_id: int) -> str:
         "Creates a draft revision; does NOT publish. The body must be "
         "a list of {type, value, id} dicts — use phoxtail_studio_list_blocks "
         "to discover available block types, phoxtail_studio_list_variants "
-        "to discover variant IDs, and phoxtail://schema-reference to "
+        "to discover variant IDs (the integer `id` field, NOT the string "
+        "`identifier`), and phoxtail://schema-reference to "
         "understand each block's `value` shape. `id` can be omitted for "
         "new blocks; the server will generate UUIDs. Pass `etag` from a "
         "prior phoxtail_pages_get_body or phoxtail_pages_get_page."

@@ -84,6 +84,9 @@ Repository = "https://github.com/phoxmor/phoxtail"
 [project.scripts]
 phoxtail = "phoxtail.__main__:app"
 
+[project.entry-points."phoxtail.mcp_modules"]
+blog = "phoxtail.blog.mcp"
+
 [tool.setuptools.packages.find]
 include = ["phoxtail*"]
 exclude = [

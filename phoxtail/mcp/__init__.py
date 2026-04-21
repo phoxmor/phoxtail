@@ -37,26 +37,20 @@ mcp_server = FastMCP(
 
 def _register_core_tools() -> None:
     """Import core domain modules to trigger tool/resource/prompt registration."""
-    from phoxtail.mcp.pages import (  # noqa: F401
-        body,
-        media,
-        pages,
-    )
-    from phoxtail.mcp.pages import (
-        resources as pages_resources,
-    )
-    from phoxtail.mcp.studio import (  # noqa: F401
-        blocks,
-        collections,
-        context,
-        prompts,
-        resources,
-        variants,
-    )
+    import phoxtail.mcp.pages.body  # noqa: F401
+    import phoxtail.mcp.pages.media  # noqa: F401
+    import phoxtail.mcp.pages.pages  # noqa: F401
+    import phoxtail.mcp.pages.resources  # noqa: F401
+    import phoxtail.mcp.studio.blocks  # noqa: F401
+    import phoxtail.mcp.studio.collections  # noqa: F401
+    import phoxtail.mcp.studio.context  # noqa: F401
+    import phoxtail.mcp.studio.prompts  # noqa: F401
+    import phoxtail.mcp.studio.resources  # noqa: F401
+    import phoxtail.mcp.studio.variants  # noqa: F401
 
 
 def _register_contributed_tools() -> None:
-    """Import every module declared under the ``phoxtail.mcp_modules`` entry-point group.
+    """Import every module in the ``phoxtail.mcp_modules`` entry-point group.
 
     Called after ``_register_core_tools`` so that core tool names are
     registered first. Any installed package (bundled or third-party) can
