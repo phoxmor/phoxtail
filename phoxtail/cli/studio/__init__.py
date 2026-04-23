@@ -18,29 +18,21 @@ app = typer.Typer(help="Design, refine, and exchange block variants.")
 def _register_commands() -> None:
     # Nested verb groups
     from phoxtail.cli.studio.list import app as list_app
+    from phoxtail.cli.studio.sessions import app as sessions_app
     from phoxtail.cli.studio.show import app as show_app
 
     app.add_typer(list_app, name="list")
     app.add_typer(show_app, name="show")
+    app.add_typer(sessions_app, name="sessions")
 
     # Flat verbs
-    from phoxtail.cli.studio.commit import commit
     from phoxtail.cli.studio.context import context
-    from phoxtail.cli.studio.discard import discard
     from phoxtail.cli.studio.dump import dump
-    from phoxtail.cli.studio.edit import edit
     from phoxtail.cli.studio.load import load
-    from phoxtail.cli.studio.refresh import refresh
-    from phoxtail.cli.studio.sessions import sessions
     from phoxtail.cli.studio.version import version
 
     app.command("version")(version)
     app.command("context")(context)
-    app.command("edit")(edit)
-    app.command("commit")(commit)
-    app.command("discard")(discard)
-    app.command("refresh")(refresh)
-    app.command("sessions")(sessions)
     app.command("dump")(dump)
     app.command("load")(load)
 
