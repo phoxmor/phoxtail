@@ -44,6 +44,7 @@ runner = CliRunner()
 # ---------------------------------------------------------------------------
 
 SAMPLE_VARIANT_SUMMARY = {
+    "id": 1,
     "identifier": "centered",
     "name": "Centered",
     "description": "A centered hero section.",
@@ -171,16 +172,15 @@ class TestListBlocks:
 class TestGetCollection:
     def test_returns_collection_detail(self, httpx_mock: HTTPXMock):
         payload = {
+            "id": 1,
             "identifier": "ground-state",
             "name": "Ground State",
             "description": "Minimal design system.",
             "template": "## Core Principles\n\nStructure dictates form.",
             "variant_count": 3,
         }
-        httpx_mock.add_response(
-            url=url("/api/streams/v1/collections/ground-state/"), json=payload
-        )
-        result = json.loads(get_collection("ground-state"))
+        httpx_mock.add_response(url=url("/api/streams/v1/collections/1/"), json=payload)
+        result = json.loads(get_collection(1))
         assert result["identifier"] == "ground-state"
         assert result["template"] == "## Core Principles\n\nStructure dictates form."
 
@@ -188,21 +188,13 @@ class TestGetCollection:
 class TestGetVariant:
     def test_includes_etag(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
             json=SAMPLE_VARIANT_DETAIL,
             headers={"ETag": 'W/"abc123"'},
         )
-        result = json.loads(get_variant("centered", block="header_section"))
+        result = json.loads(get_variant(1))
         assert result["html"] == "<div>hello</div>"
         assert result["_etag"] == 'W/"abc123"'
-
-    def test_passes_disambiguators(self, httpx_mock: HTTPXMock):
-        httpx_mock.add_response(
-            json=SAMPLE_VARIANT_DETAIL,
-            headers={"ETag": 'W/"abc123"'},
-        )
-        get_variant("centered", block="hero", collection="ground-state")
-        req = httpx_mock.get_request()
-        assert "block=hero" in str(req.url)
 
 
 class TestGetContext:
@@ -275,9 +267,7 @@ class TestDiffVariant:
             json=SAMPLE_VARIANT_DETAIL,
             headers={"ETag": 'W/"abc123"'},
         )
-        result = diff_variant(
-            "centered", block="header_section", html="<div>goodbye</div>"
-        )
+        result = diff_variant(1, html="<div>goodbye</div>")
         assert "--- a/html" in result
         assert "+++ b/html" in result
         assert "-<div>hello</div>" in result
@@ -288,9 +278,7 @@ class TestDiffVariant:
             json=SAMPLE_VARIANT_DETAIL,
             headers={"ETag": 'W/"abc123"'},
         )
-        result = diff_variant(
-            "centered", block="header_section", html="<div>hello</div>"
-        )
+        result = diff_variant(1, html="<div>hello</div>")
         assert result == "(no differences)"
 
     def test_omitted_fields_not_diffed(self, httpx_mock: HTTPXMock):
@@ -298,9 +286,7 @@ class TestDiffVariant:
             json=SAMPLE_VARIANT_DETAIL,
             headers={"ETag": 'W/"abc123"'},
         )
-        result = diff_variant(
-            "centered", block="header_section", css=".hero { color: blue; }"
-        )
+        result = diff_variant(1, css=".hero { color: blue; }")
         assert "a/css" in result
         assert "a/html" not in result
 
@@ -317,20 +303,13 @@ class TestUpdateVariant:
             json=updated,
             headers={"ETag": 'W/"new456"'},
         )
-        result = json.loads(
-            update_variant(
-                "centered",
-                block="header_section",
-                etag='W/"abc123"',
-                html="<div>new</div>",
-            )
-        )
+        result = json.loads(update_variant(1, etag='W/"abc123"', html="<div>new</div>"))
         assert result["html"] == "<div>new</div>"
         assert result["_etag"] == 'W/"new456"'
 
     def test_sends_if_match_header(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=SAMPLE_VARIANT_DETAIL, headers={"ETag": 'W/"x"'})
-        update_variant("centered", block="header_section", etag='W/"abc123"', html="x")
+        update_variant(1, etag='W/"abc123"', html="x")
         req = httpx_mock.get_request()
         assert req.headers["If-Match"] == 'W/"abc123"'
 
@@ -339,14 +318,7 @@ class TestUpdateVariant:
             status_code=412,
             json={"detail": "ETag mismatch"},
         )
-        result = json.loads(
-            update_variant(
-                "centered",
-                block="header_section",
-                etag='W/"stale"',
-                html="x",
-            )
-        )
+        result = json.loads(update_variant(1, etag='W/"stale"', html="x"))
         assert result["error"] == "conflict"
 
     def test_precondition_required(self, httpx_mock: HTTPXMock):
@@ -354,9 +326,7 @@ class TestUpdateVariant:
             status_code=428,
             json={"detail": "If-Match required"},
         )
-        result = json.loads(
-            update_variant("centered", block="header_section", etag="", html="x")
-        )
+        result = json.loads(update_variant(1, etag="", html="x"))
         assert result["error"] == "precondition_required"
 
 
@@ -420,6 +390,7 @@ class TestCreateVariant:
 # ---------------------------------------------------------------------------
 
 SAMPLE_BLOCK_DETAIL = {
+    "id": 1,
     "identifier": "stats",
     "name": "Stats",
     "description": "Data statistics display.",
@@ -436,10 +407,11 @@ SAMPLE_BLOCK_DETAIL = {
 class TestGetBlock:
     def test_includes_etag(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
+            url=url("/api/streams/v1/blocks/1/"),
             json=SAMPLE_BLOCK_DETAIL,
             headers={"ETag": 'W/"block123"'},
         )
-        result = json.loads(get_block("stats"))
+        result = json.loads(get_block(1))
         assert result["identifier"] == "stats"
         assert result["field_schema"] is not None
         assert result["_etag"] == 'W/"block123"'
@@ -511,7 +483,7 @@ class TestUpdateBlock:
             json=updated,
             headers={"ETag": 'W/"updated"'},
         )
-        result = json.loads(update_block("stats", etag='W/"block123"', name="Stats v2"))
+        result = json.loads(update_block(1, etag='W/"block123"', name="Stats v2"))
         assert result["name"] == "Stats v2"
         assert result["_etag"] == 'W/"updated"'
 
@@ -520,7 +492,7 @@ class TestUpdateBlock:
             json=SAMPLE_BLOCK_DETAIL,
             headers={"ETag": 'W/"x"'},
         )
-        update_block("stats", etag='W/"block123"', name="New Name")
+        update_block(1, etag='W/"block123"', name="New Name")
         req = httpx_mock.get_request()
         assert req.headers["If-Match"] == 'W/"block123"'
 
@@ -529,7 +501,7 @@ class TestUpdateBlock:
             status_code=412,
             json={"detail": "ETag mismatch"},
         )
-        result = json.loads(update_block("stats", etag='W/"stale"', name="x"))
+        result = json.loads(update_block(1, etag='W/"stale"', name="x"))
         assert result["error"] == "conflict"
 
     def test_precondition_required(self, httpx_mock: HTTPXMock):
@@ -537,7 +509,7 @@ class TestUpdateBlock:
             status_code=428,
             json={"detail": "If-Match required"},
         )
-        result = json.loads(update_block("stats", etag="", name="x"))
+        result = json.loads(update_block(1, etag="", name="x"))
         assert result["error"] == "precondition_required"
 
     def test_validation_error(self, httpx_mock: HTTPXMock):
@@ -546,11 +518,7 @@ class TestUpdateBlock:
             json={"detail": "Invalid schema."},
         )
         result = json.loads(
-            update_block(
-                "stats",
-                etag='W/"block123"',
-                schema=[{"type": "bad", "value": {}}],
-            )
+            update_block(1, etag='W/"block123"', schema=[{"type": "bad", "value": {}}])
         )
         assert result["error"] == "validation_error"
 

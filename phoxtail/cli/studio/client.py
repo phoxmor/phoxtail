@@ -179,38 +179,23 @@ def list_blocks(search: str | None = None) -> dict[str, Any]:
     return get_json("/blocks/", search=search)
 
 
-def get_variant(
-    identifier: str,
-    block: str,
-    collection: str | None = None,
-) -> tuple[dict[str, Any], str | None]:
-    """Fetch a variant and return ``(body, etag)``.
-
-    The ETag is forwarded from the response header so callers that
-    intend to commit can send it back as ``If-Match``.
-    """
-    response = request(
-        "GET",
-        f"/variants/{identifier}/",
-        params={"block": block, "collection": collection},
-    )
+def get_variant_by_id(variant_id: int) -> tuple[dict[str, Any], str | None]:
+    """Fetch a variant by its numeric ID and return ``(body, etag)``."""
+    response = request("GET", f"/variants/{variant_id}/")
     return response.json(), response.headers.get("ETag")
 
 
-def update_variant(
-    identifier: str,
+def update_variant_by_id(
+    variant_id: int,
     *,
     html: str,
     css: str,
     javascript: str,
     etag: str,
-    block: str,
-    collection: str | None = None,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], str | None]:
     response = request(
         "PUT",
-        f"/variants/{identifier}/",
-        params={"block": block, "collection": collection},
+        f"/variants/{variant_id}/",
         json_body={"html": html, "css": css, "javascript": javascript},
         headers={"If-Match": etag},
     )
@@ -252,8 +237,9 @@ def create_variant(
     return response.json(), response.status_code
 
 
-def get_collection(identifier: str) -> dict[str, Any]:
-    return get_json(f"/collections/{identifier}/")
+def get_collection_by_id(collection_id: int) -> tuple[dict[str, Any], str | None]:
+    response = request("GET", f"/collections/{collection_id}/")
+    return response.json(), response.headers.get("ETag")
 
 
 def create_collection(
@@ -317,8 +303,9 @@ def create_block(
     return response.json(), response.status_code
 
 
-def get_block(identifier: str) -> dict[str, Any]:
-    return get_json(f"/blocks/{identifier}/")
+def get_block_by_id(block_id: int) -> tuple[dict[str, Any], str | None]:
+    response = request("GET", f"/blocks/{block_id}/")
+    return response.json(), response.headers.get("ETag")
 
 
 def get_context(

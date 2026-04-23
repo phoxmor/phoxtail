@@ -74,7 +74,7 @@ class VariantCreate(Schema):
 
 
 class VariantUpdate(Schema):
-    """Request body for ``PUT /variants/{identifier}``.
+    """Request body for ``PUT /variants/{variant_id}``.
 
     All fields are optional; omitted fields are left untouched. The ETag
     check happens via the ``If-Match`` header, not in the body.
@@ -118,7 +118,7 @@ class CollectionCreate(Schema):
 
 
 class CollectionUpdate(Schema):
-    """Request body for ``PATCH /collections/{identifier}/``.
+    """Request body for ``PATCH /collections/{collection_id}/``.
 
     All fields are optional; omitted fields are left untouched. The ETag
     check happens via the ``If-Match`` header, not in the body.
@@ -182,7 +182,7 @@ class BlockCreate(Schema):
 
 
 class BlockUpdate(Schema):
-    """Request body for ``PATCH /blocks/{identifier}/``.
+    """Request body for ``PATCH /blocks/{block_id}/``.
 
     All fields are optional; omitted fields are left untouched. The ETag
     check happens via the ``If-Match`` header, not in the body.

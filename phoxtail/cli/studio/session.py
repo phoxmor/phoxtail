@@ -75,6 +75,7 @@ def create_session(
     meta = {
         "session_id": session_id,
         "variant": {
+            "id": variant_data["id"],
             "identifier": variant_data["identifier"],
             "name": variant_data["name"],
             "block": variant_data["block"],

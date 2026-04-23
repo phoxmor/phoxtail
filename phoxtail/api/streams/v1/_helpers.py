@@ -26,38 +26,28 @@ from phoxtail.streams.models import (
 # ---------------------------------------------------------------------------
 
 
-def resolve_variant(
-    identifier: str,
-    block: str | None = None,
-    collection: str | None = None,
-) -> BlockVariant:
-    """Resolve a ``BlockVariant`` by identifier, with optional disambiguators.
+def resolve_variant_by_pk(pk: int) -> BlockVariant:
+    """Resolve a ``BlockVariant`` by its numeric primary key."""
+    try:
+        return BlockVariant.objects.select_related("block", "collection").get(pk=pk)
+    except BlockVariant.DoesNotExist as exc:
+        raise HttpError(404, f"Variant {pk} not found.") from exc
 
-    Raises ``HttpError(404)`` if no variant matches and ``HttpError(409)``
-    if multiple variants match and no disambiguator narrows them to one.
-    """
-    qs = BlockVariant.objects.select_related("block", "collection").filter(
-        identifier=identifier
-    )
-    if block:
-        qs = qs.filter(block__identifier=block)
-    if collection:
-        qs = qs.filter(collection__identifier=collection)
 
-    matches = list(qs)
-    if not matches:
-        raise HttpError(404, f"Variant '{identifier}' not found.")
-    if len(matches) > 1:
-        locations = ", ".join(
-            f"{m.block.identifier}/{m.collection.identifier}" for m in matches
+def resolve_collection_by_pk(pk: int) -> VariantCollection:
+    try:
+        return VariantCollection.objects.get(pk=pk)
+    except VariantCollection.DoesNotExist as exc:
+        raise HttpError(404, f"Collection {pk} not found.") from exc
+
+
+def resolve_block_by_pk(pk: int) -> Block:
+    try:
+        return Block.objects.prefetch_related("variants__collection", "page_types").get(
+            pk=pk
         )
-        raise HttpError(
-            409,
-            f"Variant '{identifier}' is ambiguous "
-            f"({len(matches)} matches: {locations}). "
-            "Narrow with ?block= and/or ?collection=.",
-        )
-    return matches[0]
+    except Block.DoesNotExist as exc:
+        raise HttpError(404, f"Block {pk} not found.") from exc
 
 
 def resolve_collection(identifier: str) -> VariantCollection:

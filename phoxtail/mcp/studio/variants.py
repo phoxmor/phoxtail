@@ -41,20 +41,11 @@ def list_variants(
         "Get the full detail of a single block variant, including its HTML, "
         "CSS, and JavaScript content. Also returns the current ETag which "
         "MUST be passed to phoxtail_studio_update_variant for concurrency "
-        "control. Both identifier and block are required. Use collection to "
-        "further disambiguate if the identifier exists in multiple collections."
+        "control. Pass the integer `variant_id` from phoxtail_studio_list_variants."
     ),
 )
-def get_variant(
-    identifier: str,
-    block: str,
-    collection: str | None = None,
-) -> str:
-    resp = request(
-        "GET",
-        f"/variants/{identifier}/",
-        params={"block": block, "collection": collection},
-    )
+def get_variant(variant_id: int) -> str:
+    resp = request("GET", f"/variants/{variant_id}/")
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
@@ -75,18 +66,12 @@ def get_variant(
     ),
 )
 def diff_variant(
-    identifier: str,
-    block: str,
+    variant_id: int,
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
-    collection: str | None = None,
 ) -> str:
-    resp = request(
-        "GET",
-        f"/variants/{identifier}/",
-        params={"block": block, "collection": collection},
-    )
+    resp = request("GET", f"/variants/{variant_id}/")
     resp.raise_for_status()
     current = resp.json()
 
@@ -119,24 +104,22 @@ def diff_variant(
     name="phoxtail_studio_update_variant",
     description=(
         "Update a variant's HTML, CSS, and/or JavaScript content. "
-        "Requires the ETag from a prior phoxtail_studio_get_variant call "
-        "for optimistic concurrency control — if the variant has been "
-        "modified since you read it, the update will fail with a conflict "
-        "error. Omitted fields are left untouched. "
+        "Pass the `variant_id` and the ETag from a prior "
+        "phoxtail_studio_get_variant call for optimistic concurrency control "
+        "— if the variant has been modified since you read it, the update "
+        "will fail with a conflict error. Omitted fields are left untouched. "
         "Set is_default=true to mark as the block's default variant "
         "(only one default per block is allowed). "
         "On success, returns the updated variant with a new ETag."
     ),
 )
 def update_variant(
-    identifier: str,
-    block: str,
+    variant_id: int,
     etag: str,
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
     is_default: bool | None = None,
-    collection: str | None = None,
 ) -> str:
     body: dict[str, Any] = {}
     if html is not None:
@@ -150,8 +133,7 @@ def update_variant(
 
     resp = request(
         "PUT",
-        f"/variants/{identifier}/",
-        params={"block": block, "collection": collection},
+        f"/variants/{variant_id}/",
         json_body=body,
         headers={"If-Match": etag},
     )

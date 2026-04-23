@@ -1,4 +1,4 @@
-"""``phoxtail studio show <kind> <identifier>`` — show a single entity."""
+"""``phoxtail studio show <kind> <id>`` — show a single entity."""
 
 from __future__ import annotations
 
@@ -13,17 +13,13 @@ console = Console()
 
 @app.command("variant")
 def show_variant(
-    identifier: str = typer.Argument(..., help="Variant identifier."),
-    block: str = typer.Option(..., "--block", help="Block identifier."),
-    collection: str | None = typer.Option(
-        None, "--collection", help="Disambiguate by collection identifier."
-    ),
+    variant_id: int = typer.Argument(..., help="Variant ID."),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich detail view."
     ),
 ) -> None:
     """Show a BlockVariant in detail, including HTML, CSS, and JavaScript."""
-    data, _etag = client.get_variant(identifier, block=block, collection=collection)
+    data, _etag = client.get_variant_by_id(variant_id)
     if json_output:
         client.emit_json(data)
     else:
@@ -32,13 +28,13 @@ def show_variant(
 
 @app.command("collection")
 def show_collection(
-    identifier: str = typer.Argument(..., help="Collection identifier."),
+    collection_id: int = typer.Argument(..., help="Collection ID."),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich detail view."
     ),
 ) -> None:
     """Show a VariantCollection in detail."""
-    data = client.get_collection(identifier)
+    data, _etag = client.get_collection_by_id(collection_id)
     if json_output:
         client.emit_json(data)
     else:
@@ -47,13 +43,13 @@ def show_collection(
 
 @app.command("block")
 def show_block(
-    identifier: str = typer.Argument(..., help="Block identifier."),
+    block_id: int = typer.Argument(..., help="Block ID."),
     json_output: bool = typer.Option(
         False, "--json", help="Emit raw JSON instead of a Rich detail view."
     ),
 ) -> None:
     """Show a Block in detail, including its variants and page types."""
-    data = client.get_block(identifier)
+    data, _etag = client.get_block_by_id(block_id)
     if json_output:
         client.emit_json(data)
     else:

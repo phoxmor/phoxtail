@@ -15,7 +15,7 @@ from phoxtail.api.streams.v1._helpers import (
     collection_etag,
     collection_summary,
     etag_matches,
-    resolve_collection,
+    resolve_collection_by_pk,
 )
 from phoxtail.api.streams.v1.schemas import (
     Collection,
@@ -46,12 +46,62 @@ def list_collections(
 
 
 @router.get(
-    "/{identifier}/",
+    "/{collection_id}/",
     response={200: Collection, 404: Error},
-    summary="Show a VariantCollection",
+    summary="Show a VariantCollection by numeric ID",
 )
-def get_collection(request: HttpRequest, response: HttpResponse, identifier: str):
-    c = resolve_collection(identifier)
+def get_collection_by_id(
+    request: HttpRequest, response: HttpResponse, collection_id: int
+):
+    c = resolve_collection_by_pk(collection_id)
+    response["ETag"] = collection_etag(c)
+    return collection_detail(c, c.variants.count())
+
+
+@router.patch(
+    "/{collection_id}/",
+    response={200: Collection, 400: Error, 404: Error, 412: Error, 428: Error},
+    summary="Update a VariantCollection by numeric ID",
+)
+def update_collection_by_id(
+    request: HttpRequest,
+    response: HttpResponse,
+    collection_id: int,
+    payload: CollectionUpdate,
+):
+    if_match = request.headers.get("If-Match")
+    if not if_match:
+        raise HttpError(
+            428,
+            "If-Match header is required. Send the ETag from your most "
+            "recent GET of this collection.",
+        )
+
+    c = resolve_collection_by_pk(collection_id)
+    current = collection_etag(c)
+
+    if not etag_matches(if_match, current):
+        raise HttpError(
+            412,
+            "ETag mismatch: the collection has changed since you last read it. "
+            "Re-fetch and retry.",
+        )
+
+    if payload.name is not None:
+        c.name = payload.name
+    if payload.description is not None:
+        c.description = payload.description
+    if payload.template is not None:
+        c.template = payload.template
+
+    try:
+        c.full_clean()
+    except ValidationError as exc:
+        detail = _format_validation_error(exc)
+        raise HttpError(400, detail)
+
+    c.save()
+
     response["ETag"] = collection_etag(c)
     return collection_detail(c, c.variants.count())
 
@@ -84,54 +134,6 @@ def create_collection(
 
     response["ETag"] = collection_etag(c)
     return 201, collection_detail(c, 0)
-
-
-@router.patch(
-    "/{identifier}/",
-    response={200: Collection, 400: Error, 404: Error, 412: Error, 428: Error},
-    summary="Update a VariantCollection",
-)
-def update_collection(
-    request: HttpRequest,
-    response: HttpResponse,
-    identifier: str,
-    payload: CollectionUpdate,
-):
-    if_match = request.headers.get("If-Match")
-    if not if_match:
-        raise HttpError(
-            428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this collection.",
-        )
-
-    c = resolve_collection(identifier)
-    current = collection_etag(c)
-
-    if not etag_matches(if_match, current):
-        raise HttpError(
-            412,
-            "ETag mismatch: the collection has changed since you last read it. "
-            "Re-fetch and retry.",
-        )
-
-    if payload.name is not None:
-        c.name = payload.name
-    if payload.description is not None:
-        c.description = payload.description
-    if payload.template is not None:
-        c.template = payload.template
-
-    try:
-        c.full_clean()
-    except ValidationError as exc:
-        detail = _format_validation_error(exc)
-        raise HttpError(400, detail)
-
-    c.save()
-
-    response["ETag"] = collection_etag(c)
-    return collection_detail(c, c.variants.count())
 
 
 def _format_validation_error(exc: ValidationError) -> str:

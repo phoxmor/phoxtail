@@ -29,12 +29,13 @@ def list_collections(search: str | None = None) -> str:
         "patterns that define this collection's character. Also returns "
         "the current ETag which MUST be passed to "
         "phoxtail_studio_update_collection for concurrency control. "
+        "Pass the integer `collection_id` from phoxtail_studio_list_collections. "
         "Design tokens (palette roles, font roles) are provided "
         "separately via the context tool."
     ),
 )
-def get_collection(identifier: str) -> str:
-    resp = request("GET", f"/collections/{identifier}/")
+def get_collection(collection_id: int) -> str:
+    resp = request("GET", f"/collections/{collection_id}/")
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
@@ -102,7 +103,7 @@ def create_collection(
     ),
 )
 def update_collection(
-    identifier: str,
+    collection_id: int,
     etag: str,
     name: str | None = None,
     description: str | None = None,
@@ -118,7 +119,7 @@ def update_collection(
 
     resp = request(
         "PATCH",
-        f"/collections/{identifier}/",
+        f"/collections/{collection_id}/",
         json_body=body,
         headers={"If-Match": etag},
     )

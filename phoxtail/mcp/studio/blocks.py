@@ -27,11 +27,12 @@ def list_blocks(search: str | None = None) -> str:
         "Get the full detail of a single block, including its field schema, "
         "page types, variants, and metadata. Also returns the current ETag "
         "which MUST be passed to phoxtail_studio_update_block for "
-        "concurrency control."
+        "concurrency control. Pass the integer `block_id` from "
+        "phoxtail_studio_list_blocks."
     ),
 )
-def get_block(identifier: str) -> str:
-    resp = request("GET", f"/blocks/{identifier}/")
+def get_block(block_id: int) -> str:
+    resp = request("GET", f"/blocks/{block_id}/")
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
@@ -107,7 +108,7 @@ def create_block(
     ),
 )
 def update_block(
-    identifier: str,
+    block_id: int,
     etag: str,
     name: str | None = None,
     description: str | None = None,
@@ -135,7 +136,7 @@ def update_block(
 
     resp = request(
         "PATCH",
-        f"/blocks/{identifier}/",
+        f"/blocks/{block_id}/",
         json_body=body,
         headers={"If-Match": etag},
     )

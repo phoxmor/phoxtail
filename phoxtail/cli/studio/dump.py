@@ -139,10 +139,9 @@ def _dump_collections(root: Path) -> None:
     collections_dir.mkdir(parents=True, exist_ok=True)
 
     for summary in response.get("collections", []):
-        identifier = summary["identifier"]
-        detail = client.get_collection(identifier)
+        detail, _ = client.get_collection_by_id(summary["id"])
         _write_collection(collections_dir, detail)
-        console.print(f"  [cyan]{identifier}[/cyan]")
+        console.print(f"  [cyan]{summary['identifier']}[/cyan]")
 
 
 def _write_collection(collections_dir: Path, detail: dict) -> None:
@@ -172,10 +171,9 @@ def _dump_blocks(root: Path) -> None:
     blocks_dir.mkdir(parents=True, exist_ok=True)
 
     for summary in response.get("blocks", []):
-        identifier = summary["identifier"]
-        detail = client.get_block(identifier)
+        detail, _ = client.get_block_by_id(summary["id"])
         _write_block(blocks_dir, detail)
-        console.print(f"  [cyan]{identifier}[/cyan]")
+        console.print(f"  [cyan]{summary['identifier']}[/cyan]")
 
 
 def _write_block(blocks_dir: Path, detail: dict) -> None:
@@ -224,17 +222,17 @@ def _dump_variants(root: Path) -> None:
     blocks_dir = root / "blocks"
 
     for summary in response.get("variants", []):
-        block_id = summary["block"]["identifier"]
-        collection_id = summary["collection"]["identifier"]
-        variant_id = summary["identifier"]
+        block_slug = summary["block"]["identifier"]
+        collection_slug = summary["collection"]["identifier"]
+        variant_slug = summary["identifier"]
 
-        detail, _ = client.get_variant(
-            variant_id, block=block_id, collection=collection_id
+        detail, _ = client.get_variant_by_id(summary["id"])
+        variant_dir = (
+            blocks_dir / block_slug / "variants" / collection_slug / variant_slug
         )
-        variant_dir = blocks_dir / block_id / "variants" / collection_id / variant_id
         variant_dir.mkdir(parents=True, exist_ok=True)
         _write_variant(variant_dir, detail)
-        console.print(f"  [cyan]{block_id}/{collection_id}/{variant_id}[/cyan]")
+        console.print(f"  [cyan]{block_slug}/{collection_slug}/{variant_slug}[/cyan]")
 
 
 def _write_variant(variant_dir: Path, detail: dict) -> None:

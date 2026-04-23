@@ -28,10 +28,8 @@ def sessions_list(
 
 @app.command("start")
 def sessions_start(
-    variant_identifier: str = typer.Argument(..., help="Variant identifier to edit."),
-    block: str = typer.Option(..., "--block", help="Block identifier."),
-    collection: str | None = typer.Option(
-        None, "--collection", help="Disambiguate by collection identifier."
+    variant_id: int = typer.Argument(
+        ..., help="Variant ID (from `phoxtail studio list variants`)."
     ),
 ) -> None:
     """Start a new editing session on a variant.
@@ -52,9 +50,7 @@ def sessions_start(
         keep_trailing_newline=True,
     )
 
-    variant_data, etag = _client.get_variant(
-        variant_identifier, block=block, collection=collection
-    )
+    variant_data, etag = _client.get_variant_by_id(variant_id)
 
     context_md = ""
     try:
@@ -123,14 +119,19 @@ def sessions_commit(
         )
         raise typer.Exit(code=1)
 
-    updated, new_etag = client.update_variant(
-        variant_meta["identifier"],
+    if "id" not in variant_meta:
+        console.print(
+            "[red]Error:[/red] session predates ID-based routing; "
+            "discard it and start a new one."
+        )
+        raise typer.Exit(code=1)
+
+    updated, new_etag = client.update_variant_by_id(
+        variant_meta["id"],
         html=session_data["html"],
         css=session_data["css"],
         javascript=session_data["javascript"],
         etag=etag,
-        block=variant_meta.get("block", {}).get("identifier"),
-        collection=variant_meta.get("collection", {}).get("identifier"),
     )
 
     if clean:
@@ -174,11 +175,14 @@ def sessions_refresh(
     session_data = session.read_session(session_id)
     variant_meta = session_data["variant"]
 
-    _, new_etag = client.get_variant(
-        variant_meta["identifier"],
-        block=variant_meta.get("block", {}).get("identifier"),
-        collection=variant_meta.get("collection", {}).get("identifier"),
-    )
+    if "id" not in variant_meta:
+        console.print(
+            "[red]Error:[/red] session predates ID-based routing; "
+            "discard it and start a new one."
+        )
+        raise typer.Exit(code=1)
+
+    _, new_etag = client.get_variant_by_id(variant_meta["id"])
 
     if not new_etag:
         console.print("[red]Error:[/red] server returned no ETag for this variant.")

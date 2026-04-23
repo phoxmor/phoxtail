@@ -15,7 +15,7 @@ from phoxtail.api.streams.v1._helpers import (
     block_etag,
     block_summary,
     etag_matches,
-    resolve_block,
+    resolve_block_by_pk,
     resolve_page_types,
 )
 from phoxtail.api.streams.v1.schemas import (
@@ -47,12 +47,70 @@ def list_blocks(
 
 
 @router.get(
-    "/{identifier}/",
+    "/{block_id}/",
     response={200: Block, 404: Error},
-    summary="Show a Block",
+    summary="Show a Block by numeric ID",
 )
-def get_block(request: HttpRequest, response: HttpResponse, identifier: str):
-    b = resolve_block(identifier)
+def get_block_by_id(request: HttpRequest, response: HttpResponse, block_id: int):
+    b = resolve_block_by_pk(block_id)
+    response["ETag"] = block_etag(b)
+    return block_detail(b)
+
+
+@router.patch(
+    "/{block_id}/",
+    response={200: Block, 400: Error, 404: Error, 412: Error, 428: Error},
+    summary="Update a Block by numeric ID",
+)
+def update_block_by_id(
+    request: HttpRequest,
+    response: HttpResponse,
+    block_id: int,
+    payload: BlockUpdate,
+):
+    if_match = request.headers.get("If-Match")
+    if not if_match:
+        raise HttpError(
+            428,
+            "If-Match header is required. Send the ETag from your most "
+            "recent GET of this block.",
+        )
+
+    b = resolve_block_by_pk(block_id)
+    current = block_etag(b)
+
+    if not etag_matches(if_match, current):
+        raise HttpError(
+            412,
+            "ETag mismatch: the block has changed since you last read it. "
+            "Re-fetch and retry.",
+        )
+
+    if payload.name is not None:
+        b.name = payload.name
+    if payload.description is not None:
+        b.description = payload.description
+    if payload.icon is not None:
+        b.icon = payload.icon
+    if payload.group is not None:
+        b.group = payload.group
+    if payload.is_shared is not None:
+        b.is_shared = payload.is_shared
+    if payload.block_schema is not None:
+        b.schema = payload.block_schema
+
+    try:
+        b.full_clean()
+    except ValidationError as exc:
+        detail = _format_validation_error(exc)
+        raise HttpError(400, detail)
+
+    b.save()
+
+    if payload.page_types is not None:
+        b.page_types.set(resolve_page_types(payload.page_types))
+
+    b = resolve_block_by_pk(block_id)
     response["ETag"] = block_etag(b)
     return block_detail(b)
 
@@ -88,70 +146,9 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
     if payload.page_types:
         b.page_types.set(resolve_page_types(payload.page_types))
 
-    # Re-fetch with prefetches for block_detail serialization
-    b = resolve_block(b.identifier)
+    b = resolve_block_by_pk(b.pk)
     response["ETag"] = block_etag(b)
     return 201, block_detail(b)
-
-
-@router.patch(
-    "/{identifier}/",
-    response={200: Block, 400: Error, 404: Error, 412: Error, 428: Error},
-    summary="Update a Block",
-)
-def update_block(
-    request: HttpRequest,
-    response: HttpResponse,
-    identifier: str,
-    payload: BlockUpdate,
-):
-    if_match = request.headers.get("If-Match")
-    if not if_match:
-        raise HttpError(
-            428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this block.",
-        )
-
-    b = resolve_block(identifier)
-    current = block_etag(b)
-
-    if not etag_matches(if_match, current):
-        raise HttpError(
-            412,
-            "ETag mismatch: the block has changed since you last read it. "
-            "Re-fetch and retry.",
-        )
-
-    # Apply non-None fields
-    if payload.name is not None:
-        b.name = payload.name
-    if payload.description is not None:
-        b.description = payload.description
-    if payload.icon is not None:
-        b.icon = payload.icon
-    if payload.group is not None:
-        b.group = payload.group
-    if payload.is_shared is not None:
-        b.is_shared = payload.is_shared
-    if payload.block_schema is not None:
-        b.schema = payload.block_schema
-
-    try:
-        b.full_clean()
-    except ValidationError as exc:
-        detail = _format_validation_error(exc)
-        raise HttpError(400, detail)
-
-    b.save()
-
-    if payload.page_types is not None:
-        b.page_types.set(resolve_page_types(payload.page_types))
-
-    # Re-fetch for clean serialization
-    b = resolve_block(b.identifier)
-    response["ETag"] = block_etag(b)
-    return block_detail(b)
 
 
 def _format_validation_error(exc: ValidationError) -> str:

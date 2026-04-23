@@ -1,13 +1,9 @@
 """``/api/streams/v1/variants`` — BlockVariant endpoints.
 
 Endpoints:
-- ``GET    /``              — list, optional ``?block=``/``?collection=`` filters
-- ``GET    /{identifier}``  — detail, sets ETag header
-- ``PUT    /{identifier}``  — update, requires ``If-Match`` precondition
-
-The variant identifier is unique only within a (block, collection) pair,
-so every single-variant endpoint accepts ``?block=`` and ``?collection=``
-query params as disambiguators.
+- ``GET    /``                  — list, optional ``?block=``/``?collection=`` filters
+- ``GET    /{variant_id}``      — detail by numeric PK, sets ETag header
+- ``PUT    /{variant_id}``      — update by numeric PK, requires ``If-Match``
 """
 
 from __future__ import annotations
@@ -19,7 +15,7 @@ from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
     etag_matches,
-    resolve_variant,
+    resolve_variant_by_pk,
     variant_detail,
     variant_etag,
     variant_summary,
@@ -107,46 +103,32 @@ def create_variant(
 
 
 @router.get(
-    "/{identifier}/",
-    response={200: Variant, 404: Error, 409: Error},
-    summary="Show a BlockVariant",
+    "/{variant_id}/",
+    response={200: Variant, 404: Error},
+    summary="Show a BlockVariant by numeric ID",
 )
-def get_variant(
+def get_variant_by_id(
     request: HttpRequest,
     response: HttpResponse,
-    identifier: str,
-    block: str | None = Query(None, description="Disambiguate by block identifier."),
-    collection: str | None = Query(
-        None, description="Disambiguate by collection identifier."
-    ),
+    variant_id: int,
 ):
-    v = resolve_variant(identifier, block=block, collection=collection)
+    v = resolve_variant_by_pk(variant_id)
     response["ETag"] = variant_etag(v)
     return variant_detail(v)
 
 
 @router.put(
-    "/{identifier}/",
-    response={200: Variant, 404: Error, 409: Error, 412: Error, 428: Error},
-    summary="Update a BlockVariant (optimistic concurrency)",
+    "/{variant_id}/",
+    response={200: Variant, 404: Error, 412: Error, 428: Error},
+    summary="Update a BlockVariant by numeric ID (optimistic concurrency)",
 )
-def update_variant(
+def update_variant_by_id(
     request: HttpRequest,
     response: HttpResponse,
-    identifier: str,
+    variant_id: int,
     payload: VariantUpdate,
-    block: str | None = Query(None, description="Disambiguate by block identifier."),
-    collection: str | None = Query(
-        None, description="Disambiguate by collection identifier."
-    ),
 ):
-    """Update a variant's content, guarded by ``If-Match``.
-
-    Callers must send an ``If-Match`` header containing the ETag they saw
-    on their most recent ``GET``. A mismatch returns 412; a missing header
-    returns 428 (Precondition Required). On success the new ETag is set
-    on the response so the caller can keep updating.
-    """
+    """Update a variant's content, guarded by ``If-Match``."""
     if_match = request.headers.get("If-Match")
     if not if_match:
         raise HttpError(
@@ -155,7 +137,7 @@ def update_variant(
             "recent GET of this variant.",
         )
 
-    v = resolve_variant(identifier, block=block, collection=collection)
+    v = resolve_variant_by_pk(variant_id)
     current = variant_etag(v)
     if not etag_matches(if_match, current):
         raise HttpError(
