@@ -214,7 +214,7 @@ def update_variant(
         json_body={"html": html, "css": css, "javascript": javascript},
         headers={"If-Match": etag},
     )
-    return response.json()
+    return response.json(), response.headers.get("ETag")
 
 
 def create_variant(

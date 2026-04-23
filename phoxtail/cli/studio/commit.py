@@ -31,11 +31,16 @@ def commit(
         "-m",
         help="Optional commit message for the session history.",
     ),
+    clean: bool = typer.Option(
+        False,
+        "--clean",
+        help="Remove the session directory after a successful commit.",
+    ),
 ) -> None:
     """Write an active session's files back to the database.
 
-    On success the session directory is removed. On conflict (412) or
-    any other error the session is preserved so the user can recover.
+    On success the session directory is kept unless --clean is passed.
+    On conflict (412) or any other error the session is always preserved.
     """
     session_id = resolve_session_id(session_ref)
     session_data = session.read_session(session_id)
@@ -50,7 +55,7 @@ def commit(
         )
         raise typer.Exit(code=1)
 
-    updated = client.update_variant(
+    updated, new_etag = client.update_variant(
         variant_meta["identifier"],
         html=session_data["html"],
         css=session_data["css"],
@@ -60,12 +65,15 @@ def commit(
         collection=variant_meta.get("collection", {}).get("identifier"),
     )
 
-    # Clean up the session directory on success
-    session.discard_session(session_id)
+    if clean:
+        session.discard_session(session_id)
+    elif new_etag:
+        session.update_session_etag(session_id, new_etag)
 
     suffix = f" [dim]({message})[/dim]" if message else ""
+    kept = "" if clean else " [dim](session kept)[/dim]"
     console.print(
         f"[green]Committed[/green] session [bold]{session_id}[/bold] "
         f"-> variant [cyan]{updated['identifier']}[/cyan] "
-        f"(block: {updated['block']['identifier']}){suffix}"
+        f"(block: {updated['block']['identifier']}){suffix}{kept}"
     )

@@ -90,6 +90,14 @@ def create_session(
     return sdir
 
 
+def update_session_etag(session_id: str, etag: str) -> None:
+    """Patch the stored ETag in session.json after a successful commit."""
+    meta_path = session_dir(session_id) / SESSION_META
+    meta = json.loads(meta_path.read_text())
+    meta["etag"] = etag
+    meta_path.write_text(json.dumps(meta, indent=2))
+
+
 def read_session(session_id: str) -> dict:
     """Read session metadata and file contents. Returns a dict."""
     sdir = session_dir(session_id)
