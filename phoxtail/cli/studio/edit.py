@@ -49,7 +49,7 @@ def edit(
     try:
         data = client.get_context(
             block=variant_data["block"]["identifier"],
-            variant=variant_data["identifier"],
+            collection=variant_data["collection"]["identifier"],
         )
         jinja_template = _jinja_env.get_template("variant_design_context.md")
         context_md = jinja_template.render(**data)
