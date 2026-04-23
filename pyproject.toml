@@ -71,7 +71,6 @@ dev = [
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.0.0",
     "ruff>=0.4.0",
-    "djhtml>=3.0.0",
     "freezegun>=1.2",
     "ipython>=8.0",
     "phoxtail[engine,blog,booking,dashboard,docs]",

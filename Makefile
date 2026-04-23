@@ -2,12 +2,10 @@
 lint:
 	-uv run ruff check --fix phoxtail/
 	uv run ruff format phoxtail/
-	uv run djhtml phoxtail/
 
 lint-check:
 	uv run ruff check phoxtail/
 	uv run ruff format --check phoxtail/
-	uv run djhtml --check phoxtail/
 
 # Testing
 test-cli:
