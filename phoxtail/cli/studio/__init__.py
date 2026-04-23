@@ -30,6 +30,7 @@ def _register_commands() -> None:
     from phoxtail.cli.studio.dump import dump
     from phoxtail.cli.studio.edit import edit
     from phoxtail.cli.studio.load import load
+    from phoxtail.cli.studio.refresh import refresh
     from phoxtail.cli.studio.sessions import sessions
     from phoxtail.cli.studio.version import version
 
@@ -38,6 +39,7 @@ def _register_commands() -> None:
     app.command("edit")(edit)
     app.command("commit")(commit)
     app.command("discard")(discard)
+    app.command("refresh")(refresh)
     app.command("sessions")(sessions)
     app.command("dump")(dump)
     app.command("load")(load)
