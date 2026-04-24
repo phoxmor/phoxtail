@@ -152,6 +152,24 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
     return 200, _serialize_image(img, request)
 
 
+@router.delete(
+    "/images/{image_id}/",
+    response={204: None, 404: dict},
+    summary="Delete an image from the Wagtail library",
+)
+def delete_image(request: HttpRequest, image_id: int):
+    from wagtail.images import get_image_model
+
+    Image = get_image_model()
+    try:
+        img = Image.objects.get(pk=image_id)
+    except Image.DoesNotExist:
+        return 404, {"detail": "Image not found"}
+
+    img.delete()
+    return 204, None
+
+
 # ---------------------------------------------------------------------------
 # Documents
 # ---------------------------------------------------------------------------
@@ -239,6 +257,24 @@ def update_document(
         doc.tags.set(payload.tags)
 
     return 200, _serialize_document(doc, request)
+
+
+@router.delete(
+    "/documents/{document_id}/",
+    response={204: None, 404: dict},
+    summary="Delete a document from the Wagtail library",
+)
+def delete_document(request: HttpRequest, document_id: int):
+    from wagtail.documents import get_document_model
+
+    Document = get_document_model()
+    try:
+        doc = Document.objects.get(pk=document_id)
+    except Document.DoesNotExist:
+        return 404, {"detail": "Document not found"}
+
+    doc.delete()
+    return 204, None
 
 
 # ---------------------------------------------------------------------------
@@ -342,6 +378,24 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
     return 200, _serialize_video(m, request)
 
 
+@router.delete(
+    "/videos/{video_id}/",
+    response={204: None, 404: dict},
+    summary="Delete a video from the Wagtail media library",
+)
+def delete_video(request: HttpRequest, video_id: int):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=video_id, type="video")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Video not found"}
+
+    m.delete()
+    return 204, None
+
+
 # ---------------------------------------------------------------------------
 # Audio
 # ---------------------------------------------------------------------------
@@ -432,6 +486,24 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
         m.tags.set(payload.tags)
 
     return 200, _serialize_audio(m, request)
+
+
+@router.delete(
+    "/audio/{audio_id}/",
+    response={204: None, 404: dict},
+    summary="Delete an audio file from the Wagtail media library",
+)
+def delete_audio(request: HttpRequest, audio_id: int):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=audio_id, type="audio")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Audio not found"}
+
+    m.delete()
+    return 204, None
 
 
 # ---------------------------------------------------------------------------

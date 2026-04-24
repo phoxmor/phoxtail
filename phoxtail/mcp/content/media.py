@@ -152,6 +152,21 @@ def update_image(
     return json.dumps(resp.json(), indent=2)
 
 
+@mcp_server.tool(
+    name="phoxtail_images_delete",
+    description=(
+        "Permanently delete a Wagtail image by its numeric ID. "
+        "This cannot be undone. Returns {deleted: true, id: <id>} on success."
+    ),
+)
+def delete_image(image_id: int) -> str:
+    resp = request("DELETE", f"/media/images/{image_id}/")
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps({"deleted": True, "id": image_id})
+
+
 # ---------------------------------------------------------------------------
 # Documents
 # ---------------------------------------------------------------------------
@@ -250,6 +265,21 @@ def update_document(
     if envelope is not None:
         return envelope
     return json.dumps(resp.json(), indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_documents_delete",
+    description=(
+        "Permanently delete a Wagtail document by its numeric ID. "
+        "This cannot be undone. Returns {deleted: true, id: <id>} on success."
+    ),
+)
+def delete_document(document_id: int) -> str:
+    resp = request("DELETE", f"/media/documents/{document_id}/")
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps({"deleted": True, "id": document_id})
 
 
 # ---------------------------------------------------------------------------
@@ -374,6 +404,21 @@ def update_video(
     return json.dumps(resp.json(), indent=2)
 
 
+@mcp_server.tool(
+    name="phoxtail_videos_delete",
+    description=(
+        "Permanently delete a Wagtail video by its numeric ID. "
+        "This cannot be undone. Returns {deleted: true, id: <id>} on success."
+    ),
+)
+def delete_video(video_id: int) -> str:
+    resp = request("DELETE", f"/media/videos/{video_id}/")
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps({"deleted": True, "id": video_id})
+
+
 # ---------------------------------------------------------------------------
 # Audio
 # ---------------------------------------------------------------------------
@@ -475,3 +520,18 @@ def update_audio(
     if envelope is not None:
         return envelope
     return json.dumps(resp.json(), indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_audio_delete",
+    description=(
+        "Permanently delete a Wagtail audio file by its numeric ID. "
+        "This cannot be undone. Returns {deleted: true, id: <id>} on success."
+    ),
+)
+def delete_audio(audio_id: int) -> str:
+    resp = request("DELETE", f"/media/audio/{audio_id}/")
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps({"deleted": True, "id": audio_id})
