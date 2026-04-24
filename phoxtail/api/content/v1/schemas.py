@@ -96,15 +96,43 @@ class BodyReplace(Schema):
 # ---------------------------------------------------------------------------
 
 
-class MediaItem(Schema):
+class FocalPoint(Schema):
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+class ImageItem(Schema):
     id: int
     title: str
+    description: str = ""
+    tags: list[str] = []
+    focal_point: FocalPoint | None = None
     file_url: str | None = None
 
 
-class MediaList(Schema):
-    items: list[MediaItem]
+class ImageList(Schema):
+    items: list[ImageItem]
     total: int
+
+
+class DocumentItem(Schema):
+    id: int
+    title: str
+    description: str = ""
+    file_url: str | None = None
+
+
+class DocumentList(Schema):
+    items: list[DocumentItem]
+    total: int
+
+
+class ImagePatch(Schema):
+    description: str | None = None
+    tags: list[str] | None = None
+    focal_point: FocalPoint | None = None
 
 
 # ---------------------------------------------------------------------------
