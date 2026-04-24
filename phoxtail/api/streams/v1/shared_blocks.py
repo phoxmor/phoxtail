@@ -23,7 +23,6 @@ from phoxtail.api.streams.v1.schemas import (
     SharedBlock,
     SharedBlockCreate,
     SharedBlockList,
-    SharedBlockSummary,
     SharedBlockUpdate,
 )
 from phoxtail.streams.models import SharedBlock as SharedBlockModel

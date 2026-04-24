@@ -88,6 +88,11 @@ class TestMCPToolRegistration:
             "phoxtail_studio_create_block",
             "phoxtail_studio_create_collection",
             "phoxtail_studio_update_collection",
+            "phoxtail_studio_list_shared_blocks",
+            "phoxtail_studio_get_shared_block",
+            "phoxtail_studio_create_shared_block",
+            "phoxtail_studio_update_shared_block",
+            "phoxtail_studio_delete_shared_block",
         }
         pages_tools = {
             "phoxtail_page_types_list",
@@ -122,7 +127,14 @@ class TestMCPToolRegistration:
             "phoxtail_audio_update",
             "phoxtail_audio_delete",
         }
-        expected = studio_tools | pages_tools
+        content_tools = {
+            "phoxtail_content_list_internal_links",
+            "phoxtail_content_get_internal_link",
+            "phoxtail_content_create_internal_link",
+            "phoxtail_content_update_internal_link",
+            "phoxtail_content_delete_internal_link",
+        }
+        expected = studio_tools | pages_tools | content_tools
         registered = set(mcp_server._tool_manager._tools.keys())
         assert expected == registered
 
@@ -256,7 +268,7 @@ class TestGetContext:
 
     def test_renders_context_template(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
-        result = get_context(block="header_section", collection="ground-state")
+        result = get_context(block_id=1, collection_id=1)
         assert "Header Section" in result
         assert "DTL Reference" in result
         assert "CSS Scoping" in result
@@ -269,8 +281,8 @@ class TestGetContext:
     def test_sends_references(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=self.CONTEXT_RESPONSE)
         get_context(
-            block="header_section",
-            collection="ground-state",
+            block_id=1,
+            collection_id=1,
             references=["dark", "light"],
         )
         req = httpx_mock.get_request()
@@ -368,8 +380,8 @@ class TestCreateVariant:
             create_variant(
                 identifier="new-variant",
                 name="New Variant",
-                block="header_section",
-                collection="ground-state",
+                block_id=1,
+                collection_id=1,
                 html="<div>new</div>",
             )
         )
@@ -385,8 +397,8 @@ class TestCreateVariant:
             create_variant(
                 identifier="centered",
                 name="Centered",
-                block="header_section",
-                collection="ground-state",
+                block_id=1,
+                collection_id=1,
             )
         )
         assert result["error"] == "conflict"
@@ -400,8 +412,8 @@ class TestCreateVariant:
             create_variant(
                 identifier="x",
                 name="X",
-                block="nonexistent",
-                collection="ground-state",
+                block_id=999,
+                collection_id=1,
             )
         )
         assert result["error"] == "not_found"

@@ -223,9 +223,7 @@ def block_etag(b: Block) -> str:
 
 def resolve_shared_block_by_pk(pk: int) -> SharedBlock:
     try:
-        return SharedBlock.objects.select_related(
-            "block", "site", "locale"
-        ).get(pk=pk)
+        return SharedBlock.objects.select_related("block", "site", "locale").get(pk=pk)
     except SharedBlock.DoesNotExist as exc:
         raise HttpError(404, f"SharedBlock {pk} not found.") from exc
 

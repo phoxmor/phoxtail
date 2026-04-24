@@ -32,8 +32,6 @@ def list_variants(
     return json.dumps(data, indent=2)
 
 
-
-
 # -- Read ------------------------------------------------------------------
 
 

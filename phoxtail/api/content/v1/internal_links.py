@@ -99,7 +99,9 @@ def create_internal_link(
     try:
         link.save()
     except IntegrityError:
-        raise HttpError(409, f"InternalLink with url_name '{payload.url_name}' already exists.")
+        raise HttpError(
+            409, f"InternalLink with url_name '{payload.url_name}' already exists."
+        )
     response["ETag"] = _etag(link)
     return 201, _serialize(link)
 

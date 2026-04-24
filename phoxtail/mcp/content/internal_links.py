@@ -49,7 +49,9 @@ def get_internal_link(link_id: int) -> str:
     ),
 )
 def create_internal_link(label: str, url_name: str) -> str:
-    resp = request("POST", "/internal-links/", json_body={"label": label, "url_name": url_name})
+    resp = request(
+        "POST", "/internal-links/", json_body={"label": label, "url_name": url_name}
+    )
 
     if resp.status_code == 409:
         return json.dumps(
@@ -150,7 +152,9 @@ def delete_internal_link(link_id: int) -> str:
         return json.dumps(
             {
                 "error": "not_found",
-                "detail": resp.json().get("detail", f"InternalLink {link_id} not found."),
+                "detail": resp.json().get(
+                    "detail", f"InternalLink {link_id} not found."
+                ),
             }
         )
     resp.raise_for_status()
