@@ -114,6 +114,30 @@ def list_pages(
     ).json()
 
 
+def list_images(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
+    return request(
+        "GET", "/media/images/", params={"search": search, "limit": limit}
+    ).json()
+
+
+def list_documents(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
+    return request(
+        "GET", "/media/documents/", params={"search": search, "limit": limit}
+    ).json()
+
+
+def list_videos(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
+    return request(
+        "GET", "/media/videos/", params={"search": search, "limit": limit}
+    ).json()
+
+
+def list_audio(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
+    return request(
+        "GET", "/media/audio/", params={"search": search, "limit": limit}
+    ).json()
+
+
 def list_locales() -> dict[str, Any]:
     return request("GET", "/locales/").json()
 

@@ -1,8 +1,8 @@
-"""``/api/content/v1/media/`` — image + document endpoints.
+"""``/api/content/v1/media/`` — image, document, video, and audio endpoints.
 
-The pages domain owns these because ``wagtailimages`` and ``wagtaildocs``
-are required by every Wagtail install. FK lookups for app-specific
-models (blog authors, etc.) live in the owning app instead.
+The pages domain owns these because ``wagtailimages``, ``wagtaildocs``, and
+``wagtailmedia`` are required by every Phoxtail engine install. FK lookups
+for app-specific models live in the owning app instead.
 """
 
 from __future__ import annotations
@@ -11,13 +11,26 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Query, Router, UploadedFile
 
 from phoxtail.api.content.v1.schemas import (
+    AudioItem,
+    AudioList,
+    AudioPatch,
+    DocumentItem,
     DocumentList,
+    DocumentPatch,
     ImageItem,
     ImageList,
     ImagePatch,
+    VideoItem,
+    VideoList,
+    VideoPatch,
 )
 
 router = Router()
+
+
+# ---------------------------------------------------------------------------
+# Images
+# ---------------------------------------------------------------------------
 
 
 @router.get(
@@ -139,6 +152,11 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
     return 200, _serialize_image(img, request)
 
 
+# ---------------------------------------------------------------------------
+# Documents
+# ---------------------------------------------------------------------------
+
+
 @router.get(
     "/documents/",
     response={200: DocumentList},
@@ -158,18 +176,271 @@ def list_documents(
         qs = qs.filter(title__icontains=search)
 
     total = qs.count()
-    items = [
-        {
-            "id": doc.pk,
-            "title": doc.title,
-            "description": "",
-            "tags": [],
-            "focal_point": None,
-            "file_url": _safe_url(doc, request),
-        }
-        for doc in qs[offset : offset + limit]
-    ]
+    items = [_serialize_document(doc, request) for doc in qs[offset : offset + limit]]
     return {"items": items, "total": total}
+
+
+@router.get(
+    "/documents/{document_id}/",
+    response={200: DocumentItem, 404: dict},
+    summary="Fetch a single document by ID",
+)
+def get_document(request: HttpRequest, document_id: int):
+    from wagtail.documents import get_document_model
+
+    Document = get_document_model()
+    try:
+        doc = Document.objects.get(pk=document_id)
+    except Document.DoesNotExist:
+        return 404, {"detail": "Document not found"}
+
+    return 200, _serialize_document(doc, request)
+
+
+@router.post(
+    "/documents/",
+    response={201: DocumentItem},
+    summary="Upload a new document to the Wagtail library",
+)
+def upload_document(
+    request: HttpRequest,
+    title: str = Form(...),
+    file: UploadedFile = File(...),
+):
+    from wagtail.documents import get_document_model
+
+    Document = get_document_model()
+    doc = Document(title=title, file=file)
+    doc.save()
+    doc.get_file_size()
+    return 201, _serialize_document(doc, request)
+
+
+@router.patch(
+    "/documents/{document_id}/",
+    response={200: DocumentItem, 404: dict},
+    summary="Update document metadata (title, tags)",
+)
+def update_document(
+    request: HttpRequest, document_id: int, payload: DocumentPatch = Body(...)
+):
+    from wagtail.documents import get_document_model
+
+    Document = get_document_model()
+    try:
+        doc = Document.objects.get(pk=document_id)
+    except Document.DoesNotExist:
+        return 404, {"detail": "Document not found"}
+
+    if payload.title is not None:
+        doc.title = payload.title
+        doc.save(update_fields=["title"])
+    if payload.tags is not None:
+        doc.tags.set(payload.tags)
+
+    return 200, _serialize_document(doc, request)
+
+
+# ---------------------------------------------------------------------------
+# Videos
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/videos/",
+    response={200: VideoList},
+    summary="Search videos by title",
+)
+def list_videos(
+    request: HttpRequest,
+    search: str | None = Query(None, description="Substring match on title."),
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    qs = Media.objects.filter(type="video").order_by("-created_at")
+    if search:
+        qs = qs.filter(title__icontains=search)
+
+    total = qs.count()
+    items = [_serialize_video(m, request) for m in qs[offset : offset + limit]]
+    return {"items": items, "total": total}
+
+
+@router.get(
+    "/videos/{video_id}/",
+    response={200: VideoItem, 404: dict},
+    summary="Fetch a single video by ID",
+)
+def get_video(request: HttpRequest, video_id: int):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=video_id, type="video")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Video not found"}
+
+    return 200, _serialize_video(m, request)
+
+
+@router.post(
+    "/videos/",
+    response={201: VideoItem},
+    summary="Upload a new video to the Wagtail media library",
+)
+def upload_video(
+    request: HttpRequest,
+    title: str = Form(...),
+    file: UploadedFile = File(...),
+    duration: float = Form(0.0),
+    width: int | None = Form(None),
+    height: int | None = Form(None),
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    m = Media(
+        title=title,
+        file=file,
+        type="video",
+        duration=duration,
+        width=width,
+        height=height,
+    )
+    m.save()
+    return 201, _serialize_video(m, request)
+
+
+@router.patch(
+    "/videos/{video_id}/",
+    response={200: VideoItem, 404: dict},
+    summary="Update video metadata (title, tags, duration, dimensions)",
+)
+def update_video(
+    request: HttpRequest, video_id: int, payload: VideoPatch = Body(...)
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=video_id, type="video")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Video not found"}
+
+    update_fields: list[str] = []
+    for field in ("title", "duration", "width", "height"):
+        val = getattr(payload, field)
+        if val is not None:
+            setattr(m, field, val)
+            update_fields.append(field)
+    if update_fields:
+        m.save(update_fields=update_fields)
+    if payload.tags is not None:
+        m.tags.set(payload.tags)
+
+    return 200, _serialize_video(m, request)
+
+
+# ---------------------------------------------------------------------------
+# Audio
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/audio/",
+    response={200: AudioList},
+    summary="Search audio files by title",
+)
+def list_audio(
+    request: HttpRequest,
+    search: str | None = Query(None, description="Substring match on title."),
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    qs = Media.objects.filter(type="audio").order_by("-created_at")
+    if search:
+        qs = qs.filter(title__icontains=search)
+
+    total = qs.count()
+    items = [_serialize_audio(m, request) for m in qs[offset : offset + limit]]
+    return {"items": items, "total": total}
+
+
+@router.get(
+    "/audio/{audio_id}/",
+    response={200: AudioItem, 404: dict},
+    summary="Fetch a single audio file by ID",
+)
+def get_audio(request: HttpRequest, audio_id: int):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=audio_id, type="audio")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Audio not found"}
+
+    return 200, _serialize_audio(m, request)
+
+
+@router.post(
+    "/audio/",
+    response={201: AudioItem},
+    summary="Upload a new audio file to the Wagtail media library",
+)
+def upload_audio(
+    request: HttpRequest,
+    title: str = Form(...),
+    file: UploadedFile = File(...),
+    duration: float = Form(0.0),
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    m = Media(title=title, file=file, type="audio", duration=duration)
+    m.save()
+    return 201, _serialize_audio(m, request)
+
+
+@router.patch(
+    "/audio/{audio_id}/",
+    response={200: AudioItem, 404: dict},
+    summary="Update audio metadata (title, tags, duration)",
+)
+def update_audio(
+    request: HttpRequest, audio_id: int, payload: AudioPatch = Body(...)
+):
+    from wagtailmedia.models import get_media_model
+
+    Media = get_media_model()
+    try:
+        m = Media.objects.get(pk=audio_id, type="audio")
+    except Media.DoesNotExist:
+        return 404, {"detail": "Audio not found"}
+
+    update_fields: list[str] = []
+    for field in ("title", "duration"):
+        val = getattr(payload, field)
+        if val is not None:
+            setattr(m, field, val)
+            update_fields.append(field)
+    if update_fields:
+        m.save(update_fields=update_fields)
+    if payload.tags is not None:
+        m.tags.set(payload.tags)
+
+    return 200, _serialize_audio(m, request)
+
+
+# ---------------------------------------------------------------------------
+# Serialization helpers
+# ---------------------------------------------------------------------------
 
 
 def _serialize_image(img, request: HttpRequest) -> dict:
@@ -198,8 +469,58 @@ def _serialize_image(img, request: HttpRequest) -> dict:
     }
 
 
+def _serialize_document(doc, request: HttpRequest) -> dict:
+    return {
+        "id": doc.pk,
+        "title": doc.title,
+        "tags": list(doc.tags.names()),
+        "file_size": doc.file_size,
+        "filename": doc.filename,
+        "file_extension": doc.file_extension,
+        "file_url": _safe_url(doc, request),
+    }
+
+
+def _serialize_video(m, request: HttpRequest) -> dict:
+    return {
+        "id": m.pk,
+        "title": m.title,
+        "duration": m.duration,
+        "width": m.width,
+        "height": m.height,
+        "tags": list(m.tags.names()),
+        "file_url": _safe_url(m, request),
+        "thumbnail_url": _safe_url_field(m, "thumbnail", request),
+    }
+
+
+def _serialize_audio(m, request: HttpRequest) -> dict:
+    return {
+        "id": m.pk,
+        "title": m.title,
+        "duration": m.duration,
+        "tags": list(m.tags.names()),
+        "file_url": _safe_url(m, request),
+    }
+
+
 def _safe_url(obj, request: HttpRequest | None = None) -> str | None:
     f = getattr(obj, "file", None)
+    if not f:
+        return None
+    try:
+        raw = f.url
+    except (ValueError, AttributeError):
+        return None
+    if request is not None and raw.startswith("/"):
+        return request.build_absolute_uri(raw)
+    return raw
+
+
+def _safe_url_field(
+    obj, field_name: str, request: HttpRequest | None = None
+) -> str | None:
+    f = getattr(obj, field_name, None)
     if not f:
         return None
     try:

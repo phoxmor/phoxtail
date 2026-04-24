@@ -103,6 +103,17 @@ class TestMCPToolRegistration:
             "phoxtail_images_get",
             "phoxtail_images_view",
             "phoxtail_images_update",
+            "phoxtail_documents_get",
+            "phoxtail_documents_upload",
+            "phoxtail_documents_update",
+            "phoxtail_videos_list",
+            "phoxtail_videos_get",
+            "phoxtail_videos_upload",
+            "phoxtail_videos_update",
+            "phoxtail_audio_list",
+            "phoxtail_audio_get",
+            "phoxtail_audio_upload",
+            "phoxtail_audio_update",
         }
         expected = studio_tools | pages_tools
         registered = set(mcp_server._tool_manager._tools.keys())

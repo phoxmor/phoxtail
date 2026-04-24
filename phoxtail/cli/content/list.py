@@ -7,7 +7,9 @@ from rich.console import Console
 
 from phoxtail.cli.content import client, format
 
-app = typer.Typer(help="List CMS entities (pages, locales, sites).")
+app = typer.Typer(
+    help="List CMS entities (pages, locales, sites, images, documents, videos, audio)."
+)
 console = Console()
 
 
@@ -48,6 +50,78 @@ def list_pages(
         client.emit_json(data)
     else:
         format.render_pages(data, console)
+
+
+@app.command("images")
+def list_images(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Substring match on title."
+    ),
+    limit: int = typer.Option(50, "--limit", help="Maximum results to return."),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit raw JSON instead of a Rich table."
+    ),
+) -> None:
+    """List images in the Wagtail media library."""
+    data = client.list_images(search=search, limit=limit)
+    if json_output:
+        client.emit_json(data)
+    else:
+        format.render_images(data, console)
+
+
+@app.command("documents")
+def list_documents(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Substring match on title."
+    ),
+    limit: int = typer.Option(50, "--limit", help="Maximum results to return."),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit raw JSON instead of a Rich table."
+    ),
+) -> None:
+    """List documents in the Wagtail library."""
+    data = client.list_documents(search=search, limit=limit)
+    if json_output:
+        client.emit_json(data)
+    else:
+        format.render_documents(data, console)
+
+
+@app.command("videos")
+def list_videos(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Substring match on title."
+    ),
+    limit: int = typer.Option(50, "--limit", help="Maximum results to return."),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit raw JSON instead of a Rich table."
+    ),
+) -> None:
+    """List videos in the Wagtail media library."""
+    data = client.list_videos(search=search, limit=limit)
+    if json_output:
+        client.emit_json(data)
+    else:
+        format.render_videos(data, console)
+
+
+@app.command("audio")
+def list_audio(
+    search: str | None = typer.Option(
+        None, "--search", "-s", help="Substring match on title."
+    ),
+    limit: int = typer.Option(50, "--limit", help="Maximum results to return."),
+    json_output: bool = typer.Option(
+        False, "--json", help="Emit raw JSON instead of a Rich table."
+    ),
+) -> None:
+    """List audio files in the Wagtail media library."""
+    data = client.list_audio(search=search, limit=limit)
+    if json_output:
+        client.emit_json(data)
+    else:
+        format.render_audio(data, console)
 
 
 @app.command("locales")

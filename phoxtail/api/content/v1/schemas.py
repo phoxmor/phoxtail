@@ -122,13 +122,64 @@ class ImageList(Schema):
 class DocumentItem(Schema):
     id: int
     title: str
-    description: str = ""
+    tags: list[str] = []
+    file_size: int | None = None
+    filename: str = ""
+    file_extension: str = ""
     file_url: str | None = None
 
 
 class DocumentList(Schema):
     items: list[DocumentItem]
     total: int
+
+
+class DocumentPatch(Schema):
+    title: str | None = None
+    tags: list[str] | None = None
+
+
+class VideoItem(Schema):
+    id: int
+    title: str
+    duration: float = 0.0
+    width: int | None = None
+    height: int | None = None
+    tags: list[str] = []
+    file_url: str | None = None
+    thumbnail_url: str | None = None
+
+
+class VideoList(Schema):
+    items: list[VideoItem]
+    total: int
+
+
+class VideoPatch(Schema):
+    title: str | None = None
+    tags: list[str] | None = None
+    duration: float | None = None
+    width: int | None = None
+    height: int | None = None
+
+
+class AudioItem(Schema):
+    id: int
+    title: str
+    duration: float = 0.0
+    tags: list[str] = []
+    file_url: str | None = None
+
+
+class AudioList(Schema):
+    items: list[AudioItem]
+    total: int
+
+
+class AudioPatch(Schema):
+    title: str | None = None
+    tags: list[str] | None = None
+    duration: float | None = None
 
 
 class ImagePatch(Schema):
