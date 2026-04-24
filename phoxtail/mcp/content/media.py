@@ -23,7 +23,7 @@ def _lookup(path: str, search: str | None, limit: int) -> str:
     name="phoxtail_pages_list_images",
     description=(
         "Search images in the Wagtail media library by title. "
-        "Returns a list of {id, title, description, tags, focal_point, file_url}. "
+        "Returns a list of {id, title, width, height, description, tags, focal_point, file_url}. "
         "To view an image visually, call `phoxtail_images_view(image_id)` — "
         "do not curl `file_url`. "
         "The integer `id` is the value to pass wherever a block or page "
@@ -79,7 +79,9 @@ def upload_image(file_path: str, title: str) -> str:
     name="phoxtail_images_get",
     description=(
         "Fetch a single Wagtail image by its numeric ID. "
-        "Returns {id, title, description, tags, focal_point, file_url}. "
+        "Returns {id, title, width, height, description, tags, focal_point, file_url}. "
+        "`width` and `height` are the actual stored pixel dimensions — use these "
+        "when calculating focal_point coordinates; do not guess from the rendered view. "
         "To view the image visually, call `phoxtail_images_view(image_id)` — "
         "do not curl `file_url`."
     ),
@@ -113,19 +115,25 @@ def view_image(image_id: int):
     description=(
         "Update a Wagtail image's metadata by numeric ID. All fields are optional; "
         "omitted fields are left untouched. "
+        "`title` renames the image. "
         "`description` is the alt-text/caption. "
         "`tags` is a full replacement list (pass [] to clear all tags). "
-        "`focal_point` is {x, y, width, height} in pixels — set this after visually "
-        "inspecting the image to mark the subject for Wagtail rendition cropping."
+        "`focal_point` is {x, y, width, height} in pixels relative to the full stored "
+        "image — always call `phoxtail_images_get` first to obtain the real `width` "
+        "and `height`, then scale your coordinates accordingly. "
+        "Do NOT estimate dimensions from the rendered view returned by `phoxtail_images_view`."
     ),
 )
 def update_image(
     image_id: int,
+    title: str | None = None,
     description: str | None = None,
     tags: list[str] | None = None,
     focal_point: dict | None = None,
 ) -> str:
     payload: dict = {}
+    if title is not None:
+        payload["title"] = title
     if description is not None:
         payload["description"] = description
     if tags is not None:

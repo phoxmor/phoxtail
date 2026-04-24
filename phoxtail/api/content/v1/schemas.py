@@ -106,6 +106,8 @@ class FocalPoint(Schema):
 class ImageItem(Schema):
     id: int
     title: str
+    width: int
+    height: int
     description: str = ""
     tags: list[str] = []
     focal_point: FocalPoint | None = None
@@ -130,6 +132,7 @@ class DocumentList(Schema):
 
 
 class ImagePatch(Schema):
+    title: str | None = None
     description: str | None = None
     tags: list[str] | None = None
     focal_point: FocalPoint | None = None

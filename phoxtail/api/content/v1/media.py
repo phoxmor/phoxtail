@@ -112,6 +112,9 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
         return 404, {"detail": "Image not found"}
 
     update_fields: list[str] = []
+    if payload.title is not None:
+        img.title = payload.title
+        update_fields.append("title")
     if payload.description is not None:
         img.description = payload.description
         update_fields.append("description")
@@ -179,6 +182,8 @@ def _serialize_image(img, request: HttpRequest) -> dict:
     return {
         "id": img.pk,
         "title": img.title,
+        "width": img.width,
+        "height": img.height,
         "description": img.description or "",
         "tags": list(img.tags.names()),
         "focal_point": {
