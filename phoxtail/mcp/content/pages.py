@@ -18,7 +18,9 @@ from phoxtail.mcp.content._http import request
     description=(
         "List Wagtail pages in the project. Optional filters: `type` "
         "(e.g. 'phoxtail_blog.BlogPostPage'), `parent` (parent page id), "
-        "`live` (published status). Returns a slim summary — call "
+        "`live` (published status), `search` (prefix search on title — "
+        "use this to find a parent page by name), `locale` (language code "
+        "e.g. 'en'), `site` (site id). Returns a slim summary — call "
         "phoxtail_pages_get_page for a full detail including the body."
     ),
 )
@@ -26,6 +28,9 @@ def list_pages(
     type: str | None = None,
     parent: int | None = None,
     live: bool | None = None,
+    search: str | None = None,
+    locale: str | None = None,
+    site: int | None = None,
     limit: int = 50,
     offset: int = 0,
 ) -> str:
@@ -36,6 +41,9 @@ def list_pages(
             "type": type,
             "parent": parent,
             "live": live,
+            "search": search,
+            "locale": locale,
+            "site": site,
             "limit": limit,
             "offset": offset,
         },
@@ -147,10 +155,17 @@ def update_page(
     etag: str,
     fields: dict[str, Any],
 ) -> str:
+    # Split common Wagtail scalars from contributed (per-type) fields so
+    # the API can dispatch them to the right handler. See PagePatch.
+    common_keys = {"title", "slug", "seo_title", "search_description"}
+    body: dict[str, Any] = {k: v for k, v in fields.items() if k in common_keys}
+    contributed = {k: v for k, v in fields.items() if k not in common_keys}
+    if contributed:
+        body["fields"] = contributed
     resp = request(
         "PATCH",
         f"/pages/{page_id}/",
-        json_body=fields,
+        json_body=body,
         headers={"If-Match": etag},
     )
     envelope = _write_error_envelope(resp)
@@ -183,6 +198,73 @@ def publish_page(page_id: int, etag: str) -> str:
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
     return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_pages_create_page",
+    description=(
+        "Create a new Wagtail page as a draft under a given parent. "
+        "Before calling this tool: (1) call phoxtail_page_types_list to "
+        "discover the correct `type` string and which fields are required; "
+        "(2) call phoxtail_pages_list_pages with `search` to find the "
+        "parent page ID; (3) resolve any FK fields (e.g. author, image) "
+        "via the lookup tool listed in fk_lookups. "
+        "The page is created as a draft — call phoxtail_pages_publish to "
+        "make it live. Returns the created page with an `_etag` for "
+        "subsequent write calls."
+    ),
+)
+def create_page(
+    type: str,
+    parent: int,
+    title: str,
+    slug: str | None = None,
+    fields: dict[str, Any] | None = None,
+) -> str:
+    body: dict[str, Any] = {"type": type, "parent": parent, "title": title}
+    if slug is not None:
+        body["slug"] = slug
+    if fields:
+        # Split common Wagtail scalars from contributed (per-type) fields
+        # so the API can dispatch them correctly. See PageCreate.
+        common_keys = {"seo_title", "search_description"}
+        contributed = {}
+        for k, v in fields.items():
+            if k in common_keys:
+                body[k] = v
+            else:
+                contributed[k] = v
+        if contributed:
+            body["fields"] = contributed
+    resp = request("POST", "/pages/", json_body=body)
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    data = resp.json()
+    data["_etag"] = resp.headers.get("ETag", "")
+    return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_pages_delete_page",
+    description=(
+        "Permanently delete a page. Requires the ETag from a prior "
+        "phoxtail_pages_get_page call. Pass force=true to also delete all "
+        "child pages; without it the call is rejected if the page has "
+        "children. This action is irreversible."
+    ),
+)
+def delete_page(page_id: int, etag: str, force: bool = False) -> str:
+    resp = request(
+        "DELETE",
+        f"/pages/{page_id}/",
+        params={"force": "true"} if force else {},
+        headers={"If-Match": etag},
+    )
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps({"deleted": page_id})
 
 
 @mcp_server.tool(

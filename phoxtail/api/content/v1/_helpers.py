@@ -141,6 +141,14 @@ def require_edit_permission(request: HttpRequest, page: Page) -> None:
         raise HttpError(403, "User cannot edit this page.")
 
 
+def require_delete_permission(request: HttpRequest, page: Page) -> None:
+    """Raise 403 if ``request.auth`` cannot delete the page."""
+    user = request.auth
+    perms = page.permissions_for_user(user)
+    if not perms.can_delete():
+        raise HttpError(403, "User cannot delete this page.")
+
+
 # ---------------------------------------------------------------------------
 # Serialization — common page fields + contributed extras
 # ---------------------------------------------------------------------------
@@ -286,8 +294,12 @@ def body_field_name_for(page: Page) -> str:
 
 def contribution_as_dict(contrib: PageSchemaContribution) -> dict[str, Any]:
     """Serialize a PageSchemaContribution for the /page-types/ endpoint."""
+    model = contrib.model
     return {
         "content_type": contrib.content_type,
+        "is_creatable": getattr(model, "is_creatable", True),
+        "parent_page_types": list(getattr(model, "parent_page_types", []) or []),
+        "subpage_types": list(getattr(model, "subpage_types", []) or []),
         "writable_fields": contrib.writable_fields,
         "fk_lookups": dict(contrib.fk_lookups),
     }

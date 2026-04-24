@@ -55,22 +55,51 @@ PageDetail = dict[str, Any]
 class PagePatch(Schema):
     """Request body for ``PATCH /pages/{id}/``.
 
-    Accepts any subset of common + contributed writable fields. The core
-    endpoint validates common fields via this schema and forwards the
-    raw dict (``__pydantic_extra__``) to the contribution's
-    ``apply_patch``, so contributed fields pass through unchecked at
-    the schema level — the contribution is responsible for its own
-    validation.
+    Accepts any subset of common writable fields at the top level; all
+    per-type contributed fields go in the ``fields`` dict and are
+    forwarded unchecked to the owning contribution's ``apply_patch``
+    (the contribution is responsible for its own validation).
 
     All common fields are optional; omitted fields are left untouched.
+    ``fields`` is a declared dict rather than pydantic extras because
+    ninja.Schema's ``from_attributes=True`` default wraps bodies in a
+    DjangoGetter that iterates declared fields only, silently dropping
+    any top-level ``extra='allow'`` keys.
     """
-
-    model_config = {"extra": "allow"}
 
     title: str | None = None
     slug: str | None = None
     seo_title: str | None = None
     search_description: str | None = None
+    fields: dict[str, Any] | None = None
+
+
+# ---------------------------------------------------------------------------
+# Page create
+# ---------------------------------------------------------------------------
+
+
+class PageCreate(Schema):
+    """Request body for ``POST /pages/``.
+
+    ``type`` is the content-type string from the page-types catalog
+    (e.g. ``'phoxtail_blog.blogpostpage'``).  ``parent`` is the integer
+    PK of the parent page.  ``title`` is the only required Wagtail base
+    field; ``slug`` is auto-derived from ``title`` if omitted.
+
+    Per-type contributed fields are passed in ``fields`` as a free dict
+    and forwarded to the contribution's ``apply_patch``. See PagePatch
+    for why ``fields`` is an explicit dict rather than relying on
+    ``extra='allow'``.
+    """
+
+    type: str
+    parent: int
+    title: str
+    slug: str | None = None
+    seo_title: str = ""
+    search_description: str = ""
+    fields: dict[str, Any] | None = None
 
 
 # ---------------------------------------------------------------------------

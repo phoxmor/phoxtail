@@ -1,9 +1,10 @@
-"""``phoxtail://page-types`` MCP resource.
+"""``phoxtail_page_types_list`` MCP tool.
 
-Dynamic discovery endpoint — enumerates every page type that some
-installed app has contributed via ``PhoxtailAppConfig.page_schema_contributors``.
-The agent calls this before writing to learn which fields each page
-type exposes and which MCP tool resolves each FK field to an ID.
+Discovery tool — enumerates every page type that some installed app has
+contributed via ``PhoxtailAppConfig.page_schema_contributors``. Agents
+call this before creating or editing pages to learn which fields each
+page type exposes, which are required on creation, and which MCP tool
+resolves each FK field to an integer ID.
 """
 
 from __future__ import annotations
@@ -15,19 +16,18 @@ from phoxtail.mcp.content._http import request
 from phoxtail.mcp.content.pages import _write_error_envelope
 
 
-@mcp_server.resource(
-    "phoxtail://page-types",
-    name="Page Type Catalog",
+@mcp_server.tool(
+    name="phoxtail_page_types_list",
     description=(
-        "Enumerates every Wagtail Page subclass contributed by installed "
-        "Phoxtail apps, with their writable fields and per-FK lookup tool "
-        "names. Read this before editing pages so you know which fields "
-        "exist for each page type and which MCP tool to call to resolve "
-        "each FK (image, author, etc.) to an integer ID."
+        "List every Wagtail Page subclass contributed by installed Phoxtail "
+        "apps. Returns each type's content_type string, its writable fields "
+        "(with type and required flag), and fk_lookups mapping FK fields to "
+        "the MCP tool that resolves names to IDs. Call this before "
+        "phoxtail_pages_create_page so you know which fields are required "
+        "and how to resolve FK values."
     ),
-    mime_type="application/json",
 )
-def page_types_resource() -> str:
+def page_types_list() -> str:
     resp = request("GET", "/page-types/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:

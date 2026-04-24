@@ -1,9 +1,11 @@
 """``/api/content/v1/pages/`` — generic Wagtail Page endpoints.
 
 Endpoints:
-- ``GET    /``    — list pages (?type, ?parent, ?live, ?search, ?locale, ?site)
+- ``GET    /``     — list pages (?type, ?parent, ?live, ?search, ?locale, ?site)
+- ``POST   /``                    — create a page (draft, not published)
 - ``GET    /{page_id}/``          — detail, sets ETag
 - ``PATCH  /{page_id}/``          — scalar fields (common + contributed)
+- ``DELETE /{page_id}/``          — delete (rejected if has children unless ?force=true)
 - ``POST   /{page_id}/publish/``  — publish the latest draft revision
 - ``POST   /{page_id}/unpublish/``— take the page offline
 
@@ -25,6 +27,7 @@ from phoxtail.api.content.v1._helpers import (
     apply_contributed_patch,
     filter_by_content_type,
     page_etag,
+    require_delete_permission,
     require_edit_permission,
     require_if_match,
     require_publish_permission,
@@ -36,6 +39,7 @@ from phoxtail.api.content.v1._helpers import (
 from phoxtail.api.content.v1.schemas import (
     BodyResponse,  # noqa: F401 — re-exported for Ninja docs
     Error,
+    PageCreate,
     PageDetail,
     PageList,
     PagePatch,
@@ -115,6 +119,86 @@ def _get_parent_page(parent_pk: int) -> Page:
         raise HttpError(400, f"Parent page {parent_pk} not found.") from exc
 
 
+@router.post(
+    "/",
+    response={201: PageDetail, 400: Error, 403: Error, 404: Error},
+    summary="Create a new page as a draft under a given parent",
+)
+def create_page(
+    request: HttpRequest,
+    response: HttpResponse,
+    payload: PageCreate,
+):
+    from django.contrib.contenttypes.models import ContentType
+
+    data = payload.model_dump(exclude_unset=True)
+    type_string = data.pop("type")
+    parent_id = data.pop("parent")
+    title = data.pop("title")
+    slug = data.pop("slug", None)
+    contributed = data.pop("fields", None) or {}
+
+    # Resolve content type → model class.
+    try:
+        app_label, model_name = type_string.rsplit(".", 1)
+    except ValueError as exc:
+        raise HttpError(400, f"Invalid page type: '{type_string}'.") from exc
+    try:
+        ct = ContentType.objects.get(app_label=app_label, model=model_name.lower())
+    except ContentType.DoesNotExist as exc:
+        raise HttpError(400, f"Unknown page type: '{type_string}'.") from exc
+
+    model_cls = ct.model_class()
+    if model_cls is None or not issubclass(model_cls, Page):
+        raise HttpError(400, f"'{type_string}' is not a Page subclass.")
+    if not getattr(model_cls, "is_creatable", True):
+        raise HttpError(400, f"'{type_string}' is not directly creatable.")
+
+    # Resolve parent.
+    parent = _get_parent_page(parent_id)
+    perms = parent.permissions_for_user(request.auth)
+    if not perms.can_add_subpage():
+        raise HttpError(403, "User cannot add pages under that parent.")
+
+    # Build instance. Explicitly draft — add_child() defaults to live=True.
+    page = model_cls(title=title, live=False)
+    if slug:
+        page.slug = slug
+
+    # Enforce parent_page_types / subpage_types before touching the DB.
+    if not page.can_create_at(parent):
+        raise HttpError(
+            400,
+            f"'{type_string}' cannot be created under page {parent_id} "
+            "(violates parent_page_types or subpage_types constraints).",
+        )
+
+    # Apply common optional fields from payload remainder.
+    for field in ("seo_title", "search_description"):
+        if field in data:
+            setattr(page, field, data.pop(field))
+
+    # Apply per-type contributed fields (remaining keys).
+    from django.core.exceptions import ValidationError as DjangoValidationError
+
+    from phoxtail.api.content.v1._helpers import apply_contributed_patch
+
+    with transaction.atomic():
+        apply_contributed_patch(page, contributed)
+        try:
+            parent.add_child(instance=page)
+            page.save_revision(user=request.auth)
+        except DjangoValidationError as exc:
+            raise HttpError(400, "; ".join(exc.messages)) from exc
+
+    # Re-fetch from DB so serialize_page_detail works against a clean,
+    # fully-hydrated instance (avoids 500s from stale in-memory state
+    # after add_child mutates the page row).
+    fresh = resolve_page(page.pk)
+    response["ETag"] = page_etag(fresh)
+    return 201, serialize_page_detail(fresh)
+
+
 @router.get(
     "/{page_id}/",
     response={200: PageDetail, 404: Error},
@@ -156,9 +240,10 @@ def patch_page(
     require_if_match(request, page)
 
     data = payload.model_dump(exclude_unset=True)
+    contributed = data.pop("fields", None) or {}
     with transaction.atomic():
         apply_common_patch(page, data)
-        apply_contributed_patch(page, data)
+        apply_contributed_patch(page, contributed)
         # save_revision() persists the full in-memory state as a draft and
         # updates latest_revision_created_at on the page row. We do NOT call
         # page.save() — that would write changes directly to the live page
@@ -223,3 +308,31 @@ def unpublish_page(
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
     return serialize_page_detail(fresh)
+
+
+@router.delete(
+    "/{page_id}/",
+    response={204: None, 400: Error, 403: Error, 404: Error, 412: Error, 428: Error},
+    summary="Delete a page (and its children if force=true)",
+)
+def delete_page(
+    request: HttpRequest,
+    page_id: int,
+    force: bool = False,
+):
+    page = resolve_page(page_id)
+    require_delete_permission(request, page)
+    require_if_match(request, page)
+
+    child_count = page.get_children().count()
+    if child_count > 0 and not force:
+        raise HttpError(
+            400,
+            f"Page {page_id} has {child_count} child page(s). "
+            "Pass force=true to delete the page and all its descendants.",
+        )
+
+    with transaction.atomic():
+        page.delete()
+
+    return 204, None

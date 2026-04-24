@@ -90,9 +90,12 @@ class TestMCPToolRegistration:
             "phoxtail_studio_update_collection",
         }
         pages_tools = {
+            "phoxtail_page_types_list",
             "phoxtail_pages_list_pages",
             "phoxtail_pages_get_page",
+            "phoxtail_pages_create_page",
             "phoxtail_pages_update_page",
+            "phoxtail_pages_delete_page",
             "phoxtail_pages_publish",
             "phoxtail_pages_unpublish",
             "phoxtail_pages_get_body",
