@@ -64,8 +64,8 @@ class VariantCreate(Schema):
 
     identifier: str
     name: str
-    block: str
-    collection: str
+    block_id: int
+    collection_id: int
     description: str = ""
     html: str = ""
     css: str = ""
@@ -250,13 +250,13 @@ class ContextReferenceVariant(Schema):
 class ContextRequest(Schema):
     """Body for ``POST /context/``.
 
-    ``block`` and ``collection`` are required. ``references`` is an
+    ``block_id`` and ``collection_id`` are required. ``references`` is an
     optional list of variant identifiers from the same collection
     to include as inspiration.
     """
 
-    block: str
-    collection: str
+    block_id: int
+    collection_id: int
     references: list[str] = []
 
 
@@ -267,6 +267,51 @@ class ContextResponse(Schema):
     collection: ContextCollectionRef
     design_tokens: DesignTokens
     references: list[ContextReferenceVariant]
+
+
+# ---------------------------------------------------------------------------
+# Shared Blocks
+# ---------------------------------------------------------------------------
+
+
+class SharedBlockSummary(Schema):
+    id: int
+    block_id: int
+    block: BlockRef
+    site_id: int
+    site_hostname: str
+    locale_id: int
+    language_code: str
+    created_at: str
+    updated_at: str
+
+
+class SharedBlock(SharedBlockSummary):
+    content: str
+
+
+class SharedBlockList(Schema):
+    shared_blocks: list[SharedBlockSummary]
+    total: int
+
+
+class SharedBlockCreate(Schema):
+    """Request body for ``POST /shared-blocks/``."""
+
+    block_id: int
+    site_id: int
+    locale_id: int
+    content: list[dict] = []
+
+
+class SharedBlockUpdate(Schema):
+    """Request body for ``PATCH /shared-blocks/{id}/``.
+
+    Only ``content`` may be changed after creation. The block/site/locale
+    triplet is immutable. The ETag check happens via ``If-Match``.
+    """
+
+    content: list[dict] | None = None
 
 
 # ---------------------------------------------------------------------------

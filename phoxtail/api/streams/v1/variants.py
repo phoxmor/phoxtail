@@ -70,13 +70,13 @@ def create_variant(
     payload: VariantCreate,
 ):
     try:
-        block = Block.objects.get(identifier=payload.block)
+        block = Block.objects.get(pk=payload.block_id)
     except Block.DoesNotExist:
-        raise HttpError(404, f"Block '{payload.block}' not found.")
+        raise HttpError(404, f"Block {payload.block_id} not found.")
     try:
-        collection = VariantCollection.objects.get(identifier=payload.collection)
+        collection = VariantCollection.objects.get(pk=payload.collection_id)
     except VariantCollection.DoesNotExist:
-        raise HttpError(404, f"Collection '{payload.collection}' not found.")
+        raise HttpError(404, f"Collection {payload.collection_id} not found.")
 
     if BlockVariant.objects.filter(
         identifier=payload.identifier, block=block, collection=collection
@@ -84,7 +84,7 @@ def create_variant(
         raise HttpError(
             409,
             f"Variant '{payload.identifier}' already exists "
-            f"in {block.identifier}/{collection.identifier}.",
+            f"for block {payload.block_id}/collection {payload.collection_id}.",
         )
 
     v = BlockVariant.objects.create(

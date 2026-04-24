@@ -17,8 +17,8 @@ from django.http import HttpRequest
 from ninja import Router
 
 from phoxtail.api.streams.v1._helpers import (
-    resolve_block,
-    resolve_collection,
+    resolve_block_by_pk,
+    resolve_collection_by_pk,
 )
 from phoxtail.api.streams.v1.schemas import (
     ContextRequest,
@@ -44,8 +44,8 @@ def get_context(request: HttpRequest, payload: ContextRequest):
     Returns structured data that the MCP server renders into a
     context document using its local Jinja2 template.
     """
-    block = resolve_block(payload.block)
-    collection = resolve_collection(payload.collection)
+    block = resolve_block_by_pk(payload.block_id)
+    collection = resolve_collection_by_pk(payload.collection_id)
 
     # Block schema as JSON
     schema_json = json.dumps(block.schema.get_prep_value(), indent=2)

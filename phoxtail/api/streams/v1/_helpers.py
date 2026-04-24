@@ -18,6 +18,7 @@ from ninja.errors import HttpError
 from phoxtail.streams.models import (
     Block,
     BlockVariant,
+    SharedBlock,
     VariantCollection,
 )
 
@@ -212,6 +213,73 @@ def block_etag(b: Block) -> str:
         h.update(field.encode("utf-8"))
         h.update(b"\x00")
     h.update(json.dumps(b.schema.get_prep_value(), sort_keys=True).encode("utf-8"))
+    return f'W/"{h.hexdigest()[:16]}"'
+
+
+# ---------------------------------------------------------------------------
+# SharedBlock resolution and serialization
+# ---------------------------------------------------------------------------
+
+
+def resolve_shared_block_by_pk(pk: int) -> SharedBlock:
+    try:
+        return SharedBlock.objects.select_related(
+            "block", "site", "locale"
+        ).get(pk=pk)
+    except SharedBlock.DoesNotExist as exc:
+        raise HttpError(404, f"SharedBlock {pk} not found.") from exc
+
+
+def resolve_site(pk: int):
+    from wagtail.models import Site
+
+    try:
+        return Site.objects.get(pk=pk)
+    except Site.DoesNotExist as exc:
+        raise HttpError(404, f"Site {pk} not found.") from exc
+
+
+def resolve_locale(pk: int):
+    from wagtail.models import Locale
+
+    try:
+        return Locale.objects.get(pk=pk)
+    except Locale.DoesNotExist as exc:
+        raise HttpError(404, f"Locale {pk} not found.") from exc
+
+
+def shared_block_summary(sb: SharedBlock) -> dict:
+    return {
+        "id": sb.id,
+        "block_id": sb.block_id,
+        "block": {"identifier": sb.block.identifier, "name": sb.block.name},
+        "site_id": sb.site_id,
+        "site_hostname": sb.site.hostname,
+        "locale_id": sb.locale_id,
+        "language_code": sb.locale.language_code,
+        "created_at": sb.created_at.isoformat(),
+        "updated_at": sb.updated_at.isoformat(),
+    }
+
+
+def shared_block_detail(sb: SharedBlock) -> dict:
+    return {
+        **shared_block_summary(sb),
+        "content": json.dumps(sb.content.get_prep_value() or [], indent=2),
+    }
+
+
+def shared_block_etag(sb: SharedBlock) -> str:
+    h = hashlib.sha256()
+    for part in (
+        str(sb.block_id),
+        str(sb.site_id),
+        str(sb.locale_id),
+        json.dumps(sb.content.get_prep_value() or [], sort_keys=True),
+        sb.updated_at.isoformat(),
+    ):
+        h.update(part.encode("utf-8"))
+        h.update(b"\x00")
     return f'W/"{h.hexdigest()[:16]}"'
 
 

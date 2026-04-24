@@ -28,16 +28,18 @@ _jinja_env = Environment(
         "architecture rules, the collection's design guidelines, "
         "site-wide design tokens (palettes, fonts), and optionally "
         "reference variants for inspiration. "
+        "Pass `block_id` from phoxtail_studio_list_blocks and "
+        "`collection_id` from phoxtail_studio_list_collections. "
         "Call this before creating or editing a variant to understand "
         "the domain constraints."
     ),
 )
 def get_context(
-    block: str,
-    collection: str,
+    block_id: int,
+    collection_id: int,
     references: list[str] | None = None,
 ) -> str:
-    body: dict[str, Any] = {"block": block, "collection": collection}
+    body: dict[str, Any] = {"block_id": block_id, "collection_id": collection_id}
     if references:
         body["references"] = references
     resp = request("POST", "/context/", json_body=body)

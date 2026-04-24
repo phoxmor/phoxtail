@@ -32,6 +32,8 @@ def list_variants(
     return json.dumps(data, indent=2)
 
 
+
+
 # -- Read ------------------------------------------------------------------
 
 
@@ -169,8 +171,10 @@ def update_variant(
     name="phoxtail_studio_create_variant",
     description=(
         "Create a new block variant. Requires an identifier (unique within "
-        "the block+collection pair), a human-readable name, and the "
-        "identifiers of an existing block and collection. "
+        "the block+collection pair), a human-readable name, and the numeric "
+        "IDs of an existing block and collection. Pass `block_id` from "
+        "phoxtail_studio_list_blocks and `collection_id` from "
+        "phoxtail_studio_list_collections. "
         "Content fields (html, css, javascript) default to empty strings. "
         "Set is_default=true to mark as the block's default variant "
         "(only one default per block is allowed). "
@@ -180,8 +184,8 @@ def update_variant(
 def create_variant(
     identifier: str,
     name: str,
-    block: str,
-    collection: str,
+    block_id: int,
+    collection_id: int,
     description: str = "",
     html: str = "",
     css: str = "",
@@ -194,8 +198,8 @@ def create_variant(
         json_body={
             "identifier": identifier,
             "name": name,
-            "block": block,
-            "collection": collection,
+            "block_id": block_id,
+            "collection_id": collection_id,
             "description": description,
             "html": html,
             "css": css,
