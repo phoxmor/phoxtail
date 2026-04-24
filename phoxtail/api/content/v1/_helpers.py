@@ -88,11 +88,16 @@ def resolve_page(page_id: int) -> Page:
     draft. Use this for writes (``save_revision``, ``publish``) and for
     permission checks; use :func:`resolve_page_for_read` to surface
     draft state to a reader.
+
+    The Wagtail root page (depth=1) is invisible to this API — it is an
+    internal structural node, not a content page. Requests for it 404.
     """
     try:
         page = Page.objects.get(pk=page_id)
     except Page.DoesNotExist as exc:
         raise HttpError(404, f"Page {page_id} not found.") from exc
+    if page.is_root():
+        raise HttpError(404, f"Page {page_id} not found.")
     return page.specific
 
 

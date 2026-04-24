@@ -264,6 +264,18 @@ class InternalLinkPatch(Schema):
 
 
 # ---------------------------------------------------------------------------
+# Copy for translation
+# ---------------------------------------------------------------------------
+
+
+class CopyForTranslationPayload(Schema):
+    locale: int
+    copy_parents: bool = False
+    alias: bool = False
+    include_subtree: bool = False
+
+
+# ---------------------------------------------------------------------------
 # Errors — re-exported from streams for consistency
 # ---------------------------------------------------------------------------
 

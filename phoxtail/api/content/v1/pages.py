@@ -38,6 +38,7 @@ from phoxtail.api.content.v1._helpers import (
 )
 from phoxtail.api.content.v1.schemas import (
     BodyResponse,  # noqa: F401 — re-exported for Ninja docs
+    CopyForTranslationPayload,
     Error,
     PageCreate,
     PageDetail,
@@ -71,7 +72,7 @@ def list_pages(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    qs = Page.objects.all().order_by("path")
+    qs = Page.objects.exclude(depth=1).order_by("path")
     if type:
         qs = filter_by_content_type(qs, type)
     if parent is not None:
@@ -308,6 +309,70 @@ def unpublish_page(
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
     return serialize_page_detail(fresh)
+
+
+@router.post(
+    "/{page_id}/copy_for_translation/",
+    response={201: PageDetail, 400: Error, 403: Error, 404: Error, 409: Error},
+    summary="Copy a page into a new locale (requires simple_translation)",
+)
+def copy_page_for_translation(
+    request: HttpRequest,
+    response: HttpResponse,
+    page_id: int,
+    payload: CopyForTranslationPayload,
+):
+    from django.db import IntegrityError
+    from wagtail.actions.copy_for_translation import (
+        CopyPageForTranslationAction,
+        CopyPageForTranslationPermissionError,
+        ParentNotTranslatedError,
+    )
+    from wagtail.models import Locale
+
+    page = resolve_page(page_id)
+
+    try:
+        locale = Locale.objects.get(pk=payload.locale)
+    except Locale.DoesNotExist as exc:
+        raise HttpError(404, f"Locale {payload.locale} not found.") from exc
+
+    if page.has_translation(locale):
+        raise HttpError(
+            409,
+            f"Page already has a translation in locale '{locale.language_code}'. "
+            "Use phoxtail_pages_list_pages with locale= to find it.",
+        )
+
+    action = CopyPageForTranslationAction(
+        page=page,
+        locale=locale,
+        copy_parents=payload.copy_parents,
+        alias=payload.alias,
+        include_subtree=payload.include_subtree,
+        user=request.auth,
+    )
+    try:
+        with transaction.atomic():
+            translated_page = action.execute()
+    except CopyPageForTranslationPermissionError as exc:
+        raise HttpError(403, str(exc)) from exc
+    except ParentNotTranslatedError:
+        raise HttpError(
+            400,
+            "Parent page is not translated into the target locale. "
+            "Pass copy_parents=true to automatically copy untranslated parent pages.",
+        )
+    except IntegrityError:
+        raise HttpError(
+            409,
+            f"One or more pages in the subtree already have a translation in "
+            f"locale '{locale.language_code}'. The entire operation was rolled back.",
+        )
+
+    fresh = resolve_page(translated_page.pk)
+    response["ETag"] = page_etag(fresh)
+    return 201, serialize_page_detail(fresh)
 
 
 @router.delete(

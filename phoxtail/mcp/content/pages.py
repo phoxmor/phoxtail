@@ -268,6 +268,47 @@ def delete_page(page_id: int, etag: str, force: bool = False) -> str:
 
 
 @mcp_server.tool(
+    name="phoxtail_pages_translate_page",
+    description=(
+        "Copy a Wagtail page into a new locale using simple_translation. "
+        "Before calling: use phoxtail_locales_list to discover available "
+        "locale IDs. The copied page is created as a draft in the target "
+        "locale under the translated parent — call phoxtail_pages_publish "
+        "on the returned page ID to make it live. "
+        "include_subtree=true also copies all child pages recursively (like "
+        "the Wagtail admin 'Include subtree' checkbox). "
+        "copy_parents=true automatically copies any untranslated ancestor "
+        "pages as aliases. alias=true creates a live-synced alias instead "
+        "of an independent editable copy. "
+        "Returns the new top-level page with an _etag for further writes."
+    ),
+)
+def translate_page(
+    page_id: int,
+    locale_id: int,
+    copy_parents: bool = False,
+    alias: bool = False,
+    include_subtree: bool = False,
+) -> str:
+    resp = request(
+        "POST",
+        f"/pages/{page_id}/copy_for_translation/",
+        json_body={
+            "locale": locale_id,
+            "copy_parents": copy_parents,
+            "alias": alias,
+            "include_subtree": include_subtree,
+        },
+    )
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    data = resp.json()
+    data["_etag"] = resp.headers.get("ETag", "")
+    return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
     name="phoxtail_pages_unpublish",
     description=(
         "Take a page offline. Requires the ETag from a prior "

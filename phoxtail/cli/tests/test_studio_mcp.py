@@ -19,6 +19,8 @@ from typer.testing import CliRunner
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import url
+from phoxtail.mcp.content.pages import translate_page
+from phoxtail.mcp.content.resources import locales_list
 from phoxtail.mcp.studio.blocks import (
     create_block,
     get_block,
@@ -95,6 +97,7 @@ class TestMCPToolRegistration:
             "phoxtail_studio_delete_shared_block",
         }
         pages_tools = {
+            "phoxtail_locales_list",
             "phoxtail_page_types_list",
             "phoxtail_pages_list_pages",
             "phoxtail_pages_get_page",
@@ -103,6 +106,7 @@ class TestMCPToolRegistration:
             "phoxtail_pages_delete_page",
             "phoxtail_pages_publish",
             "phoxtail_pages_unpublish",
+            "phoxtail_pages_translate_page",
             "phoxtail_pages_get_body",
             "phoxtail_pages_replace_body",
             "phoxtail_pages_list_images",
@@ -605,6 +609,103 @@ class TestDesignBlockPrompt:
     def test_registered(self):
         prompts = mcp_server._prompt_manager._prompts
         assert "design_block" in prompts
+
+
+# ---------------------------------------------------------------------------
+# phoxtail_locales_list
+# ---------------------------------------------------------------------------
+
+
+class TestLocalesList:
+    def test_returns_json(self, httpx_mock: HTTPXMock):
+        payload = {
+            "locales": [
+                {"id": 1, "language_code": "en"},
+                {"id": 2, "language_code": "de"},
+            ],
+            "total": 2,
+        }
+        httpx_mock.add_response(url=url("/api/content/v1/locales/"), json=payload)
+        result = json.loads(locales_list())
+        assert result["total"] == 2
+        assert result["locales"][0]["language_code"] == "en"
+
+    def test_error_surfaces_as_envelope(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(status_code=500, json={"detail": "boom"})
+        result = json.loads(locales_list())
+        assert result["error"] == "http_error"
+        assert result["status"] == 500
+
+
+# ---------------------------------------------------------------------------
+# phoxtail_pages_translate_page
+# ---------------------------------------------------------------------------
+
+SAMPLE_PAGE_DETAIL = {
+    "id": 42,
+    "title": "Home (DE)",
+    "slug": "home-de",
+    "live": False,
+    "locale": "de",
+    "content_type": "phoxtail_core.HomePage",
+    "url": None,
+}
+
+
+class TestTranslatePage:
+    def test_success_returns_page_with_etag(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            url=url("/api/content/v1/pages/10/copy_for_translation/"),
+            status_code=201,
+            json=SAMPLE_PAGE_DETAIL,
+            headers={"ETag": 'W/"abc123"'},
+        )
+        result = json.loads(translate_page(page_id=10, locale_id=2))
+        assert result["id"] == 42
+        assert result["locale"] == "de"
+        assert result["_etag"] == 'W/"abc123"'
+
+    def test_sends_correct_payload(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(status_code=201, json=SAMPLE_PAGE_DETAIL)
+        translate_page(
+            page_id=10,
+            locale_id=2,
+            copy_parents=True,
+            alias=False,
+            include_subtree=True,
+        )
+        req = httpx_mock.get_request()
+        body = json.loads(req.content)
+        assert body["locale"] == 2
+        assert body["copy_parents"] is True
+        assert body["include_subtree"] is True
+
+    def test_already_translated_returns_409_envelope(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=409,
+            json={"detail": "Page already has a translation in locale 'de'."},
+        )
+        result = json.loads(translate_page(page_id=10, locale_id=2))
+        assert result["error"] == "conflict"
+        assert result["status"] == 409
+
+    def test_parent_not_translated_returns_400_envelope(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=400,
+            json={"detail": "Parent page is not translated into the target locale."},
+        )
+        result = json.loads(translate_page(page_id=10, locale_id=2))
+        assert result["error"] == "validation_error"
+        assert result["status"] == 400
+
+    def test_permission_denied_returns_403_envelope(self, httpx_mock: HTTPXMock):
+        httpx_mock.add_response(
+            status_code=403,
+            json={"detail": "You do not have permission to submit a translation."},
+        )
+        result = json.loads(translate_page(page_id=10, locale_id=2))
+        assert result["error"] == "permission_denied"
+        assert result["status"] == 403
 
 
 # ---------------------------------------------------------------------------

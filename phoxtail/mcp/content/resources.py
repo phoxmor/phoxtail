@@ -17,6 +17,22 @@ from phoxtail.mcp.content.pages import _write_error_envelope
 
 
 @mcp_server.tool(
+    name="phoxtail_locales_list",
+    description=(
+        "List all Wagtail locales configured in this project. Returns each "
+        "locale's id (integer) and language_code (e.g. 'en', 'fr'). "
+        "Use the id as the locale_id argument for phoxtail_pages_translate_page."
+    ),
+)
+def locales_list() -> str:
+    resp = request("GET", "/locales/")
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    return json.dumps(resp.json(), indent=2)
+
+
+@mcp_server.tool(
     name="phoxtail_page_types_list",
     description=(
         "List every Wagtail Page subclass contributed by installed Phoxtail "
