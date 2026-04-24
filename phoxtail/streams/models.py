@@ -10,6 +10,7 @@ from wagtail.search import index
 
 from phoxtail.core.mixins import TimestampMixin
 from phoxtail.streams.blocks.schema import (
+    AudioChooserSchemaBlock,
     BlockQuoteSchemaBlock,
     BooleanSchemaBlock,
     CharSchemaBlock,
@@ -126,6 +127,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             ("image_field", ImageSchemaBlock()),
             ("snippet_chooser_field", SnippetChooserSchemaBlock()),
             ("video_chooser_field", VideoChooserSchemaBlock()),
+            ("audio_chooser_field", AudioChooserSchemaBlock()),
             # Embed
             ("embed_field", EmbedSchemaBlock()),
             # Structures

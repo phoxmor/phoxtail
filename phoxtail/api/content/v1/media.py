@@ -319,9 +319,7 @@ def upload_video(
     response={200: VideoItem, 404: dict},
     summary="Update video metadata (title, tags, duration, dimensions)",
 )
-def update_video(
-    request: HttpRequest, video_id: int, payload: VideoPatch = Body(...)
-):
+def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body(...)):
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
@@ -413,9 +411,7 @@ def upload_audio(
     response={200: AudioItem, 404: dict},
     summary="Update audio metadata (title, tags, duration)",
 )
-def update_audio(
-    request: HttpRequest, audio_id: int, payload: AudioPatch = Body(...)
-):
+def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body(...)):
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()

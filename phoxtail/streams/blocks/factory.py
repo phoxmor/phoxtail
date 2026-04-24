@@ -29,7 +29,7 @@ from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.embeds.blocks import EmbedBlock
 from wagtail.images.blocks import ImageChooserBlock
 from wagtail.snippets.blocks import SnippetChooserBlock
-from wagtailmedia.blocks import VideoChooserBlock
+from wagtailmedia.blocks import AudioChooserBlock, VideoChooserBlock
 
 from .base import BlockVariantStructBlock
 
@@ -428,6 +428,7 @@ def _create_field_block(block_type, field_def):
         "image_field": (ImageChooserBlock, []),  # Using ImageChooserBlock for now
         "snippet_chooser_field": (SnippetChooserBlock, ["target_model"]),
         "video_chooser_field": (VideoChooserBlock, []),
+        "audio_chooser_field": (AudioChooserBlock, []),
         # Embed
         "embed_field": (EmbedBlock, []),
     }

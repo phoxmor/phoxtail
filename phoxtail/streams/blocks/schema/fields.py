@@ -1,5 +1,5 @@
 """
-All 24 field schema blocks.
+All 25 field schema blocks.
 
 These are meta-blocks used to define the structure of other blocks.
 Each corresponds to a Wagtail field block type.
@@ -11,7 +11,7 @@ Organized by category:
 - Date/Time (3 types)
 - Rich Content (1 type)
 - Advanced (3 types)
-- Choosers (6 types)
+- Choosers (7 types)
 - Embed & Media (1 type)
 """
 
@@ -530,6 +530,15 @@ class VideoChooserSchemaBlock(FieldSchemaBlock):
         group = "Chooser Fields"
 
 
+class AudioChooserSchemaBlock(FieldSchemaBlock):
+    """Audio chooser field (requires wagtailmedia)."""
+
+    class Meta:
+        label = "Audio Chooser"
+        icon = "media"
+        group = "Chooser Fields"
+
+
 # ==============================================================================
 # EMBED & MEDIA FIELD SCHEMA BLOCKS
 # ==============================================================================
@@ -652,6 +661,7 @@ class FIELD_BLOCK_CHOICES(metaclass=RegistryMeta):
     IMAGE = ("image_field", ImageSchemaBlock())
     SNIPPET_CHOOSER = ("snippet_chooser_field", SnippetChooserSchemaBlock())
     VIDEO_CHOOSER = ("video_chooser_field", VideoChooserSchemaBlock())
+    AUDIO_CHOOSER = ("audio_chooser_field", AudioChooserSchemaBlock())
 
     # Embed
     EMBED = ("embed_field", EmbedSchemaBlock())

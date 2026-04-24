@@ -5,7 +5,7 @@ This module contains all schema blocks used to define the structure of dynamic b
 
 Exports:
 - Base class: FieldSchemaBlock
-- 24 Field schema blocks (CharSchemaBlock, TextSchemaBlock,
+- 25 Field schema blocks (CharSchemaBlock, TextSchemaBlock,
   VideoChooserSchemaBlock, etc.)
 - 3 Structure schema blocks (StructSchemaBlock,
   ListFieldSchemaBlock, ListStructSchemaBlock)
@@ -17,9 +17,10 @@ Exports:
 # Base class
 from .base import FieldSchemaBlock
 
-# Field schema blocks (24 types)
+# Field schema blocks (25 types)
 from .fields import (
     FIELD_BLOCK_CHOICES,
+    AudioChooserSchemaBlock,
     BlockQuoteSchemaBlock,
     BooleanSchemaBlock,
     CharSchemaBlock,
@@ -97,6 +98,7 @@ __all__ = [
     "ImageSchemaBlock",
     "SnippetChooserSchemaBlock",
     "VideoChooserSchemaBlock",
+    "AudioChooserSchemaBlock",
     "EmbedSchemaBlock",
     # Structure blocks
     "StructSchemaBlock",
