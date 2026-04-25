@@ -304,9 +304,9 @@ def _resolve_token(token: str | None) -> str | None:
 def _default_server_name() -> str:
     """Return the project name from phoxtail.toml if available, else empty string."""
     try:
-        from phoxtail.cli.utils.config import _find_config_file, load_config
+        from phoxtail.cli.utils.config import find_config_file, load_config
 
-        if _find_config_file():
+        if find_config_file():
             return load_config().get("project", {}).get("name", "")
     except Exception:
         pass

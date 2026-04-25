@@ -21,7 +21,7 @@ DEFAULTS = {
 }
 
 
-def _find_config_file() -> Path | None:
+def find_config_file() -> Path | None:
     """Walk up from cwd to find phoxtail.toml."""
     current = Path.cwd()
     for parent in [current, *current.parents]:
@@ -38,7 +38,7 @@ def load_config() -> dict:
     Caches the result so the file is read at most once per process.
     """
     config = copy.deepcopy(DEFAULTS)
-    path = _find_config_file()
+    path = find_config_file()
     if path is not None:
         with open(path, "rb") as f:
             file_config = tomllib.load(f)
@@ -84,7 +84,7 @@ def get_api_base_url() -> str:
     client, the MCP client, and ``phoxtail auth`` so they all agree on
     where the API lives and which host key indexes stored credentials.
     """
-    if _find_config_file() is None:
+    if find_config_file() is None:
         return DEFAULT_API_BASE_URL
     try:
         config = load_config()

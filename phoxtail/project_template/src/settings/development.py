@@ -1,4 +1,5 @@
 from .base import *  # noqa: F403
+from .. import _reload_trigger  # noqa: F401
 
 DEBUG = True
 

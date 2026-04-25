@@ -16,7 +16,7 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
-from phoxtail.cli.utils.config import _find_config_file
+from phoxtail.cli.utils.config import find_config_file
 
 STUDIO_DIR = ".phoxtail/studio"
 
@@ -29,7 +29,7 @@ SESSION_CONTEXT = "context.md"
 
 
 def _project_root() -> Path:
-    config = _find_config_file()
+    config = find_config_file()
     if config is None:
         raise FileNotFoundError("No phoxtail.toml found")
     return config.parent

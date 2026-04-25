@@ -23,7 +23,7 @@ from phoxtail.cli import (
     studio,
     test,
 )
-from phoxtail.cli.utils.config import _find_config_file
+from phoxtail.cli.utils.config import find_config_file
 
 app = typer.Typer(
     name="phoxtail",
@@ -47,7 +47,7 @@ def main(ctx: typer.Context):
     if ctx.invoked_subcommand in NO_PROJECT_COMMANDS or ctx.resilient_parsing:
         return
 
-    if _find_config_file() is None:
+    if find_config_file() is None:
         console.print(
             Panel(
                 "No [bold]phoxtail.toml[/bold] found in this directory or any parent.\n"
