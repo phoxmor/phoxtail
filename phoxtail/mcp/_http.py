@@ -41,6 +41,7 @@ def _touch_reload() -> None:
         except Exception:
             pass
 
+
 DEFAULT_TIMEOUT = 30.0
 
 
