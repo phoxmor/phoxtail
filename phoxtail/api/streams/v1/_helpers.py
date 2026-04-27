@@ -79,8 +79,13 @@ def variant_summary(v: BlockVariant) -> dict:
         "name": v.name,
         "description": v.description,
         "is_default": v.is_default,
-        "block": {"identifier": v.block.identifier, "name": v.block.name},
+        "block": {
+            "id": v.block.id,
+            "identifier": v.block.identifier,
+            "name": v.block.name,
+        },
         "collection": {
+            "id": v.collection.id,
             "identifier": v.collection.identifier,
             "name": v.collection.name,
         },
@@ -131,6 +136,7 @@ def block_detail(b: Block) -> dict:
             "name": v.name,
             "is_default": v.is_default,
             "collection": {
+                "id": v.collection.id,
                 "identifier": v.collection.identifier,
                 "name": v.collection.name,
             },
@@ -250,7 +256,11 @@ def shared_block_summary(sb: SharedBlock) -> dict:
     return {
         "id": sb.id,
         "block_id": sb.block_id,
-        "block": {"identifier": sb.block.identifier, "name": sb.block.name},
+        "block": {
+            "id": sb.block.id,
+            "identifier": sb.block.identifier,
+            "name": sb.block.name,
+        },
         "site_id": sb.site_id,
         "site_hostname": sb.site.hostname,
         "locale_id": sb.locale_id,

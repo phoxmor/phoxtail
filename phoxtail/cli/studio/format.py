@@ -7,6 +7,7 @@ to display shapes — they never speak HTTP or touch the database.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from rich.console import Console
@@ -275,6 +276,39 @@ def render_block_detail(block: dict[str, Any], console: Console) -> None:
                 "✓" if v.get("is_default") else "",
             )
         console.print(table)
+
+
+def render_session_detail(session: dict[str, Any], console: Console) -> None:
+    """Render full detail for a single editing session."""
+    variant = session.get("variant") or {}
+    block = variant.get("block") or {}
+    collection = variant.get("collection") or {}
+    started = session.get("started_at", "")
+    if started:
+        started = started[:19].replace("T", " ")
+
+    full_path = session.get("path", "")
+    display_path = full_path.replace(str(Path.home()), "~", 1)
+
+    rows = [
+        ("Path", display_path),
+        ("Session ID", session.get("session_id", "")),
+        ("Variant", f"{variant.get('identifier', '')} (ID {variant.get('id', '')})"),
+        ("Block", block.get("identifier", "")),
+        ("Collection", collection.get("identifier", "")),
+        ("Started", started),
+        ("ETag", session.get("etag", "") or "—"),
+    ]
+    console.print(
+        Panel(
+            _kv_text(rows),
+            title="[bold]Session[/bold]",
+            border_style="cyan",
+            expand=False,
+        )
+    )
+    if full_path:
+        console.print(full_path, highlight=False)
 
 
 def render_sessions(sessions: list[dict[str, Any]], console: Console) -> None:

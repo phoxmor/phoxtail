@@ -18,6 +18,7 @@ from ninja import Field, Schema
 class BlockRef(Schema):
     """Minimal embed of a block, used inside variant responses."""
 
+    id: int
     identifier: str
     name: str
 
@@ -25,6 +26,7 @@ class BlockRef(Schema):
 class CollectionRef(Schema):
     """Minimal embed of a collection, used inside variant responses."""
 
+    id: int
     identifier: str
     name: str
 

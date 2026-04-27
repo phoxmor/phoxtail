@@ -53,7 +53,16 @@ class TestContextCommand:
         httpx_mock.add_response(json=CONTEXT_RESPONSE)
         result = runner.invoke(
             app,
-            ["context", "--block", "1", "--collection", "2", "--references", "5,7", "--raw"],
+            [
+                "context",
+                "--block",
+                "1",
+                "--collection",
+                "2",
+                "--references",
+                "5,7",
+                "--raw",
+            ],
         )
         assert result.exit_code == 0
         req = httpx_mock.get_request()
@@ -64,7 +73,16 @@ class TestContextCommand:
         httpx_mock.add_response(json=CONTEXT_RESPONSE)
         result = runner.invoke(
             app,
-            ["context", "--block", "1", "--collection", "2", "--references", "42", "--raw"],
+            [
+                "context",
+                "--block",
+                "1",
+                "--collection",
+                "2",
+                "--references",
+                "42",
+                "--raw",
+            ],
         )
         assert result.exit_code == 0
         req = httpx_mock.get_request()
@@ -81,7 +99,15 @@ class TestContextCommand:
     def test_references_rejects_non_integer(self):
         result = runner.invoke(
             app,
-            ["context", "--block", "1", "--collection", "2", "--references", "dark,light"],
+            [
+                "context",
+                "--block",
+                "1",
+                "--collection",
+                "2",
+                "--references",
+                "dark,light",
+            ],
         )
         assert result.exit_code == 1
         assert "must be comma-separated variant IDs" in result.output

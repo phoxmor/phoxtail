@@ -52,18 +52,28 @@ def sessions_start(
 
     variant_data, etag = _client.get_variant_by_id(variant_id)
 
+    session_id = str(variant_data["id"])
+    if session.session_exists(session_id):
+        sdir = session.session_dir(session_id)
+        console.print(
+            f"[red]Error:[/red] a session for variant [bold]{variant_id}[/bold] "
+            f"is already open at {sdir}\n"
+            "  Run [bold]phoxtail studio sessions discard[/bold] first, "
+            "or commit it with [bold]phoxtail studio sessions commit[/bold]."
+        )
+        raise typer.Exit(code=1)
+
     context_md = ""
     try:
         data = _client.get_context(
-            block=variant_data["block"]["identifier"],
-            collection=variant_data["collection"]["identifier"],
+            block_id=variant_data["block"]["id"],
+            collection_id=variant_data["collection"]["id"],
         )
         jinja_template = _jinja_env.get_template("variant_design_context.md")
         context_md = jinja_template.render(**data)
     except Exception:
         pass
 
-    session_id = session.derive_session_id(variant_data["identifier"])
     sdir = session.create_session(
         session_id=session_id,
         variant_data=variant_data,
@@ -80,6 +90,30 @@ def sessions_start(
         f"  [dim]Files:[/dim]   template.html, style.css, script.js, "
         f"context.md"
     )
+
+
+@app.command("get")
+def sessions_get(
+    session_ref: str | None = typer.Option(
+        None,
+        "--session",
+        help="Session ID. Can be omitted when only one session is active.",
+    ),
+    path_only: bool = typer.Option(
+        False,
+        "--path",
+        help="Print only the session directory path (useful for agent prompts).",
+    ),
+) -> None:
+    """Show details of an active session, including its directory path."""
+    session_id = resolve_session_id(session_ref)
+    session_data = session.read_session(session_id)
+    session_data["path"] = str(session.session_dir(session_id))
+
+    if path_only:
+        console.print(session_data["path"], highlight=False)
+    else:
+        format.render_session_detail(session_data, console)
 
 
 @app.command("commit")

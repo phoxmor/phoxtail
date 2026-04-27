@@ -18,8 +18,6 @@ from pathlib import Path
 
 from phoxtail.cli.utils.config import find_config_file
 
-STUDIO_DIR = ".phoxtail/studio"
-
 # File names inside a session directory
 SESSION_META = "session.json"
 SESSION_HTML = "template.html"
@@ -35,8 +33,18 @@ def _project_root() -> Path:
     return config.parent
 
 
+def _project_key() -> str:
+    """Derive a filesystem-safe key from the absolute project root path.
+
+    Strips the leading slash and replaces all remaining slashes with dashes,
+    matching the same convention used by Claude Code for project-scoped state.
+    Example: /home/user/work/mysite -> home-user-work-mysite
+    """
+    return str(_project_root()).lstrip("/").replace("/", "-")
+
+
 def sessions_root() -> Path:
-    return _project_root() / STUDIO_DIR
+    return Path.home() / ".phoxtail" / "projects" / _project_key() / "sessions"
 
 
 def session_dir(session_id: str) -> Path:
@@ -139,19 +147,3 @@ def discard_session(session_id: str) -> Path:
         raise FileNotFoundError(f"Session '{session_id}' not found.")
     shutil.rmtree(sdir)
     return sdir
-
-
-def derive_session_id(variant_identifier: str) -> str:
-    """Derive a session ID from a variant identifier.
-
-    Uses the variant identifier directly. If a session already exists
-    for that identifier, appends a short numeric suffix.
-    """
-    base = variant_identifier
-    if not session_exists(base):
-        return base
-
-    n = 2
-    while session_exists(f"{base}-{n}"):
-        n += 1
-    return f"{base}-{n}"

@@ -51,8 +51,8 @@ SAMPLE_VARIANT_SUMMARY = {
     "name": "Centered",
     "description": "A centered hero section.",
     "is_default": True,
-    "block": {"identifier": "header_section", "name": "Header Section"},
-    "collection": {"identifier": "ground-state", "name": "Ground State"},
+    "block": {"id": 1, "identifier": "header_section", "name": "Header Section"},
+    "collection": {"id": 1, "identifier": "ground-state", "name": "Ground State"},
 }
 
 SAMPLE_VARIANT_DETAIL = {
