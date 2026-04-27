@@ -258,6 +258,16 @@ def _load_variants(root: Path) -> None:
         console.print("[yellow]  No blocks/ directory found, skipping.[/yellow]")
         return
 
+    blocks_data = client.list_blocks()
+    block_id_by_identifier = {
+        b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])
+    }
+
+    collections_data = client.list_collections()
+    collection_id_by_identifier = {
+        c["identifier"]: c["id"] for c in collections_data.get("collections", [])
+    }
+
     created = skipped = 0
     for block_dir in sorted(d for d in blocks_dir.iterdir() if d.is_dir()):
         variants_dir = block_dir / "variants"
@@ -265,9 +275,23 @@ def _load_variants(root: Path) -> None:
             continue
 
         block_identifier = block_dir.name
+        block_id = block_id_by_identifier.get(block_identifier)
+        if block_id is None:
+            console.print(
+                f"[yellow]  Skipping block {block_identifier}: "
+                "not found on server[/yellow]"
+            )
+            continue
 
         for collection_dir in sorted(d for d in variants_dir.iterdir() if d.is_dir()):
             collection_identifier = collection_dir.name
+            collection_id = collection_id_by_identifier.get(collection_identifier)
+            if collection_id is None:
+                console.print(
+                    f"[yellow]  Skipping collection {collection_identifier}: "
+                    "not found on server[/yellow]"
+                )
+                continue
 
             for variant_dir in sorted(
                 d for d in collection_dir.iterdir() if d.is_dir()
@@ -309,8 +333,8 @@ def _load_variants(root: Path) -> None:
                 _, status = client.create_variant(
                     identifier=identifier,
                     name=metadata.get("name", variant_dir.name),
-                    block=block_identifier,
-                    collection=collection_identifier,
+                    block_id=block_id,
+                    collection_id=collection_id,
                     description=description_file.read_text(encoding="utf-8"),
                     html=html_file.read_text(encoding="utf-8"),
                     css=css_file.read_text(encoding="utf-8")

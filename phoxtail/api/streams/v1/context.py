@@ -26,7 +26,7 @@ from phoxtail.api.streams.v1.schemas import (
     Error,
 )
 from phoxtail.design.models import FontRole, PaletteRole
-from phoxtail.streams.models import BlockVariant, VariantCollection
+from phoxtail.streams.models import BlockVariant
 
 router = Router()
 
@@ -51,7 +51,7 @@ def get_context(request: HttpRequest, payload: ContextRequest):
     schema_json = json.dumps(block.schema.get_prep_value(), indent=2)
 
     # Reference variants
-    references = _resolve_references(payload.references, collection)
+    references = _resolve_references(payload.references)
 
     # Site-wide design tokens
     palette_roles = [
@@ -106,38 +106,20 @@ def get_context(request: HttpRequest, payload: ContextRequest):
     }
 
 
-def _resolve_references(
-    identifiers: list[str],
-    collection: VariantCollection,
-) -> list[BlockVariant]:
-    if not identifiers:
+def _resolve_references(ids: list[int]) -> list[BlockVariant]:
+    if not ids:
         return []
 
     resolved: list[BlockVariant] = []
-    for identifier in identifiers:
-        qs = BlockVariant.objects.select_related("block", "collection").filter(
-            identifier=identifier, collection=collection
-        )
-        matches = list(qs)
-        if not matches:
+    for variant_id in ids:
+        try:
+            resolved.append(
+                BlockVariant.objects.select_related("block", "collection").get(
+                    pk=variant_id
+                )
+            )
+        except BlockVariant.DoesNotExist:
             from ninja.errors import HttpError
 
-            raise HttpError(
-                404,
-                f"Reference variant '{identifier}' not found in collection "
-                f"'{collection.identifier}'.",
-            )
-        if len(matches) > 1:
-            from ninja.errors import HttpError
-
-            locations = ", ".join(
-                f"{m.block.identifier}/{m.collection.identifier}" for m in matches
-            )
-            raise HttpError(
-                409,
-                f"Reference variant '{identifier}' is ambiguous within "
-                f"collection '{collection.identifier}' "
-                f"({len(matches)} matches: {locations}).",
-            )
-        resolved.append(matches[0])
+            raise HttpError(404, f"Reference variant {variant_id} not found.")
     return resolved

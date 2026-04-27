@@ -251,13 +251,12 @@ class ContextRequest(Schema):
     """Body for ``POST /context/``.
 
     ``block_id`` and ``collection_id`` are required. ``references`` is an
-    optional list of variant identifiers from the same collection
-    to include as inspiration.
+    optional list of variant IDs to include as inspiration.
     """
 
     block_id: int
     collection_id: int
-    references: list[str] = []
+    references: list[int] = []
 
 
 class ContextResponse(Schema):

@@ -206,8 +206,8 @@ def create_variant(
     *,
     identifier: str,
     name: str,
-    block: str,
-    collection: str,
+    block_id: int,
+    collection_id: int,
     description: str = "",
     html: str = "",
     css: str = "",
@@ -224,8 +224,8 @@ def create_variant(
         json_body={
             "identifier": identifier,
             "name": name,
-            "block": block,
-            "collection": collection,
+            "block_id": block_id,
+            "collection_id": collection_id,
             "description": description,
             "html": html,
             "css": css,
@@ -310,12 +310,12 @@ def get_block_by_id(block_id: int) -> tuple[dict[str, Any], str | None]:
 
 def get_context(
     *,
-    block: str,
-    collection: str,
-    references: list[str] | None = None,
+    block_id: int,
+    collection_id: int,
+    references: list[int] | None = None,
 ) -> dict[str, Any]:
     """Fetch assembled context data for an AI agent briefing."""
-    body: dict[str, Any] = {"block": block, "collection": collection}
+    body: dict[str, Any] = {"block_id": block_id, "collection_id": collection_id}
     if references:
         body["references"] = references
     response = request("POST", "/context/", json_body=body)

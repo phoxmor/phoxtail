@@ -287,11 +287,11 @@ class TestGetContext:
         get_context(
             block_id=1,
             collection_id=1,
-            references=["dark", "light"],
+            references=[5, 7],
         )
         req = httpx_mock.get_request()
         body = json.loads(req.content)
-        assert body["references"] == ["dark", "light"]
+        assert body["references"] == [5, 7]
 
 
 # ---------------------------------------------------------------------------

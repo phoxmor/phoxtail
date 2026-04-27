@@ -37,7 +37,7 @@ _jinja_env = Environment(
 def get_context(
     block_id: int,
     collection_id: int,
-    references: list[str] | None = None,
+    references: list[int] | None = None,
 ) -> str:
     body: dict[str, Any] = {"block_id": block_id, "collection_id": collection_id}
     if references:

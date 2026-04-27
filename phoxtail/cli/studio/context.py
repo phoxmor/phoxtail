@@ -27,23 +27,20 @@ _jinja_env = Environment(
 
 
 def context(
-    block: str = typer.Option(
+    block: int = typer.Option(
         ...,
         "--block",
-        help="Block identifier.",
+        help="Block ID (from `phoxtail studio list blocks`).",
     ),
-    collection: str = typer.Option(
+    collection: int = typer.Option(
         ...,
         "--collection",
-        help="Collection identifier.",
+        help="Collection ID (from `phoxtail studio list collections`).",
     ),
     references: str | None = typer.Option(
         None,
         "--references",
-        help=(
-            "Comma-separated list of variant identifiers to include as "
-            "design inspiration."
-        ),
+        help="Comma-separated list of variant IDs to include as design inspiration.",
     ),
     output: Path | None = typer.Option(
         None,
@@ -63,14 +60,24 @@ def context(
     ),
 ) -> None:
     """Render the context briefing for a block in a collection."""
-    ref_list = (
-        [r.strip() for r in references.split(",") if r.strip()] if references else []
-    )
+    ref_list: list[int] = []
+    if references:
+        for r in references.split(","):
+            r = r.strip()
+            if r:
+                try:
+                    ref_list.append(int(r))
+                except ValueError:
+                    console.print(
+                        f"[red]Error:[/red] --references must be comma-separated"
+                        f" variant IDs (integers); got '{r}'"
+                    )
+                    raise typer.Exit(code=1)
 
     # Assemble context from the API and render locally
     data = client.get_context(
-        block=block,
-        collection=collection,
+        block_id=block,
+        collection_id=collection,
         references=ref_list,
     )
 
