@@ -78,6 +78,7 @@ nav:
       - Manual Server Hardening: internal/server-hardening-guide.md
       - Shared Blocks Refactor: internal/shared-blocks-refactor-plan.md
       - Body Validation Gap: internal/body-validation-gap.md
+      - MCP Session Editing: internal/mcp-session-editing.md
 
 theme:
   name: material

@@ -41,7 +41,10 @@ def list_variants(
         "Get the full detail of a single block variant, including its HTML, "
         "CSS, and JavaScript content. Also returns the current ETag which "
         "MUST be passed to phoxtail_studio_update_variant for concurrency "
-        "control. Pass the integer `variant_id` from phoxtail_studio_list_variants."
+        "control. Pass the integer `variant_id` from phoxtail_studio_list_variants. "
+        "NOTE: for editing use phoxtail_studio_open_variant instead — it writes "
+        "the content to local files so you can use Edit for surgical changes "
+        "without reloading the full payload on every turn."
     ),
 )
 def get_variant(variant_id: int) -> str:
@@ -110,7 +113,11 @@ def diff_variant(
         "will fail with a conflict error. Omitted fields are left untouched. "
         "Set is_default=true to mark as the block's default variant "
         "(only one default per block is allowed). "
-        "On success, returns the updated variant with a new ETag."
+        "On success, returns the updated variant with a new ETag. "
+        "NOTE: for surgical edits (changing specific lines rather than "
+        "rewriting entire fields) prefer phoxtail_studio_open_variant + "
+        "filesystem Edit + phoxtail_studio_commit_variant — this route only "
+        "sends the changed lines and shows diffs before each write."
     ),
 )
 def update_variant(

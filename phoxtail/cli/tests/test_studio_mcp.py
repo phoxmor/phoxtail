@@ -31,6 +31,13 @@ from phoxtail.mcp.studio.collections import get_collection, list_collections
 from phoxtail.mcp.studio.context import get_context
 from phoxtail.mcp.studio.prompts import design_block
 from phoxtail.mcp.studio.resources import schema_reference
+from phoxtail.mcp.studio.sessions import (
+    commit_variant,
+    discard_variant,
+    list_sessions,
+    open_variant,
+    refresh_session,
+)
 from phoxtail.mcp.studio.variants import (
     create_variant,
     diff_variant,
@@ -95,6 +102,12 @@ class TestMCPToolRegistration:
             "phoxtail_studio_create_shared_block",
             "phoxtail_studio_update_shared_block",
             "phoxtail_studio_delete_shared_block",
+            # Session-based editing tools
+            "phoxtail_studio_open_variant",
+            "phoxtail_studio_commit_variant",
+            "phoxtail_studio_discard_variant",
+            "phoxtail_studio_list_sessions",
+            "phoxtail_studio_refresh_session",
         }
         pages_tools = {
             "phoxtail_locales_list",
@@ -706,6 +719,214 @@ class TestTranslatePage:
         result = json.loads(translate_page(page_id=10, locale_id=2))
         assert result["error"] == "permission_denied"
         assert result["status"] == 403
+
+
+# ---------------------------------------------------------------------------
+# Session-based editing tools
+# ---------------------------------------------------------------------------
+
+
+class TestOpenVariant:
+    def test_opens_new_session(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
+            json=SAMPLE_VARIANT_DETAIL,
+            headers={"ETag": 'W/"abc123"'},
+        )
+        # Context fetch — allow it to fail silently
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/context/"),
+            status_code=500,
+            json={"detail": "unavailable"},
+        )
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        result = json.loads(open_variant(1))
+        assert result["status"] == "opened"
+        assert result["session_id"] == "1"
+        assert "html" in result["files"]
+        assert "css" in result["files"]
+        assert "javascript" in result["files"]
+        assert "next_steps" in result
+
+    def test_idempotent_when_already_open(
+        self, httpx_mock: HTTPXMock, tmp_path, monkeypatch
+    ):
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
+            json=SAMPLE_VARIANT_DETAIL,
+            headers={"ETag": 'W/"abc123"'},
+        )
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/context/"),
+            status_code=500,
+            json={"detail": "unavailable"},
+        )
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        # Open once
+        open_variant(1)
+
+        # Second GET for the idempotent open
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
+            json=SAMPLE_VARIANT_DETAIL,
+            headers={"ETag": 'W/"abc123"'},
+        )
+        result = json.loads(open_variant(1))
+        assert result["status"] == "already_open"
+        assert result["session_id"] == "1"
+
+
+class TestCommitVariant:
+    def test_success(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        # Seed a session on disk
+        from phoxtail.cli.studio import session as _sess
+
+        _sess.create_session(
+            session_id="1",
+            variant_data=SAMPLE_VARIANT_DETAIL,
+            context_md="",
+            template_used="context",
+            etag='W/"abc123"',
+        )
+
+        updated = {**SAMPLE_VARIANT_DETAIL, "html": "<div>updated</div>"}
+        httpx_mock.add_response(
+            json=updated,
+            headers={"ETag": 'W/"new456"'},
+        )
+        result = json.loads(commit_variant(session_id="1"))
+        assert result["status"] == "committed"
+        assert result["_etag"] == 'W/"new456"'
+        assert result["session_cleaned"] is False
+
+    def test_commit_conflict_412(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        from phoxtail.cli.studio import session as _sess
+
+        _sess.create_session(
+            session_id="1",
+            variant_data=SAMPLE_VARIANT_DETAIL,
+            context_md="",
+            template_used="context",
+            etag='W/"stale"',
+        )
+        httpx_mock.add_response(status_code=412, json={"detail": "ETag mismatch"})
+        result = json.loads(commit_variant(session_id="1"))
+        assert result["error"] == "conflict"
+
+    def test_no_active_sessions(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        result = json.loads(commit_variant())
+        assert result["error"] == "no_sessions"
+
+
+class TestDiscardVariant:
+    def test_success(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        from phoxtail.cli.studio import session as _sess
+
+        _sess.create_session(
+            session_id="1",
+            variant_data=SAMPLE_VARIANT_DETAIL,
+            context_md="",
+            template_used="context",
+            etag='W/"abc"',
+        )
+        result = json.loads(discard_variant(session_id="1"))
+        assert result["status"] == "discarded"
+        assert not _sess.session_exists("1")
+
+    def test_not_found(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        result = json.loads(discard_variant(session_id="nonexistent"))
+        assert result["error"] == "not_found"
+
+    def test_rejects_path_traversal(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        result = json.loads(discard_variant(session_id="../../etc"))
+        assert result["error"] == "invalid_session_id"
+
+
+class TestListSessions:
+    def test_empty(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        result = json.loads(list_sessions())
+        assert result["total"] == 0
+        assert result["sessions"] == []
+
+    def test_with_sessions(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        from phoxtail.cli.studio import session as _sess
+
+        _sess.create_session(
+            session_id="1",
+            variant_data=SAMPLE_VARIANT_DETAIL,
+            context_md="",
+            template_used="context",
+            etag='W/"abc"',
+        )
+        result = json.loads(list_sessions())
+        assert result["total"] == 1
+        assert result["sessions"][0]["session_id"] == "1"
+
+
+class TestRefreshSession:
+    def test_success(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path / ".phoxtail-sessions",
+        )
+        from phoxtail.cli.studio import session as _sess
+
+        _sess.create_session(
+            session_id="1",
+            variant_data=SAMPLE_VARIANT_DETAIL,
+            context_md="",
+            template_used="context",
+            etag='W/"old"',
+        )
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
+            json=SAMPLE_VARIANT_DETAIL,
+            headers={"ETag": 'W/"refreshed"'},
+        )
+        result = json.loads(refresh_session(session_id="1"))
+        assert result["status"] == "refreshed"
+        assert result["_etag"] == 'W/"refreshed"'
+
+        updated_meta = _sess.read_session("1")
+        assert updated_meta["etag"] == 'W/"refreshed"'
 
 
 # ---------------------------------------------------------------------------
