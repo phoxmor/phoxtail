@@ -3,6 +3,7 @@ services:
     build:
       target: {{ environment }}
     image: {{ image_name }}
+    pull_policy: build
     restart: always
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
@@ -46,7 +47,10 @@ services:
     command: redis-server --appendonly yes
 
   celery-worker:
+    build:
+      target: {{ environment }}
     image: {{ image_name }}
+    pull_policy: build
     restart: always
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
@@ -64,7 +68,10 @@ services:
       - redis
 
   celery-beat:
+    build:
+      target: {{ environment }}
     image: {{ image_name }}
+    pull_policy: build
     restart: always
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
@@ -84,7 +91,10 @@ services:
 {% endif %}
 {% if environment == "development" %}
   docs:
+    build:
+      target: {{ environment }}
     image: {{ image_name }}
+    pull_policy: build
     profiles: ["docs"]
     working_dir: /app/docs
     volumes:
