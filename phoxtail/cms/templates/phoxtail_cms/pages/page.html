@@ -3,6 +3,8 @@
 
 {% block content %}
     {% for block in page.body %}
-        {% include_block block %}
+        <div id="phoxtail-block-{{ block.id }}" class="phoxtail-block">
+            {% include_block block %}
+        </div>
     {% endfor %}
 {% endblock %}

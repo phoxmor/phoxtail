@@ -1,4 +1,4 @@
-{% load static wagtailcore_tags wagtailuserbar wagtailimages_tags wagtailsettings_tags django_htmx %}
+{% load static wagtailcore_tags wagtailimages_tags wagtailsettings_tags django_htmx %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -78,10 +78,7 @@
             <!-- Content -->
             {% block content %}{% endblock %}
         </main>
-        <div>
-            <!-- Wagtail User Bar -->
-            {% wagtailuserbar 'bottom-left' %}
-        </div>
+        {% include "phoxtail_cms/design_bar.html" %}
         {% block extra_js %}{% endblock %}
     </body>
 </html>

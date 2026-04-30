@@ -1,0 +1,99 @@
+{% load phoxtail_design_tags static %}
+{% if request.user.is_superuser and page %}
+{% url 'wagtailadmin_home' as admin_home %}
+<link rel="stylesheet" href="{% static 'phoxtail_cms/css/design_bar.css' %}">
+
+<script type="application/json" id="phoxtail-design-bar-manifest">
+{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}}
+</script>
+
+<div id="phoxtail-design-bar">
+    <div class="phoxtail-design-bar-dock">
+        <div class="phoxtail-design-bar-brand">{% icon "code" class="phoxtail-design-bar-brand-icon" %}</div>
+        <div class="phoxtail-design-bar-page-info">
+            <span class="phoxtail-design-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
+            <span class="phoxtail-design-bar-badge">#{{ page.id }}</span>
+            <span class="phoxtail-design-bar-sep">·</span>
+            <span class="phoxtail-design-bar-type">{{ page.content_type.model }}</span>
+            <span class="phoxtail-design-bar-sep">·</span>
+            <span class="phoxtail-design-bar-locale">{{ page.locale.language_code }}</span>
+            <span class="phoxtail-design-bar-sep">·</span>
+            <span class="phoxtail-design-bar-live-dot phoxtail-design-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}">{% if page.live %}live{% else %}draft{% endif %}</span>
+        </div>
+        <div class="phoxtail-design-bar-divider"></div>
+        <div class="phoxtail-design-bar-actions">
+            <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
+               class="phoxtail-design-bar-btn"
+               title="Edit page in admin"
+               target="_blank"
+               rel="noopener">
+                {% icon "edit" class="phoxtail-design-bar-btn-icon" %}
+            </a>
+            {% if page.body %}
+            <button type="button"
+                    id="phoxtail-design-bar-blocks-btn"
+                    class="phoxtail-design-bar-btn"
+                    title="Body blocks (B)"
+                    aria-expanded="false">
+                {% icon "layers" class="phoxtail-design-bar-btn-icon" %}
+                <span class="phoxtail-design-bar-count-badge">{{ page.body|length }}</span>
+            </button>
+            {% endif %}
+            <a href="{{ admin_home }}"
+               class="phoxtail-design-bar-btn"
+               title="Wagtail admin"
+               target="_blank"
+               rel="noopener">
+                {% icon "settings" class="phoxtail-design-bar-btn-icon" %}
+            </a>
+        </div>
+    </div>
+
+    {% if page.body %}
+    <div class="phoxtail-design-bar-panel" id="phoxtail-design-bar-blocks-panel">
+        <div class="phoxtail-design-bar-panel-header">
+            <span class="phoxtail-design-bar-panel-title">
+                Body Blocks
+                <span class="phoxtail-design-bar-badge">{{ page.body|length }}</span>
+            </span>
+            <button type="button" id="phoxtail-design-bar-panel-close" class="phoxtail-design-bar-panel-close" title="Close">
+                {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+            </button>
+        </div>
+        <div class="phoxtail-design-bar-panel-body">
+            <div class="phoxtail-design-bar-page-row" data-phoxtail-design-bar-copy="page">
+                {% icon "page_header" class="phoxtail-design-bar-row-icon" %}
+                <div class="phoxtail-design-bar-row-info">
+                    <span class="phoxtail-design-bar-row-type">{{ page.content_type.model }}</span>
+                    <span class="phoxtail-design-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
+                </div>
+                <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy page context">
+                    {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
+                </button>
+            </div>
+            <div class="phoxtail-design-bar-sep-line"></div>
+            {% for block in page.body %}
+            {% with variant=block.value.variant %}
+            <div class="phoxtail-design-bar-block-row"
+                 data-phoxtail-design-bar-copy="block"
+                 data-phoxtail-design-bar-uuid="{{ block.id }}"
+                 data-phoxtail-design-bar-type="{{ block.block_type }}"
+                 {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier|escapejs }}"{% endif %}>
+                {% icon "layers" class="phoxtail-design-bar-row-icon" %}
+                <div class="phoxtail-design-bar-row-info">
+                    <span class="phoxtail-design-bar-row-type">{{ block.block_type }}</span>
+                    {% if variant %}<span class="phoxtail-design-bar-row-meta">{{ variant.identifier }}</span>{% endif %}
+                </div>
+                <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy block context">
+                    {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
+                </button>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script src="{% static 'phoxtail_cms/js/design_bar.js' %}"></script>
+{% endif %}
