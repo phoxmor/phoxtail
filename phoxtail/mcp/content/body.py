@@ -33,6 +33,12 @@ def get_body(page_id: int) -> str:
     name="phoxtail_pages_replace_body",
     description=(
         "Replace a page's body wholesale with a new list of blocks. "
+        "Use this only when creating a page from scratch or performing a "
+        "structural overhaul of all blocks simultaneously. "
+        "For editing individual blocks, PREFER phoxtail_pages_update_block / "
+        "phoxtail_pages_add_block / phoxtail_pages_delete_block / "
+        "phoxtail_pages_move_block — they are more efficient and allow the "
+        "browser to refresh only the affected area without disrupting the session. "
         "Creates a draft revision; does NOT publish. The body must be "
         "a list of {type, value, id} dicts — use phoxtail_studio_list_blocks "
         "to discover available block types, phoxtail_studio_list_variants "

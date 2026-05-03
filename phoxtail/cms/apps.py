@@ -1,4 +1,4 @@
-from phoxtail.core.app_config import PhoxtailAppConfig
+from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
 
 
 class PhoxtailCmsConfig(PhoxtailAppConfig):
@@ -6,6 +6,8 @@ class PhoxtailCmsConfig(PhoxtailAppConfig):
     name = "phoxtail.cms"
     label = "phoxtail_cms"
     verbose_name = "Phoxtail CMS"
+
+    url_mount = UrlMount(prefix="phoxtail_cms/", module="phoxtail.cms.urls")
 
     depends_on = [
         "phoxtail.design",

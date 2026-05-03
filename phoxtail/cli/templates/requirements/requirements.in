@@ -32,6 +32,14 @@ gunicorn
 # Utilities
 python-dateutil
 pyyaml
+jinja2
+httpx
+
+# Phoxtail runtime deps (auto-resolved when installed as a package; explicit here for bind-mount dev)
+mcp
+pydantic-ai>=1.89
+google-genai>=1.0.0
+typer
 
 # Development
 django-browser-reload

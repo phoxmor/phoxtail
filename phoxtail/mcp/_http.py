@@ -21,26 +21,8 @@ from typing import Any
 
 import httpx
 
-from phoxtail.cli.utils.config import find_config_file, get_api_base_url
+from phoxtail.cli.utils.config import get_api_base_url
 from phoxtail.cli.utils.credentials import resolve_token
-
-
-def _touch_reload() -> None:
-    """Touch src/_reload_trigger.py in the project root if it exists.
-
-    Projects opt in by creating that file and importing it in development.py
-    so Django's autoreloader watches it. This is a no-op on projects without it.
-    """
-    config = find_config_file()
-    if config is None:
-        return
-    trigger = config.parent / "src" / "_reload_trigger.py"
-    if trigger.exists():
-        try:
-            trigger.touch()
-        except Exception:
-            pass
-
 
 DEFAULT_TIMEOUT = 30.0
 
@@ -90,8 +72,6 @@ def request(
         timeout=DEFAULT_TIMEOUT,
         follow_redirects=True,
     )
-    if method.upper() not in ("GET", "HEAD") and resp.is_success:
-        _touch_reload()
     return resp
 
 

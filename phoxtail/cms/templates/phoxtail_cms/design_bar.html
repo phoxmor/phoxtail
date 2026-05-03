@@ -9,7 +9,6 @@
 
 <div id="phoxtail-design-bar">
     <div class="phoxtail-design-bar-dock">
-        <div class="phoxtail-design-bar-brand">{% icon "code" class="phoxtail-design-bar-brand-icon" %}</div>
         <div class="phoxtail-design-bar-page-info">
             <span class="phoxtail-design-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
             <span class="phoxtail-design-bar-badge">#{{ page.id }}</span>
@@ -22,13 +21,13 @@
         </div>
         <div class="phoxtail-design-bar-divider"></div>
         <div class="phoxtail-design-bar-actions">
-            <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
-               class="phoxtail-design-bar-btn"
-               title="Edit page in admin"
-               target="_blank"
-               rel="noopener">
-                {% icon "edit" class="phoxtail-design-bar-btn-icon" %}
-            </a>
+            <button type="button"
+                    id="phoxtail-design-bar-chatbot-btn"
+                    class="phoxtail-design-bar-btn"
+                    title="Chatbot (V)"
+                    aria-expanded="false">
+                {% icon "cognition" class="phoxtail-design-bar-btn-icon" %}
+            </button>
             {% if page.body %}
             <button type="button"
                     id="phoxtail-design-bar-blocks-btn"
@@ -39,13 +38,14 @@
                 <span class="phoxtail-design-bar-count-badge">{{ page.body|length }}</span>
             </button>
             {% endif %}
-            <a href="{{ admin_home }}"
-               class="phoxtail-design-bar-btn"
-               title="Wagtail admin"
-               target="_blank"
-               rel="noopener">
-                {% icon "settings" class="phoxtail-design-bar-btn-icon" %}
-            </a>
+            <button type="button"
+                    id="phoxtail-design-bar-menu-btn"
+                    class="phoxtail-design-bar-btn"
+                    title="More options"
+                    aria-haspopup="menu"
+                    aria-expanded="false">
+                {% icon "more_horiz" class="phoxtail-design-bar-btn-icon" %}
+            </button>
         </div>
     </div>
 
@@ -93,6 +93,70 @@
         </div>
     </div>
     {% endif %}
+
+    <div class="phoxtail-design-bar-panel phoxtail-design-bar-menu-panel" id="phoxtail-design-bar-menu-panel">
+        <div class="phoxtail-design-bar-panel-header">
+            <span class="phoxtail-design-bar-panel-title">Actions</span>
+            <button type="button" id="phoxtail-design-bar-menu-close" class="phoxtail-design-bar-panel-close" title="Close">
+                {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+            </button>
+        </div>
+        <div class="phoxtail-design-bar-panel-body">
+            <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
+               class="phoxtail-design-bar-menu-item"
+               target="_blank"
+               rel="noopener"
+               role="menuitem">
+                {% icon "edit" class="phoxtail-design-bar-row-icon" %}
+                <div class="phoxtail-design-bar-row-info">
+                    <span class="phoxtail-design-bar-row-type">Edit page</span>
+                    <span class="phoxtail-design-bar-row-meta">Open in page editor</span>
+                </div>
+                {% icon "arrow_outward" class="phoxtail-design-bar-menu-item-ext" %}
+            </a>
+            <div class="phoxtail-design-bar-sep-line"></div>
+            <a href="{{ admin_home }}"
+               class="phoxtail-design-bar-menu-item"
+               target="_blank"
+               rel="noopener"
+               role="menuitem">
+                {% icon "settings" class="phoxtail-design-bar-row-icon" %}
+                <div class="phoxtail-design-bar-row-info">
+                    <span class="phoxtail-design-bar-row-type">Admin</span>
+                    <span class="phoxtail-design-bar-row-meta">Go to admin dashboard</span>
+                </div>
+                {% icon "arrow_outward" class="phoxtail-design-bar-menu-item-ext" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="phoxtail-chatbot-drawer" aria-label="Chatbot" role="complementary">
+    <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
+        <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.svg' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.svg' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--dark" alt="Phoxtail">
+        </div>
+    </div>
+    <div class="phoxtail-chatbot-topbar">
+        <button type="button" id="phoxtail-chatbot-new-btn" class="phoxtail-chatbot-topbar-new" title="New conversation">
+            {% icon "edit" class="phoxtail-design-bar-btn-icon" %}
+        </button>
+        <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (V)">
+            {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+        </button>
+    </div>
+    <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
+        <textarea
+            id="phoxtail-chatbot-input"
+            class="phoxtail-chatbot-input"
+            placeholder="Ask anything…"
+            rows="1"
+            aria-label="Message"></textarea>
+        <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
+            {% icon "arrow_up" class="phoxtail-design-bar-btn-icon" %}
+        </button>
+    </form>
 </div>
 
 <script src="{% static 'phoxtail_cms/js/design_bar.js' %}"></script>

@@ -1,0 +1,12 @@
+{% load wagtailcore_tags %}
+<div id="phoxtail-block-{{ bound_block.id }}"
+     class="phoxtail-block"
+     hx-get="{% url 'phoxtail_cms:render_block_fragment' page_id=page_id block_uuid=bound_block.id %}"
+     hx-trigger="phoxtail:block-refresh"
+     hx-swap="outerHTML"
+     hx-indicator="#phoxtail-block-{{ bound_block.id }}-indicator">
+    <span id="phoxtail-block-{{ bound_block.id }}-indicator"
+          class="phoxtail-block-refresh-indicator htmx-indicator"
+          aria-hidden="true"></span>
+    {% include_block bound_block %}
+</div>

@@ -30,6 +30,9 @@ nav:
       - Architecture: mcp/architecture.md
       - Pages Domain: mcp/pages-domain.md
       - Pages Domain Review: mcp/pages-domain-review.md
+      - Remote Connector: mcp/remote-connector.md
+      - In-House Chatbot: mcp/chatbot.md
+      - Per-Block Editing: mcp/per-block-editing.md
 
   - Engine:
       - Core:

@@ -2,9 +2,13 @@
 {% load wagtailcore_tags %}
 
 {% block content %}
-    {% for block in page.body %}
-        <div id="phoxtail-block-{{ block.id }}" class="phoxtail-block">
-            {% include_block block %}
-        </div>
-    {% endfor %}
+    <div id="phoxtail-page-content"
+         class="phoxtail-page-body"
+         hx-get="{% url 'phoxtail_cms:render_body_fragment' page_id=page.id %}"
+         hx-trigger="phoxtail:page-body-refresh"
+         hx-swap="innerHTML">
+        {% for block in page.body %}
+            {% include "phoxtail_cms/partials/block_fragment.html" with bound_block=block page_id=page.id %}
+        {% endfor %}
+    </div>
 {% endblock %}

@@ -5,50 +5,360 @@
     var manifest = JSON.parse(manifestEl.textContent);
     var bar = document.getElementById('phoxtail-design-bar');
     var blocksBtn = document.getElementById('phoxtail-design-bar-blocks-btn');
-    var panel = document.getElementById('phoxtail-design-bar-blocks-panel');
-    var closeBtn = document.getElementById('phoxtail-design-bar-panel-close');
+    var blocksPanel = document.getElementById('phoxtail-design-bar-blocks-panel');
+    var blocksPanelClose = document.getElementById('phoxtail-design-bar-panel-close');
+    var chatbotBtn = document.getElementById('phoxtail-design-bar-chatbot-btn');
+    var chatbotDrawer = document.getElementById('phoxtail-chatbot-drawer');
+    var chatbotCloseBtn = document.getElementById('phoxtail-chatbot-drawer-close');
+    var chatbotNewBtn = document.getElementById('phoxtail-chatbot-new-btn');
+    var chatbotForm = document.getElementById('phoxtail-chatbot-form');
+    var chatbotInput = document.getElementById('phoxtail-chatbot-input');
+    var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
+    var menuBtn = document.getElementById('phoxtail-design-bar-menu-btn');
+    var menuPanel = document.getElementById('phoxtail-design-bar-menu-panel');
+    var menuClose = document.getElementById('phoxtail-design-bar-menu-close');
 
-    // ── Panel open / close ──────────────────────────────────────────────────
+    // ── Generic panel toggle factory ────────────────────────────────────────
 
-    function isOpen() {
-        return panel && panel.classList.contains('phoxtail-design-bar-panel--open');
-    }
-    function openPanel() {
-        panel.classList.add('phoxtail-design-bar-panel--open');
-        blocksBtn.classList.add('phoxtail-design-bar-btn--active');
-        blocksBtn.setAttribute('aria-expanded', 'true');
-    }
-    function closePanel() {
-        panel.classList.remove('phoxtail-design-bar-panel--open');
-        blocksBtn.classList.remove('phoxtail-design-bar-btn--active');
-        blocksBtn.setAttribute('aria-expanded', 'false');
+    function makeToggle(panel, button) {
+        if (!panel || !button) return null;
+        return {
+            isOpen: function () { return panel.classList.contains('phoxtail-design-bar-panel--open'); },
+            open:   function () {
+                panel.classList.add('phoxtail-design-bar-panel--open');
+                button.classList.add('phoxtail-design-bar-btn--active');
+                button.setAttribute('aria-expanded', 'true');
+            },
+            close:  function () {
+                panel.classList.remove('phoxtail-design-bar-panel--open');
+                button.classList.remove('phoxtail-design-bar-btn--active');
+                button.setAttribute('aria-expanded', 'false');
+                if (panel === blocksPanel) {
+                    _activeBlockIdx = -1;
+                    getBlockRows().forEach(function (r) { r.classList.remove('phoxtail-design-bar-block-row--active'); });
+                }
+            }
+        };
     }
 
-    if (blocksBtn && panel) {
+    var blocks = makeToggle(blocksPanel, blocksBtn);
+    var menu = makeToggle(menuPanel, menuBtn);
+
+    // Chatbot uses a drawer class, not a panel class — handled manually but same shape
+    var chat = {
+        isOpen: function () { return chatbotDrawer && chatbotDrawer.classList.contains('phoxtail-chatbot-drawer--open'); },
+        open:   function () {
+            chatbotDrawer.classList.add('phoxtail-chatbot-drawer--open');
+            chatbotBtn.classList.add('phoxtail-design-bar-btn--active');
+            chatbotBtn.setAttribute('aria-expanded', 'true');
+        },
+        close:  function () {
+            chatbotDrawer.classList.remove('phoxtail-chatbot-drawer--open');
+            chatbotBtn.classList.remove('phoxtail-design-bar-btn--active');
+            chatbotBtn.setAttribute('aria-expanded', 'false');
+        }
+    };
+
+    // Close all panels except the given one
+    function closeOthers(keep) {
+        [blocks, menu].forEach(function (t) { if (t && t !== keep && t.isOpen()) t.close(); });
+    }
+
+    // ── Wire up toggles ─────────────────────────────────────────────────────
+
+    if (blocks) {
         blocksBtn.addEventListener('click', function () {
-            isOpen() ? closePanel() : openPanel();
+            if (blocks.isOpen()) { blocks.close(); } else { closeOthers(blocks); blocks.open(); }
         });
-        closeBtn.addEventListener('click', closePanel);
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') {
-                if (_hlTarget) { dismissHighlight(); return; }
-                if (isOpen()) { closePanel(); return; }
+        blocksPanelClose.addEventListener('click', function () { blocks.close(); });
+    }
+
+    if (menu) {
+        menuBtn.addEventListener('click', function () {
+            if (menu.isOpen()) { menu.close(); } else { closeOthers(menu); menu.open(); }
+        });
+        menuClose.addEventListener('click', function () { menu.close(); });
+        // Close menu when a menu item link is activated (target=_blank stays open in new tab, UX still clean)
+        menuPanel.addEventListener('click', function (e) {
+            if (e.target.closest('.phoxtail-design-bar-menu-item')) menu.close();
+        });
+    }
+
+    if (chatbotBtn && chatbotDrawer) {
+        chatbotBtn.addEventListener('click', function () {
+            chat.isOpen() ? chat.close() : chat.open();
+        });
+        chatbotCloseBtn.addEventListener('click', function () { chat.close(); });
+    }
+
+    if (chatbotNewBtn) {
+        chatbotNewBtn.addEventListener('click', function () { _newConversation(); });
+    }
+
+    // ── Click-outside: close any open panel ─────────────────────────────────
+
+    document.addEventListener('click', function (e) {
+        if (bar.contains(e.target)) return;
+        if (chatbotDrawer && chatbotDrawer.contains(e.target)) {
+            [blocks, menu].forEach(function (t) { if (t && t.isOpen()) t.close(); });
+            return;
+        }
+        [blocks, menu].forEach(function (t) { if (t && t.isOpen()) t.close(); });
+        if (chat.isOpen()) chat.close();
+    });
+
+    // ── Keyboard shortcuts ───────────────────────────────────────────────────
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            if (_hlTarget) { dismissHighlight(); return; }
+            if (chat.isOpen()) { chat.close(); return; }
+            if (menu && menu.isOpen()) { menu.close(); return; }
+            if (blocks && blocks.isOpen()) { blocks.close(); return; }
+            return;
+        }
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        var tag = document.activeElement && document.activeElement.tagName;
+        var isEditable = document.activeElement && document.activeElement.isContentEditable;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || isEditable) return;
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && blocks && blocks.isOpen()) {
+            e.preventDefault();
+            var rows = getBlockRows();
+            if (!rows.length) return;
+            if (_activeBlockIdx === -1) {
+                activateBlockAtIndex(e.key === 'ArrowDown' ? 0 : rows.length - 1);
+            } else {
+                activateBlockAtIndex(_activeBlockIdx + (e.key === 'ArrowDown' ? 1 : -1));
+            }
+            return;
+        }
+        if ((e.key === 'b' || e.key === 'B') && blocks) {
+            blocks.isOpen() ? blocks.close() : (closeOthers(blocks), blocks.open());
+        }
+        if ((e.key === 'v' || e.key === 'V') && chatbotBtn) {
+            chat.isOpen() ? chat.close() : chat.open();
+        }
+        if ((e.key === 'm' || e.key === 'M') && menu) {
+            menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
+        }
+    });
+
+    // ── Chatbot compose ──────────────────────────────────────────────────────
+
+    if (chatbotInput) {
+        chatbotInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+        });
+        chatbotInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (chatbotForm) chatbotForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            }
+        });
+    }
+
+    // ── Chatbot state ────────────────────────────────────────────────────────
+
+    var _LS_KEY = 'phoxtail.chatbot.conversation_uuid';
+    var _conversationUuid = null;
+    var _busy = false;
+
+    function _getCsrfToken() {
+        var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return match ? match[1] : '';
+    }
+
+    function _appendMessage(cls, text) {
+        var emptyState = document.getElementById('phoxtail-chatbot-empty');
+        if (emptyState) emptyState.style.display = 'none';
+        var el = document.createElement('div');
+        el.className = 'phoxtail-chatbot-message ' + cls;
+        el.textContent = text;
+        chatbotMessages.appendChild(el);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return el;
+    }
+
+    function _appendToolIndicator(name) {
+        var emptyState = document.getElementById('phoxtail-chatbot-empty');
+        if (emptyState) emptyState.style.display = 'none';
+        var el = document.createElement('div');
+        el.className = 'phoxtail-chatbot-tool-call';
+        el.textContent = name + '…';
+        chatbotMessages.appendChild(el);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return el;
+    }
+
+    function _setSending(active) {
+        _busy = active;
+        var sendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
+        if (sendBtn) sendBtn.disabled = active;
+        if (chatbotInput) chatbotInput.disabled = active;
+    }
+
+    function _newConversation() {
+        if (_busy) return;
+        _conversationUuid = null;
+        try { localStorage.removeItem(_LS_KEY); } catch (_) {}
+        // Clear message DOM and restore empty state
+        if (chatbotMessages) {
+            chatbotMessages.innerHTML = '';
+            var emptyEl = document.createElement('div');
+            emptyEl.className = 'phoxtail-chatbot-empty-state';
+            emptyEl.id = 'phoxtail-chatbot-empty';
+            chatbotMessages.appendChild(emptyEl);
+        }
+    }
+
+    function _rehydrate(uuid) {
+        fetch('/api/agent/v1/conversations/' + uuid + '/', {
+            method: 'GET',
+            headers: { 'X-CSRFToken': _getCsrfToken() },
+        }).then(function (res) {
+            if (!res.ok) {
+                // UUID is stale or invalid — forget it
+                try { localStorage.removeItem(_LS_KEY); } catch (_) {}
                 return;
             }
-            if ((e.key === 'b' || e.key === 'B') && blocksBtn) {
-                if (e.altKey || e.ctrlKey || e.metaKey) return;
-                var tag = document.activeElement && document.activeElement.tagName;
-                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-                if (document.activeElement && document.activeElement.isContentEditable) return;
-                isOpen() ? closePanel() : openPanel();
-            }
-        });
-        document.addEventListener('click', function (e) {
-            if (isOpen() && !bar.contains(e.target)) closePanel();
+            return res.json();
+        }).then(function (data) {
+            if (!data || !data.messages || !data.messages.length) return;
+            _conversationUuid = data.uuid;
+            var emptyState = document.getElementById('phoxtail-chatbot-empty');
+            if (emptyState) emptyState.style.display = 'none';
+            data.messages.forEach(function (msg) {
+                if (msg.role === 'user') {
+                    _appendMessage('phoxtail-chatbot-message--user', msg.content);
+                } else if (msg.role === 'assistant') {
+                    _appendMessage('phoxtail-chatbot-message--assistant', msg.content);
+                } else if (msg.role === 'tool') {
+                    var ind = _appendToolIndicator(msg.name);
+                    ind.classList.add('phoxtail-chatbot-tool-call--done');
+                }
+            });
+        }).catch(function () {});
+    }
+
+    // Rehydrate on load if we have a stored UUID
+    (function () {
+        try {
+            var storedUuid = localStorage.getItem(_LS_KEY);
+            if (storedUuid) _rehydrate(storedUuid);
+        } catch (_) {}
+    })();
+
+    // ── Block refresh (HTMX-powered per-block updates) ────────────────────────
+
+    var _pageBodyEl = document.querySelector('.phoxtail-page-body');
+
+    function _refreshBlock(uuid) {
+        var el = document.getElementById('phoxtail-block-' + uuid);
+        if (el && typeof htmx !== 'undefined') {
+            htmx.trigger(el, 'phoxtail:block-refresh');
+        }
+    }
+
+    function _refreshPageBody() {
+        if (_pageBodyEl && typeof htmx !== 'undefined') {
+            htmx.trigger(_pageBodyEl, 'phoxtail:page-body-refresh');
+        }
+    }
+
+    function _handleBlocksChanged(data) {
+        var kind = data.kind;
+        var uuids = data.uuids || [];
+        if (kind === 'update') {
+            uuids.forEach(function (uuid) { _refreshBlock(uuid); });
+        } else {
+            // add / delete / move: refresh the whole body container (v1)
+            _refreshPageBody();
+        }
+    }
+
+    if (chatbotForm) {
+        chatbotForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (_busy) return;
+            var text = chatbotInput ? chatbotInput.value.trim() : '';
+            if (!text) return;
+
+            _appendMessage('phoxtail-chatbot-message--user', text);
+            chatbotInput.value = '';
+            chatbotInput.style.height = 'auto';
+            _setSending(true);
+
+            var body = { message: text };
+            if (_conversationUuid) body.conversation_uuid = _conversationUuid;
+
+            var assistantEl = null;
+            var toolIndicators = [];
+
+            fetch('/api/agent/v1/chat/stream/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': _getCsrfToken(),
+                },
+                body: JSON.stringify(body),
+            }).then(function (res) {
+                if (!res.ok) {
+                    _appendMessage('phoxtail-chatbot-message--assistant', 'Error ' + res.status + '. Please try again.');
+                    _setSending(false);
+                    return;
+                }
+                var reader = res.body.getReader();
+                var decoder = new TextDecoder();
+                var buffer = '';
+
+                function processChunk() {
+                    reader.read().then(function (chunk) {
+                        if (chunk.done) { _setSending(false); return; }
+                        buffer += decoder.decode(chunk.value, { stream: true });
+                        var parts = buffer.split('\n\n');
+                        buffer = parts.pop();
+                        parts.forEach(function (block) {
+                            if (!block.trim()) return;
+                            var eventMatch = block.match(/^event:\s*(.+)$/m);
+                            var dataMatch = block.match(/^data:\s*(.+)$/m);
+                            if (!eventMatch || !dataMatch) return;
+                            var evt = eventMatch[1].trim();
+                            var data;
+                            try { data = JSON.parse(dataMatch[1]); } catch (_) { return; }
+
+                            if (evt === 'tool_start') {
+                                var ind = _appendToolIndicator(data.name);
+                                toolIndicators.push(ind);
+                            } else if (evt === 'tool_end') {
+                                var last = toolIndicators.pop();
+                                if (last) last.classList.add('phoxtail-chatbot-tool-call--done');
+                            } else if (evt === 'blocks_changed') {
+                                _handleBlocksChanged(data);
+                            } else if (evt === 'token') {
+                                if (!assistantEl) {
+                                    assistantEl = _appendMessage('phoxtail-chatbot-message--assistant', '');
+                                }
+                                assistantEl.textContent += data.text;
+                                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                            } else if (evt === 'done') {
+                                _conversationUuid = data.conversation_uuid;
+                                try { localStorage.setItem(_LS_KEY, _conversationUuid); } catch (_) {}
+                                _setSending(false);
+                            }
+                        });
+                        processChunk();
+                    }).catch(function () { _setSending(false); });
+                }
+                processChunk();
+            }).catch(function () {
+                _appendMessage('phoxtail-chatbot-message--assistant', 'Network error. Please try again.');
+                _setSending(false);
+            });
         });
     }
 
-    // ── Copy to clipboard ───────────────────────────────────────────────────
+    // ── Copy to clipboard ────────────────────────────────────────────────────
 
     function copyText(text, btn) {
         navigator.clipboard.writeText(text).then(function () {
@@ -89,7 +399,7 @@
         if (payload) copyText(JSON.stringify(payload, null, 2), copyBtn);
     });
 
-    // ── Block highlight — fixed-position body overlay, immune to block CSS ──
+    // ── Block highlight — fixed-position body overlay, immune to block CSS ───
 
     var _hlEl = null;
     var _hlTarget = null;
@@ -146,21 +456,43 @@
         dismissHighlight();
     });
 
-    // ── Scroll-to-block + highlight ─────────────────────────────────────────
+    // ── Scroll-to-block + highlight ──────────────────────────────────────────
 
-    if (panel) {
-        panel.addEventListener('click', function (e) {
-            // Ignore copy button clicks — those are handled above
+    var _activeBlockIdx = -1;
+
+    function getBlockRows() {
+        if (!blocksPanel) return [];
+        return Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-design-bar-block-row[data-phoxtail-design-bar-uuid]'));
+    }
+
+    function activateBlockAtIndex(idx) {
+        var rows = getBlockRows();
+        if (!rows.length) return;
+        idx = Math.max(0, Math.min(idx, rows.length - 1));
+        _activeBlockIdx = idx;
+
+        var row = rows[idx];
+        var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailDesignBarUuid);
+        if (!target) return;
+
+        // Highlight active row in panel
+        rows.forEach(function (r) { r.classList.remove('phoxtail-design-bar-block-row--active'); });
+        row.classList.add('phoxtail-design-bar-block-row--active');
+        row.scrollIntoView({ block: 'nearest' });
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        highlightBlock(target);
+    }
+
+    if (blocksPanel) {
+        blocksPanel.addEventListener('click', function (e) {
             if (e.target.closest('.phoxtail-design-bar-copy-btn')) return;
 
             var row = e.target.closest('.phoxtail-design-bar-block-row');
             if (!row || !row.dataset.phoxtailDesignBarUuid) return;
 
-            var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailDesignBarUuid);
-            if (!target) return;
-
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            highlightBlock(target);
+            var idx = getBlockRows().indexOf(row);
+            if (idx !== -1) activateBlockAtIndex(idx);
         });
     }
 })();

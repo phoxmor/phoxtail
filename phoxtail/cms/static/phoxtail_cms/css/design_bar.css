@@ -14,7 +14,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    padding: 0.25rem 0.375rem 0.25rem 0.875rem;
+    padding: 0.25rem 0.375rem 0.25rem 0.75rem;
     pointer-events: auto;
     white-space: nowrap;
 }
@@ -30,16 +30,6 @@
     border: 1px solid rgb(0 0 0 / 0.06);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06), inset 0 0.5px 0 rgb(255 255 255 / 0.5);
 }
-
-/* ── Brand ── */
-.phoxtail-design-bar-brand {
-    display: flex;
-    align-items: center;
-    color: rgb(var(--color-primary-500, 99 102 241));
-    margin-right: 0.625rem;
-    flex-shrink: 0;
-}
-.phoxtail-design-bar-brand-icon { width: 1rem; height: 1rem; }
 
 /* ── Page info ── */
 .phoxtail-design-bar-page-info {
@@ -257,6 +247,11 @@
 }
 .phoxtail-design-bar-page-row { cursor: default; }
 .phoxtail-design-bar-block-row { cursor: pointer; }
+.phoxtail-design-bar-block-row--active {
+    background-color: rgb(var(--color-primary-50, 238 242 255));
+    outline: 1px solid rgb(var(--color-primary-200, 199 210 254));
+    outline-offset: -1px;
+}
 .phoxtail-design-bar-page-row:hover  { background-color: rgb(0 0 0 / 0.03); }
 .phoxtail-design-bar-block-row:hover { background-color: rgb(0 0 0 / 0.05); }
 .phoxtail-design-bar-sep-line {
@@ -321,6 +316,36 @@
     background-color: rgb(240 253 244) !important;
 }
 
+/* ── More-menu panel — narrower, right-anchored above the more button ── */
+.phoxtail-design-bar-menu-panel {
+    width: 14rem;
+    left: auto;
+    right: 0;
+    transform: translateY(8px) scale(0.97);
+}
+.phoxtail-design-bar-menu-panel.phoxtail-design-bar-panel--open {
+    transform: translateY(0) scale(1);
+}
+
+.phoxtail-design-bar-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4375rem 0.375rem 0.4375rem 0.625rem;
+    border-radius: 0.875rem;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 100ms ease;
+    cursor: pointer;
+}
+.phoxtail-design-bar-menu-item:hover { background-color: rgb(0 0 0 / 0.05); }
+.phoxtail-design-bar-menu-item-ext {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: rgb(var(--color-surface-300, 212 212 216));
+    flex-shrink: 0;
+}
+
 /* ── Block wrapper (in page.html) ── */
 .phoxtail-block {
     scroll-margin-top: 5rem; /* clears fixed navbar */
@@ -366,7 +391,242 @@
     border-right: 2px solid rgb(var(--color-primary-500, 99 102 241));
 }
 
+/* ── Chatbot drawer ── */
+#phoxtail-chatbot-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 27.5rem;
+    height: 100vh;
+    z-index: 9950;
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    border-left: 1px solid rgb(0 0 0 / 0.07);
+    box-shadow: -8px 0 48px rgba(0, 0, 0, 0.1), inset 0.5px 0 0 rgb(255 255 255 / 0.6);
+    transform: translateX(100%);
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
+}
+#phoxtail-chatbot-drawer * { box-sizing: border-box; }
+#phoxtail-chatbot-drawer.phoxtail-chatbot-drawer--open {
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+/* Floating close button — top-right corner */
+.phoxtail-chatbot-topbar {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    display: flex;
+    gap: 0.375rem;
+}
+.phoxtail-chatbot-topbar-new {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid rgb(0 0 0 / 0.08);
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgb(var(--color-surface-400, 161 161 170));
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.phoxtail-chatbot-topbar-new:hover {
+    background-color: rgb(0 0 0 / 0.06);
+    border-color: rgb(0 0 0 / 0.14);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-chatbot-topbar-new .phoxtail-design-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-chatbot-topbar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid rgb(0 0 0 / 0.08);
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgb(var(--color-surface-400, 161 161 170));
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.phoxtail-chatbot-topbar-close:hover {
+    background-color: rgb(0 0 0 / 0.06);
+    border-color: rgb(0 0 0 / 0.14);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-chatbot-topbar-close .phoxtail-design-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+
+/* Messages area — full height, scrollable, with padding for floating bars */
+.phoxtail-chatbot-drawer-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4rem 1rem 5.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+/* Empty state — centered logo */
+.phoxtail-chatbot-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+    pointer-events: none;
+    user-select: none;
+}
+.phoxtail-chatbot-empty-logo {
+    width: 4.5rem;
+    height: auto;
+    opacity: 0.18;
+}
+.phoxtail-chatbot-empty-logo--dark { display: none; }
+@media (prefers-color-scheme: dark) {
+    .phoxtail-chatbot-empty-logo--light { display: none; }
+    .phoxtail-chatbot-empty-logo--dark  { display: block; }
+}
+
+/* Individual messages */
+.phoxtail-chatbot-message {
+    max-width: 88%;
+    padding: 0.625rem 0.875rem;
+    border-radius: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: rgb(var(--color-surface-800, 24 24 27));
+}
+.phoxtail-chatbot-message p { margin: 0; }
+.phoxtail-chatbot-message p + p { margin-top: 0.375rem; }
+.phoxtail-chatbot-message--assistant {
+    align-self: flex-start;
+    background-color: rgb(0 0 0 / 0.04);
+    border: 1px solid rgb(0 0 0 / 0.06);
+    border-bottom-left-radius: 0.25rem;
+}
+.phoxtail-chatbot-message--user {
+    align-self: flex-end;
+    background-color: rgb(var(--color-primary-500, 99 102 241));
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+.phoxtail-chatbot-tool-call {
+    align-self: flex-start;
+    font-size: 0.75rem;
+    color: rgb(var(--color-surface-500, 113 113 122));
+    padding: 0.25rem 0.5rem;
+    border-left: 2px solid rgb(var(--color-primary-300, 165 180 252));
+    margin-left: 0.25rem;
+}
+.phoxtail-chatbot-tool-call--done {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* Floating compose bar — glassy rounded bar anchored to the bottom */
+.phoxtail-chatbot-compose {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+    background-color: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid rgb(0 0 0 / 0.08);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 0.5px 0 rgb(255 255 255 / 0.6);
+}
+.phoxtail-chatbot-input {
+    flex: 1;
+    min-height: 1.625rem;
+    max-height: 8rem;
+    padding: 0;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    line-height: 1.625;
+    color: rgb(var(--color-surface-900, 9 9 11));
+    background: none;
+    border: none;
+    outline: none;
+    resize: none;
+    overflow-y: auto;
+}
+.phoxtail-chatbot-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
+.phoxtail-chatbot-send-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 50%;
+    background-color: rgb(var(--color-primary-500, 99 102 241));
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    font-family: inherit;
+    transition: background-color 150ms ease, transform 100ms ease;
+}
+.phoxtail-chatbot-send-btn:hover { background-color: rgb(var(--color-primary-600, 79 70 229)); }
+.phoxtail-chatbot-send-btn:active { transform: scale(0.92); }
+.phoxtail-chatbot-send-btn .phoxtail-design-bar-btn-icon { width: 1rem; height: 1rem; }
+
 /* ── Dark mode ── */
+@media (prefers-color-scheme: dark) {
+    #phoxtail-chatbot-drawer {
+        background-color: rgba(12, 12, 16, 0.88);
+        border-left-color: rgb(255 255 255 / 0.08);
+        box-shadow: -8px 0 48px rgba(0, 0, 0, 0.5), inset 0.5px 0 0 rgb(255 255 255 / 0.06);
+    }
+    .phoxtail-chatbot-topbar-close,
+    .phoxtail-chatbot-topbar-new {
+        background-color: rgba(12, 12, 16, 0.7);
+        border-color: rgb(255 255 255 / 0.1);
+        color: rgb(var(--color-surface-500, 113 113 122));
+    }
+    .phoxtail-chatbot-topbar-close:hover,
+    .phoxtail-chatbot-topbar-new:hover {
+        background-color: rgb(255 255 255 / 0.08);
+        color: white;
+    }
+    .phoxtail-chatbot-message { color: rgb(var(--color-surface-100, 244 244 245)); }
+    .phoxtail-chatbot-message--assistant {
+        background-color: rgb(255 255 255 / 0.05);
+        border-color: rgb(255 255 255 / 0.08);
+    }
+    .phoxtail-chatbot-compose {
+        background-color: rgba(12, 12, 16, 0.82);
+        border-color: rgb(255 255 255 / 0.1);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgb(255 255 255 / 0.06);
+    }
+    .phoxtail-chatbot-input { color: rgb(var(--color-surface-50, 250 250 250)); }
+    .phoxtail-chatbot-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
+}
+
 @media (prefers-color-scheme: dark) {
     .phoxtail-design-bar-dock::before {
         background-color: rgba(12, 12, 16, 0.75);
@@ -412,6 +672,10 @@
     .phoxtail-design-bar-sep-line { background-color: rgb(255 255 255 / 0.07); }
     .phoxtail-design-bar-page-row:hover  { background-color: rgb(255 255 255 / 0.04); }
     .phoxtail-design-bar-block-row:hover { background-color: rgb(255 255 255 / 0.06); }
+    .phoxtail-design-bar-block-row--active {
+        background-color: rgb(30 27 75 / 0.5);
+        outline-color: rgb(var(--color-primary-700, 67 56 202));
+    }
     .phoxtail-design-bar-row-icon  { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-design-bar-row-type  { color: rgb(var(--color-surface-100, 244 244 245)); }
     .phoxtail-design-bar-row-meta  { color: rgb(var(--color-surface-500, 113 113 122)); }
@@ -421,6 +685,9 @@
         border-color: rgb(255 255 255 / 0.12);
         color: rgb(var(--color-surface-300, 212 212 216));
     }
+    .phoxtail-design-bar-menu-item { color: rgb(var(--color-surface-100, 244 244 245)); }
+    .phoxtail-design-bar-menu-item:hover { background-color: rgb(255 255 255 / 0.06); }
+    .phoxtail-design-bar-menu-item-ext { color: rgb(var(--color-surface-600, 82 82 91)); }
 
     .phoxtail-design-bar-highlight-corner--tl,
     .phoxtail-design-bar-highlight-corner--tr,
@@ -428,4 +695,30 @@
     .phoxtail-design-bar-highlight-corner--br {
         border-color: rgb(var(--color-primary-400, 129 140 248));
     }
+}
+
+/* ── Per-block refresh indicator ── */
+.phoxtail-block-refresh-indicator {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: rgb(var(--color-primary-500, 99 102 241));
+    animation: phoxtail-block-spin 0.7s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+}
+.phoxtail-block-refresh-indicator.htmx-request {
+    display: block;
+}
+/* Ensure the block wrapper has position:relative so the indicator is anchored */
+.phoxtail-block {
+    position: relative;
+}
+@keyframes phoxtail-block-spin {
+    to { transform: rotate(360deg); }
 }

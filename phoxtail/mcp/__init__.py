@@ -37,6 +37,7 @@ mcp_server = FastMCP(
 
 def _register_core_tools() -> None:
     """Import core domain modules to trigger tool/resource/prompt registration."""
+    import phoxtail.mcp.content.blocks  # noqa: F401
     import phoxtail.mcp.content.body  # noqa: F401
     import phoxtail.mcp.content.internal_links  # noqa: F401
     import phoxtail.mcp.content.media  # noqa: F401

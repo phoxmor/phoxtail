@@ -1,0 +1,4 @@
+{% load wagtailcore_tags %}
+{% for block in stream_value %}
+    {% include "phoxtail_cms/partials/block_fragment.html" with bound_block=block page_id=page_id %}
+{% endfor %}
