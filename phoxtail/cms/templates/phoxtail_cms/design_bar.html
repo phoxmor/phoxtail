@@ -32,7 +32,7 @@
             <button type="button"
                     id="phoxtail-design-bar-blocks-btn"
                     class="phoxtail-design-bar-btn"
-                    title="Body blocks (B)"
+                    title="Blocks (B)"
                     aria-expanded="false">
                 {% icon "layers" class="phoxtail-design-bar-btn-icon" %}
                 <span class="phoxtail-design-bar-count-badge">{{ page.body|length }}</span>
@@ -53,7 +53,7 @@
     <div class="phoxtail-design-bar-panel" id="phoxtail-design-bar-blocks-panel">
         <div class="phoxtail-design-bar-panel-header">
             <span class="phoxtail-design-bar-panel-title">
-                Body Blocks
+                Blocks
                 <span class="phoxtail-design-bar-badge">{{ page.body|length }}</span>
             </span>
             <button type="button" id="phoxtail-design-bar-panel-close" class="phoxtail-design-bar-panel-close" title="Close">
@@ -61,7 +61,7 @@
             </button>
         </div>
         <div class="phoxtail-design-bar-panel-body">
-            <div class="phoxtail-design-bar-page-row" data-phoxtail-design-bar-copy="page">
+            <div class="phoxtail-design-bar-page-row" data-phoxtail-design-bar-copy="page" draggable="true">
                 {% icon "page_header" class="phoxtail-design-bar-row-icon" %}
                 <div class="phoxtail-design-bar-row-info">
                     <span class="phoxtail-design-bar-row-type">{{ page.content_type.model }}</span>
@@ -75,10 +75,11 @@
             {% for block in page.body %}
             {% with variant=block.value.variant %}
             <div class="phoxtail-design-bar-block-row"
+                 draggable="true"
                  data-phoxtail-design-bar-copy="block"
                  data-phoxtail-design-bar-uuid="{{ block.id }}"
                  data-phoxtail-design-bar-type="{{ block.block_type }}"
-                 {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier|escapejs }}"{% endif %}>
+                 {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier }}"{% endif %}>
                 {% icon "layers" class="phoxtail-design-bar-row-icon" %}
                 <div class="phoxtail-design-bar-row-info">
                     <span class="phoxtail-design-bar-row-type">{{ block.block_type }}</span>
@@ -147,15 +148,18 @@
         </button>
     </div>
     <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
-        <textarea
-            id="phoxtail-chatbot-input"
-            class="phoxtail-chatbot-input"
-            placeholder="Ask anything…"
-            rows="1"
-            aria-label="Message"></textarea>
-        <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
-            {% icon "arrow_up" class="phoxtail-design-bar-btn-icon" %}
-        </button>
+        <div class="phoxtail-chatbot-compose-row">
+            <textarea
+                id="phoxtail-chatbot-input"
+                class="phoxtail-chatbot-input"
+                placeholder="Ask anything…"
+                rows="2"
+                aria-label="Message"></textarea>
+            <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
+                {% icon "arrow_up" class="phoxtail-design-bar-btn-icon" %}
+            </button>
+        </div>
+        <div class="phoxtail-chatbot-chips" id="phoxtail-chatbot-chips" style="display:none"></div>
     </form>
 </div>
 
