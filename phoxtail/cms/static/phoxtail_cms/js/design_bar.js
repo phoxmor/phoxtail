@@ -68,7 +68,7 @@
 
     if (blocks) {
         blocksBtn.addEventListener('click', function () {
-            if (blocks.isOpen()) { blocks.close(); } else { closeOthers(blocks); blocks.open(); }
+            if (blocks.isOpen()) { blocks.close(); } else { blocks.open(); }
         });
         blocksPanelClose.addEventListener('click', function () { blocks.close(); });
     }
@@ -99,10 +99,8 @@
 
     document.addEventListener('click', function (e) {
         if (bar.contains(e.target)) return;
-        if (chatbotDrawer && chatbotDrawer.contains(e.target)) {
-            return;
-        }
-        [blocks, menu].forEach(function (t) { if (t && t.isOpen()) t.close(); });
+        if (chatbotDrawer && chatbotDrawer.contains(e.target)) return;
+        if (menu && menu.isOpen()) menu.close();
         if (chat.isOpen()) chat.close();
     });
 
@@ -117,6 +115,29 @@
             return;
         }
         if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+        // Enter to add active block — check before textarea guard since block rows have focus
+        if (e.key === 'Enter' && blocks && blocks.isOpen() && _activeBlockIdx !== -1) {
+            e.preventDefault();
+            var rows = getBlockRows();
+            var row = rows[_activeBlockIdx];
+            if (row) {
+                var payload = _payloadFromRow(row);
+                if (payload) _addContextBlock(payload);
+            }
+            return;
+        }
+
+        // Backspace/Delete on an active chip — remove it (state-based, mirrors Enter/_activeBlockIdx)
+        if ((e.key === 'Backspace' || e.key === 'Delete') && _activeChipIdx !== -1) {
+            var aTag = document.activeElement && document.activeElement.tagName;
+            if (aTag !== 'INPUT' && aTag !== 'TEXTAREA') {
+                e.preventDefault();
+                _removeContextBlockAt(_activeChipIdx);
+                return;
+            }
+        }
+
         var tag = document.activeElement && document.activeElement.tagName;
         var isEditable = document.activeElement && document.activeElement.isContentEditable;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || isEditable) return;
@@ -132,10 +153,20 @@
             return;
         }
         if ((e.key === 'b' || e.key === 'B') && blocks) {
-            blocks.isOpen() ? blocks.close() : (closeOthers(blocks), blocks.open());
+            var chatWasOpen = chat.isOpen();
+            if (!chatWasOpen) {
+                chat.open();
+                if (!blocks.isOpen()) { closeOthers(blocks); blocks.open(); }
+            } else {
+                blocks.isOpen() ? blocks.close() : (closeOthers(blocks), blocks.open());
+            }
         }
-        if ((e.key === 'v' || e.key === 'V') && chatbotBtn) {
+        if ((e.key === 'c' || e.key === 'C') && chatbotBtn) {
             chat.isOpen() ? chat.close() : chat.open();
+        }
+        if ((e.key === 'f' || e.key === 'F') && chatbotInput && chat.isOpen()) {
+            e.preventDefault();
+            chatbotInput.focus();
         }
         if ((e.key === 'm' || e.key === 'M') && menu) {
             menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
@@ -145,6 +176,7 @@
     // ── Context chips ────────────────────────────────────────────────────────
 
     var _contextBlocks = [];
+    var _activeChipIdx = -1;
     var _chipsEl = document.getElementById('phoxtail-chatbot-chips');
 
     function _chipLabel(payload) {
@@ -165,12 +197,21 @@
         _chipsEl.innerHTML = '';
         if (!_contextBlocks.length) {
             _chipsEl.style.display = 'none';
+            _activeChipIdx = -1;
+            _syncAddButtons();
             return;
+        }
+        // Clamp active index after a removal
+        if (_activeChipIdx >= _contextBlocks.length) {
+            _activeChipIdx = _contextBlocks.length - 1;
         }
         _chipsEl.style.display = '';
         _contextBlocks.forEach(function (payload, i) {
             var chip = document.createElement('span');
             chip.className = 'phoxtail-chatbot-chip';
+            if (i === _activeChipIdx) chip.classList.add('phoxtail-chatbot-chip--active');
+            chip.setAttribute('tabindex', '0');
+            chip.setAttribute('data-chip-index', i);
 
             var label = document.createElement('span');
             label.className = 'phoxtail-chatbot-chip-label';
@@ -186,16 +227,48 @@
 
             chip.appendChild(label);
             chip.appendChild(dismiss);
+            chip.addEventListener('click', function (e) {
+                if (e.target.closest('.phoxtail-chatbot-chip-dismiss')) return;
+                _activeChipIdx = i;
+                _chipsEl.querySelectorAll('.phoxtail-chatbot-chip').forEach(function (c, ci) {
+                    c.classList.toggle('phoxtail-chatbot-chip--active', ci === i);
+                });
+            });
             _chipsEl.appendChild(chip);
+        });
+        _syncAddButtons();
+    }
+
+    function _syncAddButtons() {
+        if (!blocksPanel) return;
+        var rows = blocksPanel.querySelectorAll('[data-phoxtail-design-bar-copy]');
+        rows.forEach(function (row) {
+            var payload = _payloadFromRow(row);
+            if (!payload) return;
+            var key = _chipKey(payload);
+            var isAdded = false;
+            for (var i = 0; i < _contextBlocks.length; i++) {
+                if (_chipKey(_contextBlocks[i]) === key) { isAdded = true; break; }
+            }
+            var addBtn = row.querySelector('.phoxtail-design-bar-add-btn');
+            if (!addBtn) return;
+            if (isAdded) {
+                addBtn.classList.add('phoxtail-design-bar-add-btn--active');
+                addBtn.title = 'Remove from chat';
+            } else {
+                addBtn.classList.remove('phoxtail-design-bar-add-btn--active');
+                addBtn.title = 'Add to chat';
+            }
         });
     }
 
     function _addContextBlock(payload) {
         var key = _chipKey(payload);
         for (var i = 0; i < _contextBlocks.length; i++) {
-            if (_chipKey(_contextBlocks[i]) === key) return; // dedupe — pulse chip instead
+            if (_chipKey(_contextBlocks[i]) === key) return; // dedupe
         }
         _contextBlocks.push(payload);
+        _activeChipIdx = _contextBlocks.length - 1; // auto-activate the new chip
         _syncChipsUI();
     }
 
@@ -217,6 +290,7 @@
             var idx = parseInt(btn.getAttribute('data-chip-index'), 10);
             if (!isNaN(idx)) _removeContextBlockAt(idx);
         });
+
     }
 
     // ── Context sentinel encoding / decoding ─────────────────────────────────
@@ -323,10 +397,7 @@
         chatbotDrawer.addEventListener('drop', function (e) {
             e.preventDefault();
             if (chatbotForm) chatbotForm.classList.remove('phoxtail-chatbot-compose--drop-target');
-            if (_draggingPayload) {
-                _addContextBlock(_draggingPayload);
-                if (chatbotInput) chatbotInput.focus();
-            }
+            if (_draggingPayload) _addContextBlock(_draggingPayload);
         });
     }
 
@@ -335,19 +406,24 @@
     if (chatbotInput) {
         chatbotInput.addEventListener('input', function () {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 232) + 'px';
         });
         chatbotInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 if (chatbotForm) chatbotForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                return;
+            }
+            if (e.key === 'Backspace' && !e.shiftKey && this.value === '' && this.selectionStart === 0 && _contextBlocks.length) {
+                e.preventDefault();
+                _removeContextBlockAt(_contextBlocks.length - 1);
             }
         });
     }
 
     // ── Chatbot state ────────────────────────────────────────────────────────
 
-    var _LS_KEY = 'phoxtail.chatbot.conversation_uuid';
+    var _LS_KEY = 'phoxtail.chatbot.chat_uuid';
     var _conversationUuid = null;
     var _busy = false;
 
@@ -581,6 +657,7 @@
         });
     }
 
+    // Copy handler on design bar (menu panel copy buttons, if any)
     bar.addEventListener('click', function (e) {
         var copyBtn = e.target.closest('.phoxtail-design-bar-copy-btn');
         if (!copyBtn) return;
@@ -677,8 +754,38 @@
 
     if (blocksPanel) {
         blocksPanel.addEventListener('click', function (e) {
-            if (e.target.closest('.phoxtail-design-bar-copy-btn')) return;
+            // Copy button — handle here since blocks panel is inside the chatbot drawer, not bar
+            var copyBtn = e.target.closest('.phoxtail-design-bar-copy-btn');
+            if (copyBtn) {
+                e.stopPropagation();
+                var copyRow = copyBtn.closest('[data-phoxtail-design-bar-copy]');
+                var copyPayload = _payloadFromRow(copyRow);
+                if (copyPayload) copyText(JSON.stringify(copyPayload, null, 2), copyBtn);
+                return;
+            }
 
+            // Add button — adds block as a chip
+            var addBtn = e.target.closest('.phoxtail-design-bar-add-btn');
+            if (addBtn) {
+                e.stopPropagation();
+                var addRow = addBtn.closest('[data-phoxtail-design-bar-copy]');
+                var addPayload = _payloadFromRow(addRow);
+                if (addPayload) {
+                    var addKey = _chipKey(addPayload);
+                    var existingIdx = -1;
+                    for (var ci = 0; ci < _contextBlocks.length; ci++) {
+                        if (_chipKey(_contextBlocks[ci]) === addKey) { existingIdx = ci; break; }
+                    }
+                    if (existingIdx !== -1) {
+                        _removeContextBlockAt(existingIdx);
+                    } else {
+                        _addContextBlock(addPayload);
+                    }
+                }
+                return;
+            }
+
+            // Row click — scroll to and highlight block
             var row = e.target.closest('.phoxtail-design-bar-block-row');
             if (!row || !row.dataset.phoxtailDesignBarUuid) return;
 

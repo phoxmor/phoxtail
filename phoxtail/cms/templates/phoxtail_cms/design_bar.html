@@ -24,20 +24,10 @@
             <button type="button"
                     id="phoxtail-design-bar-chatbot-btn"
                     class="phoxtail-design-bar-btn"
-                    title="Chatbot (V)"
+                    title="Chat (C)"
                     aria-expanded="false">
-                {% icon "cognition" class="phoxtail-design-bar-btn-icon" %}
+                {% icon "chat" class="phoxtail-design-bar-btn-icon" %}
             </button>
-            {% if page.body %}
-            <button type="button"
-                    id="phoxtail-design-bar-blocks-btn"
-                    class="phoxtail-design-bar-btn"
-                    title="Blocks (B)"
-                    aria-expanded="false">
-                {% icon "layers" class="phoxtail-design-bar-btn-icon" %}
-                <span class="phoxtail-design-bar-count-badge">{{ page.body|length }}</span>
-            </button>
-            {% endif %}
             <button type="button"
                     id="phoxtail-design-bar-menu-btn"
                     class="phoxtail-design-bar-btn"
@@ -48,52 +38,6 @@
             </button>
         </div>
     </div>
-
-    {% if page.body %}
-    <div class="phoxtail-design-bar-panel" id="phoxtail-design-bar-blocks-panel">
-        <div class="phoxtail-design-bar-panel-header">
-            <span class="phoxtail-design-bar-panel-title">
-                Blocks
-                <span class="phoxtail-design-bar-badge">{{ page.body|length }}</span>
-            </span>
-            <button type="button" id="phoxtail-design-bar-panel-close" class="phoxtail-design-bar-panel-close" title="Close">
-                {% icon "close" class="phoxtail-design-bar-btn-icon" %}
-            </button>
-        </div>
-        <div class="phoxtail-design-bar-panel-body">
-            <div class="phoxtail-design-bar-page-row" data-phoxtail-design-bar-copy="page" draggable="true">
-                {% icon "page_header" class="phoxtail-design-bar-row-icon" %}
-                <div class="phoxtail-design-bar-row-info">
-                    <span class="phoxtail-design-bar-row-type">{{ page.content_type.model }}</span>
-                    <span class="phoxtail-design-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
-                </div>
-                <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy page context">
-                    {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
-                </button>
-            </div>
-            <div class="phoxtail-design-bar-sep-line"></div>
-            {% for block in page.body %}
-            {% with variant=block.value.variant %}
-            <div class="phoxtail-design-bar-block-row"
-                 draggable="true"
-                 data-phoxtail-design-bar-copy="block"
-                 data-phoxtail-design-bar-uuid="{{ block.id }}"
-                 data-phoxtail-design-bar-type="{{ block.block_type }}"
-                 {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier }}"{% endif %}>
-                {% icon "layers" class="phoxtail-design-bar-row-icon" %}
-                <div class="phoxtail-design-bar-row-info">
-                    <span class="phoxtail-design-bar-row-type">{{ block.block_type }}</span>
-                    {% if variant %}<span class="phoxtail-design-bar-row-meta">{{ variant.identifier }}</span>{% endif %}
-                </div>
-                <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy block context">
-                    {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
-                </button>
-            </div>
-            {% endwith %}
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <div class="phoxtail-design-bar-panel phoxtail-design-bar-menu-panel" id="phoxtail-design-bar-menu-panel">
         <div class="phoxtail-design-bar-panel-header">
@@ -140,21 +84,85 @@
         </div>
     </div>
     <div class="phoxtail-chatbot-topbar">
-        <button type="button" id="phoxtail-chatbot-new-btn" class="phoxtail-chatbot-topbar-new" title="New conversation">
+        <button type="button" id="phoxtail-chatbot-new-btn" class="phoxtail-chatbot-topbar-new" title="New chat">
             {% icon "edit" class="phoxtail-design-bar-btn-icon" %}
         </button>
-        <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (V)">
+        <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
             {% icon "close" class="phoxtail-design-bar-btn-icon" %}
         </button>
     </div>
     <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
-        <div class="phoxtail-chatbot-compose-row">
-            <textarea
-                id="phoxtail-chatbot-input"
-                class="phoxtail-chatbot-input"
-                placeholder="Ask anything…"
-                rows="2"
-                aria-label="Message"></textarea>
+        {% if page.body %}
+        <div class="phoxtail-design-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-design-bar-blocks-panel">
+            <div class="phoxtail-design-bar-panel-header">
+                <span class="phoxtail-design-bar-panel-title">
+                    Blocks
+                    <span class="phoxtail-design-bar-badge">{{ page.body|length }}</span>
+                </span>
+                <button type="button" id="phoxtail-design-bar-panel-close" class="phoxtail-design-bar-panel-close" title="Close">
+                    {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+                </button>
+            </div>
+            <div class="phoxtail-design-bar-panel-body">
+                <div class="phoxtail-design-bar-page-row" data-phoxtail-design-bar-copy="page" draggable="true">
+                    {% icon "page_header" class="phoxtail-design-bar-row-icon" %}
+                    <div class="phoxtail-design-bar-row-info">
+                        <span class="phoxtail-design-bar-row-type">{{ page.content_type.model }}</span>
+                        <span class="phoxtail-design-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
+                    </div>
+                    <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy page context">
+                        {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
+                    </button>
+                    <button type="button" class="phoxtail-design-bar-add-btn" title="Add to chat">
+                        {% icon "plus" class="phoxtail-design-bar-btn-icon phoxtail-add-btn-icon-add" %}
+                        {% icon "remove" class="phoxtail-design-bar-btn-icon phoxtail-add-btn-icon-remove" %}
+                    </button>
+                </div>
+                <div class="phoxtail-design-bar-sep-line"></div>
+                {% for block in page.body %}
+                {% with variant=block.value.variant %}
+                <div class="phoxtail-design-bar-block-row"
+                     tabindex="0"
+                     draggable="true"
+                     data-phoxtail-design-bar-copy="block"
+                     data-phoxtail-design-bar-uuid="{{ block.id }}"
+                     data-phoxtail-design-bar-type="{{ block.block_type }}"
+                     {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier }}"{% endif %}>
+                    {% icon "layers" class="phoxtail-design-bar-row-icon" %}
+                    <div class="phoxtail-design-bar-row-info">
+                        <span class="phoxtail-design-bar-row-type">{{ block.block_type }}</span>
+                        {% if variant %}<span class="phoxtail-design-bar-row-meta">{{ variant.identifier }}</span>{% endif %}
+                    </div>
+                    <button type="button" class="phoxtail-design-bar-copy-btn" title="Copy block context">
+                        {% icon "content_copy" class="phoxtail-design-bar-btn-icon" %}
+                    </button>
+                    <button type="button" class="phoxtail-design-bar-add-btn" title="Add to chat">
+                        {% icon "plus" class="phoxtail-design-bar-btn-icon phoxtail-add-btn-icon-add" %}
+                        {% icon "remove" class="phoxtail-design-bar-btn-icon phoxtail-add-btn-icon-remove" %}
+                    </button>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <textarea
+            id="phoxtail-chatbot-input"
+            class="phoxtail-chatbot-input"
+            placeholder="Ask anything…"
+            rows="1"
+            aria-label="Message"></textarea>
+        <div class="phoxtail-chatbot-compose-actions">
+            {% if page.body %}
+            <button type="button"
+                    id="phoxtail-design-bar-blocks-btn"
+                    class="phoxtail-chatbot-compose-blocks-btn"
+                    title="Blocks (B)"
+                    aria-expanded="false">
+                {% icon "layers" class="phoxtail-design-bar-btn-icon" %}
+                <span class="phoxtail-design-bar-count-badge">{{ page.body|length }}</span>
+            </button>
+            {% endif %}
             <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
                 {% icon "arrow_up" class="phoxtail-design-bar-btn-icon" %}
             </button>
