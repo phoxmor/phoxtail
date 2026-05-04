@@ -24,7 +24,7 @@
     inset: 0;
     z-index: -1;
     border-radius: calc(infinity * 1px);
-    background-color: rgba(255, 255, 255, 0.82);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.82);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
     border: 1px solid rgb(0 0 0 / 0.06);
@@ -92,8 +92,8 @@
     border-radius: 50%;
     flex-shrink: 0;
 }
-.phoxtail-design-bar-live-dot--on  { color: rgb(22 163 74); }
-.phoxtail-design-bar-live-dot--on::before  { background-color: rgb(34 197 94); }
+.phoxtail-design-bar-live-dot--on  { color: rgb(var(--color-success-600, 22 163 74)); }
+.phoxtail-design-bar-live-dot--on::before  { background-color: rgb(var(--color-success-500, 34 197 94)); }
 .phoxtail-design-bar-live-dot--off { color: rgb(var(--color-surface-400, 161 161 170)); }
 .phoxtail-design-bar-live-dot--off::before { background-color: rgb(var(--color-surface-400, 161 161 170)); }
 
@@ -171,7 +171,7 @@
     max-height: 60vh;
     display: flex;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.88);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
     backdrop-filter: blur(28px) saturate(1.6);
     -webkit-backdrop-filter: blur(28px) saturate(1.6);
     border: 1px solid rgb(0 0 0 / 0.07);
@@ -311,9 +311,9 @@
 }
 .phoxtail-design-bar-copy-btn .phoxtail-design-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
 .phoxtail-design-bar-copy-btn--copied {
-    color: rgb(22 163 74) !important;
-    border-color: rgb(134 239 172) !important;
-    background-color: rgb(240 253 244) !important;
+    color: rgb(var(--color-success-600, 22 163 74)) !important;
+    border-color: rgb(var(--color-success-300, 134 239 172)) !important;
+    background-color: rgb(var(--color-success-50, 240 253 244)) !important;
 }
 
 /* ── More-menu panel — narrower, right-anchored above the more button ── */
@@ -479,10 +479,11 @@
     width: 27.5rem;
     max-width: 100vw;
     height: 100vh;
+    height: 100dvh;
     z-index: 9950;
     display: flex;
     flex-direction: column;
-    background-color: rgba(255, 255, 255, 0.88);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
     backdrop-filter: blur(28px) saturate(1.6);
     -webkit-backdrop-filter: blur(28px) saturate(1.6);
     border-left: 1px solid rgb(0 0 0 / 0.07);
@@ -515,7 +516,7 @@
     height: 1.75rem;
     border: 1px solid rgb(0 0 0 / 0.08);
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: rgb(var(--color-surface-400, 161 161 170));
@@ -538,7 +539,7 @@
     height: 1.75rem;
     border: 1px solid rgb(0 0 0 / 0.08);
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: rgb(var(--color-surface-400, 161 161 170));
@@ -559,10 +560,21 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 4rem 1rem 5.5rem;
+    padding: 4rem 1rem calc(5.5rem + env(safe-area-inset-bottom, 0px));
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 0.12) transparent;
+}
+.phoxtail-chatbot-drawer-messages::-webkit-scrollbar { width: 4px; }
+.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-track { background: transparent; }
+.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb {
+    background-color: rgb(0 0 0 / 0.12);
+    border-radius: 100px;
+}
+.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(0 0 0 / 0.2);
 }
 
 /* Empty state — centered logo */
@@ -626,14 +638,14 @@
 /* Floating compose bar — glassy rounded bar anchored to the bottom */
 .phoxtail-chatbot-compose {
     position: absolute;
-    bottom: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     left: 1rem;
     right: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0;
     padding: 0.75rem 0.75rem 0.625rem 0.875rem;
-    background-color: rgba(255, 255, 255, 0.82);
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.82);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
     border: 1px solid rgb(0 0 0 / 0.08);
@@ -755,7 +767,13 @@
     outline: none;
     resize: none;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 0.12) transparent;
 }
+.phoxtail-chatbot-input::-webkit-scrollbar { width: 4px; }
+.phoxtail-chatbot-input::-webkit-scrollbar-track { background: transparent; }
+.phoxtail-chatbot-input::-webkit-scrollbar-thumb { background-color: rgb(0 0 0 / 0.12); border-radius: 100px; }
+.phoxtail-chatbot-input::-webkit-scrollbar-thumb:hover { background-color: rgb(0 0 0 / 0.2); }
 .phoxtail-chatbot-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
 .phoxtail-chatbot-send-btn {
     display: inline-flex;
@@ -763,30 +781,38 @@
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    border: none;
+    border: 1px solid rgb(0 0 0 / 0.08);
     border-radius: 50%;
-    background-color: rgb(var(--color-primary-500, 99 102 241));
-    color: white;
+    background: none;
+    color: rgb(var(--color-surface-400, 161 161 170));
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
     font-family: inherit;
-    transition: background-color 150ms ease, transform 100ms ease;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
-.phoxtail-chatbot-send-btn:hover { background-color: rgb(var(--color-primary-600, 79 70 229)); }
-.phoxtail-chatbot-send-btn:active { transform: scale(0.92); }
-.phoxtail-chatbot-send-btn .phoxtail-design-bar-btn-icon { width: 1rem; height: 1rem; }
+.phoxtail-chatbot-send-btn:hover {
+    background-color: rgb(0 0 0 / 0.06);
+    border-color: rgb(0 0 0 / 0.14);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-chatbot-send-btn .phoxtail-design-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-chatbot-send-btn--active {
+    background-color: rgb(var(--color-primary-50, 238 242 255));
+    border-color: rgb(var(--color-primary-200, 199 210 254));
+    color: rgb(var(--color-primary-600, 79 70 229));
+}
 
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
     #phoxtail-chatbot-drawer {
-        background-color: rgba(12, 12, 16, 0.88);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
         border-left-color: rgb(255 255 255 / 0.08);
         box-shadow: -8px 0 48px rgba(0, 0, 0, 0.5), inset 0.5px 0 0 rgb(255 255 255 / 0.06);
     }
     .phoxtail-chatbot-topbar-close,
     .phoxtail-chatbot-topbar-new {
-        background-color: rgba(12, 12, 16, 0.7);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.7);
         border-color: rgb(255 255 255 / 0.1);
         color: rgb(var(--color-surface-500, 113 113 122));
     }
@@ -795,25 +821,37 @@
         background-color: rgb(255 255 255 / 0.08);
         color: white;
     }
+    .phoxtail-chatbot-drawer-messages {
+        scrollbar-color: rgb(255 255 255 / 0.12) transparent;
+    }
+    .phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb {
+        background-color: rgb(255 255 255 / 0.12);
+    }
+    .phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(255 255 255 / 0.2);
+    }
     .phoxtail-chatbot-message { color: rgb(var(--color-surface-100, 244 244 245)); }
     .phoxtail-chatbot-message--assistant {
         background-color: rgb(255 255 255 / 0.05);
         border-color: rgb(255 255 255 / 0.08);
     }
     .phoxtail-chatbot-compose {
-        background-color: rgba(12, 12, 16, 0.82);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.82);
         border-color: rgb(255 255 255 / 0.1);
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgb(255 255 255 / 0.06);
     }
     .phoxtail-chatbot-compose--drop-target {
         border-color: rgb(var(--color-primary-500, 99 102 241));
-        box-shadow: 0 0 0 3px rgb(30 27 75 / 0.6), 0 4px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 0 3px rgb(var(--color-primary-950, 30 27 75) / 0.6), 0 4px 24px rgba(0, 0, 0, 0.4);
     }
-    .phoxtail-chatbot-input { color: rgb(var(--color-surface-50, 250 250 250)); }
+    .phoxtail-chatbot-input { color: rgb(var(--color-surface-50, 250 250 250)); scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
+    .phoxtail-chatbot-input::-webkit-scrollbar-track { background: transparent; }
+    .phoxtail-chatbot-input::-webkit-scrollbar-thumb { background-color: rgb(255 255 255 / 0.12); border-radius: 100px; }
+    .phoxtail-chatbot-input::-webkit-scrollbar-thumb:hover { background-color: rgb(255 255 255 / 0.2); }
     .phoxtail-chatbot-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
     .phoxtail-chatbot-chips { border-top-color: rgb(255 255 255 / 0.07); }
     .phoxtail-chatbot-chip {
-        background-color: rgb(30 27 75 / 0.6);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
@@ -831,37 +869,50 @@
         color: white;
     }
     .phoxtail-chatbot-compose-blocks-btn.phoxtail-design-bar-btn--active {
-        background-color: rgb(30 27 75 / 0.6);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
+        border-color: rgb(var(--color-primary-700, 67 56 202));
+        color: rgb(var(--color-primary-300, 165 180 252));
+    }
+    .phoxtail-chatbot-send-btn {
+        border-color: rgb(255 255 255 / 0.1);
+        color: rgb(var(--color-surface-500, 113 113 122));
+    }
+    .phoxtail-chatbot-send-btn:hover {
+        background-color: rgb(255 255 255 / 0.08);
+        color: white;
+    }
+    .phoxtail-chatbot-send-btn--active {
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
     .phoxtail-design-bar-add-btn { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-design-bar-add-btn:hover {
-        background-color: rgb(30 27 75 / 0.6);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
     .phoxtail-design-bar-add-btn--active {
-        background-color: rgb(127 29 29 / 0.4);
-        border-color: rgb(185 28 28 / 0.6);
-        color: rgb(252 165 165);
+        background-color: rgb(var(--color-destructive-900, 127 29 29) / 0.4);
+        border-color: rgb(var(--color-destructive-700, 185 28 28) / 0.6);
+        color: rgb(var(--color-destructive-300, 252 165 165));
     }
     .phoxtail-design-bar-add-btn--active:hover {
-        background-color: rgb(127 29 29 / 0.6);
-        border-color: rgb(185 28 28 / 0.8);
-        color: rgb(254 202 202);
+        background-color: rgb(var(--color-destructive-900, 127 29 29) / 0.6);
+        border-color: rgb(var(--color-destructive-700, 185 28 28) / 0.8);
+        color: rgb(var(--color-destructive-200, 254 202 202));
     }
 }
 
 @media (prefers-color-scheme: dark) {
     .phoxtail-design-bar-dock::before {
-        background-color: rgba(12, 12, 16, 0.75);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.75);
         border-color: rgb(255 255 255 / 0.08);
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
     }
     .phoxtail-design-bar-page-title { color: rgb(var(--color-surface-50, 250 250 250)); }
     .phoxtail-design-bar-badge {
-        background-color: rgb(30 27 75 / 0.8);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.8);
         color: rgb(var(--color-primary-300, 165 180 252));
     }
     .phoxtail-design-bar-sep { color: rgb(255 255 255 / 0.15); }
@@ -879,13 +930,13 @@
     }
     .phoxtail-design-bar-btn--active,
     .phoxtail-design-bar-btn--active:hover {
-        background-color: rgb(30 27 75 / 0.6);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
-    .phoxtail-design-bar-count-badge { border-color: rgb(12 12 16); }
+    .phoxtail-design-bar-count-badge { border-color: rgb(var(--color-surface-950, 12 12 16)); }
     .phoxtail-design-bar-panel {
-        background-color: rgba(12, 12, 16, 0.88);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
         border-color: rgb(255 255 255 / 0.08);
         box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
     }
@@ -899,7 +950,7 @@
     .phoxtail-design-bar-page-row:hover  { background-color: rgb(255 255 255 / 0.04); }
     .phoxtail-design-bar-block-row:hover { background-color: rgb(255 255 255 / 0.06); }
     .phoxtail-design-bar-block-row--active {
-        background-color: rgb(30 27 75 / 0.5);
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
         outline-color: rgb(var(--color-primary-700, 67 56 202));
     }
     .phoxtail-design-bar-row-icon  { color: rgb(var(--color-surface-600, 82 82 91)); }

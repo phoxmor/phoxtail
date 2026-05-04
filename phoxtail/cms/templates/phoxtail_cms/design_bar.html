@@ -79,8 +79,8 @@
 <div id="phoxtail-chatbot-drawer" aria-label="Chatbot" role="complementary">
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
         <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
-            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.svg' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
-            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.svg' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--dark" alt="Phoxtail">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--dark" alt="Phoxtail">
         </div>
     </div>
     <div class="phoxtail-chatbot-topbar">
@@ -149,7 +149,7 @@
         <textarea
             id="phoxtail-chatbot-input"
             class="phoxtail-chatbot-input"
-            placeholder="Ask anything…"
+            placeholder="Chat with Phoxtail…"
             rows="1"
             aria-label="Message"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
@@ -164,7 +164,7 @@
             </button>
             {% endif %}
             <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
-                {% icon "arrow_up" class="phoxtail-design-bar-btn-icon" %}
+                {% icon "arrow_upward" class="phoxtail-design-bar-btn-icon" %}
             </button>
         </div>
         <div class="phoxtail-chatbot-chips" id="phoxtail-chatbot-chips" style="display:none"></div>

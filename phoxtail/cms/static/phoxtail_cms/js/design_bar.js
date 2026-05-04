@@ -13,6 +13,7 @@
     var chatbotNewBtn = document.getElementById('phoxtail-chatbot-new-btn');
     var chatbotForm = document.getElementById('phoxtail-chatbot-form');
     var chatbotInput = document.getElementById('phoxtail-chatbot-input');
+    var chatbotSendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
     var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
     var menuBtn = document.getElementById('phoxtail-design-bar-menu-btn');
     var menuPanel = document.getElementById('phoxtail-design-bar-menu-panel');
@@ -407,6 +408,7 @@
         chatbotInput.addEventListener('input', function () {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 232) + 'px';
+            _syncSendBtnState();
         });
         chatbotInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -481,10 +483,14 @@
         return el;
     }
 
+    function _syncSendBtnState() {
+        if (!chatbotSendBtn || !chatbotInput) return;
+        chatbotSendBtn.classList.toggle('phoxtail-chatbot-send-btn--active', chatbotInput.value.trim().length > 0);
+    }
+
     function _setSending(active) {
         _busy = active;
-        var sendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
-        if (sendBtn) sendBtn.disabled = active;
+        if (chatbotSendBtn) chatbotSendBtn.disabled = active;
         if (chatbotInput) chatbotInput.disabled = active;
     }
 
@@ -576,6 +582,7 @@
             _appendMessage('phoxtail-chatbot-message--user', fullMessage);
             chatbotInput.value = '';
             chatbotInput.style.height = 'auto';
+            _syncSendBtnState();
             _clearContextBlocks();
             _setSending(true);
 
