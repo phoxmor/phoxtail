@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import queue
+import re
 import threading
 from collections.abc import AsyncIterable
 from typing import Any
@@ -33,6 +34,7 @@ from phoxtail.agent.models import Conversation
 router = Router()
 
 _SENTINEL = object()
+_CONTEXT_STRIP = re.compile(r"^<phoxtail-context>\n[\s\S]*?\n</phoxtail-context>\n\n")
 
 # ── Persistent background event loop ────────────────────────────────────────
 # asyncio.run() creates and destroys a loop per call. The cached agent's httpx
@@ -139,7 +141,12 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             conversation.message_history = ModelMessagesTypeAdapter.dump_python(
                 updated, mode="json"
             )
-            await sync_to_async(conversation.save)(update_fields=["message_history"])
+            await sync_to_async(conversation.save)(update_fields=["message_history", "updated_at"])
+            if not conversation.title:
+                stripped = _CONTEXT_STRIP.sub("", user_text).strip()
+                if stripped:
+                    conversation.title = stripped[:80]
+                    await sync_to_async(conversation.save)(update_fields=["title", "updated_at"])
         finally:
             await aq.put(_SENTINEL)
 

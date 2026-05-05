@@ -1,0 +1,12 @@
+{% for conv in conversations %}
+<button type="button"
+        class="phoxtail-chat-history-item"
+        onclick="window.phoxtailChat && window.phoxtailChat.load('{{ conv.uuid }}')">
+    <span class="phoxtail-chat-history-item-title">{{ conv.title }}</span>
+    <span class="phoxtail-chat-history-item-date">{{ conv.updated_at|date:"M j" }}</span>
+</button>
+{% empty %}
+<div class="phoxtail-chat-history-empty">
+    {% if query %}No chats match "{{ query }}".{% else %}No saved chats yet.{% endif %}
+</div>
+{% endfor %}

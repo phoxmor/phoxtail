@@ -1,0 +1,76 @@
+{% load phoxtail_design_tags %}
+<div class="phoxtail-chat-history-overlay"
+     data-modal-animation="slide-right"
+     onclick="closeModalLevel1()">
+    <div class="phoxtail-chat-history-drawer" onclick="event.stopPropagation()">
+        <div class="phoxtail-design-bar-panel-header">
+            <span class="phoxtail-design-bar-panel-title">Chats</span>
+            <div class="phoxtail-chat-history-header-actions">
+                <button type="button"
+                        class="phoxtail-chat-history-new-btn"
+                        onclick="window.phoxtailChat && window.phoxtailChat.newChat(); closeModalLevel1();"
+                        title="New Chat (N)">
+                    {% icon "plus" class="phoxtail-design-bar-btn-icon" %}
+                    <span>New Chat</span>
+                </button>
+                <button type="button"
+                        onclick="closeModalLevel1()"
+                        class="phoxtail-design-bar-panel-close"
+                        title="Close">
+                    {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+                </button>
+            </div>
+        </div>
+        <div class="phoxtail-chat-history-search">
+            <div class="phoxtail-chat-history-search-wrap">
+                <span class="phoxtail-chat-history-search-icon {% if query %}phoxtail-chat-history-hidden{% endif %}"
+                      id="phoxtail-chat-history-search-icon">
+                    {% icon "search" class="phoxtail-design-bar-btn-icon" %}
+                </span>
+                <button type="button"
+                        id="phoxtail-chat-history-clear"
+                        class="phoxtail-chat-history-clear {% if not query %}phoxtail-chat-history-hidden{% endif %}"
+                        title="Clear search"
+                        aria-label="Clear search">
+                    {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+                </button>
+                <input type="text"
+                       id="phoxtail-chat-history-input"
+                       name="q"
+                       value="{{ query }}"
+                       placeholder="Search chats…"
+                       autocomplete="off"
+                       class="phoxtail-chat-history-search-input"
+                       hx-get="{% url 'phoxtail_agent:chat_history' %}"
+                       hx-target="#phoxtail-chat-history-list"
+                       hx-trigger="input changed delay:300ms"
+                       hx-swap="innerHTML">
+            </div>
+        </div>
+        <div class="phoxtail-chat-history-list" id="phoxtail-chat-history-list">
+            {% include "phoxtail_agent/partials/chat_history_list.html" %}
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var input = document.getElementById('phoxtail-chat-history-input');
+    var clear = document.getElementById('phoxtail-chat-history-clear');
+    var icon  = document.getElementById('phoxtail-chat-history-search-icon');
+    if (!input) return;
+    function syncVisibility() {
+        var hasVal = input.value.length > 0;
+        icon.classList.toggle('phoxtail-chat-history-hidden', hasVal);
+        clear.classList.toggle('phoxtail-chat-history-hidden', !hasVal);
+    }
+    input.addEventListener('input', syncVisibility);
+    if (clear) {
+        clear.addEventListener('click', function () {
+            input.value = '';
+            syncVisibility();
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+        });
+    }
+})();
+</script>

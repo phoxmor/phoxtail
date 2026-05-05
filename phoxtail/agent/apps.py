@@ -1,4 +1,4 @@
-from phoxtail.core.app_config import PhoxtailAppConfig
+from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
 
 
 class PhoxtailAgentConfig(PhoxtailAppConfig):
@@ -12,3 +12,8 @@ class PhoxtailAgentConfig(PhoxtailAppConfig):
     ]
 
     api_version_router = "phoxtail.agent.api.v1.router"
+    url_mount = UrlMount(
+        prefix="phoxtail-agent/",
+        module="phoxtail.agent.urls",
+        namespace="phoxtail_agent",
+    )

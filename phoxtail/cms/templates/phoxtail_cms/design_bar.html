@@ -1,6 +1,8 @@
 {% load phoxtail_design_tags static %}
 {% if request.user.is_superuser and page %}
 {% url 'wagtailadmin_home' as admin_home %}
+{% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
+{% url 'phoxtail_agent:chat_history' as chat_history_url %}
 <link rel="stylesheet" href="{% static 'phoxtail_cms/css/design_bar.css' %}">
 
 <script type="application/json" id="phoxtail-design-bar-manifest">
@@ -84,9 +86,25 @@
         </div>
     </div>
     <div class="phoxtail-chatbot-topbar">
-        <button type="button" id="phoxtail-chatbot-new-btn" class="phoxtail-chatbot-topbar-new" title="New chat">
-            {% icon "edit" class="phoxtail-design-bar-btn-icon" %}
-        </button>
+        <div class="phoxtail-chatbot-topbar-left">
+            <button type="button"
+                    id="phoxtail-chatbot-history-btn"
+                    class="phoxtail-chatbot-topbar-history"
+                    title="Chat history (H)"
+                    hx-get="{{ chat_history_modal_url }}"
+                    hx-vals='{"content_url": "{{ chat_history_url }}"}'
+                    hx-target="#core-modal-level-1-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% icon "menu" class="phoxtail-design-bar-btn-icon" %}
+            </button>
+            <button type="button"
+                    id="phoxtail-chatbot-newchat-btn"
+                    class="phoxtail-chatbot-topbar-history"
+                    title="New chat (N)"
+                    onclick="window.phoxtailChat && window.phoxtailChat.newChat();">
+                {% icon "plus" class="phoxtail-design-bar-btn-icon" %}
+            </button>
+        </div>
         <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
             {% icon "close" class="phoxtail-design-bar-btn-icon" %}
         </button>

@@ -10,11 +10,12 @@
     var chatbotBtn = document.getElementById('phoxtail-design-bar-chatbot-btn');
     var chatbotDrawer = document.getElementById('phoxtail-chatbot-drawer');
     var chatbotCloseBtn = document.getElementById('phoxtail-chatbot-drawer-close');
-    var chatbotNewBtn = document.getElementById('phoxtail-chatbot-new-btn');
+    var chatbotHistoryBtn = document.getElementById('phoxtail-chatbot-history-btn');
     var chatbotForm = document.getElementById('phoxtail-chatbot-form');
     var chatbotInput = document.getElementById('phoxtail-chatbot-input');
     var chatbotSendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
     var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
+    var _emptyStateHTML = chatbotMessages ? chatbotMessages.innerHTML : '';
     var menuBtn = document.getElementById('phoxtail-design-bar-menu-btn');
     var menuPanel = document.getElementById('phoxtail-design-bar-menu-panel');
     var menuClose = document.getElementById('phoxtail-design-bar-menu-close');
@@ -92,13 +93,10 @@
         chatbotCloseBtn.addEventListener('click', function () { chat.close(); });
     }
 
-    if (chatbotNewBtn) {
-        chatbotNewBtn.addEventListener('click', function () { _newConversation(); });
-    }
-
     // ── Click-outside: close any open panel ─────────────────────────────────
 
     document.addEventListener('click', function (e) {
+        if (document.getElementById('base-modal') || document.getElementById('base-modal-level-1')) return;
         if (bar.contains(e.target)) return;
         if (chatbotDrawer && chatbotDrawer.contains(e.target)) return;
         if (menu && menu.isOpen()) menu.close();
@@ -110,6 +108,7 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             if (_hlTarget) { dismissHighlight(); return; }
+            if (document.getElementById('base-modal') || document.getElementById('base-modal-level-1')) return;
             if (chat.isOpen()) { chat.close(); return; }
             if (menu && menu.isOpen()) { menu.close(); return; }
             if (blocks && blocks.isOpen()) { blocks.close(); return; }
@@ -171,6 +170,17 @@
         }
         if ((e.key === 'm' || e.key === 'M') && menu) {
             menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
+        }
+        if ((e.key === 'h' || e.key === 'H') && chatbotHistoryBtn) {
+            if (document.getElementById('base-modal-level-1')) {
+                if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
+            } else {
+                chatbotHistoryBtn.click();
+            }
+        }
+        if (e.key === 'n' || e.key === 'N') {
+            if (!chat.isOpen()) chat.open();
+            _newConversation();
         }
     });
 
@@ -500,11 +510,7 @@
         _clearContextBlocks();
         try { localStorage.removeItem(_LS_KEY); } catch (_) {}
         if (chatbotMessages) {
-            chatbotMessages.innerHTML = '';
-            var emptyEl = document.createElement('div');
-            emptyEl.className = 'phoxtail-chatbot-empty-state';
-            emptyEl.id = 'phoxtail-chatbot-empty';
-            chatbotMessages.appendChild(emptyEl);
+            chatbotMessages.innerHTML = _emptyStateHTML;
         }
     }
 
@@ -535,6 +541,30 @@
             });
         }).catch(function () {});
     }
+
+    function _loadChat(uuid) {
+        if (_busy) return;
+        _conversationUuid = uuid;
+        _contextBlocks = [];
+        _syncChipsUI();
+        try { localStorage.setItem(_LS_KEY, uuid); } catch (_) {}
+        if (chatbotMessages) {
+            chatbotMessages.innerHTML = _emptyStateHTML;
+        }
+        _rehydrate(uuid);
+    }
+
+    window.phoxtailChat = {
+        load: function (uuid) {
+            _loadChat(uuid);
+            if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
+            if (!chat.isOpen()) chat.open();
+        },
+        newChat: function () {
+            _newConversation();
+            if (!chat.isOpen()) chat.open();
+        }
+    };
 
     // Rehydrate on load if we have a stored UUID
     (function () {

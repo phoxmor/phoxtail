@@ -86,7 +86,7 @@
 
 #base-modal.closing #core-modal-placeholder[data-animation-type="slide-right"],
 #base-modal-level-1.closing #core-modal-level-1-placeholder[data-animation-type="slide-right"] {
-    animation: slideRightOut 0.3s ease-out;
+    animation: slideRightOut 0.32s ease-in;
 }
 
 #core-modal-placeholder[data-animation-type="fade"],
