@@ -209,9 +209,8 @@ def publish_page(page_id: int, etag: str) -> str:
         "(2) call phoxtail_pages_list_pages with `search` to find the "
         "parent page ID; (3) resolve any FK fields (e.g. author, image) "
         "via the lookup tool listed in fk_lookups. "
-        "The page is created as a draft — call phoxtail_pages_publish to "
-        "make it live. Returns the created page with an `_etag` for "
-        "subsequent write calls."
+        "The page is created as a draft and remains unpublished for review. "
+        "Returns the created page with an `_etag` for subsequent write calls."
     ),
 )
 def create_page(

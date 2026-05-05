@@ -24,13 +24,18 @@ mcp_server = FastMCP(
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
-        "(Wagtail page read/write + publish + body editing). Optional "
+        "(Wagtail page read/write + body editing). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
         "Always fetch a resource before updating it to get the current "
         "ETag for concurrency control. Use the design_block prompt and "
         "the phoxtail://schema-reference and phoxtail://page-types "
-        "resources when creating new blocks or editing pages."
+        "resources when creating new blocks or editing pages. "
+        "IMPORTANT: never call phoxtail_pages_publish unless the user "
+        "explicitly asks to publish. Every write operation (create, update, "
+        "add/update/delete/move blocks, replace body) saves a draft revision "
+        "only — the page stays unpublished so the user can review changes "
+        "before deciding to go live."
     ),
 )
 

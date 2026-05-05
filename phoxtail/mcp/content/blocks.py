@@ -32,7 +32,7 @@ def get_block(page_id: int, block_uuid: str) -> str:
     description=(
         "Update the value of a single block in-place, identified by its UUID. "
         "Finds the block, replaces its value, saves a draft revision. "
-        "Does NOT publish — call phoxtail_pages_publish after reviewing the draft. "
+        "Does NOT publish — the page remains as a draft for review. "
         "Pass etag from a prior phoxtail_pages_get_block or phoxtail_pages_get_body. "
         "Returns {block: {type, value, id}, _etag, _changed_blocks: [uuid]}. "
         "Prefer this over phoxtail_pages_replace_body when editing a single block."
