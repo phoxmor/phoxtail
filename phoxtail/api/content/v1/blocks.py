@@ -9,6 +9,7 @@ with session auth), not here.
 
 from __future__ import annotations
 
+import uuid
 from typing import Any
 
 from django.db import transaction
@@ -222,9 +223,13 @@ def patch_block(
     updated_block = {**existing, "value": payload.value}
     new_body = body[:idx] + [updated_block] + body[idx + 1 :]
 
-    etag = _commit_body(page, new_body, field_name, request, response)
-    refreshed_body = serialize_body(resolve_page_for_read(page_id), field_name)
-    _, saved_block = _find_block(refreshed_body, block_uuid)
+    replace_body(page, new_body, field_name)
+    canonical_body = serialize_body(page, field_name)
+    _, saved_block = _find_block(canonical_body, block_uuid)
+    with transaction.atomic():
+        page.save_revision(user=request.auth)
+    etag = page_etag(page)
+    response["ETag"] = etag
     return {"block": saved_block, "_etag": etag}
 
 
@@ -254,21 +259,23 @@ def add_block(
     field_name = body_field_name_for(page)
     body = serialize_body(resolve_page_for_read(page_id), field_name)
 
-    new_block: dict[str, Any] = {"type": payload.type, "value": payload.value}
-    # Server generates UUID; Wagtail's to_python will assign one during
-    # replace_body if we omit "id", but we want to know it upfront so we
-    # can return it and include it in _changed_blocks.
-    import uuid as _uuid
-
-    new_uuid = str(_uuid.uuid4())
-    new_block["id"] = new_uuid
+    new_uuid = str(uuid.uuid4())
+    new_block: dict[str, Any] = {
+        "type": payload.type,
+        "value": payload.value,
+        "id": new_uuid,
+    }
 
     insert_at = _resolve_position(body, payload.position)
     new_body = body[:insert_at] + [new_block] + body[insert_at:]
 
-    etag = _commit_body(page, new_body, field_name, request, response)
-    refreshed_body = serialize_body(resolve_page_for_read(page_id), field_name)
-    _, saved_block = _find_block(refreshed_body, new_uuid)
+    replace_body(page, new_body, field_name)
+    canonical_body = serialize_body(page, field_name)
+    _, saved_block = _find_block(canonical_body, new_uuid)
+    with transaction.atomic():
+        page.save_revision(user=request.auth)
+    etag = page_etag(page)
+    response["ETag"] = etag
     response.status_code = 201
     return {"block": saved_block, "_etag": etag}
 
