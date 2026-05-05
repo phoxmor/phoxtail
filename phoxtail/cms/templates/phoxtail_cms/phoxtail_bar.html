@@ -1,0 +1,193 @@
+{% load phoxtail_design_tags static %}
+{% if perms.phoxtail_agent.access_chatbot and page %}
+{% url 'wagtailadmin_home' as admin_home %}
+{% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
+{% url 'phoxtail_agent:chat_history' as chat_history_url %}
+<link rel="stylesheet" href="{% static 'phoxtail_cms/css/phoxtail_bar.css' %}">
+
+<script type="application/json" id="phoxtail-bar-manifest">
+{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}}
+</script>
+
+<div id="phoxtail-bar">
+    <div class="phoxtail-bar-dock">
+        <div class="phoxtail-bar-page-info">
+            <span class="phoxtail-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
+            <span class="phoxtail-bar-badge">#{{ page.id }}</span>
+            <span class="phoxtail-bar-sep">·</span>
+            <span class="phoxtail-bar-type">{{ page.content_type.model }}</span>
+            <span class="phoxtail-bar-sep">·</span>
+            <span class="phoxtail-bar-locale">{{ page.locale.language_code }}</span>
+            <span class="phoxtail-bar-sep">·</span>
+            <span class="phoxtail-bar-live-dot phoxtail-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}">{% if page.live %}live{% else %}draft{% endif %}</span>
+        </div>
+        <div class="phoxtail-bar-divider"></div>
+        <div class="phoxtail-bar-actions">
+            <button type="button"
+                    id="phoxtail-bar-chatbot-btn"
+                    class="phoxtail-bar-btn"
+                    title="Chat (C)"
+                    aria-expanded="false">
+                {% icon "chat" class="phoxtail-bar-btn-icon" %}
+            </button>
+            <button type="button"
+                    id="phoxtail-bar-menu-btn"
+                    class="phoxtail-bar-btn"
+                    title="More options"
+                    aria-haspopup="menu"
+                    aria-expanded="false">
+                {% icon "more_horiz" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="phoxtail-bar-panel phoxtail-bar-menu-panel" id="phoxtail-bar-menu-panel">
+        <div class="phoxtail-bar-panel-header">
+            <span class="phoxtail-bar-panel-title">Actions</span>
+            <button type="button" id="phoxtail-bar-menu-close" class="phoxtail-bar-panel-close" title="Close">
+                {% icon "close" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+        <div class="phoxtail-bar-panel-body">
+            <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
+               class="phoxtail-bar-menu-item"
+               target="_blank"
+               rel="noopener"
+               role="menuitem">
+                {% icon "edit" class="phoxtail-bar-row-icon" %}
+                <div class="phoxtail-bar-row-info">
+                    <span class="phoxtail-bar-row-type">Edit page</span>
+                    <span class="phoxtail-bar-row-meta">Open in page editor</span>
+                </div>
+                {% icon "arrow_outward" class="phoxtail-bar-menu-item-ext" %}
+            </a>
+            <div class="phoxtail-bar-sep-line"></div>
+            <a href="{{ admin_home }}"
+               class="phoxtail-bar-menu-item"
+               target="_blank"
+               rel="noopener"
+               role="menuitem">
+                {% icon "settings" class="phoxtail-bar-row-icon" %}
+                <div class="phoxtail-bar-row-info">
+                    <span class="phoxtail-bar-row-type">Admin</span>
+                    <span class="phoxtail-bar-row-meta">Go to admin dashboard</span>
+                </div>
+                {% icon "arrow_outward" class="phoxtail-bar-menu-item-ext" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="phoxtail-chatbot-drawer" aria-label="Chatbot" role="complementary">
+    <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
+        <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
+            <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--dark" alt="Phoxtail">
+        </div>
+    </div>
+    <div class="phoxtail-chatbot-topbar">
+        <div class="phoxtail-chatbot-topbar-left">
+            <button type="button"
+                    id="phoxtail-chatbot-history-btn"
+                    class="phoxtail-chatbot-topbar-history"
+                    title="Chat history (H)"
+                    hx-get="{{ chat_history_modal_url }}"
+                    hx-vals='{"content_url": "{{ chat_history_url }}"}'
+                    hx-target="#core-modal-level-1-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% icon "menu" class="phoxtail-bar-btn-icon" %}
+            </button>
+            <button type="button"
+                    id="phoxtail-chatbot-newchat-btn"
+                    class="phoxtail-chatbot-topbar-history"
+                    title="New chat (N)"
+                    onclick="window.phoxtailChat && window.phoxtailChat.newChat();">
+                {% icon "plus" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+        <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
+            {% icon "close" class="phoxtail-bar-btn-icon" %}
+        </button>
+    </div>
+    <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
+        {% if page.body %}
+        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
+            <div class="phoxtail-bar-panel-header">
+                <span class="phoxtail-bar-panel-title">
+                    Blocks
+                    <span class="phoxtail-bar-badge">{{ page.body|length }}</span>
+                </span>
+                <button type="button" id="phoxtail-bar-panel-close" class="phoxtail-bar-panel-close" title="Close">
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
+                </button>
+            </div>
+            <div class="phoxtail-bar-panel-body">
+                <div class="phoxtail-bar-page-row" data-phoxtail-bar-copy="page" draggable="true">
+                    {% icon "page_header" class="phoxtail-bar-row-icon" %}
+                    <div class="phoxtail-bar-row-info">
+                        <span class="phoxtail-bar-row-type">{{ page.content_type.model }}</span>
+                        <span class="phoxtail-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
+                    </div>
+                    <button type="button" class="phoxtail-bar-copy-btn" title="Copy page context">
+                        {% icon "content_copy" class="phoxtail-bar-btn-icon" %}
+                    </button>
+                    <button type="button" class="phoxtail-bar-add-btn" title="Add to chat">
+                        {% icon "plus" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-add" %}
+                        {% icon "remove" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-remove" %}
+                    </button>
+                </div>
+                <div class="phoxtail-bar-sep-line"></div>
+                {% for block in page.body %}
+                {% with variant=block.value.variant %}
+                <div class="phoxtail-bar-block-row"
+                     tabindex="0"
+                     draggable="true"
+                     data-phoxtail-bar-copy="block"
+                     data-phoxtail-bar-uuid="{{ block.id }}"
+                     data-phoxtail-bar-type="{{ block.block_type }}"
+                     {% if variant %}data-phoxtail-bar-variant-id="{{ variant.id }}" data-phoxtail-bar-variant-identifier="{{ variant.identifier }}"{% endif %}>
+                    {% icon "layers" class="phoxtail-bar-row-icon" %}
+                    <div class="phoxtail-bar-row-info">
+                        <span class="phoxtail-bar-row-type">{{ block.block_type }}</span>
+                        {% if variant %}<span class="phoxtail-bar-row-meta">{{ variant.identifier }}</span>{% endif %}
+                    </div>
+                    <button type="button" class="phoxtail-bar-copy-btn" title="Copy block context">
+                        {% icon "content_copy" class="phoxtail-bar-btn-icon" %}
+                    </button>
+                    <button type="button" class="phoxtail-bar-add-btn" title="Add to chat">
+                        {% icon "plus" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-add" %}
+                        {% icon "remove" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-remove" %}
+                    </button>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <textarea
+            id="phoxtail-chatbot-input"
+            class="phoxtail-chatbot-input"
+            placeholder="Chat with Phoxtail…"
+            rows="1"
+            aria-label="Message"></textarea>
+        <div class="phoxtail-chatbot-compose-actions">
+            {% if page.body %}
+            <button type="button"
+                    id="phoxtail-bar-blocks-btn"
+                    class="phoxtail-chatbot-compose-blocks-btn"
+                    title="Blocks (B)"
+                    aria-expanded="false">
+                {% icon "layers" class="phoxtail-bar-btn-icon" %}
+                <span class="phoxtail-bar-count-badge">{{ page.body|length }}</span>
+            </button>
+            {% endif %}
+            <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
+                {% icon "arrow_upward" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+        <div class="phoxtail-chatbot-chips" id="phoxtail-chatbot-chips" style="display:none"></div>
+    </form>
+</div>
+
+<script src="{% static 'phoxtail_cms/js/phoxtail_bar.js' %}"></script>
+{% endif %}

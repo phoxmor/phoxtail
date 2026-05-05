@@ -1,13 +1,13 @@
 (function () {
-    var manifestEl = document.getElementById('phoxtail-design-bar-manifest');
+    var manifestEl = document.getElementById('phoxtail-bar-manifest');
     if (!manifestEl) return;
 
     var manifest = JSON.parse(manifestEl.textContent);
-    var bar = document.getElementById('phoxtail-design-bar');
-    var blocksBtn = document.getElementById('phoxtail-design-bar-blocks-btn');
-    var blocksPanel = document.getElementById('phoxtail-design-bar-blocks-panel');
-    var blocksPanelClose = document.getElementById('phoxtail-design-bar-panel-close');
-    var chatbotBtn = document.getElementById('phoxtail-design-bar-chatbot-btn');
+    var bar = document.getElementById('phoxtail-bar');
+    var blocksBtn = document.getElementById('phoxtail-bar-blocks-btn');
+    var blocksPanel = document.getElementById('phoxtail-bar-blocks-panel');
+    var blocksPanelClose = document.getElementById('phoxtail-bar-panel-close');
+    var chatbotBtn = document.getElementById('phoxtail-bar-chatbot-btn');
     var chatbotDrawer = document.getElementById('phoxtail-chatbot-drawer');
     var chatbotCloseBtn = document.getElementById('phoxtail-chatbot-drawer-close');
     var chatbotHistoryBtn = document.getElementById('phoxtail-chatbot-history-btn');
@@ -16,28 +16,28 @@
     var chatbotSendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
     var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
     var _emptyStateHTML = chatbotMessages ? chatbotMessages.innerHTML : '';
-    var menuBtn = document.getElementById('phoxtail-design-bar-menu-btn');
-    var menuPanel = document.getElementById('phoxtail-design-bar-menu-panel');
-    var menuClose = document.getElementById('phoxtail-design-bar-menu-close');
+    var menuBtn = document.getElementById('phoxtail-bar-menu-btn');
+    var menuPanel = document.getElementById('phoxtail-bar-menu-panel');
+    var menuClose = document.getElementById('phoxtail-bar-menu-close');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
     function makeToggle(panel, button) {
         if (!panel || !button) return null;
         return {
-            isOpen: function () { return panel.classList.contains('phoxtail-design-bar-panel--open'); },
+            isOpen: function () { return panel.classList.contains('phoxtail-bar-panel--open'); },
             open:   function () {
-                panel.classList.add('phoxtail-design-bar-panel--open');
-                button.classList.add('phoxtail-design-bar-btn--active');
+                panel.classList.add('phoxtail-bar-panel--open');
+                button.classList.add('phoxtail-bar-btn--active');
                 button.setAttribute('aria-expanded', 'true');
             },
             close:  function () {
-                panel.classList.remove('phoxtail-design-bar-panel--open');
-                button.classList.remove('phoxtail-design-bar-btn--active');
+                panel.classList.remove('phoxtail-bar-panel--open');
+                button.classList.remove('phoxtail-bar-btn--active');
                 button.setAttribute('aria-expanded', 'false');
                 if (panel === blocksPanel) {
                     _activeBlockIdx = -1;
-                    getBlockRows().forEach(function (r) { r.classList.remove('phoxtail-design-bar-block-row--active'); });
+                    getBlockRows().forEach(function (r) { r.classList.remove('phoxtail-bar-block-row--active'); });
                 }
             }
         };
@@ -60,13 +60,13 @@
         isOpen: function () { return chatbotDrawer && chatbotDrawer.classList.contains('phoxtail-chatbot-drawer--open'); },
         open:   function () {
             chatbotDrawer.classList.add('phoxtail-chatbot-drawer--open');
-            chatbotBtn.classList.add('phoxtail-design-bar-btn--active');
+            chatbotBtn.classList.add('phoxtail-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'true');
             _setPageBlocksDraggable(true);
         },
         close:  function () {
             chatbotDrawer.classList.remove('phoxtail-chatbot-drawer--open');
-            chatbotBtn.classList.remove('phoxtail-design-bar-btn--active');
+            chatbotBtn.classList.remove('phoxtail-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'false');
             _setPageBlocksDraggable(false);
         }
@@ -93,7 +93,7 @@
         menuClose.addEventListener('click', function () { menu.close(); });
         // Close menu when a menu item link is activated (target=_blank stays open in new tab, UX still clean)
         menuPanel.addEventListener('click', function (e) {
-            if (e.target.closest('.phoxtail-design-bar-menu-item')) menu.close();
+            if (e.target.closest('.phoxtail-bar-menu-item')) menu.close();
         });
     }
 
@@ -263,7 +263,7 @@
 
     function _syncAddButtons() {
         if (!blocksPanel) return;
-        var rows = blocksPanel.querySelectorAll('[data-phoxtail-design-bar-copy]');
+        var rows = blocksPanel.querySelectorAll('[data-phoxtail-bar-copy]');
         rows.forEach(function (row) {
             var payload = _payloadFromRow(row);
             if (!payload) return;
@@ -272,13 +272,13 @@
             for (var i = 0; i < _contextBlocks.length; i++) {
                 if (_chipKey(_contextBlocks[i]) === key) { isAdded = true; break; }
             }
-            var addBtn = row.querySelector('.phoxtail-design-bar-add-btn');
+            var addBtn = row.querySelector('.phoxtail-bar-add-btn');
             if (!addBtn) return;
             if (isAdded) {
-                addBtn.classList.add('phoxtail-design-bar-add-btn--active');
+                addBtn.classList.add('phoxtail-bar-add-btn--active');
                 addBtn.title = 'Remove from chat';
             } else {
-                addBtn.classList.remove('phoxtail-design-bar-add-btn--active');
+                addBtn.classList.remove('phoxtail-bar-add-btn--active');
                 addBtn.title = 'Add to chat';
             }
         });
@@ -339,7 +339,7 @@
 
     function _payloadFromRow(row) {
         if (!row) return null;
-        if (row.dataset.phoxtailDesignBarCopy === 'page') {
+        if (row.dataset.phoxtailBarCopy === 'page') {
             return {
                 page_id: manifest.id,
                 page_type: manifest.type,
@@ -348,15 +348,15 @@
                 live: manifest.live
             };
         }
-        if (row.dataset.phoxtailDesignBarCopy === 'block') {
+        if (row.dataset.phoxtailBarCopy === 'block') {
             var p = {
                 page_id: manifest.id,
-                block_uuid: row.dataset.phoxtailDesignBarUuid,
-                block_type: row.dataset.phoxtailDesignBarType
+                block_uuid: row.dataset.phoxtailBarUuid,
+                block_type: row.dataset.phoxtailBarType
             };
-            if (row.dataset.phoxtailDesignBarVariantId) {
-                p.variant_id = parseInt(row.dataset.phoxtailDesignBarVariantId, 10);
-                p.variant_identifier = row.dataset.phoxtailDesignBarVariantIdentifier;
+            if (row.dataset.phoxtailBarVariantId) {
+                p.variant_id = parseInt(row.dataset.phoxtailBarVariantId, 10);
+                p.variant_identifier = row.dataset.phoxtailBarVariantIdentifier;
             }
             return p;
         }
@@ -365,7 +365,7 @@
 
     if (blocksPanel) {
         blocksPanel.addEventListener('dragstart', function (e) {
-            var row = e.target.closest('[data-phoxtail-design-bar-copy]');
+            var row = e.target.closest('[data-phoxtail-bar-copy]');
             var payload = _payloadFromRow(row);
             if (!payload) { e.preventDefault(); return; }
 
@@ -739,18 +739,18 @@
 
     function copyText(text, btn) {
         navigator.clipboard.writeText(text).then(function () {
-            btn.classList.add('phoxtail-design-bar-copy-btn--copied');
-            setTimeout(function () { btn.classList.remove('phoxtail-design-bar-copy-btn--copied'); }, 1400);
+            btn.classList.add('phoxtail-bar-copy-btn--copied');
+            setTimeout(function () { btn.classList.remove('phoxtail-bar-copy-btn--copied'); }, 1400);
         });
     }
 
     // Copy handler on design bar (menu panel copy buttons, if any)
     bar.addEventListener('click', function (e) {
-        var copyBtn = e.target.closest('.phoxtail-design-bar-copy-btn');
+        var copyBtn = e.target.closest('.phoxtail-bar-copy-btn');
         if (!copyBtn) return;
         e.stopPropagation();
 
-        var row = copyBtn.closest('[data-phoxtail-design-bar-copy]');
+        var row = copyBtn.closest('[data-phoxtail-bar-copy]');
         var payload = _payloadFromRow(row);
         if (payload) copyText(JSON.stringify(payload, null, 2), copyBtn);
     });
@@ -764,12 +764,12 @@
     function getHighlightEl() {
         if (!_hlEl) {
             _hlEl = document.createElement('div');
-            _hlEl.id = 'phoxtail-design-bar-highlight';
+            _hlEl.id = 'phoxtail-bar-highlight';
             _hlEl.innerHTML =
-                '<div class="phoxtail-design-bar-highlight-corner phoxtail-design-bar-highlight-corner--tl"></div>' +
-                '<div class="phoxtail-design-bar-highlight-corner phoxtail-design-bar-highlight-corner--tr"></div>' +
-                '<div class="phoxtail-design-bar-highlight-corner phoxtail-design-bar-highlight-corner--bl"></div>' +
-                '<div class="phoxtail-design-bar-highlight-corner phoxtail-design-bar-highlight-corner--br"></div>';
+                '<div class="phoxtail-bar-highlight-corner phoxtail-bar-highlight-corner--tl"></div>' +
+                '<div class="phoxtail-bar-highlight-corner phoxtail-bar-highlight-corner--tr"></div>' +
+                '<div class="phoxtail-bar-highlight-corner phoxtail-bar-highlight-corner--bl"></div>' +
+                '<div class="phoxtail-bar-highlight-corner phoxtail-bar-highlight-corner--br"></div>';
             document.body.appendChild(_hlEl);
         }
         return _hlEl;
@@ -782,7 +782,7 @@
 
     function dismissHighlight() {
         cancelHighlight();
-        getHighlightEl().classList.remove('phoxtail-design-bar-highlight--visible');
+        getHighlightEl().classList.remove('phoxtail-bar-highlight--visible');
     }
 
     function highlightBlock(target) {
@@ -802,7 +802,7 @@
         }
 
         updatePos();
-        hl.classList.add('phoxtail-design-bar-highlight--visible');
+        hl.classList.add('phoxtail-bar-highlight--visible');
     }
 
     document.addEventListener('click', function (e) {
@@ -818,7 +818,7 @@
 
     function getBlockRows() {
         if (!blocksPanel) return [];
-        return Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-design-bar-block-row[data-phoxtail-design-bar-uuid]'));
+        return Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-bar-block-row[data-phoxtail-bar-uuid]'));
     }
 
     function activateBlockAtIndex(idx) {
@@ -828,11 +828,11 @@
         _activeBlockIdx = idx;
 
         var row = rows[idx];
-        var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailDesignBarUuid);
+        var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailBarUuid);
         if (!target) return;
 
-        rows.forEach(function (r) { r.classList.remove('phoxtail-design-bar-block-row--active'); });
-        row.classList.add('phoxtail-design-bar-block-row--active');
+        rows.forEach(function (r) { r.classList.remove('phoxtail-bar-block-row--active'); });
+        row.classList.add('phoxtail-bar-block-row--active');
         row.scrollIntoView({ block: 'nearest' });
 
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -842,20 +842,20 @@
     if (blocksPanel) {
         blocksPanel.addEventListener('click', function (e) {
             // Copy button — handle here since blocks panel is inside the chatbot drawer, not bar
-            var copyBtn = e.target.closest('.phoxtail-design-bar-copy-btn');
+            var copyBtn = e.target.closest('.phoxtail-bar-copy-btn');
             if (copyBtn) {
                 e.stopPropagation();
-                var copyRow = copyBtn.closest('[data-phoxtail-design-bar-copy]');
+                var copyRow = copyBtn.closest('[data-phoxtail-bar-copy]');
                 var copyPayload = _payloadFromRow(copyRow);
                 if (copyPayload) copyText(JSON.stringify(copyPayload, null, 2), copyBtn);
                 return;
             }
 
             // Add button — adds block as a chip
-            var addBtn = e.target.closest('.phoxtail-design-bar-add-btn');
+            var addBtn = e.target.closest('.phoxtail-bar-add-btn');
             if (addBtn) {
                 e.stopPropagation();
-                var addRow = addBtn.closest('[data-phoxtail-design-bar-copy]');
+                var addRow = addBtn.closest('[data-phoxtail-bar-copy]');
                 var addPayload = _payloadFromRow(addRow);
                 if (addPayload) {
                     var addKey = _chipKey(addPayload);
@@ -873,8 +873,8 @@
             }
 
             // Row click — scroll to and highlight block
-            var row = e.target.closest('.phoxtail-design-bar-block-row');
-            if (!row || !row.dataset.phoxtailDesignBarUuid) return;
+            var row = e.target.closest('.phoxtail-bar-block-row');
+            if (!row || !row.dataset.phoxtailBarUuid) return;
 
             var idx = getBlockRows().indexOf(row);
             if (idx !== -1) activateBlockAtIndex(idx);

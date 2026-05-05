@@ -3,21 +3,21 @@
      data-modal-animation="slide-right"
      onclick="closeModalLevel1()">
     <div class="phoxtail-chat-history-drawer" onclick="event.stopPropagation()">
-        <div class="phoxtail-design-bar-panel-header">
-            <span class="phoxtail-design-bar-panel-title">Chats</span>
+        <div class="phoxtail-bar-panel-header">
+            <span class="phoxtail-bar-panel-title">Chats</span>
             <div class="phoxtail-chat-history-header-actions">
                 <button type="button"
                         class="phoxtail-chat-history-new-btn"
                         onclick="window.phoxtailChat && window.phoxtailChat.newChat(); closeModalLevel1();"
                         title="New Chat (N)">
-                    {% icon "plus" class="phoxtail-design-bar-btn-icon" %}
+                    {% icon "plus" class="phoxtail-bar-btn-icon" %}
                     <span>New Chat</span>
                 </button>
                 <button type="button"
                         onclick="closeModalLevel1()"
-                        class="phoxtail-design-bar-panel-close"
+                        class="phoxtail-bar-panel-close"
                         title="Close">
-                    {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
         </div>
@@ -25,14 +25,14 @@
             <div class="phoxtail-chat-history-search-wrap">
                 <span class="phoxtail-chat-history-search-icon {% if query %}phoxtail-chat-history-hidden{% endif %}"
                       id="phoxtail-chat-history-search-icon">
-                    {% icon "search" class="phoxtail-design-bar-btn-icon" %}
+                    {% icon "search" class="phoxtail-bar-btn-icon" %}
                 </span>
                 <button type="button"
                         id="phoxtail-chat-history-clear"
                         class="phoxtail-chat-history-clear {% if not query %}phoxtail-chat-history-hidden{% endif %}"
                         title="Clear search"
                         aria-label="Clear search">
-                    {% icon "close" class="phoxtail-design-bar-btn-icon" %}
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <input type="text"
                        id="phoxtail-chat-history-input"
