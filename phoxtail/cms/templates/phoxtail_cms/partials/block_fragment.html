@@ -1,6 +1,11 @@
 {% load wagtailcore_tags %}
+{% with variant=bound_block.value.variant %}
 <div id="phoxtail-block-{{ bound_block.id }}"
      class="phoxtail-block"
+     data-phoxtail-design-bar-copy="block"
+     data-phoxtail-design-bar-uuid="{{ bound_block.id }}"
+     data-phoxtail-design-bar-type="{{ bound_block.block_type }}"
+     {% if variant %}data-phoxtail-design-bar-variant-id="{{ variant.id }}" data-phoxtail-design-bar-variant-identifier="{{ variant.identifier }}"{% endif %}
      hx-get="{% url 'phoxtail_cms:render_block_fragment' page_id=page_id block_uuid=bound_block.id %}"
      hx-trigger="phoxtail:block-refresh"
      hx-swap="outerHTML"
@@ -10,3 +15,4 @@
           aria-hidden="true"></span>
     {% include_block bound_block %}
 </div>
+{% endwith %}

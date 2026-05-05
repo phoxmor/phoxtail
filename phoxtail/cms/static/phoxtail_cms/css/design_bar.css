@@ -430,6 +430,7 @@
 .phoxtail-block {
     scroll-margin-top: 5rem; /* clears fixed navbar */
 }
+body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
 
 /* ── Block highlight overlay — body-level fixed div, immune to block z-index/overflow ── */
 #phoxtail-design-bar-highlight {
@@ -723,11 +724,11 @@
     color: rgb(var(--color-primary-800, 55 48 163));
 }
 .phoxtail-chatbot-chip:focus,
-.phoxtail-chatbot-chip:focus-visible,
-.phoxtail-chatbot-chip--active {
+.phoxtail-chatbot-chip:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px rgb(var(--color-primary-400, 129 140 248));
 }
+.phoxtail-chatbot-chip--active { outline: none; }
 
 /* ── Inert chips — inside sent message bubbles, no dismiss ── */
 .phoxtail-chatbot-message-chips {

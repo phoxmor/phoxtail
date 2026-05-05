@@ -47,17 +47,28 @@
     var menu = makeToggle(menuPanel, menuBtn);
 
     // Chatbot uses a drawer class, not a panel class — handled manually but same shape
+    function _setPageBlocksDraggable(enabled) {
+        document.querySelectorAll('.phoxtail-page-body .phoxtail-block').forEach(function (el) {
+            if (enabled) { el.setAttribute('draggable', 'true'); }
+            else { el.removeAttribute('draggable'); }
+        });
+        if (enabled) { document.body.classList.add('phoxtail-chat-open'); }
+        else { document.body.classList.remove('phoxtail-chat-open'); }
+    }
+
     var chat = {
         isOpen: function () { return chatbotDrawer && chatbotDrawer.classList.contains('phoxtail-chatbot-drawer--open'); },
         open:   function () {
             chatbotDrawer.classList.add('phoxtail-chatbot-drawer--open');
             chatbotBtn.classList.add('phoxtail-design-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'true');
+            _setPageBlocksDraggable(true);
         },
         close:  function () {
             chatbotDrawer.classList.remove('phoxtail-chatbot-drawer--open');
             chatbotBtn.classList.remove('phoxtail-design-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'false');
+            _setPageBlocksDraggable(false);
         }
     };
 
@@ -577,6 +588,45 @@
     // ── Block refresh (HTMX-powered per-block updates) ────────────────────────
 
     var _pageBodyEl = document.querySelector('.phoxtail-page-body');
+
+    // ── Page-body block drag-to-chip ─────────────────────────────────────────
+
+    if (_pageBodyEl) {
+        _pageBodyEl.addEventListener('dragstart', function (e) {
+            // Let native link/image drags pass through untouched
+            if (e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
+            var block = e.target.closest('.phoxtail-block[draggable="true"]');
+            if (!block) return;
+            var payload = _payloadFromRow(block);
+            if (!payload) { e.preventDefault(); return; }
+
+            _draggingPayload = payload;
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('text/plain', JSON.stringify(payload));
+
+            _dragGhost = document.createElement('div');
+            _dragGhost.className = 'phoxtail-chatbot-drag-ghost';
+            _dragGhost.textContent = _chipLabel(payload);
+            document.body.appendChild(_dragGhost);
+            e.dataTransfer.setDragImage(_dragGhost, 12, 12);
+
+            document.body.setAttribute('data-phoxtail-dragging', '1');
+        });
+
+        _pageBodyEl.addEventListener('dragend', function () {
+            _draggingPayload = null;
+            document.body.removeAttribute('data-phoxtail-dragging');
+            if (_dragGhost) {
+                if (_dragGhost.parentNode) _dragGhost.parentNode.removeChild(_dragGhost);
+                _dragGhost = null;
+            }
+        });
+    }
+
+    // Re-apply draggable after HTMX swaps a block (outerHTML swap creates a fresh element)
+    document.body.addEventListener('htmx:afterSettle', function () {
+        if (chat.isOpen()) { _setPageBlocksDraggable(true); }
+    });
 
     function _refreshBlock(uuid) {
         var el = document.getElementById('phoxtail-block-' + uuid);
