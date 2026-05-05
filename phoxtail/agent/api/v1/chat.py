@@ -65,12 +65,14 @@ def _sse(event: str, data: dict) -> str:
 
 # ── Async agent turn (runs inside the background loop) ───────────────────────
 
-# Tool names that perform per-block mutations and carry _changed_blocks.
+# Tool names that trigger a blocks_changed SSE event after the tool call.
+# "publish" has no per-block UUIDs — it signals a full-body refresh.
 _BLOCK_WRITE_TOOLS = {
     "phoxtail_pages_update_block": "update",
     "phoxtail_pages_add_block": "add",
     "phoxtail_pages_delete_block": "delete",
     "phoxtail_pages_move_block": "move",
+    "phoxtail_pages_publish": "publish",
 }
 
 
@@ -93,31 +95,53 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
                 tool_name = event.result.tool_name
                 kind = _BLOCK_WRITE_TOOLS.get(tool_name)
                 if kind is not None:
-                    # Extract _changed_blocks and page_id from the tool result JSON.
-                    # ToolReturnPart.content is the raw return value; our tools always
-                    # return a JSON string, so coerce with str() to be safe.
-                    try:
-                        result_content = (
-                            str(event.result.content)
-                            if hasattr(event.result, "content")
-                            else ""
-                        )
-                        result_data = json.loads(result_content)
-                        changed = result_data.get("_changed_blocks")
-                        if changed:
-                            args = _pending_args.get(event.tool_call_id, {})
-                            page_id = args.get("page_id")
-                            if page_id is not None:
-                                await aq.put(
-                                    ("blocks_changed", int(page_id), changed, kind)
+                    args = _pending_args.get(event.tool_call_id, {})
+                    page_id = args.get("page_id")
+                    if page_id is not None:
+                        if kind == "publish":
+                            # No per-block UUIDs — full-body refresh.
+                            # Only emit if the publish succeeded (no error envelope).
+                            try:
+                                result_content = (
+                                    str(event.result.content)
+                                    if hasattr(event.result, "content")
+                                    else ""
                                 )
-                    except (
-                        json.JSONDecodeError,
-                        AttributeError,
-                        TypeError,
-                        ValueError,
-                    ):
-                        pass
+                                if "error" not in json.loads(result_content):
+                                    await aq.put(
+                                        ("blocks_changed", int(page_id), [], kind)
+                                    )
+                            except (
+                                json.JSONDecodeError,
+                                AttributeError,
+                                TypeError,
+                                ValueError,
+                            ):
+                                pass
+                        else:
+                            # Extract _changed_blocks from the tool result JSON.
+                            # ToolReturnPart.content is the raw return value; our
+                            # tools always return a JSON string.
+                            try:
+                                result_content = (
+                                    str(event.result.content)
+                                    if hasattr(event.result, "content")
+                                    else ""
+                                )
+                                changed = json.loads(result_content).get(
+                                    "_changed_blocks"
+                                )
+                                if changed:
+                                    await aq.put(
+                                        ("blocks_changed", int(page_id), changed, kind)
+                                    )
+                            except (
+                                json.JSONDecodeError,
+                                AttributeError,
+                                TypeError,
+                                ValueError,
+                            ):
+                                pass
                 await aq.put(("tool_end", tool_name))
             elif isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
                 if event.part.content:
