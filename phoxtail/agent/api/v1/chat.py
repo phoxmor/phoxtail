@@ -17,6 +17,7 @@ from pydantic_ai import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
     PartDeltaEvent,
+    PartStartEvent,
     RunContext,
     TextPartDelta,
 )
@@ -118,6 +119,10 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
                     ):
                         pass
                 await aq.put(("tool_end", tool_name))
+            elif isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
+                if event.part.content:
+                    text_sent = True
+                    await aq.put(("token", event.part.content))
             elif isinstance(event, PartDeltaEvent) and isinstance(
                 event.delta, TextPartDelta
             ):
