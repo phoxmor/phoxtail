@@ -4,7 +4,7 @@
 {% block content %}
     <div id="phoxtail-page-content"
          class="phoxtail-page-body"
-         hx-get="{% url 'phoxtail_cms:render_body_fragment' page_id=page.id %}"
+         hx-get="{% url 'phoxtail_agent:render_body_fragment' page_id=page.id %}"
          hx-trigger="phoxtail:page-body-refresh"
          hx-swap="innerHTML">
         {% for block in page.body %}

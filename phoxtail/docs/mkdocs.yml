@@ -55,6 +55,8 @@ nav:
       - Testing: patterns/testing.md
       - Personal Access Tokens: patterns/personal-access-tokens.md
       - CLI Authentication: patterns/cli-authentication.md
+      - Authorization Layers: patterns/authorization-layers.md
+      - Chatbot Providers: patterns/chatbot-providers.md
       - App Contribution:
           - Contribution Model: patterns/app-contribution-model.md
           - Page Schema Contributions: patterns/page-schema-contributions.md

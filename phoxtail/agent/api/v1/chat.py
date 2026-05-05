@@ -31,6 +31,7 @@ from pydantic_ai.messages import (
 
 from phoxtail.agent.llm import get_agent
 from phoxtail.agent.models import Conversation
+from phoxtail.agent.permissions import agent_permission_policy
 
 router = Router()
 
@@ -170,12 +171,16 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             conversation.message_history = ModelMessagesTypeAdapter.dump_python(
                 updated, mode="json"
             )
-            await sync_to_async(conversation.save)(update_fields=["message_history", "updated_at"])
+            await sync_to_async(conversation.save)(
+                update_fields=["message_history", "updated_at"]
+            )
             if not conversation.title:
                 stripped = _CONTEXT_STRIP.sub("", user_text).strip()
                 if stripped:
                     conversation.title = stripped[:80]
-                    await sync_to_async(conversation.save)(update_fields=["title", "updated_at"])
+                    await sync_to_async(conversation.save)(
+                        update_fields=["title", "updated_at"]
+                    )
         finally:
             await aq.put(_SENTINEL)
 
@@ -244,8 +249,10 @@ def get_conversation(request, uuid: str):
     from ninja.errors import HttpError
 
     user = request.auth
-    if not user or not user.is_superuser:
-        raise HttpError(403, "Superuser access required.")
+    if not user or not agent_permission_policy.user_has_permission(
+        user, "access_chatbot"
+    ):
+        raise HttpError(403, "Access denied.")
     try:
         conversation = Conversation.objects.get(uuid=uuid, user=user)
     except Conversation.DoesNotExist:
@@ -270,8 +277,10 @@ def chat_stream(request, payload: StreamRequest):
     from ninja.errors import HttpError
 
     user = request.auth
-    if not user or not user.is_superuser:
-        raise HttpError(403, "Superuser access required.")
+    if not user or not agent_permission_policy.user_has_permission(
+        user, "access_chatbot"
+    ):
+        raise HttpError(403, "Access denied.")
     message = payload.message.strip()
     if not message:
         raise HttpError(400, "Message must not be empty.")

@@ -1,5 +1,5 @@
 {% load phoxtail_design_tags static %}
-{% if request.user.is_superuser and page %}
+{% if perms.phoxtail_agent.access_chatbot and page %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}

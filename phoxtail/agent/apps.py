@@ -9,6 +9,7 @@ class PhoxtailAgentConfig(PhoxtailAppConfig):
 
     depends_on = [
         "phoxtail.core",
+        "phoxtail.cms",
     ]
 
     api_version_router = "phoxtail.agent.api.v1.router"
