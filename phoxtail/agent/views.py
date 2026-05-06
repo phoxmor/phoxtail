@@ -47,7 +47,7 @@ def media_picker(request):
             .order_by("-created_at")
         )
         if query:
-            qs = s.search(query, qs)[:40]
+            qs = s.autocomplete(query, qs)[:40]
         else:
             qs = qs[:40]
         results = list(qs)
@@ -55,9 +55,31 @@ def media_picker(request):
         try:
             from wagtailmedia.models import get_media_model
             Media = get_media_model()
-            qs = Media.objects.filter(type="video").order_by("-created_at")
+            qs = (
+                Media.objects.filter(type="video")
+                .select_related("collection")
+                .prefetch_related("tags")
+                .order_by("-created_at")
+            )
             if query:
-                qs = s.search(query, qs)[:40]
+                qs = s.autocomplete(query, qs)[:40]
+            else:
+                qs = qs[:40]
+            results = list(qs)
+        except ImportError:
+            results = []
+    elif tab == "audio":
+        try:
+            from wagtailmedia.models import get_media_model
+            Media = get_media_model()
+            qs = (
+                Media.objects.filter(type="audio")
+                .select_related("collection")
+                .prefetch_related("tags")
+                .order_by("-created_at")
+            )
+            if query:
+                qs = s.autocomplete(query, qs)[:40]
             else:
                 qs = qs[:40]
             results = list(qs)
@@ -67,7 +89,7 @@ def media_picker(request):
         Document = get_document_model()
         qs = Document.objects.all().order_by("-created_at")
         if query:
-            qs = s.search(query, qs)[:40]
+            qs = s.autocomplete(query, qs)[:40]
         else:
             qs = qs[:40]
         results = list(qs)

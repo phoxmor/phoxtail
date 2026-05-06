@@ -34,6 +34,16 @@
                 Videos
             </button>
             <button type="button"
+                    class="phoxtail-media-picker-tab {% if tab == 'audio' %}phoxtail-media-picker-tab--active{% endif %}"
+                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                    hx-vals='{"tab": "audio"}'
+                    hx-include="#phoxtail-media-picker-search"
+                    hx-target="#phoxtail-media-picker-results"
+                    hx-swap="innerHTML">
+                {% icon "audio_file" class="phoxtail-bar-btn-icon" %}
+                Audio
+            </button>
+            <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'documents' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "documents"}'
@@ -100,6 +110,12 @@
                            playsinline
                            style="display:none">
                     </video>
+                    <audio class="phoxtail-media-picker-lightbox-audio"
+                           id="phoxtail-media-picker-lightbox-audio"
+                           controls
+                           preload="metadata"
+                           style="display:none">
+                    </audio>
                 </div>
                 <div class="phoxtail-media-picker-lightbox-info">
                     <div class="phoxtail-media-picker-lightbox-badges" id="phoxtail-lbx-badges"></div>
@@ -181,6 +197,7 @@
     var lb       = document.getElementById('phoxtail-media-picker-lightbox');
     var lbImg    = document.getElementById('phoxtail-media-picker-lightbox-img');
     var lbVideo  = document.getElementById('phoxtail-media-picker-lightbox-video');
+    var lbAudio  = document.getElementById('phoxtail-media-picker-lightbox-audio');
     var lbClose  = document.getElementById('phoxtail-media-picker-lightbox-close');
     var lbAddBtn     = document.getElementById('phoxtail-media-picker-lightbox-add');
     var lbDismissBtn = document.getElementById('phoxtail-media-picker-lightbox-dismiss');
@@ -206,32 +223,37 @@
 
         var d = thumb.dataset;
         var isVideo = d.mediaType === 'video';
+        var isAudio = d.mediaType === 'audio';
         var ext = (d.mediaFileUrl || '').split('.').pop().split('?')[0].toUpperCase();
         var size = fmtBytes(d.mediaFileSize);
 
-        /* Show/hide img vs video */
-        if (lbImg)   lbImg.style.display   = isVideo ? 'none' : '';
+        /* Show/hide img vs video vs audio */
+        if (lbImg)   lbImg.style.display   = (!isVideo && !isAudio) ? '' : 'none';
         if (lbVideo) lbVideo.style.display = isVideo ? '' : 'none';
+        if (lbAudio) lbAudio.style.display = isAudio ? '' : 'none';
 
         if (isVideo) {
-            if (lbVideo) {
-                lbVideo.src = d.mediaFileUrl || '';
-                lbVideo.load();
-            }
-            if (lbImg) { lbImg.src = ''; lbImg.alt = ''; }
+            if (lbVideo) { lbVideo.src = d.mediaFileUrl || ''; lbVideo.load(); }
+            if (lbImg)   { lbImg.src = ''; lbImg.alt = ''; }
+            if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
+        } else if (isAudio) {
+            if (lbAudio) { lbAudio.src = d.mediaFileUrl || ''; lbAudio.load(); }
+            if (lbImg)   { lbImg.src = ''; lbImg.alt = ''; }
+            if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
         } else {
             if (lbImg) {
                 lbImg.src = d.mediaLightboxUrl || d.mediaFileUrl || '';
                 lbImg.alt = d.mediaTitle || '';
             }
             if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+            if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
         }
 
         /* Badges: ID + format + size/duration */
         var badgesEl = document.getElementById('phoxtail-lbx-badges');
         if (badgesEl) {
-            var dur = isVideo ? fmtDuration(d.mediaDuration) : '';
-            var extra = isVideo
+            var dur = (isVideo || isAudio) ? fmtDuration(d.mediaDuration) : '';
+            var extra = (isVideo || isAudio)
                 ? (dur ? '<span class="phoxtail-lbx-badge">' + esc(dur) + '</span>' : '')
                 : (size ? '<span class="phoxtail-lbx-badge">' + esc(size) + '</span>' : '');
             badgesEl.innerHTML =
@@ -244,9 +266,9 @@
         var titleEl = document.getElementById('phoxtail-lbx-title');
         if (titleEl) titleEl.textContent = d.mediaTitle || '';
 
-        /* Dimensions */
+        /* Dimensions (images and videos only) */
         var dimsEl = document.getElementById('phoxtail-lbx-dims');
-        if (dimsEl) dimsEl.textContent = (d.mediaWidth && d.mediaHeight)
+        if (dimsEl) dimsEl.textContent = (!isAudio && d.mediaWidth && d.mediaHeight)
             ? d.mediaWidth + ' × ' + d.mediaHeight + ' px' : '';
 
         /* Description / alt text (images only) */
@@ -254,13 +276,13 @@
         if (descEl) {
             var desc = (d.mediaDescription || '').trim();
             descEl.textContent = desc;
-            descEl.style.display = (desc && !isVideo) ? '' : 'none';
+            descEl.style.display = (desc && !isVideo && !isAudio) ? '' : 'none';
         }
 
-        /* Tags (images only) */
+        /* Tags */
         var tagsEl = document.getElementById('phoxtail-lbx-tags');
         if (tagsEl) {
-            var rawTags = (!isVideo && (d.mediaTags || '').trim()) ? d.mediaTags.trim() : '';
+            var rawTags = (d.mediaTags || '').trim();
             if (rawTags) {
                 tagsEl.innerHTML = rawTags.split(',').map(function (t) {
                     t = t.trim();
@@ -294,6 +316,7 @@
         lb.classList.remove('phoxtail-media-picker-lightbox--open');
         lb.setAttribute('inert', '');
         if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+        if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
         _lbThumb = null;
     }
 
@@ -336,7 +359,7 @@
         resultsEl.addEventListener('click', function (e) {
             var addBtn = e.target.closest('.phoxtail-media-picker-add-btn');
             if (addBtn) return;
-            var thumb = e.target.closest('[data-media-type="image"], [data-media-type="video"]');
+            var thumb = e.target.closest('[data-media-type="image"], [data-media-type="video"], [data-media-type="audio"]');
             if (!thumb) return;
             openLightbox(thumb);
         });

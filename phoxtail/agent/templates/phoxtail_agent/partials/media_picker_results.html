@@ -38,7 +38,10 @@
          data-media-thumbnail-url="{% if item.thumbnail %}{{ item.thumbnail.url }}{% endif %}"
          data-media-duration="{{ item.duration|default:'' }}"
          data-media-width="{{ item.width|default:'' }}"
-         data-media-height="{{ item.height|default:'' }}">
+         data-media-height="{{ item.height|default:'' }}"
+         data-media-tags="{{ item.tags.all|join:', ' }}"
+         data-media-collection="{{ item.collection.name }}"
+         data-media-created-at="{{ item.created_at|date:'M j, Y' }}">
         {% if item.thumbnail %}
         <img src="{{ item.thumbnail.url }}" alt="{{ item.title }}" loading="lazy">
         {% else %}
@@ -48,6 +51,33 @@
         {% endif %}
         <div class="phoxtail-media-picker-thumb-overlay"></div>
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% elif tab == "audio" %}
+<div class="phoxtail-media-picker-rows">
+    {% for item in results %}
+    <div class="phoxtail-media-picker-doc-row phoxtail-media-picker-audio-row"
+         draggable="true"
+         data-media-type="audio"
+         data-media-id="{{ item.pk }}"
+         data-media-title="{{ item.title|escapejs }}"
+         data-media-file-url="{{ item.url }}"
+         data-media-duration="{{ item.duration|default:'' }}"
+         data-media-file-extension="{{ item.file_extension }}"
+         data-media-created-at="{{ item.created_at|date:'M j, Y' }}"
+         data-media-tags="{{ item.tags.all|join:', ' }}"
+         data-media-collection="{{ item.collection.name }}">
+        {% icon "audio_file" class="phoxtail-bar-row-icon" %}
+        <div class="phoxtail-bar-row-info">
+            <span class="phoxtail-bar-row-type">{{ item.title|truncatechars:40 }}</span>
+            <span class="phoxtail-bar-row-meta">{{ item.file_extension|upper }}{% if item.duration %} · {{ item.duration|floatformat:0 }}s{% endif %}</span>
+        </div>
+        <button type="button"
+                class="phoxtail-media-picker-add-btn"
+                title="Add to chat">
+            {% icon "plus" class="phoxtail-bar-btn-icon" %}
+        </button>
     </div>
     {% endfor %}
 </div>

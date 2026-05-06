@@ -16,6 +16,9 @@
             if (el.dataset.mediaDuration)     p.duration      = parseFloat(el.dataset.mediaDuration);
             if (el.dataset.mediaWidth)        p.width         = parseInt(el.dataset.mediaWidth, 10);
             if (el.dataset.mediaHeight)       p.height        = parseInt(el.dataset.mediaHeight, 10);
+        } else if (t === 'audio') {
+            if (el.dataset.mediaDuration)      p.duration       = parseFloat(el.dataset.mediaDuration);
+            if (el.dataset.mediaFileExtension) p.file_extension = el.dataset.mediaFileExtension;
         } else if (t === 'document') {
             if (el.dataset.mediaFileExtension) p.file_extension = el.dataset.mediaFileExtension;
             if (el.dataset.mediaFileSize)      p.file_size      = parseInt(el.dataset.mediaFileSize, 10);

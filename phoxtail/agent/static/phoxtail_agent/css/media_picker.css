@@ -230,6 +230,9 @@
 .phoxtail-media-picker-thumb[data-media-type="image"] { cursor: zoom-in; }
 .phoxtail-media-picker-thumb[data-media-type="video"] { cursor: pointer; }
 
+/* ── Audio rows open a lightbox on click ── */
+.phoxtail-media-picker-audio-row { cursor: zoom-in; }
+
 /* ── Add button on thumbs ── */
 .phoxtail-media-picker-add-btn {
     display: inline-flex;
@@ -349,6 +352,11 @@
     border-radius: 0.625rem;
     margin-bottom: 0.875rem;
     background: #000;
+}
+.phoxtail-media-picker-lightbox-audio {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.875rem;
 }
 
 /* Info panel — capped height, scrolls if content overflows */
