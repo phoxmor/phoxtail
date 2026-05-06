@@ -85,6 +85,8 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
     text_sent = False
     # Stash tool-call args keyed by tool_call_id so we can extract page_id on result.
     _pending_args: dict[str, dict[str, Any]] = {}
+    # Accumulates streamed text so we can persist a partial response on cancellation.
+    _partial_text: list[str] = []
 
     async def handler(ctx: RunContext, events: AsyncIterable) -> None:
         nonlocal text_sent
@@ -147,12 +149,14 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             elif isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
                 if event.part.content:
                     text_sent = True
+                    _partial_text.append(event.part.content)
                     await aq.put(("token", event.part.content))
             elif isinstance(event, PartDeltaEvent) and isinstance(
                 event.delta, TextPartDelta
             ):
                 if event.delta.content_delta:
                     text_sent = True
+                    _partial_text.append(event.delta.content_delta)
                     await aq.put(("token", event.delta.content_delta))
 
     async def produce() -> None:
@@ -165,6 +169,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             )
             # Fallback: if no token events fired, emit the full output now
             if not text_sent and result.output:
+                _partial_text.append(str(result.output))
                 await aq.put(("token", str(result.output)))
 
             updated = history + list(result.new_messages())
@@ -183,6 +188,31 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
                     )
         finally:
             await aq.put(_SENTINEL)
+
+    async def _save_partial() -> None:
+        """Persist the user message and any streamed text accumulated so far."""
+        try:
+            user_msg = ModelRequest(parts=[UserPromptPart(content=user_text)])
+            new_msgs: list = [user_msg]
+            partial = "".join(_partial_text)
+            if partial:
+                new_msgs.append(ModelResponse(parts=[TextPart(content=partial)]))
+            updated = history + new_msgs
+            conversation.message_history = ModelMessagesTypeAdapter.dump_python(
+                updated, mode="json"
+            )
+            await sync_to_async(conversation.save)(
+                update_fields=["message_history", "updated_at"]
+            )
+            if not conversation.title:
+                stripped = _CONTEXT_STRIP.sub("", user_text).strip()
+                if stripped:
+                    conversation.title = stripped[:80]
+                    await sync_to_async(conversation.save)(
+                        update_fields=["title", "updated_at"]
+                    )
+        except Exception:
+            pass
 
     producer = asyncio.create_task(produce())
     try:
@@ -207,6 +237,14 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
                 )
         await producer
         out.put(_sse("done", {"conversation_uuid": str(conversation.uuid)}))
+    except asyncio.CancelledError:
+        producer.cancel()
+        try:
+            await producer
+        except (asyncio.CancelledError, Exception):
+            pass
+        await _save_partial()
+        raise
     except Exception:
         out.put(_sse("error", {"message": "An error occurred. Please try again."}))
         raise
@@ -224,11 +262,15 @@ def _stream_turn_sync(conversation_pk: int, user_text: str):
         _run_turn(conversation_pk, user_text, out), loop
     )
 
-    while True:
-        item = out.get()
-        if item is _SENTINEL:
-            break
-        yield item
+    try:
+        while True:
+            item = out.get()
+            if item is _SENTINEL:
+                break
+            yield item
+    except GeneratorExit:
+        future.cancel()
+        raise
 
     future.result()  # re-raise any exception from the async side
 

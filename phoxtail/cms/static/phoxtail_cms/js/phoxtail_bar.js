@@ -14,6 +14,7 @@
     var chatbotForm = document.getElementById('phoxtail-chatbot-form');
     var chatbotInput = document.getElementById('phoxtail-chatbot-input');
     var chatbotSendBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-send-btn');
+    var chatbotStopBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-stop-btn');
     var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
     var _emptyStateHTML = chatbotMessages ? chatbotMessages.innerHTML : '';
     var menuBtn = document.getElementById('phoxtail-bar-menu-btn');
@@ -102,6 +103,12 @@
             chat.isOpen() ? chat.close() : chat.open();
         });
         chatbotCloseBtn.addEventListener('click', function () { chat.close(); });
+    }
+
+    if (chatbotStopBtn) {
+        chatbotStopBtn.addEventListener('click', function () {
+            if (_abortController) _abortController.abort();
+        });
     }
 
     // ── Click-outside: close any open panel ─────────────────────────────────
@@ -449,6 +456,7 @@
     var _LS_KEY = 'phoxtail.chatbot.chat_uuid';
     var _conversationUuid = null;
     var _busy = false;
+    var _abortController = null;
 
     function _getCsrfToken() {
         var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
@@ -513,6 +521,8 @@
         _busy = active;
         if (chatbotSendBtn) chatbotSendBtn.disabled = active;
         if (chatbotInput) chatbotInput.disabled = active;
+        if (chatbotForm) chatbotForm.classList.toggle('phoxtail-chatbot-compose--busy', active);
+        if (!active) _abortController = null;
     }
 
     function _newConversation() {
@@ -576,6 +586,16 @@
             if (!chat.isOpen()) chat.open();
         }
     };
+
+    // Keep messages bottom padding in sync with the compose form's live height so
+    // the compose never overlaps the last message, even when the textarea is tall.
+    if (chatbotForm && chatbotMessages) {
+        function _syncComposePadding() {
+            chatbotMessages.style.paddingBottom = (chatbotForm.offsetHeight + 20) + 'px';
+        }
+        new ResizeObserver(_syncComposePadding).observe(chatbotForm);
+        _syncComposePadding();
+    }
 
     // Rehydrate on load if we have a stored UUID
     (function () {
@@ -672,6 +692,7 @@
             var assistantEl = null;
             var toolIndicators = [];
 
+            _abortController = new AbortController();
             fetch('/api/agent/v1/chat/stream/', {
                 method: 'POST',
                 headers: {
@@ -679,6 +700,7 @@
                     'X-CSRFToken': _getCsrfToken(),
                 },
                 body: JSON.stringify(body),
+                signal: _abortController.signal,
             }).then(function (res) {
                 if (!res.ok) {
                     _appendMessage('phoxtail-chatbot-message--assistant', 'Error ' + res.status + '. Please try again.');
@@ -725,10 +747,15 @@
                             }
                         });
                         processChunk();
-                    }).catch(function () { _setSending(false); });
+                    }).catch(function (err) {
+                        // AbortError is user-initiated — suppress the error message
+                        if (err && err.name === 'AbortError') { _setSending(false); return; }
+                        _setSending(false);
+                    });
                 }
                 processChunk();
-            }).catch(function () {
+            }).catch(function (err) {
+                if (err && err.name === 'AbortError') { _setSending(false); return; }
                 _appendMessage('phoxtail-chatbot-message--assistant', 'Network error. Please try again.');
                 _setSending(false);
             });

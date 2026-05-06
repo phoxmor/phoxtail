@@ -334,6 +334,15 @@
     right: 0;
     width: auto;
     transform: translateY(8px) scale(0.97);
+    /* Tune glassmorphism for the inside-drawer context: lower opacity so the blur
+       is actually visible through the background, and a shadow that reads as floating
+       upward rather than downward. */
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.93);
+    backdrop-filter: blur(24px) saturate(1.8);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
+    border-color: rgb(0 0 0 / 0.06);
 }
 .phoxtail-chatbot-blocks-panel.phoxtail-bar-panel--open {
     transform: translateY(0) scale(1);
@@ -568,7 +577,7 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 4rem 1rem calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    padding: 4rem 1rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
@@ -810,6 +819,31 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     border-color: rgb(var(--color-primary-200, 199 210 254));
     color: rgb(var(--color-primary-600, 79 70 229));
 }
+.phoxtail-chatbot-compose--busy .phoxtail-chatbot-send-btn { display: none; }
+
+/* ── Stop button — same shape as send, only visible while a request is running ── */
+.phoxtail-chatbot-stop-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid rgb(var(--color-destructive-200, 254 202 202));
+    border-radius: 50%;
+    background: none;
+    color: rgb(var(--color-destructive-600, 220 38 38));
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    font-family: inherit;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.phoxtail-chatbot-stop-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-chatbot-compose--busy .phoxtail-chatbot-stop-btn { display: inline-flex; }
+.phoxtail-chatbot-stop-btn:hover {
+    background-color: rgb(var(--color-destructive-50, 255 241 242));
+    border-color: rgb(var(--color-destructive-300, 252 165 165));
+}
 
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
@@ -894,6 +928,15 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
+    .phoxtail-chatbot-stop-btn {
+        border-color: rgb(var(--color-destructive-700, 185 28 28));
+        color: rgb(var(--color-destructive-300, 252 165 165));
+    }
+    .phoxtail-chatbot-stop-btn:hover {
+        background-color: rgb(var(--color-destructive-900, 127 29 29) / 0.6);
+        border-color: rgb(var(--color-destructive-700, 185 28 28) / 0.8);
+        color: rgb(var(--color-destructive-200, 254 202 202));
+    }
     .phoxtail-bar-add-btn { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-bar-add-btn:hover {
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
@@ -947,6 +990,12 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
         background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
         border-color: rgb(255 255 255 / 0.08);
         box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
+    }
+    .phoxtail-chatbot-blocks-panel {
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.93);
+        border-color: rgb(255 255 255 / 0.08);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.5),
+                    inset 0 0.5px 0 rgb(255 255 255 / 0.09), inset 0 -0.5px 0 rgb(0 0 0 / 0.2);
     }
     .phoxtail-bar-panel-header { border-bottom-color: rgb(255 255 255 / 0.07); }
     .phoxtail-bar-panel-close { color: rgb(var(--color-surface-500, 113 113 122)); }

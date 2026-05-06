@@ -181,6 +181,11 @@
                 <span class="phoxtail-bar-count-badge">{{ page.body|length }}</span>
             </button>
             {% endif %}
+            <button type="button"
+                    class="phoxtail-chatbot-stop-btn"
+                    title="Stop generation">
+                {% icon "stop_fill" class="phoxtail-bar-btn-icon" %}
+            </button>
             <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
                 {% icon "arrow_upward" class="phoxtail-bar-btn-icon" %}
             </button>
