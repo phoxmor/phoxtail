@@ -40,7 +40,12 @@ def media_picker(request):
 
     if tab == "images":
         Image = get_image_model()
-        qs = Image.objects.all().order_by("-created_at")
+        qs = (
+            Image.objects.all()
+            .select_related("collection")
+            .prefetch_related("tags")
+            .order_by("-created_at")
+        )
         if query:
             qs = s.search(query, qs)[:40]
         else:

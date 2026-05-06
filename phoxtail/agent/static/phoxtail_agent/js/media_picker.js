@@ -63,4 +63,6 @@
     document.addEventListener('htmx:afterSettle', function (e) {
         tryInit(e.detail && e.detail.target);
     });
+
+    window.phoxtailMediaPicker = { payloadFromEl: payloadFromEl };
 })();

@@ -74,6 +74,57 @@
         <div class="phoxtail-media-picker-results" id="phoxtail-media-picker-results">
             {% include "phoxtail_agent/partials/media_picker_results.html" %}
         </div>
+
+        <div class="phoxtail-media-picker-lightbox"
+             id="phoxtail-media-picker-lightbox"
+             inert>
+            <div class="phoxtail-media-picker-lightbox-inner">
+                <div class="phoxtail-bar-panel-header">
+                    <span class="phoxtail-bar-panel-title">Preview</span>
+                    <button type="button"
+                            id="phoxtail-media-picker-lightbox-close"
+                            class="phoxtail-bar-panel-close"
+                            title="Close preview">
+                        {% icon "close" class="phoxtail-bar-btn-icon" %}
+                    </button>
+                </div>
+                <div class="phoxtail-media-picker-lightbox-media">
+                    <img class="phoxtail-media-picker-lightbox-img"
+                         id="phoxtail-media-picker-lightbox-img"
+                         src="" alt=""
+                         decoding="async">
+                    <video class="phoxtail-media-picker-lightbox-video"
+                           id="phoxtail-media-picker-lightbox-video"
+                           controls
+                           preload="metadata"
+                           playsinline
+                           style="display:none">
+                    </video>
+                </div>
+                <div class="phoxtail-media-picker-lightbox-info">
+                    <div class="phoxtail-media-picker-lightbox-badges" id="phoxtail-lbx-badges"></div>
+                    <h3 class="phoxtail-media-picker-lightbox-title" id="phoxtail-lbx-title"></h3>
+                    <div class="phoxtail-media-picker-lightbox-dims" id="phoxtail-lbx-dims"></div>
+                    <div class="phoxtail-media-picker-lightbox-desc" id="phoxtail-lbx-desc"></div>
+                    <div class="phoxtail-media-picker-lightbox-tags" id="phoxtail-lbx-tags"></div>
+                    <div class="phoxtail-media-picker-lightbox-meta-row" id="phoxtail-lbx-meta"></div>
+                </div>
+                <div class="phoxtail-media-picker-lightbox-actions">
+                    <button type="button"
+                            class="phoxtail-media-picker-lightbox-close-btn"
+                            id="phoxtail-media-picker-lightbox-dismiss">
+                        {% icon "close" class="phoxtail-bar-btn-icon" %}
+                        Close
+                    </button>
+                    <button type="button"
+                            class="phoxtail-media-picker-lightbox-add-btn"
+                            id="phoxtail-media-picker-lightbox-add">
+                        {% icon "plus" class="phoxtail-bar-btn-icon" %}
+                        Add to chat
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <script>
@@ -125,5 +176,170 @@
         }
         document.addEventListener('mousedown', onOutsideDown);
     }, 0);
+
+    /* ── Lightbox ── */
+    var lb       = document.getElementById('phoxtail-media-picker-lightbox');
+    var lbImg    = document.getElementById('phoxtail-media-picker-lightbox-img');
+    var lbVideo  = document.getElementById('phoxtail-media-picker-lightbox-video');
+    var lbClose  = document.getElementById('phoxtail-media-picker-lightbox-close');
+    var lbAddBtn     = document.getElementById('phoxtail-media-picker-lightbox-add');
+    var lbDismissBtn = document.getElementById('phoxtail-media-picker-lightbox-dismiss');
+    var _lbThumb = null;
+
+    function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function fmtBytes(n) {
+        n = parseInt(n, 10);
+        if (!n) return '';
+        if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+        return (n / 1048576).toFixed(1) + ' MB';
+    }
+    function fmtDuration(s) {
+        s = parseFloat(s);
+        if (!s || isNaN(s)) return '';
+        var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+        return m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+
+    function openLightbox(thumb) {
+        if (!lb) return;
+        _lbThumb = thumb;
+
+        var d = thumb.dataset;
+        var isVideo = d.mediaType === 'video';
+        var ext = (d.mediaFileUrl || '').split('.').pop().split('?')[0].toUpperCase();
+        var size = fmtBytes(d.mediaFileSize);
+
+        /* Show/hide img vs video */
+        if (lbImg)   lbImg.style.display   = isVideo ? 'none' : '';
+        if (lbVideo) lbVideo.style.display = isVideo ? '' : 'none';
+
+        if (isVideo) {
+            if (lbVideo) {
+                lbVideo.src = d.mediaFileUrl || '';
+                lbVideo.load();
+            }
+            if (lbImg) { lbImg.src = ''; lbImg.alt = ''; }
+        } else {
+            if (lbImg) {
+                lbImg.src = d.mediaLightboxUrl || d.mediaFileUrl || '';
+                lbImg.alt = d.mediaTitle || '';
+            }
+            if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+        }
+
+        /* Badges: ID + format + size/duration */
+        var badgesEl = document.getElementById('phoxtail-lbx-badges');
+        if (badgesEl) {
+            var dur = isVideo ? fmtDuration(d.mediaDuration) : '';
+            var extra = isVideo
+                ? (dur ? '<span class="phoxtail-lbx-badge">' + esc(dur) + '</span>' : '')
+                : (size ? '<span class="phoxtail-lbx-badge">' + esc(size) + '</span>' : '');
+            badgesEl.innerHTML =
+                '<span class="phoxtail-lbx-badge phoxtail-lbx-badge--id">ID ' + esc(d.mediaId || '') + '</span>' +
+                (ext ? '<span class="phoxtail-lbx-badge">' + esc(ext) + '</span>' : '') +
+                extra;
+        }
+
+        /* Title */
+        var titleEl = document.getElementById('phoxtail-lbx-title');
+        if (titleEl) titleEl.textContent = d.mediaTitle || '';
+
+        /* Dimensions */
+        var dimsEl = document.getElementById('phoxtail-lbx-dims');
+        if (dimsEl) dimsEl.textContent = (d.mediaWidth && d.mediaHeight)
+            ? d.mediaWidth + ' × ' + d.mediaHeight + ' px' : '';
+
+        /* Description / alt text (images only) */
+        var descEl = document.getElementById('phoxtail-lbx-desc');
+        if (descEl) {
+            var desc = (d.mediaDescription || '').trim();
+            descEl.textContent = desc;
+            descEl.style.display = (desc && !isVideo) ? '' : 'none';
+        }
+
+        /* Tags (images only) */
+        var tagsEl = document.getElementById('phoxtail-lbx-tags');
+        if (tagsEl) {
+            var rawTags = (!isVideo && (d.mediaTags || '').trim()) ? d.mediaTags.trim() : '';
+            if (rawTags) {
+                tagsEl.innerHTML = rawTags.split(',').map(function (t) {
+                    t = t.trim();
+                    return t ? '<span class="phoxtail-lbx-tag">' + esc(t) + '</span>' : '';
+                }).join('');
+                tagsEl.style.display = '';
+            } else {
+                tagsEl.innerHTML = '';
+                tagsEl.style.display = 'none';
+            }
+        }
+
+        /* Meta row: date + collection */
+        var metaEl = document.getElementById('phoxtail-lbx-meta');
+        if (metaEl) {
+            var parts = [];
+            if (d.mediaCreatedAt) parts.push('Uploaded ' + d.mediaCreatedAt);
+            if (d.mediaCollection) parts.push(d.mediaCollection);
+            metaEl.textContent = parts.join(' · ');
+        }
+
+        /* Open with animation */
+        lb.removeAttribute('inert');
+        requestAnimationFrame(function () {
+            lb.classList.add('phoxtail-media-picker-lightbox--open');
+        });
+    }
+
+    function closeLightbox() {
+        if (!lb) return;
+        lb.classList.remove('phoxtail-media-picker-lightbox--open');
+        lb.setAttribute('inert', '');
+        if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+        _lbThumb = null;
+    }
+
+    if (lbClose) {
+        lbClose.addEventListener('click', function (e) { e.stopPropagation(); closeLightbox(); });
+    }
+    if (lbDismissBtn) {
+        lbDismissBtn.addEventListener('click', function (e) { e.stopPropagation(); closeLightbox(); });
+    }
+    if (lb) {
+        lb.addEventListener('click', function (e) {
+            if (e.target === lb) { e.stopPropagation(); closeLightbox(); }
+        });
+    }
+    if (lbAddBtn) {
+        lbAddBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!_lbThumb) return;
+            var payload = window.phoxtailMediaPicker && window.phoxtailMediaPicker.payloadFromEl(_lbThumb);
+            if (payload && window.phoxtailChat) {
+                window.phoxtailChat.addContext(payload);
+                lbAddBtn.classList.add('phoxtail-media-picker-lightbox-add-btn--added');
+                setTimeout(function () {
+                    lbAddBtn.classList.remove('phoxtail-media-picker-lightbox-add-btn--added');
+                    closeLightbox();
+                }, 600);
+            }
+        });
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lb && lb.classList.contains('phoxtail-media-picker-lightbox--open')) {
+            e.stopPropagation();
+            closeLightbox();
+        }
+    });
+
+    /* Delegated click for images and videos — survives HTMX result swaps */
+    var resultsEl = document.getElementById('phoxtail-media-picker-results');
+    if (resultsEl) {
+        resultsEl.addEventListener('click', function (e) {
+            var addBtn = e.target.closest('.phoxtail-media-picker-add-btn');
+            if (addBtn) return;
+            var thumb = e.target.closest('[data-media-type="image"], [data-media-type="video"]');
+            if (!thumb) return;
+            openLightbox(thumb);
+        });
+    }
 })();
 </script>

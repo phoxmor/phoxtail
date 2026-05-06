@@ -5,22 +5,23 @@
 <div class="phoxtail-media-picker-grid">
     {% for item in results %}
     {% image item fill-160x120 as thumb %}
+    {% image item max-800x600 as lbx_img %}
     <div class="phoxtail-media-picker-thumb"
          draggable="true"
          data-media-type="image"
          data-media-id="{{ item.pk }}"
-         data-media-title="{{ item.title|escapejs }}"
+         data-media-title="{{ item.title }}"
          data-media-file-url="{{ item.file.url }}"
+         data-media-lightbox-url="{{ lbx_img.url }}"
          data-media-width="{{ item.width }}"
-         data-media-height="{{ item.height }}">
+         data-media-height="{{ item.height }}"
+         data-media-description="{{ item.description }}"
+         data-media-file-size="{{ item.file_size|default:'' }}"
+         data-media-created-at="{{ item.created_at|date:'M j, Y' }}"
+         data-media-tags="{{ item.tags.all|join:', ' }}"
+         data-media-collection="{{ item.collection.name }}">
         <img src="{{ thumb.url }}" alt="{{ item.title }}" loading="lazy">
-        <div class="phoxtail-media-picker-thumb-overlay">
-            <button type="button"
-                    class="phoxtail-media-picker-add-btn"
-                    title="Add to chat">
-                {% icon "plus" class="phoxtail-bar-btn-icon" %}
-            </button>
-        </div>
+        <div class="phoxtail-media-picker-thumb-overlay"></div>
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
     </div>
     {% endfor %}
@@ -45,13 +46,7 @@
             {% icon "video_library" class="phoxtail-media-picker-thumb-placeholder-icon" %}
         </div>
         {% endif %}
-        <div class="phoxtail-media-picker-thumb-overlay">
-            <button type="button"
-                    class="phoxtail-media-picker-add-btn"
-                    title="Add to chat">
-                {% icon "plus" class="phoxtail-bar-btn-icon" %}
-            </button>
-        </div>
+        <div class="phoxtail-media-picker-thumb-overlay"></div>
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
     </div>
     {% endfor %}
