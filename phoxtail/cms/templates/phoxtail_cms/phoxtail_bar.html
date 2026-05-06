@@ -85,7 +85,8 @@
      aria-label="Chatbot"
      role="complementary"
      data-media-picker-url="{{ media_picker_url }}"
-     data-media-picker-modal-url="{{ chat_history_modal_url }}">
+     data-media-picker-modal-url="{{ chat_history_modal_url }}"
+     data-chat-history-url="{{ chat_history_url }}">
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
         <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
             <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
@@ -98,10 +99,7 @@
                     id="phoxtail-chatbot-history-btn"
                     class="phoxtail-chatbot-topbar-history"
                     title="Chat history (H)"
-                    hx-get="{{ chat_history_modal_url }}"
-                    hx-vals='{"content_url": "{{ chat_history_url }}"}'
-                    hx-target="#core-modal-level-1-placeholder-wrapper"
-                    hx-swap="innerHTML">
+                    onclick="window.phoxtailChat && window.phoxtailChat.toggleHistory()">
                 {% icon "menu" class="phoxtail-bar-btn-icon" %}
             </button>
             <button type="button"

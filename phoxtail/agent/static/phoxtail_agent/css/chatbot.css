@@ -152,6 +152,11 @@
     border-color: rgb(0 0 0 / 0.14);
     color: rgb(var(--color-surface-700, 63 63 70));
 }
+.phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active {
+    background-color: rgb(var(--color-primary-50, 238 242 255));
+    border-color: rgb(var(--color-primary-200, 199 210 254));
+    color: rgb(var(--color-primary-600, 79 70 229));
+}
 .phoxtail-chatbot-topbar-history .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
 .phoxtail-chatbot-topbar-close {
     display: flex;
@@ -468,6 +473,11 @@
         background-color: rgb(255 255 255 / 0.08);
         color: white;
     }
+    .phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active {
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
+        border-color: rgb(var(--color-primary-700, 67 56 202));
+        color: rgb(var(--color-primary-300, 165 180 252));
+    }
     .phoxtail-chatbot-drawer-messages {
         scrollbar-color: rgb(255 255 255 / 0.12) transparent;
     }
@@ -571,18 +581,29 @@
 
 /* ── Chat history modal ────────────────────────────────────────────────────── */
 
+/* When chat history is open, pass pointer events through to the chatbot */
+.phoxtail-chat-history-open #base-modal-level-1,
+.phoxtail-chat-history-open #core-modal-level-1-placeholder {
+    pointer-events: none;
+}
+.phoxtail-chat-history-open .phoxtail-chat-history-drawer {
+    pointer-events: auto;
+}
+
 .phoxtail-chat-history-overlay {
     position: fixed;
     inset: 0;
     z-index: 9950;
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    pointer-events: none;
 }
 
 .phoxtail-chat-history-drawer {
     position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
     width: 27.5rem;
@@ -592,8 +613,8 @@
     background-color: rgb(var(--color-surface-50, 255 255 255) / 0.9);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    border-left: 1px solid rgb(0 0 0 / 0.06);
-    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgb(0 0 0 / 0.06);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.1);
     font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
     overflow: hidden;
 }

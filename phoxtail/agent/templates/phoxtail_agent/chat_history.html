@@ -1,8 +1,7 @@
 {% load phoxtail_design_tags %}
 <div class="phoxtail-chat-history-overlay"
-     data-modal-animation="slide-right"
-     onclick="closeModalLevel1()">
-    <div class="phoxtail-chat-history-drawer" onclick="event.stopPropagation()">
+     data-modal-animation="slide-left">
+    <div class="phoxtail-chat-history-drawer">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">Chats</span>
             <div class="phoxtail-chat-history-header-actions">
@@ -72,5 +71,18 @@
             input.focus();
         });
     }
+
+    /* Close on mousedown outside drawer — but not when clicking inside the chatbot */
+    setTimeout(function () {
+        function onOutsideDown(e) {
+            var drawer = document.querySelector('.phoxtail-chat-history-drawer');
+            if (!drawer) { document.removeEventListener('mousedown', onOutsideDown); return; }
+            if (drawer.contains(e.target)) return;
+            var chatbot = document.getElementById('phoxtail-chatbot-drawer');
+            if (chatbot && chatbot.contains(e.target)) return;
+            closeModalLevel1();
+        }
+        document.addEventListener('mousedown', onOutsideDown);
+    }, 0);
 })();
 </script>

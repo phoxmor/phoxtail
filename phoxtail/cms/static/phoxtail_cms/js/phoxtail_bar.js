@@ -192,14 +192,8 @@
         if ((e.key === 'm' || e.key === 'M') && window.phoxtailChat) {
             window.phoxtailChat.toggleMedia();
         }
-        if ((e.key === 'h' || e.key === 'H') && chatbotHistoryBtn) {
-            if (document.getElementById('base-modal-level-1') && _mediaPickerTab === null) {
-                // History modal is already open — toggle it off
-                if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
-            } else {
-                // No modal, or media picker is open — open history (replaces media picker if needed)
-                chatbotHistoryBtn.click();
-            }
+        if ((e.key === 'h' || e.key === 'H') && window.phoxtailChat) {
+            window.phoxtailChat.toggleHistory();
         }
         if (e.key === 'n' || e.key === 'N') {
             if (!chat.isOpen()) chat.open();
@@ -635,6 +629,7 @@
 
     function _openMediaPicker(tab) {
         if (!_mediaPickerUrl || !_mediaPickerModalUrl) return;
+        if (_chatHistoryOpen) _onHistoryClosed();
         _mediaPickerTab = tab;
         _setMediaBtnActive(true);
         document.body.classList.add('phoxtail-media-picker-open');
@@ -643,6 +638,57 @@
             target: '#core-modal-level-1-placeholder-wrapper',
             swap: 'innerHTML',
             values: { content_url: _mediaPickerUrl + '?tab=' + tab }
+        });
+    }
+
+    var _chatHistoryUrl = chatbotDrawer ? chatbotDrawer.dataset.chatHistoryUrl : null;
+    var _chatHistoryOpen = false;
+    var _historyObserver = null;
+
+    function _setHistoryBtnActive(active) {
+        var btn = document.getElementById('phoxtail-chatbot-history-btn');
+        if (!btn) return;
+        btn.classList.toggle('phoxtail-bar-btn--active', active);
+    }
+
+    function _onHistoryClosed() {
+        _chatHistoryOpen = false;
+        _setHistoryBtnActive(false);
+        document.body.classList.remove('phoxtail-chat-history-open');
+    }
+
+    function _watchHistoryForClose() {
+        if (_historyObserver) _historyObserver.disconnect();
+        var wrapper = document.getElementById('core-modal-level-1-placeholder-wrapper');
+        if (!wrapper) return;
+        _historyObserver = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var removed = mutations[i].removedNodes;
+                for (var j = 0; j < removed.length; j++) {
+                    if (removed[j].id === 'base-modal-level-1') {
+                        if (removed[j].querySelector && !removed[j].querySelector('.phoxtail-chat-history-drawer')) return;
+                        _historyObserver.disconnect();
+                        _historyObserver = null;
+                        _onHistoryClosed();
+                        return;
+                    }
+                }
+            }
+        });
+        _historyObserver.observe(wrapper, { childList: true });
+    }
+
+    function _openHistory() {
+        if (!_chatHistoryUrl || !_mediaPickerModalUrl) return;
+        if (_mediaPickerTab !== null) _onMediaPickerClosed();
+        _chatHistoryOpen = true;
+        _setHistoryBtnActive(true);
+        document.body.classList.add('phoxtail-chat-history-open');
+        _watchHistoryForClose();
+        htmx.ajax('GET', _mediaPickerModalUrl, {
+            target: '#core-modal-level-1-placeholder-wrapper',
+            swap: 'innerHTML',
+            values: { content_url: _chatHistoryUrl }
         });
     }
 
@@ -659,6 +705,13 @@
         addContext: function (payload) {
             _addContextBlock(payload);
             if (!chat.isOpen()) chat.open();
+        },
+        toggleHistory: function () {
+            if (_chatHistoryOpen) {
+                if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
+            } else {
+                _openHistory();
+            }
         },
         toggleMedia: function () {
             if (_mediaPickerTab !== null) {
