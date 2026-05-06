@@ -93,7 +93,7 @@ ACCOUNT_FORMS = {
     "signup": "phoxtail.users.forms.SignupForm",
 }
 LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = "login_redirect"
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 # Templates

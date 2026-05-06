@@ -7,10 +7,9 @@ from wagtail.admin import urls as wagtailadmin_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 from phoxtail.core.wiring import collect_url_patterns
-from phoxtail.users.views import login_redirect_view, redirect_to_allauth_login
+from phoxtail.users.views import redirect_to_allauth_login
 
 urlpatterns = [
-    path("login-redirect/", login_redirect_view, name="login_redirect"),
     path("admin/login/", redirect_to_allauth_login),
     path("admin/", include(wagtailadmin_urls)),
     path("django-admin/", admin.site.urls),
