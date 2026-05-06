@@ -99,6 +99,16 @@
     animation: fadeOut 0.3s ease-out;
 }
 
+#core-modal-placeholder[data-animation-type="slide-left"],
+#core-modal-level-1-placeholder[data-animation-type="slide-left"] {
+    animation: slideLeftIn 0.3s ease-out;
+}
+
+#base-modal.closing #core-modal-placeholder[data-animation-type="slide-left"],
+#base-modal-level-1.closing #core-modal-level-1-placeholder[data-animation-type="slide-left"] {
+    animation: slideLeftOut 0.32s ease-in;
+}
+
 #core-modal-placeholder[data-animation-type="none"],
 #core-modal-level-1-placeholder[data-animation-type="none"] {
     animation: none;
@@ -178,5 +188,27 @@
     to {
         opacity: 0;
         transform: translateX(100%);
+    }
+}
+
+@keyframes slideLeftIn {
+    from {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideLeftOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-100%);
     }
 }

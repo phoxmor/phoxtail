@@ -5,6 +5,8 @@ from __future__ import annotations
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from wagtail.documents import get_document_model
+from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
 from phoxtail.agent.models import Conversation
@@ -27,6 +29,50 @@ def chat_history(request):
         template = "phoxtail_agent/partials/chat_history_list.html"
 
     return render(request, template, {"conversations": qs, "query": query})
+
+
+@agent_permission_required("access_chatbot")
+def media_picker(request):
+    tab = request.GET.get("tab", "images")
+    query = request.GET.get("q", "").strip()
+    s = get_search_backend()
+    results = []
+
+    if tab == "images":
+        Image = get_image_model()
+        qs = Image.objects.all().order_by("-created_at")
+        if query:
+            qs = s.search(query, qs)[:40]
+        else:
+            qs = qs[:40]
+        results = list(qs)
+    elif tab == "videos":
+        try:
+            from wagtailmedia.models import get_media_model
+            Media = get_media_model()
+            qs = Media.objects.filter(type="video").order_by("-created_at")
+            if query:
+                qs = s.search(query, qs)[:40]
+            else:
+                qs = qs[:40]
+            results = list(qs)
+        except ImportError:
+            results = []
+    elif tab == "documents":
+        Document = get_document_model()
+        qs = Document.objects.all().order_by("-created_at")
+        if query:
+            qs = s.search(query, qs)[:40]
+        else:
+            qs = qs[:40]
+        results = list(qs)
+
+    ctx = {"tab": tab, "query": query, "results": results}
+
+    if request.htmx and request.htmx.target == "phoxtail-media-picker-results":
+        return render(request, "phoxtail_agent/partials/media_picker_results.html", ctx)
+
+    return render(request, "phoxtail_agent/media_picker.html", ctx)
 
 
 @agent_permission_required("access_chatbot")

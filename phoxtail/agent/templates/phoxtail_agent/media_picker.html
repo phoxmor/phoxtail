@@ -1,0 +1,129 @@
+{% load phoxtail_design_tags %}
+<div class="phoxtail-media-picker-overlay"
+     data-modal-animation="slide-left">
+    <div class="phoxtail-media-picker-drawer">
+        <div class="phoxtail-bar-panel-header">
+            <span class="phoxtail-bar-panel-title">Media</span>
+            <button type="button"
+                    onclick="closeModalLevel1();"
+                    class="phoxtail-bar-panel-close"
+                    title="Close">
+                {% icon "close" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+
+        <div class="phoxtail-media-picker-tabs">
+            <button type="button"
+                    class="phoxtail-media-picker-tab {% if tab == 'images' %}phoxtail-media-picker-tab--active{% endif %}"
+                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                    hx-vals='{"tab": "images"}'
+                    hx-include="#phoxtail-media-picker-search"
+                    hx-target="#phoxtail-media-picker-results"
+                    hx-swap="innerHTML">
+                {% icon "image" class="phoxtail-bar-btn-icon" %}
+                Images
+            </button>
+            <button type="button"
+                    class="phoxtail-media-picker-tab {% if tab == 'videos' %}phoxtail-media-picker-tab--active{% endif %}"
+                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                    hx-vals='{"tab": "videos"}'
+                    hx-include="#phoxtail-media-picker-search"
+                    hx-target="#phoxtail-media-picker-results"
+                    hx-swap="innerHTML">
+                {% icon "video_library" class="phoxtail-bar-btn-icon" %}
+                Videos
+            </button>
+            <button type="button"
+                    class="phoxtail-media-picker-tab {% if tab == 'documents' %}phoxtail-media-picker-tab--active{% endif %}"
+                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                    hx-vals='{"tab": "documents"}'
+                    hx-include="#phoxtail-media-picker-search"
+                    hx-target="#phoxtail-media-picker-results"
+                    hx-swap="innerHTML">
+                {% icon "document" class="phoxtail-bar-btn-icon" %}
+                Documents
+            </button>
+        </div>
+
+        <div class="phoxtail-media-picker-search-wrap">
+            <span class="phoxtail-media-picker-search-icon {% if query %}phoxtail-media-picker-hidden{% endif %}"
+                  id="phoxtail-media-picker-search-icon">
+                {% icon "search" class="phoxtail-bar-btn-icon" %}
+            </span>
+            <button type="button"
+                    id="phoxtail-media-picker-clear"
+                    class="phoxtail-media-picker-search-clear {% if not query %}phoxtail-media-picker-hidden{% endif %}"
+                    title="Clear search"
+                    aria-label="Clear search">
+                {% icon "close" class="phoxtail-bar-btn-icon" %}
+            </button>
+            <input type="text"
+                   id="phoxtail-media-picker-search"
+                   name="q"
+                   value="{{ query }}"
+                   placeholder="Search…"
+                   autocomplete="off"
+                   class="phoxtail-media-picker-search-input"
+                   hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                   hx-vals='{"tab": "{{ tab }}"}'
+                   hx-target="#phoxtail-media-picker-results"
+                   hx-trigger="input changed delay:300ms"
+                   hx-swap="innerHTML">
+        </div>
+
+        <div class="phoxtail-media-picker-results" id="phoxtail-media-picker-results">
+            {% include "phoxtail_agent/partials/media_picker_results.html" %}
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var input  = document.getElementById('phoxtail-media-picker-search');
+    var clear  = document.getElementById('phoxtail-media-picker-clear');
+    var icon   = document.getElementById('phoxtail-media-picker-search-icon');
+    if (!input) return;
+
+    function syncVisibility() {
+        var hasVal = input.value.length > 0;
+        icon.classList.toggle('phoxtail-media-picker-hidden', hasVal);
+        clear.classList.toggle('phoxtail-media-picker-hidden', !hasVal);
+    }
+    input.addEventListener('input', syncVisibility);
+    if (clear) {
+        clear.addEventListener('click', function () {
+            input.value = '';
+            syncVisibility();
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+        });
+    }
+
+    /* Tab switching — mark active immediately on click, sync search hx-vals */
+    document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (b) {
+                b.classList.remove('phoxtail-media-picker-tab--active');
+            });
+            btn.classList.add('phoxtail-media-picker-tab--active');
+            var newTab = JSON.parse(btn.getAttribute('hx-vals') || '{}').tab;
+            if (newTab && input) {
+                input.setAttribute('hx-vals', JSON.stringify({ tab: newTab }));
+                if (typeof htmx !== 'undefined') htmx.process(input);
+            }
+        });
+    });
+
+    /* Close on mousedown outside drawer — but NOT when clicking inside the chatbot */
+    setTimeout(function () {
+        function onOutsideDown(e) {
+            var drawer = document.querySelector('.phoxtail-media-picker-drawer');
+            if (!drawer) { document.removeEventListener('mousedown', onOutsideDown); return; }
+            if (drawer.contains(e.target)) return;
+            var chatbot = document.getElementById('phoxtail-chatbot-drawer');
+            if (chatbot && chatbot.contains(e.target)) return;
+            closeModalLevel1();
+        }
+        document.addEventListener('mousedown', onOutsideDown);
+    }, 0);
+})();
+</script>

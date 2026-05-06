@@ -17,9 +17,9 @@
     var chatbotStopBtn = chatbotForm && chatbotForm.querySelector('.phoxtail-chatbot-stop-btn');
     var chatbotMessages = document.getElementById('phoxtail-chatbot-messages');
     var _emptyStateHTML = chatbotMessages ? chatbotMessages.innerHTML : '';
-    var menuBtn = document.getElementById('phoxtail-bar-menu-btn');
-    var menuPanel = document.getElementById('phoxtail-bar-menu-panel');
-    var menuClose = document.getElementById('phoxtail-bar-menu-close');
+    var menuBtn = document.getElementById('phoxtail-bar-actions-btn');
+    var menuPanel = document.getElementById('phoxtail-bar-actions-panel');
+    var menuClose = document.getElementById('phoxtail-bar-actions-close');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
@@ -94,7 +94,7 @@
         menuClose.addEventListener('click', function () { menu.close(); });
         // Close menu when a menu item link is activated (target=_blank stays open in new tab, UX still clean)
         menuPanel.addEventListener('click', function (e) {
-            if (e.target.closest('.phoxtail-bar-menu-item')) menu.close();
+            if (e.target.closest('.phoxtail-bar-actions-item')) menu.close();
         });
     }
 
@@ -186,13 +186,18 @@
             e.preventDefault();
             chatbotInput.focus();
         }
-        if ((e.key === 'm' || e.key === 'M') && menu) {
+        if ((e.key === 'a' || e.key === 'A') && menu) {
             menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
         }
+        if ((e.key === 'm' || e.key === 'M') && window.phoxtailChat) {
+            window.phoxtailChat.toggleMedia();
+        }
         if ((e.key === 'h' || e.key === 'H') && chatbotHistoryBtn) {
-            if (document.getElementById('base-modal-level-1')) {
+            if (document.getElementById('base-modal-level-1') && _mediaPickerTab === null) {
+                // History modal is already open — toggle it off
                 if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
             } else {
+                // No modal, or media picker is open — open history (replaces media picker if needed)
                 chatbotHistoryBtn.click();
             }
         }
@@ -209,6 +214,9 @@
     var _chipsEl = document.getElementById('phoxtail-chatbot-chips');
 
     function _chipLabel(payload) {
+        if (payload.media_type) {
+            return payload.media_type + ':' + (payload.title || payload.media_id);
+        }
         if (payload.block_type) {
             return payload.variant_identifier
                 ? payload.block_type + ' · ' + payload.variant_identifier
@@ -218,6 +226,7 @@
     }
 
     function _chipKey(payload) {
+        if (payload.media_type) return payload.media_type + ':' + payload.media_id;
         return payload.block_uuid ? 'block:' + payload.block_uuid : 'page:' + payload.page_id;
     }
 
@@ -408,27 +417,28 @@
         });
     }
 
-    // Entire chatbot drawer is the drop target; visual highlight on the compose form
-    if (chatbotDrawer) {
-        chatbotDrawer.addEventListener('dragover', function (e) {
-            if (!document.body.hasAttribute('data-phoxtail-dragging')) return;
+    // Drop target: document-level coordinate check so drags from a modal overlay still land
+    document.addEventListener('dragover', function (e) {
+        if (!document.body.hasAttribute('data-phoxtail-dragging') || !chatbotDrawer) return;
+        var r = chatbotDrawer.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
             if (chatbotForm) chatbotForm.classList.add('phoxtail-chatbot-compose--drop-target');
-        });
+        } else {
+            if (chatbotForm) chatbotForm.classList.remove('phoxtail-chatbot-compose--drop-target');
+        }
+    });
 
-        chatbotDrawer.addEventListener('dragleave', function (e) {
-            if (!chatbotDrawer.contains(e.relatedTarget)) {
-                if (chatbotForm) chatbotForm.classList.remove('phoxtail-chatbot-compose--drop-target');
-            }
-        });
-
-        chatbotDrawer.addEventListener('drop', function (e) {
+    document.addEventListener('drop', function (e) {
+        if (!document.body.hasAttribute('data-phoxtail-dragging') || !chatbotDrawer) return;
+        var r = chatbotDrawer.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
             e.preventDefault();
             if (chatbotForm) chatbotForm.classList.remove('phoxtail-chatbot-compose--drop-target');
             if (_draggingPayload) _addContextBlock(_draggingPayload);
-        });
-    }
+        }
+    });
 
     // ── Chatbot compose ──────────────────────────────────────────────────────
 
@@ -575,6 +585,67 @@
         _rehydrate(uuid);
     }
 
+    var _mediaPickerUrl = chatbotDrawer ? chatbotDrawer.dataset.mediaPickerUrl : null;
+    var _mediaPickerModalUrl = chatbotDrawer ? chatbotDrawer.dataset.mediaPickerModalUrl : null;
+    var _mediaPickerTab = null;
+    var _mediaPickerObserver = null;
+    var _mediaBtn = null;
+
+    function _getMediaBtn() {
+        if (!_mediaBtn) _mediaBtn = document.getElementById('phoxtail-chatbot-media-btn');
+        return _mediaBtn;
+    }
+
+    function _setMediaBtnActive(active) {
+        var btn = _getMediaBtn();
+        if (!btn) return;
+        btn.classList.toggle('phoxtail-bar-btn--active', active);
+    }
+
+    function _onMediaPickerClosed() {
+        _mediaPickerTab = null;
+        _setMediaBtnActive(false);
+        document.body.classList.remove('phoxtail-media-picker-open');
+    }
+
+    function _watchModalForClose() {
+        if (_mediaPickerObserver) _mediaPickerObserver.disconnect();
+        // #base-modal-level-1 is a direct child of #core-modal-level-1-placeholder-wrapper,
+        // not document.body — observe the wrapper so childList mutations fire correctly.
+        var wrapper = document.getElementById('core-modal-level-1-placeholder-wrapper');
+        if (!wrapper) return;
+        _mediaPickerObserver = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var removed = mutations[i].removedNodes;
+                for (var j = 0; j < removed.length; j++) {
+                    if (removed[j].id === 'base-modal-level-1') {
+                        // Only clean up if the removed modal actually held the media picker
+                        // (not the case when _openMediaPicker replaces a history modal)
+                        if (removed[j].querySelector && !removed[j].querySelector('.phoxtail-media-picker-drawer')) return;
+                        _mediaPickerObserver.disconnect();
+                        _mediaPickerObserver = null;
+                        _onMediaPickerClosed();
+                        return;
+                    }
+                }
+            }
+        });
+        _mediaPickerObserver.observe(wrapper, { childList: true });
+    }
+
+    function _openMediaPicker(tab) {
+        if (!_mediaPickerUrl || !_mediaPickerModalUrl) return;
+        _mediaPickerTab = tab;
+        _setMediaBtnActive(true);
+        document.body.classList.add('phoxtail-media-picker-open');
+        _watchModalForClose();
+        htmx.ajax('GET', _mediaPickerModalUrl, {
+            target: '#core-modal-level-1-placeholder-wrapper',
+            swap: 'innerHTML',
+            values: { content_url: _mediaPickerUrl + '?tab=' + tab }
+        });
+    }
+
     window.phoxtailChat = {
         load: function (uuid) {
             _loadChat(uuid);
@@ -584,6 +655,36 @@
         newChat: function () {
             _newConversation();
             if (!chat.isOpen()) chat.open();
+        },
+        addContext: function (payload) {
+            _addContextBlock(payload);
+            if (!chat.isOpen()) chat.open();
+        },
+        toggleMedia: function () {
+            if (_mediaPickerTab !== null) {
+                if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
+            } else {
+                _openMediaPicker('images');
+            }
+        },
+        beginDrag: function (payload, event) {
+            _draggingPayload = payload;
+            event.dataTransfer.effectAllowed = 'copy';
+            event.dataTransfer.setData('text/plain', JSON.stringify(payload));
+            _dragGhost = document.createElement('div');
+            _dragGhost.className = 'phoxtail-chatbot-drag-ghost';
+            _dragGhost.textContent = _chipLabel(payload);
+            document.body.appendChild(_dragGhost);
+            event.dataTransfer.setDragImage(_dragGhost, 12, 12);
+            document.body.setAttribute('data-phoxtail-dragging', '1');
+        },
+        endDrag: function () {
+            _draggingPayload = null;
+            document.body.removeAttribute('data-phoxtail-dragging');
+            if (_dragGhost) {
+                if (_dragGhost.parentNode) _dragGhost.parentNode.removeChild(_dragGhost);
+                _dragGhost = null;
+            }
         }
     };
 

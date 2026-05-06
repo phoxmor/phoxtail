@@ -3,7 +3,10 @@
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}
+{% url 'phoxtail_agent:media_picker' as media_picker_url %}
 <link rel="stylesheet" href="{% static 'phoxtail_cms/css/phoxtail_bar.css' %}">
+<link rel="stylesheet" href="{% static 'phoxtail_agent/css/chatbot.css' %}">
+<link rel="stylesheet" href="{% static 'phoxtail_agent/css/media_picker.css' %}">
 
 <script type="application/json" id="phoxtail-bar-manifest">
 {"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}}
@@ -31,9 +34,9 @@
                 {% icon "chat" class="phoxtail-bar-btn-icon" %}
             </button>
             <button type="button"
-                    id="phoxtail-bar-menu-btn"
+                    id="phoxtail-bar-actions-btn"
                     class="phoxtail-bar-btn"
-                    title="More options"
+                    title="Actions (A)"
                     aria-haspopup="menu"
                     aria-expanded="false">
                 {% icon "more_horiz" class="phoxtail-bar-btn-icon" %}
@@ -41,16 +44,16 @@
         </div>
     </div>
 
-    <div class="phoxtail-bar-panel phoxtail-bar-menu-panel" id="phoxtail-bar-menu-panel">
+    <div class="phoxtail-bar-panel phoxtail-bar-actions-panel" id="phoxtail-bar-actions-panel">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">Actions</span>
-            <button type="button" id="phoxtail-bar-menu-close" class="phoxtail-bar-panel-close" title="Close">
+            <button type="button" id="phoxtail-bar-actions-close" class="phoxtail-bar-panel-close" title="Close">
                 {% icon "close" class="phoxtail-bar-btn-icon" %}
             </button>
         </div>
         <div class="phoxtail-bar-panel-body">
             <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
-               class="phoxtail-bar-menu-item"
+               class="phoxtail-bar-actions-item"
                target="_blank"
                rel="noopener"
                role="menuitem">
@@ -59,11 +62,11 @@
                     <span class="phoxtail-bar-row-type">Edit page</span>
                     <span class="phoxtail-bar-row-meta">Open in page editor</span>
                 </div>
-                {% icon "arrow_outward" class="phoxtail-bar-menu-item-ext" %}
+                {% icon "arrow_outward" class="phoxtail-bar-actions-item-ext" %}
             </a>
             <div class="phoxtail-bar-sep-line"></div>
             <a href="{{ admin_home }}"
-               class="phoxtail-bar-menu-item"
+               class="phoxtail-bar-actions-item"
                target="_blank"
                rel="noopener"
                role="menuitem">
@@ -72,13 +75,17 @@
                     <span class="phoxtail-bar-row-type">Admin</span>
                     <span class="phoxtail-bar-row-meta">Go to admin dashboard</span>
                 </div>
-                {% icon "arrow_outward" class="phoxtail-bar-menu-item-ext" %}
+                {% icon "arrow_outward" class="phoxtail-bar-actions-item-ext" %}
             </a>
         </div>
     </div>
 </div>
 
-<div id="phoxtail-chatbot-drawer" aria-label="Chatbot" role="complementary">
+<div id="phoxtail-chatbot-drawer"
+     aria-label="Chatbot"
+     role="complementary"
+     data-media-picker-url="{{ media_picker_url }}"
+     data-media-picker-modal-url="{{ chat_history_modal_url }}">
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
         <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
             <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
@@ -171,16 +178,25 @@
             rows="1"
             aria-label="Message"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
-            {% if page.body %}
-            <button type="button"
-                    id="phoxtail-bar-blocks-btn"
-                    class="phoxtail-chatbot-compose-blocks-btn"
-                    title="Blocks (B)"
-                    aria-expanded="false">
-                {% icon "layers" class="phoxtail-bar-btn-icon" %}
-                <span class="phoxtail-bar-count-badge">{{ page.body|length }}</span>
-            </button>
-            {% endif %}
+            <div class="phoxtail-chatbot-compose-actions-left">
+                {% if page.body %}
+                <button type="button"
+                        id="phoxtail-bar-blocks-btn"
+                        class="phoxtail-chatbot-compose-action-btn"
+                        title="Blocks (B)"
+                        aria-expanded="false">
+                    {% icon "layers" class="phoxtail-bar-btn-icon" %}
+                    <span class="phoxtail-bar-count-badge">{{ page.body|length }}</span>
+                </button>
+                {% endif %}
+                <button type="button"
+                        id="phoxtail-chatbot-media-btn"
+                        class="phoxtail-chatbot-compose-action-btn"
+                        title="Media (M)"
+                        onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
+                    {% icon "media" class="phoxtail-bar-btn-icon" %}
+                </button>
+            </div>
             <button type="button"
                     class="phoxtail-chatbot-stop-btn"
                     title="Stop generation">
@@ -195,4 +211,5 @@
 </div>
 
 <script src="{% static 'phoxtail_cms/js/phoxtail_bar.js' %}"></script>
+<script src="{% static 'phoxtail_agent/js/media_picker.js' %}"></script>
 {% endif %}
