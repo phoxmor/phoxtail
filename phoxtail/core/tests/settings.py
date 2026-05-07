@@ -19,11 +19,13 @@ INSTALLED_APPS = [
     "wagtail",
     "wagtail.admin",
     "wagtail.images",
+    "wagtail.documents",
     "wagtail.search",
     "wagtail.sites",
     "wagtail.locales",
     "wagtail.users",
     "phoxtail.core",
+    "phoxtail.media",
     "phoxtail.core.tests.testapp",
     "phoxtail.design",
     "phoxtail.streams",
@@ -68,3 +70,7 @@ STATIC_URL = "/static/"
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+WAGTAILIMAGES_IMAGE_MODEL = "phoxtail_media.PhoxtailImage"
+WAGTAILDOCS_DOCUMENT_MODEL = "phoxtail_media.PhoxtailDocument"
+WAGTAILMEDIA = {"MEDIA_MODEL": "phoxtail_media.PhoxtailMedia"}

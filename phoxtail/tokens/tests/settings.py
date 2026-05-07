@@ -54,3 +54,5 @@ STATIC_URL = "/static/"
 WAGTAILADMIN_BASE_URL = "http://localhost:8000"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+WAGTAILIMAGES_IMAGE_MODEL = "wagtailimages.Image"

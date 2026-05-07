@@ -9,6 +9,7 @@ class PhoxtailAgentConfig(PhoxtailAppConfig):
 
     depends_on = [
         "phoxtail.core",
+        "phoxtail.media",
         "phoxtail.cms",
     ]
 

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
@@ -263,7 +264,7 @@ class BlockVariant(index.Indexed, models.Model):
         help_text=_("JavaScript code for this variant."),
     )
     preview_image = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         blank=True,

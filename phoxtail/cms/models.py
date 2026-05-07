@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
@@ -56,7 +57,7 @@ class SitePage(Page):
 class SiteConfig(ClusterableModel, BaseSiteSetting):
     # Branding
     logo = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -65,7 +66,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         help_text=_("Site logo for light mode."),
     )
     logo_dark = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -74,7 +75,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         help_text=_("Site logo for dark mode."),
     )
     favicon = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -83,7 +84,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         help_text=_("Browser favicon for light mode."),
     )
     favicon_dark = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -94,7 +95,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
 
     # Open Graph
     og_image = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -106,7 +107,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         ),
     )
     og_image_dark = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -120,7 +121,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
 
     # Admin Branding
     logo_admin = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -129,7 +130,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         help_text=_("Used as the main logo in the admin interface (light mode)."),
     )
     logo_admin_dark = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -138,7 +139,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         help_text=_("Used as the main logo in the admin interface (dark mode)."),
     )
     symbol_admin = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -149,7 +150,7 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         ),
     )
     symbol_admin_dark = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,

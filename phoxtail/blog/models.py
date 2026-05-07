@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -135,7 +136,7 @@ class BlogPostPage(TimestampMixin, Page):
     parent_page_types = ["phoxtail_blog.BlogIndexPage"]
 
     preview_image = models.ForeignKey(
-        "wagtailimages.Image",
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,

@@ -19,6 +19,7 @@ WSGI_APPLICATION = "src.wsgi.application"
 INSTALLED_APPS = [
     "phoxtail.core",
     "phoxtail.users",
+    "phoxtail.media",
     "phoxtail.design",
     "phoxtail.streams",
     "phoxtail.cms",
@@ -166,6 +167,8 @@ STORAGES = {
 
 # Wagtail Settings
 WAGTAILSEARCH_BACKENDS = {"default": {"BACKEND": "wagtail.search.backends.database"}}
+WAGTAILIMAGES_IMAGE_MODEL = "phoxtail_media.PhoxtailImage"
+WAGTAILDOCS_DOCUMENT_MODEL = "phoxtail_media.PhoxtailDocument"
 WAGTAILIMAGES_EXTENSIONS = [
     "avif",
     "gif",
@@ -190,7 +193,7 @@ WAGTAILDOCS_EXTENSIONS = [
 ]
 
 WAGTAILMEDIA = {
-    "MEDIA_MODEL": "wagtailmedia.Media",
+    "MEDIA_MODEL": "phoxtail_media.PhoxtailMedia",
     "MEDIA_FORM_BASE": "",
     "AUDIO_EXTENSIONS": [
         "aac",

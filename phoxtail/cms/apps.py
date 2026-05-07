@@ -8,6 +8,7 @@ class PhoxtailCmsConfig(PhoxtailAppConfig):
     verbose_name = "Phoxtail CMS"
 
     depends_on = [
+        "phoxtail.media",
         "phoxtail.design",
         "phoxtail.streams",
     ]

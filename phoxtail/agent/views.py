@@ -54,6 +54,7 @@ def media_picker(request):
     elif tab == "videos":
         try:
             from wagtailmedia.models import get_media_model
+
             Media = get_media_model()
             qs = (
                 Media.objects.filter(type="video")
@@ -71,6 +72,7 @@ def media_picker(request):
     elif tab == "audio":
         try:
             from wagtailmedia.models import get_media_model
+
             Media = get_media_model()
             qs = (
                 Media.objects.filter(type="audio")

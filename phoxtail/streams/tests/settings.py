@@ -19,14 +19,21 @@ INSTALLED_APPS = [
     "wagtail",
     "wagtail.admin",
     "wagtail.images",
+    "wagtail.documents",
     "wagtail.search",
     "wagtail.sites",
     "wagtail.locales",
     "wagtail.users",
+    "wagtailmedia",
     "phoxtail.core",
+    "phoxtail.media",
     "phoxtail.design",
     "phoxtail.streams",
 ]
+
+WAGTAILIMAGES_IMAGE_MODEL = "phoxtail_media.PhoxtailImage"
+WAGTAILDOCS_DOCUMENT_MODEL = "phoxtail_media.PhoxtailDocument"
+WAGTAILMEDIA = {"MEDIA_MODEL": "phoxtail_media.PhoxtailMedia"}
 
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",

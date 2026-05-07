@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.conf import settings
+
 from phoxtail.api.content.v1._helpers import serialize_body
 from phoxtail.api.content.v1.contrib import PageSchemaContribution
 from phoxtail.blog.models import BlogAuthor, BlogIndexPage, BlogPostPage
@@ -88,7 +90,7 @@ def contribute_blog_post() -> PageSchemaContribution:
             "preview_image": {
                 "type": "int",
                 "required": False,
-                "fk_model": "wagtailimages.Image",
+                "fk_model": settings.WAGTAILIMAGES_IMAGE_MODEL,
             },
             "tags": {"type": "list[str]", "required": False},
             "hide_dates": {"type": "bool", "required": False},

@@ -7,6 +7,8 @@ class PhoxtailBlogConfig(PhoxtailAppConfig):
     label = "phoxtail_blog"
     verbose_name = "Phoxtail Blog"
 
+    depends_on = ["phoxtail.media"]
+
     # Blog contributes its own HTTP router and page-schema contributions.
     # MCP tools are registered via the ``phoxtail.mcp_modules`` entry
     # point in pyproject.toml; the module self-gates on
