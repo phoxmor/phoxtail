@@ -99,10 +99,16 @@
                     </button>
                 </div>
                 <div class="phoxtail-media-picker-lightbox-media">
-                    <img class="phoxtail-media-picker-lightbox-img"
-                         id="phoxtail-media-picker-lightbox-img"
-                         src="" alt=""
-                         decoding="async">
+                    <div class="phoxtail-media-picker-lightbox-img-wrap"
+                         id="phoxtail-media-picker-lightbox-img-wrap">
+                        <img class="phoxtail-media-picker-lightbox-img"
+                             id="phoxtail-media-picker-lightbox-img"
+                             src="" alt=""
+                             decoding="async">
+                        <div class="phoxtail-media-picker-lightbox-focal"
+                             id="phoxtail-media-picker-lightbox-focal"
+                             aria-hidden="true"></div>
+                    </div>
                     <video class="phoxtail-media-picker-lightbox-video"
                            id="phoxtail-media-picker-lightbox-video"
                            controls
@@ -116,6 +122,12 @@
                            preload="metadata"
                            style="display:none">
                     </audio>
+                    <div class="phoxtail-media-picker-lightbox-doc"
+                         id="phoxtail-media-picker-lightbox-doc"
+                         style="display:none">
+                        {% icon "document" class="phoxtail-media-picker-lightbox-doc-icon" %}
+                        <span class="phoxtail-media-picker-lightbox-doc-ext" id="phoxtail-lbx-doc-ext"></span>
+                    </div>
                 </div>
                 <div class="phoxtail-media-picker-lightbox-info">
                     <div class="phoxtail-media-picker-lightbox-badges" id="phoxtail-lbx-badges"></div>
@@ -194,14 +206,19 @@
     }, 0);
 
     /* ── Lightbox ── */
-    var lb       = document.getElementById('phoxtail-media-picker-lightbox');
-    var lbImg    = document.getElementById('phoxtail-media-picker-lightbox-img');
-    var lbVideo  = document.getElementById('phoxtail-media-picker-lightbox-video');
+    var lb        = document.getElementById('phoxtail-media-picker-lightbox');
+    var lbImgWrap = document.getElementById('phoxtail-media-picker-lightbox-img-wrap');
+    var lbImg     = document.getElementById('phoxtail-media-picker-lightbox-img');
+    var lbFocal   = document.getElementById('phoxtail-media-picker-lightbox-focal');
+    var lbVideo   = document.getElementById('phoxtail-media-picker-lightbox-video');
     var lbAudio  = document.getElementById('phoxtail-media-picker-lightbox-audio');
+    var lbDoc    = document.getElementById('phoxtail-media-picker-lightbox-doc');
+    var lbDocExt = document.getElementById('phoxtail-lbx-doc-ext');
     var lbClose  = document.getElementById('phoxtail-media-picker-lightbox-close');
     var lbAddBtn     = document.getElementById('phoxtail-media-picker-lightbox-add');
     var lbDismissBtn = document.getElementById('phoxtail-media-picker-lightbox-dismiss');
     var _lbThumb = null;
+    var _closeGen = 0;
 
     function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
     function fmtBytes(n) {
@@ -219,18 +236,21 @@
 
     function openLightbox(thumb) {
         if (!lb) return;
+        _closeGen++;
         _lbThumb = thumb;
 
         var d = thumb.dataset;
-        var isVideo = d.mediaType === 'video';
-        var isAudio = d.mediaType === 'audio';
-        var ext = (d.mediaFileUrl || '').split('.').pop().split('?')[0].toUpperCase();
+        var isVideo    = d.mediaType === 'video';
+        var isAudio    = d.mediaType === 'audio';
+        var isDocument = d.mediaType === 'document';
+        var ext = (d.mediaFileExtension || (d.mediaFileUrl || '').split('.').pop().split('?')[0]).toUpperCase();
         var size = fmtBytes(d.mediaFileSize);
 
-        /* Show/hide img vs video vs audio */
-        if (lbImg)   lbImg.style.display   = (!isVideo && !isAudio) ? '' : 'none';
+        /* Show/hide img vs video vs audio vs document */
+        if (lbImg)   lbImg.style.display   = (!isVideo && !isAudio && !isDocument) ? '' : 'none';
         if (lbVideo) lbVideo.style.display = isVideo ? '' : 'none';
         if (lbAudio) lbAudio.style.display = isAudio ? '' : 'none';
+        if (lbDoc)   lbDoc.style.display   = isDocument ? '' : 'none';
 
         if (isVideo) {
             if (lbVideo) { lbVideo.src = d.mediaFileUrl || ''; lbVideo.load(); }
@@ -240,6 +260,11 @@
             if (lbAudio) { lbAudio.src = d.mediaFileUrl || ''; lbAudio.load(); }
             if (lbImg)   { lbImg.src = ''; lbImg.alt = ''; }
             if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+        } else if (isDocument) {
+            if (lbDocExt) lbDocExt.textContent = ext;
+            if (lbImg)   { lbImg.src = ''; lbImg.alt = ''; }
+            if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
+            if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
         } else {
             if (lbImg) {
                 lbImg.src = d.mediaLightboxUrl || d.mediaFileUrl || '';
@@ -248,6 +273,27 @@
             if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
             if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
         }
+
+        /* Focal point overlay — only for images; percentages work because the
+           lightbox uses a max- (fit) rendition that preserves aspect ratio. */
+        var hasFocal = false;
+        if (lbFocal) lbFocal.classList.remove('phoxtail-media-picker-lightbox-focal--pinned');
+        if (!isVideo && !isAudio && !isDocument && lbFocal && lbImgWrap) {
+            var fx = parseInt(d.mediaFocalX, 10);
+            var fy = parseInt(d.mediaFocalY, 10);
+            var fw = parseInt(d.mediaFocalW, 10);
+            var fh = parseInt(d.mediaFocalH, 10);
+            var ow = parseInt(d.mediaWidth,  10);
+            var oh = parseInt(d.mediaHeight, 10);
+            if (fx && fy && fw && fh && ow && oh) {
+                hasFocal = true;
+                lbFocal.style.left   = ((fx - fw / 2) / ow * 100).toFixed(3) + '%';
+                lbFocal.style.top    = ((fy - fh / 2) / oh * 100).toFixed(3) + '%';
+                lbFocal.style.width  = (fw / ow * 100).toFixed(3) + '%';
+                lbFocal.style.height = (fh / oh * 100).toFixed(3) + '%';
+            }
+        }
+        if (lbImgWrap) lbImgWrap.classList.toggle('phoxtail-media-picker-lightbox-img-wrap--has-focal', hasFocal);
 
         /* Badges: ID + format + size/duration */
         var badgesEl = document.getElementById('phoxtail-lbx-badges');
@@ -259,7 +305,17 @@
             badgesEl.innerHTML =
                 '<span class="phoxtail-lbx-badge phoxtail-lbx-badge--id">ID ' + esc(d.mediaId || '') + '</span>' +
                 (ext ? '<span class="phoxtail-lbx-badge">' + esc(ext) + '</span>' : '') +
-                extra;
+                extra +
+                (hasFocal ? '<span class="phoxtail-lbx-badge phoxtail-lbx-badge--focal-toggle" id="phoxtail-lbx-focal-badge">focal point</span>' : '');
+            if (hasFocal) {
+                var focalBadge = document.getElementById('phoxtail-lbx-focal-badge');
+                if (focalBadge && lbFocal) {
+                    focalBadge.addEventListener('click', function () {
+                        var pinned = lbFocal.classList.toggle('phoxtail-media-picker-lightbox-focal--pinned');
+                        focalBadge.classList.toggle('phoxtail-lbx-badge--focal-active', pinned);
+                    });
+                }
+            }
         }
 
         /* Title */
@@ -268,7 +324,7 @@
 
         /* Dimensions (images and videos only) */
         var dimsEl = document.getElementById('phoxtail-lbx-dims');
-        if (dimsEl) dimsEl.textContent = (!isAudio && d.mediaWidth && d.mediaHeight)
+        if (dimsEl) dimsEl.textContent = (!isAudio && !isDocument && d.mediaWidth && d.mediaHeight)
             ? d.mediaWidth + ' × ' + d.mediaHeight + ' px' : '';
 
         /* Description / alt text (images only) */
@@ -276,7 +332,7 @@
         if (descEl) {
             var desc = (d.mediaDescription || '').trim();
             descEl.textContent = desc;
-            descEl.style.display = (desc && !isVideo && !isAudio) ? '' : 'none';
+            descEl.style.display = (desc && !isVideo && !isAudio && !isDocument) ? '' : 'none';
         }
 
         /* Tags */
@@ -313,11 +369,20 @@
 
     function closeLightbox() {
         if (!lb) return;
+        var gen = ++_closeGen;
         lb.classList.remove('phoxtail-media-picker-lightbox--open');
         lb.setAttribute('inert', '');
-        if (lbVideo) { lbVideo.pause(); lbVideo.src = ''; }
-        if (lbAudio) { lbAudio.pause(); lbAudio.src = ''; }
+        if (lbVideo) lbVideo.pause();
+        if (lbAudio) lbAudio.pause();
         _lbThumb = null;
+        setTimeout(function () {
+            if (gen !== _closeGen) return;
+            if (lbVideo) lbVideo.src = '';
+            if (lbAudio) lbAudio.src = '';
+            if (lbDoc)   lbDoc.style.display = 'none';
+            if (lbFocal)  lbFocal.classList.remove('phoxtail-media-picker-lightbox-focal--pinned');
+            if (lbImgWrap) lbImgWrap.classList.remove('phoxtail-media-picker-lightbox-img-wrap--has-focal');
+        }, 260);
     }
 
     if (lbClose) {
@@ -359,7 +424,7 @@
         resultsEl.addEventListener('click', function (e) {
             var addBtn = e.target.closest('.phoxtail-media-picker-add-btn');
             if (addBtn) return;
-            var thumb = e.target.closest('[data-media-type="image"], [data-media-type="video"], [data-media-type="audio"]');
+            var thumb = e.target.closest('[data-media-type="image"], [data-media-type="video"], [data-media-type="audio"], [data-media-type="document"]');
             if (!thumb) return;
             openLightbox(thumb);
         });

@@ -87,7 +87,12 @@ def media_picker(request):
             results = []
     elif tab == "documents":
         Document = get_document_model()
-        qs = Document.objects.all().order_by("-created_at")
+        qs = (
+            Document.objects.all()
+            .select_related("collection")
+            .prefetch_related("tags")
+            .order_by("-created_at")
+        )
         if query:
             qs = s.autocomplete(query, qs)[:40]
         else:

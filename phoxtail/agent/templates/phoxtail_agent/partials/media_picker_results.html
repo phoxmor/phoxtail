@@ -19,7 +19,11 @@
          data-media-file-size="{{ item.file_size|default:'' }}"
          data-media-created-at="{{ item.created_at|date:'M j, Y' }}"
          data-media-tags="{{ item.tags.all|join:', ' }}"
-         data-media-collection="{{ item.collection.name }}">
+         data-media-collection="{{ item.collection.name }}"
+         data-media-focal-x="{{ item.focal_point_x|default:'' }}"
+         data-media-focal-y="{{ item.focal_point_y|default:'' }}"
+         data-media-focal-w="{{ item.focal_point_width|default:'' }}"
+         data-media-focal-h="{{ item.focal_point_height|default:'' }}">
         <img src="{{ thumb.url }}" alt="{{ item.title }}" loading="lazy">
         <div class="phoxtail-media-picker-thumb-overlay"></div>
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
@@ -91,7 +95,10 @@
          data-media-title="{{ item.title|escapejs }}"
          data-media-file-url="{{ item.url }}"
          data-media-file-extension="{{ item.file_extension }}"
-         data-media-file-size="{{ item.file_size }}">
+         data-media-file-size="{{ item.file_size }}"
+         data-media-tags="{{ item.tags.all|join:', ' }}"
+         data-media-collection="{{ item.collection.name }}"
+         data-media-created-at="{{ item.created_at|date:'M j, Y' }}">
         {% icon "document" class="phoxtail-bar-row-icon" %}
         <div class="phoxtail-bar-row-info">
             <span class="phoxtail-bar-row-type">{{ item.title|truncatechars:40 }}</span>

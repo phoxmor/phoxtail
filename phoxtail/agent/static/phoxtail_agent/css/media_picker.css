@@ -227,11 +227,12 @@
 }
 .phoxtail-media-picker-thumb:hover .phoxtail-media-picker-thumb-title { opacity: 1; }
 /* ── Thumbs open a lightbox on click ── */
-.phoxtail-media-picker-thumb[data-media-type="image"] { cursor: zoom-in; }
-.phoxtail-media-picker-thumb[data-media-type="video"] { cursor: pointer; }
+.phoxtail-media-picker-thumb[data-media-type="image"],
+.phoxtail-media-picker-thumb[data-media-type="video"] { cursor: zoom-in; }
 
-/* ── Audio rows open a lightbox on click ── */
-.phoxtail-media-picker-audio-row { cursor: zoom-in; }
+/* ── Audio/document rows open a lightbox on click ── */
+.phoxtail-media-picker-doc-row[data-media-type="audio"],
+.phoxtail-media-picker-doc-row[data-media-type="document"] { cursor: zoom-in; }
 
 /* ── Add button on thumbs ── */
 .phoxtail-media-picker-add-btn {
@@ -338,12 +339,37 @@
     padding: 0.75rem 0.875rem 0;
     flex-shrink: 0;
 }
+.phoxtail-media-picker-lightbox-img-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin-bottom: 0.875rem;
+    border-radius: 0.625rem;
+    overflow: hidden;
+}
 .phoxtail-media-picker-lightbox-img {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 0.625rem;
-    margin-bottom: 0.875rem;
+    border-radius: 0; /* clipped by wrapper */
+}
+
+/* Focal point overlay — border marks the focal area; box-shadow dims everything outside */
+.phoxtail-media-picker-lightbox-focal {
+    position: absolute;
+    box-sizing: border-box;
+    border: 1.5px solid rgb(var(--color-primary-300, 165 180 252) / 0.9);
+    border-radius: 3px;
+    box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.35);
+    pointer-events: none;
+    min-width: 16px;
+    min-height: 16px;
+    opacity: 0;
+    transition: opacity 200ms ease;
+}
+.phoxtail-media-picker-lightbox-img-wrap--has-focal:hover .phoxtail-media-picker-lightbox-focal,
+.phoxtail-media-picker-lightbox-focal--pinned {
+    opacity: 1;
 }
 .phoxtail-media-picker-lightbox-video {
     display: block;
@@ -357,6 +383,29 @@
     display: block;
     width: 100%;
     margin-bottom: 0.875rem;
+}
+
+/* ── Document placeholder in lightbox ── */
+.phoxtail-media-picker-lightbox-doc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem 1.25rem;
+    margin-bottom: 0.875rem;
+}
+.phoxtail-media-picker-lightbox-doc-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    color: rgb(var(--color-surface-300, 212 212 216));
+}
+.phoxtail-media-picker-lightbox-doc-ext {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(var(--color-surface-400, 161 161 170));
 }
 
 /* Info panel — capped height, scrolls if content overflows */
@@ -386,6 +435,21 @@
     background: rgb(var(--color-primary-50, 238 242 255));
     color: rgb(var(--color-primary-700, 67 56 202));
     border-color: rgb(var(--color-primary-200, 199 210 254));
+}
+.phoxtail-lbx-badge--focal-toggle {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+.phoxtail-lbx-badge--focal-toggle:hover {
+    background: rgb(var(--color-surface-200, 228 228 231));
+    border-color: rgb(var(--color-surface-300, 212 212 216));
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-lbx-badge--focal-active {
+    background: rgb(var(--color-surface-200, 228 228 231));
+    border-color: rgb(var(--color-surface-400, 161 161 170));
+    color: rgb(var(--color-surface-800, 24 24 27));
 }
 
 .phoxtail-media-picker-lightbox-title {
@@ -551,6 +615,10 @@
         color: rgb(var(--color-primary-300, 165 180 252));
     }
 
+    /* Doc placeholder dark mode */
+    .phoxtail-media-picker-lightbox-doc-icon { color: rgb(var(--color-surface-700, 63 63 70)); }
+    .phoxtail-media-picker-lightbox-doc-ext  { color: rgb(var(--color-surface-600, 82 82 91)); }
+
     /* Lightbox dark mode */
     .phoxtail-media-picker-lightbox {
         background-color: rgb(var(--color-surface-950, 12 12 16) / 0.92);
@@ -570,6 +638,15 @@
         background: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
+    }
+    .phoxtail-lbx-badge--focal-toggle:hover,
+    .phoxtail-lbx-badge--focal-active {
+        background: rgb(var(--color-surface-800, 24 24 27));
+        border-color: rgb(var(--color-surface-600, 82 82 91));
+        color: rgb(var(--color-surface-200, 228 228 231));
+    }
+    .phoxtail-media-picker-lightbox-focal {
+        border-color: rgb(var(--color-primary-400, 129 140 248) / 0.9);
     }
     .phoxtail-media-picker-lightbox-title { color: rgb(var(--color-surface-50, 250 250 250)); }
     .phoxtail-media-picker-lightbox-dims  { color: rgb(var(--color-surface-500, 113 113 122)); }
