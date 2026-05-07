@@ -200,7 +200,21 @@
             if (drawer.contains(e.target)) return;
             var chatbot = document.getElementById('phoxtail-chatbot-drawer');
             if (chatbot && chatbot.contains(e.target)) return;
-            closeModalLevel1();
+            if (document.body.hasAttribute('data-phoxtail-dragging')) return;
+            function doClose() {
+                closeModalLevel1();
+                if (window.phoxtailChat) window.phoxtailChat.close();
+            }
+            // If target is draggable, defer: cancel close if drag starts, proceed on mouseup (click)
+            if (e.target.closest && e.target.closest('[draggable="true"]')) {
+                var _dragged = false;
+                function _onDragStart() { _dragged = true; document.removeEventListener('mouseup', _onMouseUp); }
+                function _onMouseUp() { document.removeEventListener('dragstart', _onDragStart); if (!_dragged) doClose(); }
+                document.addEventListener('dragstart', _onDragStart, { once: true });
+                document.addEventListener('mouseup', _onMouseUp, { once: true });
+                return;
+            }
+            doClose();
         }
         document.addEventListener('mousedown', onOutsideDown);
     }, 0);

@@ -693,6 +693,7 @@
     }
 
     window.phoxtailChat = {
+        close: function () { chat.close(); },
         load: function (uuid) {
             _loadChat(uuid);
             if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
