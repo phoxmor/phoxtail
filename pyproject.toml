@@ -120,7 +120,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/tests", "phoxtail/design/tests", "phoxtail/streams/tests", "phoxtail/tokens/tests", "phoxtail/booking/core/tests", "phoxtail/booking/events/tests", "phoxtail/booking/subscriptions/tests", "phoxtail/booking/reservations/tests"]
+testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/tests", "phoxtail/design/tests", "phoxtail/streams/tests", "phoxtail/tokens/tests", "phoxtail/booking/core/tests", "phoxtail/booking/events/tests", "phoxtail/booking/subscriptions/tests", "phoxtail/booking/reservations/tests", "phoxtail/media/tests"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]

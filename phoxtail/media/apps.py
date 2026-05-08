@@ -6,3 +6,8 @@ class PhoxtailMediaConfig(PhoxtailAppConfig):
     name = "phoxtail.media"
     label = "phoxtail_media"
     verbose_name = "Phoxtail Media"
+
+    def ready(self):
+        from phoxtail.media import signals
+
+        signals.connect()

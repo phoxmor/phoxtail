@@ -16,6 +16,7 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
     gettext \
     graphviz \
     libgraphviz-dev \
+    ffmpeg \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Python Dependencies
