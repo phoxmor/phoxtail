@@ -3,30 +3,30 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        {% if settings.phoxtail_cms.SiteConfig.favicon %}
-            {% image settings.phoxtail_cms.SiteConfig.favicon max-32x32 as favicon_img %}
+        {% if settings.phoxtail_cms.SiteSetting.favicon %}
+            {% image settings.phoxtail_cms.SiteSetting.favicon max-32x32 as favicon_img %}
             <link rel="icon"
                   type="image/png"
                   href="{{ favicon_img.url }}"
                   media="(prefers-color-scheme: light)" />
         {% endif %}
-        {% if settings.phoxtail_cms.SiteConfig.favicon_dark %}
-            {% image settings.phoxtail_cms.SiteConfig.favicon_dark max-32x32 as favicon_dark_img %}
+        {% if settings.phoxtail_cms.SiteSetting.favicon_dark %}
+            {% image settings.phoxtail_cms.SiteSetting.favicon_dark max-32x32 as favicon_dark_img %}
             <link rel="icon"
                   type="image/png"
                   href="{{ favicon_dark_img.url }}"
                   media="(prefers-color-scheme: dark)" />
         {% endif %}
-        {% if settings.phoxtail_cms.SiteConfig.og_image %}
-            {% image settings.phoxtail_cms.SiteConfig.og_image width-1200 as og_img %}
+        {% if settings.phoxtail_cms.SiteSetting.og_image %}
+            {% image settings.phoxtail_cms.SiteSetting.og_image width-1200 as og_img %}
             <meta property="og:image"
                   content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}"
                   media="(prefers-color-scheme: light)" />
             <meta property="og:image:width" content="1200" />
             <meta property="og:image:height" content="{{ og_img.height }}" />
         {% endif %}
-        {% if settings.phoxtail_cms.SiteConfig.og_image_dark %}
-            {% image settings.phoxtail_cms.SiteConfig.og_image_dark width-1200 as og_dark_img %}
+        {% if settings.phoxtail_cms.SiteSetting.og_image_dark %}
+            {% image settings.phoxtail_cms.SiteSetting.og_image_dark width-1200 as og_dark_img %}
             <meta property="og:image"
                   content="{{ request.scheme }}://{{ request.get_host }}{{ og_dark_img.url }}"
                   media="(prefers-color-scheme: dark)" />
@@ -63,9 +63,9 @@
         {% get_settings %}
         <style>
             :root {
-                {{ settings.phoxtail_cms.SiteConfig.css_variables|safe }}
+                {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
             }
-            {{ settings.phoxtail_cms.SiteConfig.font_face_declarations|safe }}
+            {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
         </style>
         {% block extra_css %}{% endblock %}
     </head>

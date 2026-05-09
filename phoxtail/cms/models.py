@@ -53,8 +53,8 @@ class SitePage(Page):
         verbose_name_plural = _("Pages")
 
 
-@register_setting(icon="globe-book")
-class SiteConfig(ClusterableModel, BaseSiteSetting):
+@register_setting(icon="language")
+class SiteSetting(ClusterableModel, BaseSiteSetting):
     # Branding
     logo = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -270,14 +270,13 @@ class SiteConfig(ClusterableModel, BaseSiteSetting):
         return "\n".join(declarations)
 
     class Meta:
-        verbose_name = _("Site Config")
-        verbose_name_plural = _("Site Configs")
+        verbose_name = _("Site")
 
 
-class SiteConfigFont(Orderable, models.Model):
-    """Links a FontFamily to a SiteConfig with a semantic role."""
+class SiteSettingFont(Orderable, models.Model):
+    """Links a FontFamily to a SiteSetting with a semantic role."""
 
-    config = ParentalKey(SiteConfig, on_delete=models.CASCADE, related_name="fonts")
+    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="fonts")
     font_family = models.ForeignKey(
         "phoxtail_design.FontFamily", on_delete=models.CASCADE, related_name="+"
     )
@@ -292,7 +291,7 @@ class SiteConfigFont(Orderable, models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["config", "role"],
-                name="unique_siteconfig_font_role",
+                name="unique_sitesetting_font_role",
             )
         ]
 
@@ -307,10 +306,10 @@ class SiteConfigFont(Orderable, models.Model):
         return "\n".join(css)
 
 
-class SiteConfigPalette(Orderable, models.Model):
-    """Links a Palette to a SiteConfig with a semantic role."""
+class SiteSettingPalette(Orderable, models.Model):
+    """Links a Palette to a SiteSetting with a semantic role."""
 
-    config = ParentalKey(SiteConfig, on_delete=models.CASCADE, related_name="palettes")
+    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="palettes")
     palette = models.ForeignKey(
         "phoxtail_design.Palette", on_delete=models.CASCADE, related_name="+"
     )
@@ -327,7 +326,7 @@ class SiteConfigPalette(Orderable, models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["config", "role"],
-                name="unique_siteconfig_role",
+                name="unique_sitesetting_role",
             )
         ]
 

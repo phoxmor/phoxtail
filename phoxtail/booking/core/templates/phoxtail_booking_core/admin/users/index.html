@@ -14,13 +14,13 @@
     <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
     <link rel="stylesheet"
           href="{% static 'phoxtail_booking_core/css/users_admin.css' %}">
-    <!-- SiteConfig design tokens (overrides fallback defaults) -->
+    <!-- SiteSetting design tokens (overrides fallback defaults) -->
     {% get_settings %}
     <style>
         :root {
-            {{ settings.phoxtail_cms.SiteConfig.css_variables|safe }}
+            {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
         }
-        {{ settings.phoxtail_cms.SiteConfig.font_face_declarations|safe }}
+        {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
     </style>
 {% endblock %}
 {% block content %}
