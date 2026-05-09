@@ -127,6 +127,29 @@
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
+            <div class="phoxtail-bar-search-wrap">
+                <span class="phoxtail-bar-search-icon"
+                      id="phoxtail-model-search-icon" aria-hidden="true">
+                    {% icon "search" class="phoxtail-bar-btn-icon" %}
+                </span>
+                <button type="button"
+                        id="phoxtail-model-search-clear"
+                        class="phoxtail-bar-search-clear phoxtail-bar-hidden"
+                        title="Clear search"
+                        aria-label="Clear search">
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
+                </button>
+                <input type="text"
+                       id="phoxtail-model-search"
+                       name="q"
+                       placeholder="Search models…"
+                       autocomplete="off"
+                       class="phoxtail-bar-search-input"
+                       hx-get="{{ model_picker_url }}"
+                       hx-trigger="input changed delay:250ms, search"
+                       hx-target="#phoxtail-model-picker-body"
+                       hx-include="this">
+            </div>
             <div class="phoxtail-bar-panel-body" id="phoxtail-model-picker-body"></div>
         </div>
         {% if page.body %}

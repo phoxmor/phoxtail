@@ -55,14 +55,14 @@
             </button>
         </div>
 
-        <div class="phoxtail-media-picker-search-wrap">
-            <span class="phoxtail-media-picker-search-icon {% if query %}phoxtail-media-picker-hidden{% endif %}"
-                  id="phoxtail-media-picker-search-icon">
+        <div class="phoxtail-bar-search-wrap">
+            <span class="phoxtail-bar-search-icon {% if query %}phoxtail-bar-hidden{% endif %}"
+                  id="phoxtail-bar-search-icon">
                 {% icon "search" class="phoxtail-bar-btn-icon" %}
             </span>
             <button type="button"
                     id="phoxtail-media-picker-clear"
-                    class="phoxtail-media-picker-search-clear {% if not query %}phoxtail-media-picker-hidden{% endif %}"
+                    class="phoxtail-bar-search-clear {% if not query %}phoxtail-bar-hidden{% endif %}"
                     title="Clear search"
                     aria-label="Clear search">
                 {% icon "close" class="phoxtail-bar-btn-icon" %}
@@ -73,7 +73,7 @@
                    value="{{ query }}"
                    placeholder="Search…"
                    autocomplete="off"
-                   class="phoxtail-media-picker-search-input"
+                   class="phoxtail-bar-search-input"
                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
                    hx-vals='{"tab": "{{ tab }}"}'
                    hx-target="#phoxtail-media-picker-results"
@@ -159,13 +159,13 @@
 (function () {
     var input  = document.getElementById('phoxtail-media-picker-search');
     var clear  = document.getElementById('phoxtail-media-picker-clear');
-    var icon   = document.getElementById('phoxtail-media-picker-search-icon');
+    var icon   = document.getElementById('phoxtail-bar-search-icon');
     if (!input) return;
 
     function syncVisibility() {
         var hasVal = input.value.length > 0;
-        icon.classList.toggle('phoxtail-media-picker-hidden', hasVal);
-        clear.classList.toggle('phoxtail-media-picker-hidden', !hasVal);
+        icon.classList.toggle('phoxtail-bar-hidden', hasVal);
+        clear.classList.toggle('phoxtail-bar-hidden', !hasVal);
     }
     input.addEventListener('input', syncVisibility);
     if (clear) {

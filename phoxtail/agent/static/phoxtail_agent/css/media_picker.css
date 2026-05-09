@@ -76,63 +76,7 @@
 .phoxtail-media-picker-tab .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
 
 /* ── Search ── */
-.phoxtail-media-picker-search-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    flex-shrink: 0;
-}
-
-.phoxtail-media-picker-search-input {
-    width: 100%;
-    padding: 0.4rem 0.625rem 0.4rem 1.75rem;
-    font-size: 0.8125rem;
-    font-family: inherit;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 0.5rem;
-    background: rgb(0 0 0 / 0.03);
-    color: rgb(var(--color-surface-800, 24 24 27));
-    outline: none;
-    transition: border-color 0.15s, background 0.15s;
-}
-.phoxtail-media-picker-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
-.phoxtail-media-picker-search-input:focus {
-    border-color: rgb(var(--color-primary-400, 129 140 248));
-    background: rgb(0 0 0 / 0.01);
-}
-
-.phoxtail-media-picker-search-icon {
-    position: absolute;
-    left: 1.1875rem;
-    display: flex;
-    align-items: center;
-    pointer-events: none;
-    color: rgb(var(--color-surface-400, 161 161 170));
-}
-.phoxtail-media-picker-search-icon .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
-
-.phoxtail-media-picker-search-clear {
-    position: absolute;
-    left: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.2rem;
-    border: none;
-    border-radius: 0.25rem;
-    background: transparent;
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    transition: color 0.1s, background 0.1s;
-}
-.phoxtail-media-picker-search-clear:hover {
-    background: rgb(0 0 0 / 0.06);
-    color: rgb(var(--color-surface-700, 63 63 70));
-}
-.phoxtail-media-picker-search-clear .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
-
-.phoxtail-media-picker-hidden { display: none !important; }
+/* Search bar uses shared .phoxtail-bar-search-* rules from phoxtail_bar.css */
 
 /* ── Results area ── */
 .phoxtail-media-picker-results {
@@ -572,16 +516,6 @@
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
-    }
-    .phoxtail-media-picker-search-input {
-        border-color: rgb(255 255 255 / 0.08);
-        background: rgb(255 255 255 / 0.04);
-        color: rgb(var(--color-surface-100, 244 244 245));
-    }
-    .phoxtail-media-picker-search-input:focus { background: rgb(255 255 255 / 0.06); }
-    .phoxtail-media-picker-search-clear:hover {
-        background: rgb(255 255 255 / 0.08);
-        color: rgb(var(--color-surface-300, 212 212 216));
     }
     .phoxtail-media-picker-results {
         scrollbar-color: rgb(255 255 255 / 0.12) transparent;

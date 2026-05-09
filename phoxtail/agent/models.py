@@ -50,8 +50,18 @@ class ModelArtifact(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, Ord
     search_fields = [
         index.SearchField("display_name"),
         index.SearchField("identifier"),
+        index.AutocompleteField("display_name"),
+        index.AutocompleteField("identifier"),
         index.FilterField("is_active"),
         index.FilterField("provider"),
+        index.FilterField("sort_order"),
+        index.RelatedFields(
+            "provider",
+            [
+                index.FilterField("is_active"),
+                index.AutocompleteField("display_name"),
+            ],
+        ),
     ]
 
     class Meta(Orderable.Meta):

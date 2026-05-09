@@ -111,13 +111,17 @@ def media_picker(request):
 
 @agent_permission_required("access_chatbot")
 def model_picker_panel(request):
-    artifacts = (
+    query = request.GET.get("q", "").strip()
+    qs = (
         ModelArtifact.objects.filter(is_active=True, provider__is_active=True)
         .select_related("provider", "permission__content_type")
         .order_by("sort_order")
     )
+    if query:
+        s = get_search_backend()
+        qs = s.autocomplete(query, qs)
     visible = []
-    for artifact in artifacts:
+    for artifact in qs:
         if artifact.permission is None:
             visible.append(artifact)
         else:

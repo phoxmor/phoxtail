@@ -429,6 +429,61 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     border-right: 2px solid rgb(var(--color-primary-500, 99 102 241));
 }
 
+/* ── Shared search bar (model picker, reused by media picker) ── */
+.phoxtail-bar-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    flex-shrink: 0;
+}
+.phoxtail-bar-search-input {
+    width: 100%;
+    padding: 0.4rem 0.625rem 0.4rem 1.75rem;
+    font-size: 0.8125rem;
+    font-family: inherit;
+    border: 1px solid rgb(0 0 0 / 0.08);
+    border-radius: 0.5rem;
+    background: rgb(0 0 0 / 0.03);
+    color: rgb(var(--color-surface-800, 24 24 27));
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+.phoxtail-bar-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
+.phoxtail-bar-search-input:focus {
+    border-color: rgb(var(--color-primary-400, 129 140 248));
+    background: rgb(0 0 0 / 0.01);
+}
+.phoxtail-bar-search-icon {
+    position: absolute;
+    left: 1.1875rem;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    color: rgb(var(--color-surface-400, 161 161 170));
+}
+.phoxtail-bar-search-icon .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-bar-search-clear {
+    position: absolute;
+    left: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    border: none;
+    border-radius: 0.25rem;
+    background: transparent;
+    color: rgb(var(--color-surface-400, 161 161 170));
+    cursor: pointer;
+    transition: color 0.1s, background 0.1s;
+}
+.phoxtail-bar-search-clear:hover {
+    background: rgb(0 0 0 / 0.06);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-bar-search-clear .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
+.phoxtail-bar-hidden { display: none !important; }
+
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
     .phoxtail-bar-dock::before {
@@ -497,6 +552,16 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     .phoxtail-bar-highlight-corner--bl,
     .phoxtail-bar-highlight-corner--br {
         border-color: rgb(var(--color-primary-400, 129 140 248));
+    }
+    .phoxtail-bar-search-input {
+        border-color: rgb(255 255 255 / 0.08);
+        background: rgb(255 255 255 / 0.04);
+        color: rgb(var(--color-surface-100, 244 244 245));
+    }
+    .phoxtail-bar-search-input:focus { background: rgb(255 255 255 / 0.06); }
+    .phoxtail-bar-search-clear:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: rgb(var(--color-surface-300, 212 212 216));
     }
 }
 
