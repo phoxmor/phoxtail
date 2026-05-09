@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import queue
 import re
 import threading
@@ -30,7 +31,7 @@ from pydantic_ai.messages import (
 )
 
 from phoxtail.agent.llm import get_agent
-from phoxtail.agent.models import Conversation
+from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_policy
 
 router = Router()
@@ -77,10 +78,15 @@ _BLOCK_WRITE_TOOLS = {
 }
 
 
-async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> None:
+async def _run_turn(
+    conversation_pk: int, user_text: str, out: queue.Queue, artifact_pk: int
+) -> None:
     conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
+    artifact = await sync_to_async(
+        ModelArtifact.objects.select_related("provider").get
+    )(pk=artifact_pk)
     history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
-    agent = get_agent()
+    agent = get_agent(artifact)
     aq: asyncio.Queue[Any] = asyncio.Queue()
     text_sent = False
     # Stash tool-call args keyed by tool_call_id so we can extract page_id on result.
@@ -176,8 +182,9 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             conversation.message_history = ModelMessagesTypeAdapter.dump_python(
                 updated, mode="json"
             )
+            conversation.last_artifact_used_id = artifact_pk
             await sync_to_async(conversation.save)(
-                update_fields=["message_history", "updated_at"]
+                update_fields=["message_history", "updated_at", "last_artifact_used"]
             )
             if not conversation.title:
                 stripped = _CONTEXT_STRIP.sub("", user_text).strip()
@@ -201,8 +208,9 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
             conversation.message_history = ModelMessagesTypeAdapter.dump_python(
                 updated, mode="json"
             )
+            conversation.last_artifact_used_id = artifact_pk
             await sync_to_async(conversation.save)(
-                update_fields=["message_history", "updated_at"]
+                update_fields=["message_history", "updated_at", "last_artifact_used"]
             )
             if not conversation.title:
                 stripped = _CONTEXT_STRIP.sub("", user_text).strip()
@@ -255,11 +263,11 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue) -> N
 # ── Sync streaming generator (passed to StreamingHttpResponse) ───────────────
 
 
-def _stream_turn_sync(conversation_pk: int, user_text: str):
+def _stream_turn_sync(conversation_pk: int, user_text: str, artifact_pk: int):
     out: queue.Queue[Any] = queue.Queue()
     loop = _get_loop()
     future = asyncio.run_coroutine_threadsafe(
-        _run_turn(conversation_pk, user_text, out), loop
+        _run_turn(conversation_pk, user_text, out, artifact_pk), loop
     )
 
     try:
@@ -281,6 +289,9 @@ def _stream_turn_sync(conversation_pk: int, user_text: str):
 class StreamRequest(Schema):
     message: str
     conversation_uuid: str | None = None
+    artifact_id: int | None = None
+    # ^ pk of the ModelArtifact to use for this turn.
+    #   None = use AgentSiteSetting.default_artifact; 400 if none configured.
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
@@ -296,7 +307,9 @@ def get_conversation(request, uuid: str):
     ):
         raise HttpError(403, "Access denied.")
     try:
-        conversation = Conversation.objects.get(uuid=uuid, user=user)
+        conversation = Conversation.objects.select_related("last_artifact_used").get(
+            uuid=uuid, user=user
+        )
     except Conversation.DoesNotExist:
         raise HttpError(404, "Conversation not found.")
 
@@ -311,7 +324,18 @@ def get_conversation(request, uuid: str):
             text = " ".join(p.content for p in msg.parts if isinstance(p, TextPart))
             if text:
                 messages.append({"role": "assistant", "content": text})
-    return {"uuid": str(conversation.uuid), "messages": messages}
+
+    last_artifact = None
+    if conversation.last_artifact_used_id:
+        a = conversation.last_artifact_used
+        if a:
+            last_artifact = {"id": a.pk, "name": a.display_name}
+
+    return {
+        "uuid": str(conversation.uuid),
+        "messages": messages,
+        "last_artifact_used": last_artifact,
+    }
 
 
 @router.post("/chat/stream/", tags=["agent/v1"])
@@ -327,6 +351,48 @@ def chat_stream(request, payload: StreamRequest):
     if not message:
         raise HttpError(400, "Message must not be empty.")
 
+    if payload.artifact_id is not None:
+        artifact = (
+            ModelArtifact.objects.select_related("provider", "permission__content_type")
+            .filter(pk=payload.artifact_id, is_active=True, provider__is_active=True)
+            .first()
+        )
+        if artifact is None:
+            raise HttpError(404, "Model not found.")
+    else:
+        try:
+            agent_settings = AgentSiteSetting.for_request(request)
+        except Exception:
+            agent_settings = None
+        default_pk = (
+            agent_settings.default_artifact_id
+            if agent_settings and agent_settings.default_artifact_id
+            else None
+        )
+        artifact = (
+            ModelArtifact.objects.select_related("provider", "permission__content_type")
+            .filter(pk=default_pk, is_active=True, provider__is_active=True)
+            .first()
+            if default_pk
+            else None
+        )
+        if artifact is None:
+            raise HttpError(400, "No default model configured. Please select a model.")
+
+    if artifact.permission:
+        ct = artifact.permission.content_type
+        perm = f"{ct.app_label}.{artifact.permission.codename}"
+        if not user.has_perm(perm):
+            raise HttpError(403, "You do not have access to this model.")
+
+    env_var = artifact.provider.api_key_env_var
+    if env_var and not os.environ.get(env_var):
+        raise HttpError(
+            400,
+            f"No API key configured for {artifact.provider.display_name}. "
+            f"Set {env_var} in the environment.",
+        )
+
     if payload.conversation_uuid:
         try:
             conversation = Conversation.objects.get(
@@ -338,7 +404,7 @@ def chat_stream(request, payload: StreamRequest):
         conversation = Conversation.objects.create(user=user)
 
     return StreamingHttpResponse(
-        _stream_turn_sync(conversation.pk, message),
+        _stream_turn_sync(conversation.pk, message, artifact.pk),
         content_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

@@ -9,7 +9,7 @@ from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.agent.models import Conversation
+from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_required
 from phoxtail.api.content.v1._helpers import body_field_name_for, resolve_page_for_read
 
@@ -107,6 +107,38 @@ def media_picker(request):
         return render(request, "phoxtail_agent/partials/media_picker_results.html", ctx)
 
     return render(request, "phoxtail_agent/media_picker.html", ctx)
+
+
+@agent_permission_required("access_chatbot")
+def model_picker_panel(request):
+    artifacts = (
+        ModelArtifact.objects.filter(is_active=True, provider__is_active=True)
+        .select_related("provider", "permission__content_type")
+        .order_by("sort_order")
+    )
+    visible = []
+    for artifact in artifacts:
+        if artifact.permission is None:
+            visible.append(artifact)
+        else:
+            ct = artifact.permission.content_type
+            perm = f"{ct.app_label}.{artifact.permission.codename}"
+            if request.user.has_perm(perm):
+                visible.append(artifact)
+    try:
+        agent_settings = AgentSiteSetting.for_request(request)
+    except Exception:
+        agent_settings = None
+    default_artifact_id = (
+        agent_settings.default_artifact_id
+        if agent_settings and agent_settings.default_artifact_id
+        else None
+    )
+    return render(
+        request,
+        "phoxtail_agent/partials/model_picker_rows.html",
+        {"artifacts": visible, "default_artifact_id": default_artifact_id},
+    )
 
 
 @agent_permission_required("access_chatbot")

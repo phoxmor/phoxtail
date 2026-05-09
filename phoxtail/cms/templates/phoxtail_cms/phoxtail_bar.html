@@ -4,6 +4,7 @@
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}
 {% url 'phoxtail_agent:media_picker' as media_picker_url %}
+{% url 'phoxtail_agent:model_picker_panel' as model_picker_url %}
 <link rel="stylesheet" href="{% static 'phoxtail_cms/css/phoxtail_bar.css' %}">
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/chatbot.css' %}">
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/media_picker.css' %}">
@@ -86,7 +87,8 @@
      role="complementary"
      data-media-picker-url="{{ media_picker_url }}"
      data-media-picker-modal-url="{{ chat_history_modal_url }}"
-     data-chat-history-url="{{ chat_history_url }}">
+     data-chat-history-url="{{ chat_history_url }}"
+     data-model-picker-url="{{ model_picker_url }}">
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
         <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
             <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
@@ -115,6 +117,18 @@
         </button>
     </div>
     <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
+        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel phoxtail-chatbot-model-panel" id="phoxtail-model-picker-panel">
+            <div class="phoxtail-bar-panel-header">
+                <span class="phoxtail-bar-panel-title">
+                    {% icon "cognition" class="phoxtail-bar-btn-icon" %}
+                    Model
+                </span>
+                <button type="button" id="phoxtail-model-picker-close" class="phoxtail-bar-panel-close" title="Close">
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
+                </button>
+            </div>
+            <div class="phoxtail-bar-panel-body" id="phoxtail-model-picker-body"></div>
+        </div>
         {% if page.body %}
         <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
             <div class="phoxtail-bar-panel-header">
@@ -193,6 +207,14 @@
                         title="Media (M)"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
                     {% icon "media" class="phoxtail-bar-btn-icon" %}
+                </button>
+                <button type="button"
+                        id="phoxtail-model-picker-btn"
+                        class="phoxtail-chatbot-compose-action-btn phoxtail-chatbot-model-btn"
+                        title="Model (I)"
+                        aria-expanded="false">
+                    {% icon "cognition" class="phoxtail-bar-btn-icon" %}
+                    <span id="phoxtail-model-picker-label" class="phoxtail-model-picker-label"></span>
                 </button>
             </div>
             <button type="button"
