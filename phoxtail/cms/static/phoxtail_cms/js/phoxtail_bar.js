@@ -481,10 +481,20 @@
     var _contextBlocks = [];
     var _activeChipIdx = -1;
     var _chipsEl = document.getElementById('phoxtail-chatbot-chips');
+    var _chipIconsEl = document.getElementById('phoxtail-chip-icons');
+
+    function _chipIconEl(payload) {
+        if (!_chipIconsEl) return null;
+        var key = payload.media_type || (payload.block_uuid ? 'block' : 'page');
+        var container = _chipIconsEl.querySelector('[data-chip-icon="' + key + '"]');
+        if (!container) container = _chipIconsEl.querySelector('[data-chip-icon="block"]');
+        var svg = container ? container.querySelector('svg') : null;
+        return svg ? svg.cloneNode(true) : null;
+    }
 
     function _chipLabel(payload) {
         if (payload.media_type) {
-            return payload.media_type + ':' + (payload.title || payload.media_id);
+            return payload.title || String(payload.media_id);
         }
         if (payload.block_type) {
             return payload.variant_identifier
@@ -492,6 +502,11 @@
                 : payload.block_type;
         }
         return payload.page_type || 'page';
+    }
+
+    function _chipAriaLabel(payload) {
+        if (payload.media_type) return payload.media_type + ' ' + _chipLabel(payload);
+        return _chipLabel(payload);
     }
 
     function _chipKey(payload) {
@@ -520,6 +535,9 @@
             chip.setAttribute('tabindex', '0');
             chip.setAttribute('data-chip-index', i);
 
+            var icon = _chipIconEl(payload);
+            if (icon) chip.appendChild(icon);
+
             var label = document.createElement('span');
             label.className = 'phoxtail-chatbot-chip-label';
             label.textContent = _chipLabel(payload);
@@ -528,7 +546,7 @@
             dismiss.type = 'button';
             dismiss.className = 'phoxtail-chatbot-chip-dismiss';
             dismiss.title = 'Remove';
-            dismiss.setAttribute('aria-label', 'Remove ' + _chipLabel(payload));
+            dismiss.setAttribute('aria-label', 'Remove ' + _chipAriaLabel(payload));
             dismiss.textContent = '×';
             dismiss.setAttribute('data-chip-index', i);
 
@@ -660,7 +678,11 @@
 
             _dragGhost = document.createElement('div');
             _dragGhost.className = 'phoxtail-chatbot-drag-ghost';
-            _dragGhost.textContent = _chipLabel(payload);
+            var _ghostIcon = _chipIconEl(payload);
+            if (_ghostIcon) _dragGhost.appendChild(_ghostIcon);
+            var _ghostLabel = document.createElement('span');
+            _ghostLabel.textContent = _chipLabel(payload);
+            _dragGhost.appendChild(_ghostLabel);
             document.body.appendChild(_dragGhost);
             e.dataTransfer.setDragImage(_dragGhost, 12, 12);
 
@@ -748,6 +770,8 @@
         blocks.forEach(function (payload) {
             var chip = document.createElement('span');
             chip.className = 'phoxtail-chatbot-chip phoxtail-chatbot-chip--inert';
+            var icon = _chipIconEl(payload);
+            if (icon) chip.appendChild(icon);
             var label = document.createElement('span');
             label.className = 'phoxtail-chatbot-chip-label';
             label.textContent = _chipLabel(payload);
@@ -1009,7 +1033,11 @@
             event.dataTransfer.setData('text/plain', JSON.stringify(payload));
             _dragGhost = document.createElement('div');
             _dragGhost.className = 'phoxtail-chatbot-drag-ghost';
-            _dragGhost.textContent = _chipLabel(payload);
+            var _ghostIcon = _chipIconEl(payload);
+            if (_ghostIcon) _dragGhost.appendChild(_ghostIcon);
+            var _ghostLabel = document.createElement('span');
+            _ghostLabel.textContent = _chipLabel(payload);
+            _dragGhost.appendChild(_ghostLabel);
             document.body.appendChild(_dragGhost);
             event.dataTransfer.setDragImage(_dragGhost, 12, 12);
             document.body.setAttribute('data-phoxtail-dragging', '1');
@@ -1063,7 +1091,11 @@
 
             _dragGhost = document.createElement('div');
             _dragGhost.className = 'phoxtail-chatbot-drag-ghost';
-            _dragGhost.textContent = _chipLabel(payload);
+            var _ghostIcon = _chipIconEl(payload);
+            if (_ghostIcon) _dragGhost.appendChild(_ghostIcon);
+            var _ghostLabel = document.createElement('span');
+            _ghostLabel.textContent = _chipLabel(payload);
+            _dragGhost.appendChild(_ghostLabel);
             document.body.appendChild(_dragGhost);
             e.dataTransfer.setDragImage(_dragGhost, 12, 12);
 

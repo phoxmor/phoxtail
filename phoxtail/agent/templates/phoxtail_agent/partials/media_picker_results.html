@@ -50,7 +50,7 @@
         <img src="{{ item.thumbnail.url }}" alt="{{ item.title }}" loading="lazy">
         {% else %}
         <div class="phoxtail-media-picker-thumb-placeholder">
-            {% icon "video_library" class="phoxtail-media-picker-thumb-placeholder-icon" %}
+            {% icon "videocam" class="phoxtail-media-picker-thumb-placeholder-icon" %}
         </div>
         {% endif %}
         <div class="phoxtail-media-picker-thumb-overlay"></div>
@@ -72,7 +72,7 @@
          data-media-created-at="{{ item.created_at|date:'M j, Y' }}"
          data-media-tags="{{ item.tags.all|join:', ' }}"
          data-media-collection="{{ item.collection.name }}">
-        {% icon "audio_file" class="phoxtail-bar-row-icon" %}
+        {% icon "music_note" class="phoxtail-bar-row-icon" %}
         <div class="phoxtail-bar-row-info">
             <span class="phoxtail-bar-row-type">{{ item.title|truncatechars:40 }}</span>
             <span class="phoxtail-bar-row-meta">{{ item.file_extension|upper }}{% if item.duration %} · {{ item.duration|floatformat:0 }}s{% endif %}</span>
@@ -99,7 +99,7 @@
          data-media-tags="{{ item.tags.all|join:', ' }}"
          data-media-collection="{{ item.collection.name }}"
          data-media-created-at="{{ item.created_at|date:'M j, Y' }}">
-        {% icon "document" class="phoxtail-bar-row-icon" %}
+        {% icon "draft" class="phoxtail-bar-row-icon" %}
         <div class="phoxtail-bar-row-info">
             <span class="phoxtail-bar-row-type">{{ item.title|truncatechars:40 }}</span>
             <span class="phoxtail-bar-row-meta">{{ item.file_extension|upper }}{% if item.file_size %} · {{ item.file_size|filesizeformat }}{% endif %}</span>

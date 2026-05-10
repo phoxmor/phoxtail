@@ -184,7 +184,7 @@ class ModelArtifact(
         unique_together = [["provider", "identifier"]]
 
 
-@register_setting(icon="cognition-2")
+@register_setting(icon="cognition")
 class AgentSiteSetting(BaseSiteSetting):
     """Per-site agent configuration. Stored in the Wagtail site settings."""
 

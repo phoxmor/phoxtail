@@ -3,7 +3,18 @@ from urllib.parse import unquote
 from django import template
 from wagtail.models import Page
 
+from phoxtail.streams.cache import get_default_variant
+
 register = template.Library()
+
+
+@register.simple_tag
+def effective_variant(block_value, block_type):
+    """Return the explicit variant if set, otherwise the default for block_type."""
+    variant = block_value.get("variant")
+    if variant:
+        return variant
+    return get_default_variant(block_type)
 
 
 @register.filter

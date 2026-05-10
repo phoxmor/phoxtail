@@ -97,7 +97,7 @@ class Conversation(UUIDMixin, TimestampMixin, index.Indexed):
         ordering = ["-updated_at", "-id"]
 
 
-@register_setting(icon="cognition-2")
+@register_setting(icon="cognition")
 class AgentSiteSetting(BaseSiteSetting):
     default_artifact = models.ForeignKey(
         ModelArtifact,

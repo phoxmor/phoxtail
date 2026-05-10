@@ -1,4 +1,4 @@
-{% load phoxtail_design_tags static %}
+{% load phoxtail_design_tags phoxtail_streams_tags static %}
 {% if perms.phoxtail_agent.access_chatbot and page %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
@@ -121,7 +121,7 @@
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
                     {% icon "cognition" class="phoxtail-bar-btn-icon" %}
-                    Model
+                    Inference
                 </span>
                 <button type="button" id="phoxtail-model-picker-close" class="phoxtail-bar-panel-close" title="Close">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
@@ -165,7 +165,7 @@
             </div>
             <div class="phoxtail-bar-panel-body">
                 <div class="phoxtail-bar-page-row" data-phoxtail-bar-copy="page" draggable="true">
-                    {% icon "page_header" class="phoxtail-bar-row-icon" %}
+                    {% icon "web" class="phoxtail-bar-row-icon" %}
                     <div class="phoxtail-bar-row-info">
                         <span class="phoxtail-bar-row-type">{{ page.content_type.model }}</span>
                         <span class="phoxtail-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
@@ -180,7 +180,7 @@
                 </div>
                 <div class="phoxtail-bar-sep-line"></div>
                 {% for block in page.body %}
-                {% with variant=block.value.variant %}
+                {% effective_variant block.value block.block_type as variant %}
                 <div class="phoxtail-bar-block-row"
                      tabindex="0"
                      draggable="true"
@@ -201,7 +201,6 @@
                         {% icon "remove" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-remove" %}
                     </button>
                 </div>
-                {% endwith %}
                 {% endfor %}
             </div>
         </div>
@@ -229,7 +228,7 @@
                         class="phoxtail-chatbot-compose-action-btn"
                         title="Media (M)"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
-                    {% icon "media" class="phoxtail-bar-btn-icon" %}
+                    {% icon "perm_media" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <button type="button"
                         id="phoxtail-model-picker-btn"
@@ -251,6 +250,15 @@
         </div>
         <div class="phoxtail-chatbot-chips" id="phoxtail-chatbot-chips" style="display:none"></div>
     </form>
+</div>
+
+<div id="phoxtail-chip-icons" hidden aria-hidden="true">
+    <span data-chip-icon="image">{% icon "image" class="phoxtail-chip-icon" %}</span>
+    <span data-chip-icon="video">{% icon "videocam" class="phoxtail-chip-icon" %}</span>
+    <span data-chip-icon="audio">{% icon "music_note" class="phoxtail-chip-icon" %}</span>
+    <span data-chip-icon="document">{% icon "draft" class="phoxtail-chip-icon" %}</span>
+    <span data-chip-icon="block">{% icon "layers" class="phoxtail-chip-icon" %}</span>
+    <span data-chip-icon="page">{% icon "web" class="phoxtail-chip-icon" %}</span>
 </div>
 
 <script src="{% static 'phoxtail_cms/js/phoxtail_bar.js' %}"></script>
