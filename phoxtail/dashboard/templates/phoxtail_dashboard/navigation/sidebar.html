@@ -1,4 +1,4 @@
-{% load wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
+{% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
 <div class="dash-sidebar-wrapper">
     <div class="dash-sidebar-spacer" id="dash-sidebar-spacer">
         <div class="dash-sidebar" id="dash-sidebar">
@@ -15,6 +15,15 @@
                             {% endif %}
                             <img src="{{ logo.url }}"
                                  alt="{{ settings.phoxtail_cms.SiteSetting.logo.title }}"
+                                 class="dash-sidebar__logo-img" />
+                        </picture>
+                    </a>
+                {% else %}
+                    <a href="/" class="dash-sidebar__logo-link">
+                        <picture>
+                            <source srcset="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" media="(prefers-color-scheme: dark)">
+                            <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}"
+                                 alt="Phoxtail"
                                  class="dash-sidebar__logo-img" />
                         </picture>
                     </a>

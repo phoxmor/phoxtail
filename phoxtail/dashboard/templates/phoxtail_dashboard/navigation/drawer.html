@@ -1,4 +1,4 @@
-{% load wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
+{% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
 {% get_settings %}
 <!-- Mobile Top Bar (hidden on xl+) -->
 <nav class="dash-topbar">
@@ -19,6 +19,15 @@
                                  class="dash-topbar__logo-img" />
                         </picture>
                     </a>
+                {% else %}
+                    <a href="/" class="dash-topbar__logo-link">
+                        <picture>
+                            <source srcset="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" media="(prefers-color-scheme: dark)">
+                            <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}"
+                                 alt="Phoxtail"
+                                 class="dash-topbar__logo-img" />
+                        </picture>
+                    </a>
                 {% endif %}
             </div>
             <div class="dash-topbar__actions">
@@ -36,9 +45,9 @@
 <div id="drawer" class="dash-mobile-sidebar">
     <div class="dash-mobile-sidebar__header">
         <div class="dash-mobile-sidebar__logo-row">
-            {% if settings.phoxtail_cms.SiteSetting.logo %}
-                {% image settings.phoxtail_cms.SiteSetting.logo height-256 as drawer_logo %}
-                <div class="dash-mobile-sidebar__logo">
+            <div class="dash-mobile-sidebar__logo">
+                {% if settings.phoxtail_cms.SiteSetting.logo %}
+                    {% image settings.phoxtail_cms.SiteSetting.logo height-256 as drawer_logo %}
                     <a href="/" class="dash-mobile-sidebar__logo-link">
                         <picture>
                             {% if settings.phoxtail_cms.SiteSetting.logo_dark %}
@@ -51,8 +60,17 @@
                                  class="dash-mobile-sidebar__logo-img" />
                         </picture>
                     </a>
-                </div>
-            {% endif %}
+                {% else %}
+                    <a href="/" class="dash-mobile-sidebar__logo-link">
+                        <picture>
+                            <source srcset="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" media="(prefers-color-scheme: dark)">
+                            <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}"
+                                 alt="Phoxtail"
+                                 class="dash-mobile-sidebar__logo-img" />
+                        </picture>
+                    </a>
+                {% endif %}
+            </div>
         </div>
         <button id="close-drawer"
                 class="dash-icon-btn"

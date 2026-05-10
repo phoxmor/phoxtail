@@ -1031,7 +1031,7 @@
 
     /* Content area */
     .dash-content {
-        background-color: rgb(var(--color-surface-800));
+        background-color: rgb(var(--color-surface-900));
     }
 
     /* Desktop sidebar */
@@ -1136,7 +1136,7 @@
     }
 
     .dash-mobile-sidebar {
-        background: rgb(var(--color-surface-800));
+        background: rgb(var(--color-surface-900));
     }
 
     .dash-mobile-sidebar__header {
