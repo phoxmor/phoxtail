@@ -223,12 +223,49 @@ class PaletteRole(index.Indexed, models.Model):
         return self.name
 
 
+class PaletteSet(index.Indexed, UUIDMixin, TimestampMixin, Orderable, ClusterableModel):
+    """A named grouping of palettes (e.g., 'Tailwind', 'Spring', 'Autumn')."""
+
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Human-readable name (e.g., 'Tailwind', 'Spring')",
+    )
+    identifier = models.CharField(
+        max_length=50,
+        unique=True,
+        help_text="Slug-style identifier matching the filesystem group directory",
+    )
+    description = models.TextField(
+        blank=True,
+        default="",
+        help_text="Optional description of the palette set's purpose or theme",
+    )
+
+    search_fields = [
+        index.AutocompleteField("name"),
+        index.AutocompleteField("identifier"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = _("Palette Set")
+        verbose_name_plural = _("Palette Sets")
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model):
     """A color palette with shades from 50 to 950"""
 
+    palette_set = ParentalKey(
+        PaletteSet,
+        on_delete=models.CASCADE,
+        related_name="palettes",
+    )
     title = models.CharField(
         max_length=100,
-        unique=True,
         help_text="Name of the palette (e.g., 'red', 'custom_blue')",
     )
     description = models.TextField(
@@ -249,12 +286,20 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model)
     shade_950 = ColorField(help_text="Hex color for shade 950 (darkest)")
 
     search_fields = [
+        index.SearchField("title"),
+        index.SearchField("description"),
         index.AutocompleteField("title"),
     ]
 
     class Meta(Orderable.Meta):
         verbose_name = _("Palette")
         verbose_name_plural = _("Palettes")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["palette_set", "title"],
+                name="unique_palette_set_title",
+            )
+        ]
 
     def __str__(self):
         return self.title

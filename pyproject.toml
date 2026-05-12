@@ -46,6 +46,7 @@ engine = [
     "pyyaml>=6.0",
     "wagtailmedia>=0.15",
     "sorl-thumbnail>=12.10",
+    "fonttools[woff]>=4.43",
 ]
 blog = [
     "phoxtail[engine]",

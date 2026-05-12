@@ -5,7 +5,9 @@ from wagtail.admin.viewsets.model import ModelViewSetGroup
 from .viewsets import (
     FontFamilyViewSet,
     FontRoleViewSet,
+    FontWeightViewSet,
     PaletteRoleViewSet,
+    PaletteSetViewSet,
     PaletteViewSet,
 )
 
@@ -18,7 +20,9 @@ class DesignViewSetGroup(ModelViewSetGroup):
     menu_order = 250
     items = (
         FontFamilyViewSet,
+        FontWeightViewSet,
         FontRoleViewSet,
+        PaletteSetViewSet,
         PaletteViewSet,
         PaletteRoleViewSet,
     )

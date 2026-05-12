@@ -27,6 +27,7 @@ from django.conf import settings
 from ninja import NinjaAPI
 
 from phoxtail.api.content.v1 import router as content_v1_router
+from phoxtail.api.design.v1 import router as design_v1_router
 from phoxtail.api.streams.v1 import router as streams_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
@@ -55,11 +56,12 @@ api = NinjaAPI(
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])
 api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
+api.add_router("/design/v1/", design_v1_router, tags=["design/v1"])
 
 
 # Core router short labels — contributors cannot reuse these, or they
 # would shadow a core domain.
-_CORE_SHORT_LABELS = frozenset({"streams", "content", "pages"})
+_CORE_SHORT_LABELS = frozenset({"streams", "content", "design", "pages"})
 
 
 def _short_label(config) -> str:

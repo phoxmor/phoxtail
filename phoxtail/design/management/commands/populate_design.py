@@ -28,6 +28,7 @@ from phoxtail.design.models import (
     FontWeight,
     Palette,
     PaletteRole,
+    PaletteSet,
 )
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -143,13 +144,22 @@ class Command(BaseCommand):
                 )
                 continue
 
-            self.stdout.write(f"  Group: {group_dir.name}")
+            palette_set, _ = PaletteSet.objects.get_or_create(
+                identifier=group_dir.name,
+                defaults={
+                    "name": group_dir.name.replace("_", " ").title(),
+                    "description": "",
+                },
+            )
+
+            self.stdout.write(f"  Group: {group_dir.name} (set: {palette_set.name})")
 
             for palette_file in palette_files:
                 palette_name = palette_file.stem
                 shades = yaml.safe_load(palette_file.read_text())
 
                 palette, created = Palette.objects.get_or_create(
+                    palette_set=palette_set,
                     title=palette_name,
                     defaults={
                         "description": shades.pop("description", ""),
