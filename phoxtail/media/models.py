@@ -19,7 +19,12 @@ class PhoxtailImageRendition(AbstractRendition):
 
 
 class PhoxtailDocument(AbstractDocument):
-    admin_form_fields = Document.admin_form_fields
+    description = models.TextField(
+        blank=True,
+        verbose_name=_("Description"),
+    )
+
+    admin_form_fields = Document.admin_form_fields + ("description",)
 
 
 class PhoxtailMedia(AbstractMedia):

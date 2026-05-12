@@ -141,6 +141,7 @@ class ImageItem(Schema):
     tags: list[str] = []
     focal_point: FocalPoint | None = None
     file_url: str | None = None
+    collection_id: int | None = None
 
 
 class ImageList(Schema):
@@ -151,11 +152,13 @@ class ImageList(Schema):
 class DocumentItem(Schema):
     id: int
     title: str
+    description: str = ""
     tags: list[str] = []
     file_size: int | None = None
     filename: str = ""
     file_extension: str = ""
     file_url: str | None = None
+    collection_id: int | None = None
 
 
 class DocumentList(Schema):
@@ -165,18 +168,22 @@ class DocumentList(Schema):
 
 class DocumentPatch(Schema):
     title: str | None = None
+    description: str | None = None
     tags: list[str] | None = None
+    collection_id: int | None = None
 
 
 class VideoItem(Schema):
     id: int
     title: str
+    description: str = ""
     duration: float = 0.0
     width: int | None = None
     height: int | None = None
     tags: list[str] = []
     file_url: str | None = None
     thumbnail_url: str | None = None
+    collection_id: int | None = None
 
 
 class VideoList(Schema):
@@ -186,18 +193,22 @@ class VideoList(Schema):
 
 class VideoPatch(Schema):
     title: str | None = None
+    description: str | None = None
     tags: list[str] | None = None
     duration: float | None = None
     width: int | None = None
     height: int | None = None
+    collection_id: int | None = None
 
 
 class AudioItem(Schema):
     id: int
     title: str
+    description: str = ""
     duration: float = 0.0
     tags: list[str] = []
     file_url: str | None = None
+    collection_id: int | None = None
 
 
 class AudioList(Schema):
@@ -207,8 +218,10 @@ class AudioList(Schema):
 
 class AudioPatch(Schema):
     title: str | None = None
+    description: str | None = None
     tags: list[str] | None = None
     duration: float | None = None
+    collection_id: int | None = None
 
 
 class ImagePatch(Schema):
@@ -216,6 +229,7 @@ class ImagePatch(Schema):
     description: str | None = None
     tags: list[str] | None = None
     focal_point: FocalPoint | None = None
+    collection_id: int | None = None
 
 
 # ---------------------------------------------------------------------------

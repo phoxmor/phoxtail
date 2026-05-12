@@ -29,6 +29,22 @@ router = Router()
 
 
 # ---------------------------------------------------------------------------
+# Shared collection helper
+# ---------------------------------------------------------------------------
+
+
+def _resolve_collection_or_400(collection_id: int):
+    from wagtail.models import Collection
+
+    try:
+        return Collection.objects.get(pk=collection_id)
+    except Collection.DoesNotExist:
+        from ninja.errors import HttpError
+
+        raise HttpError(400, f"Collection {collection_id} not found.")
+
+
+# ---------------------------------------------------------------------------
 # Images
 # ---------------------------------------------------------------------------
 
@@ -41,6 +57,7 @@ router = Router()
 def list_images(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
+    collection: int | None = Query(None, description="Filter by collection id."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -50,6 +67,8 @@ def list_images(
     qs = Image.objects.all().order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
+    if collection is not None:
+        qs = qs.filter(collection_id=collection)
 
     total = qs.count()
     items = [_serialize_image(img, request) for img in qs[offset : offset + limit]]
@@ -82,11 +101,14 @@ def upload_image(
     request: HttpRequest,
     title: str = Form(...),
     file: UploadedFile = File(...),
+    collection_id: int | None = Form(None),
 ):
     from wagtail.images import get_image_model
 
     Image = get_image_model()
     img = Image(title=title, file=file)
+    if collection_id is not None:
+        img.collection = _resolve_collection_or_400(collection_id)
     img.save()
     return 201, _serialize_image(img, request)
 
@@ -144,6 +166,9 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
                 "focal_point_height",
             ]
         )
+    if payload.collection_id is not None:
+        img.collection = _resolve_collection_or_400(payload.collection_id)
+        update_fields.append("collection")
     if update_fields:
         img.save(update_fields=update_fields)
     if payload.tags is not None:
@@ -183,6 +208,7 @@ def delete_image(request: HttpRequest, image_id: int):
 def list_documents(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
+    collection: int | None = Query(None, description="Filter by collection id."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -192,6 +218,8 @@ def list_documents(
     qs = Document.objects.all().order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
+    if collection is not None:
+        qs = qs.filter(collection_id=collection)
 
     total = qs.count()
     items = [_serialize_document(doc, request) for doc in qs[offset : offset + limit]]
@@ -224,11 +252,17 @@ def upload_document(
     request: HttpRequest,
     title: str = Form(...),
     file: UploadedFile = File(...),
+    description: str = Form(""),
+    collection_id: int | None = Form(None),
 ):
     from wagtail.documents import get_document_model
 
     Document = get_document_model()
     doc = Document(title=title, file=file)
+    if description:
+        doc.description = description
+    if collection_id is not None:
+        doc.collection = _resolve_collection_or_400(collection_id)
     doc.save()
     doc.get_file_size()
     return 201, _serialize_document(doc, request)
@@ -250,9 +284,18 @@ def update_document(
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
+    doc_update_fields: list[str] = []
     if payload.title is not None:
         doc.title = payload.title
-        doc.save(update_fields=["title"])
+        doc_update_fields.append("title")
+    if payload.description is not None:
+        doc.description = payload.description
+        doc_update_fields.append("description")
+    if payload.collection_id is not None:
+        doc.collection = _resolve_collection_or_400(payload.collection_id)
+        doc_update_fields.append("collection")
+    if doc_update_fields:
+        doc.save(update_fields=doc_update_fields)
     if payload.tags is not None:
         doc.tags.set(payload.tags)
 
@@ -290,6 +333,7 @@ def delete_document(request: HttpRequest, document_id: int):
 def list_videos(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
+    collection: int | None = Query(None, description="Filter by collection id."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -299,6 +343,8 @@ def list_videos(
     qs = Media.objects.filter(type="video").order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
+    if collection is not None:
+        qs = qs.filter(collection_id=collection)
 
     total = qs.count()
     items = [_serialize_video(m, request) for m in qs[offset : offset + limit]]
@@ -331,9 +377,11 @@ def upload_video(
     request: HttpRequest,
     title: str = Form(...),
     file: UploadedFile = File(...),
+    description: str = Form(""),
     duration: float = Form(0.0),
     width: int | None = Form(None),
     height: int | None = Form(None),
+    collection_id: int | None = Form(None),
 ):
     from wagtailmedia.models import get_media_model
 
@@ -346,6 +394,10 @@ def upload_video(
         width=width,
         height=height,
     )
+    if description:
+        m.description = description
+    if collection_id is not None:
+        m.collection = _resolve_collection_or_400(collection_id)
     m.save()
     return 201, _serialize_video(m, request)
 
@@ -365,11 +417,14 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
         return 404, {"detail": "Video not found"}
 
     update_fields: list[str] = []
-    for field in ("title", "duration", "width", "height"):
+    for field in ("title", "description", "duration", "width", "height"):
         val = getattr(payload, field)
         if val is not None:
             setattr(m, field, val)
             update_fields.append(field)
+    if payload.collection_id is not None:
+        m.collection = _resolve_collection_or_400(payload.collection_id)
+        update_fields.append("collection")
     if update_fields:
         m.save(update_fields=update_fields)
     if payload.tags is not None:
@@ -409,6 +464,7 @@ def delete_video(request: HttpRequest, video_id: int):
 def list_audio(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
+    collection: int | None = Query(None, description="Filter by collection id."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
@@ -418,6 +474,8 @@ def list_audio(
     qs = Media.objects.filter(type="audio").order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
+    if collection is not None:
+        qs = qs.filter(collection_id=collection)
 
     total = qs.count()
     items = [_serialize_audio(m, request) for m in qs[offset : offset + limit]]
@@ -450,12 +508,18 @@ def upload_audio(
     request: HttpRequest,
     title: str = Form(...),
     file: UploadedFile = File(...),
+    description: str = Form(""),
     duration: float = Form(0.0),
+    collection_id: int | None = Form(None),
 ):
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
     m = Media(title=title, file=file, type="audio", duration=duration)
+    if description:
+        m.description = description
+    if collection_id is not None:
+        m.collection = _resolve_collection_or_400(collection_id)
     m.save()
     return 201, _serialize_audio(m, request)
 
@@ -475,11 +539,14 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
         return 404, {"detail": "Audio not found"}
 
     update_fields: list[str] = []
-    for field in ("title", "duration"):
+    for field in ("title", "description", "duration"):
         val = getattr(payload, field)
         if val is not None:
             setattr(m, field, val)
             update_fields.append(field)
+    if payload.collection_id is not None:
+        m.collection = _resolve_collection_or_400(payload.collection_id)
+        update_fields.append("collection")
     if update_fields:
         m.save(update_fields=update_fields)
     if payload.tags is not None:
@@ -534,6 +601,7 @@ def _serialize_image(img, request: HttpRequest) -> dict:
         if has_fp
         else None,
         "file_url": _safe_url(img, request),
+        "collection_id": img.collection_id,
     }
 
 
@@ -541,11 +609,13 @@ def _serialize_document(doc, request: HttpRequest) -> dict:
     return {
         "id": doc.pk,
         "title": doc.title,
+        "description": getattr(doc, "description", "") or "",
         "tags": list(doc.tags.names()),
         "file_size": doc.file_size,
         "filename": doc.filename,
         "file_extension": doc.file_extension,
         "file_url": _safe_url(doc, request),
+        "collection_id": doc.collection_id,
     }
 
 
@@ -553,12 +623,14 @@ def _serialize_video(m, request: HttpRequest) -> dict:
     return {
         "id": m.pk,
         "title": m.title,
+        "description": getattr(m, "description", "") or "",
         "duration": m.duration,
         "width": m.width,
         "height": m.height,
         "tags": list(m.tags.names()),
         "file_url": _safe_url(m, request),
         "thumbnail_url": _safe_url_field(m, "thumbnail", request),
+        "collection_id": m.collection_id,
     }
 
 
@@ -566,9 +638,11 @@ def _serialize_audio(m, request: HttpRequest) -> dict:
     return {
         "id": m.pk,
         "title": m.title,
+        "description": getattr(m, "description", "") or "",
         "duration": m.duration,
         "tags": list(m.tags.names()),
         "file_url": _safe_url(m, request),
+        "collection_id": m.collection_id,
     }
 
 
