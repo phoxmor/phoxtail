@@ -146,6 +146,10 @@ def update_variant_by_id(
             "Re-fetch and retry.",
         )
 
+    if payload.name is not None:
+        v.name = payload.name
+    if payload.description is not None:
+        v.description = payload.description
     if payload.html is not None:
         v.html = payload.html
     if payload.css is not None:

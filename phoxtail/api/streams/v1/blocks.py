@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
@@ -98,6 +98,8 @@ def update_block_by_id(
         b.is_shared = payload.is_shared
     if payload.block_schema is not None:
         b.schema = payload.block_schema
+    if payload.sort_order is not None:
+        b.sort_order = payload.sort_order
 
     try:
         b.full_clean()
@@ -121,6 +123,11 @@ def update_block_by_id(
     summary="Create a Block",
 )
 def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCreate):
+    if BlockModel.objects.filter(
+        Q(identifier=payload.identifier) | Q(name=payload.name)
+    ).exists():
+        raise HttpError(409, "A block with this identifier or name already exists.")
+
     b = BlockModel(
         identifier=payload.identifier,
         name=payload.name,
@@ -141,7 +148,7 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
     try:
         b.save()
     except IntegrityError:
-        raise HttpError(409, f"Block '{payload.identifier}' already exists.")
+        raise HttpError(409, "A block with this identifier or name already exists.")
 
     if payload.page_types:
         b.page_types.set(resolve_page_types(payload.page_types))

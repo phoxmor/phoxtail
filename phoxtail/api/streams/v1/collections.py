@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
@@ -114,6 +114,11 @@ def update_collection_by_id(
 def create_collection(
     request: HttpRequest, response: HttpResponse, payload: CollectionCreate
 ):
+    if VariantCollection.objects.filter(
+        Q(identifier=payload.identifier) | Q(name=payload.name)
+    ).exists():
+        raise HttpError(409, "A collection with this identifier or name already exists.")
+
     c = VariantCollection(
         identifier=payload.identifier,
         name=payload.name,
@@ -130,7 +135,7 @@ def create_collection(
     try:
         c.save()
     except IntegrityError:
-        raise HttpError(409, f"Collection '{payload.identifier}' already exists.")
+        raise HttpError(409, "A collection with this identifier or name already exists.")
 
     response["ETag"] = collection_etag(c)
     return 201, collection_detail(c, 0)

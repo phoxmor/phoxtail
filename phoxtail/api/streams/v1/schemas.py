@@ -82,6 +82,8 @@ class VariantUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
+    name: str | None = None
+    description: str | None = None
     html: str | None = None
     css: str | None = None
     javascript: str | None = None
@@ -197,6 +199,7 @@ class BlockUpdate(Schema):
     is_shared: bool | None = None
     page_types: list[str] | None = None
     block_schema: list[dict] | None = Field(None, alias="schema")
+    sort_order: int | None = None
 
 
 # ---------------------------------------------------------------------------

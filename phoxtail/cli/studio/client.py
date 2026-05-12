@@ -188,15 +188,79 @@ def get_variant_by_id(variant_id: int) -> tuple[dict[str, Any], str | None]:
 def update_variant_by_id(
     variant_id: int,
     *,
-    html: str,
-    css: str,
-    javascript: str,
+    name: str | None = None,
+    description: str | None = None,
+    html: str | None = None,
+    css: str | None = None,
+    javascript: str | None = None,
+    is_default: bool | None = None,
     etag: str,
 ) -> tuple[dict[str, Any], str | None]:
+    body: dict[str, Any] = {}
+    if name is not None:
+        body["name"] = name
+    if description is not None:
+        body["description"] = description
+    if html is not None:
+        body["html"] = html
+    if css is not None:
+        body["css"] = css
+    if javascript is not None:
+        body["javascript"] = javascript
+    if is_default is not None:
+        body["is_default"] = is_default
     response = request(
         "PUT",
         f"/variants/{variant_id}/",
-        json_body={"html": html, "css": css, "javascript": javascript},
+        json_body=body,
+        headers={"If-Match": etag},
+    )
+    return response.json(), response.headers.get("ETag")
+
+
+def update_collection_by_id(
+    collection_id: int,
+    *,
+    name: str,
+    description: str,
+    template: str,
+    etag: str,
+) -> tuple[dict[str, Any], str | None]:
+    response = request(
+        "PATCH",
+        f"/collections/{collection_id}/",
+        json_body={"name": name, "description": description, "template": template},
+        headers={"If-Match": etag},
+    )
+    return response.json(), response.headers.get("ETag")
+
+
+def update_block_by_id(
+    block_id: int,
+    *,
+    name: str,
+    description: str,
+    icon: str,
+    group: str,
+    is_shared: bool,
+    page_types: list[str],
+    schema: list[dict],
+    sort_order: int,
+    etag: str,
+) -> tuple[dict[str, Any], str | None]:
+    response = request(
+        "PATCH",
+        f"/blocks/{block_id}/",
+        json_body={
+            "name": name,
+            "description": description,
+            "icon": icon,
+            "group": group,
+            "is_shared": is_shared,
+            "page_types": page_types,
+            "schema": schema,
+            "sort_order": sort_order,
+        },
         headers={"If-Match": etag},
     )
     return response.json(), response.headers.get("ETag")
