@@ -9,6 +9,8 @@ from django.db import migrations
 
 
 def reset_sequences(apps, schema_editor):
+    if schema_editor.connection.vendor != "postgresql":
+        return
     with schema_editor.connection.cursor() as cursor:
         for table in [
             "phoxtail_media_phoxtailimage",
