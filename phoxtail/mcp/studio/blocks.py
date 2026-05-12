@@ -57,6 +57,7 @@ def create_block(
     icon: str = "",
     group: str = "",
     is_shared: bool = False,
+    sort_order: int | None = None,
     page_types: list[str] | None = None,
     schema: list[dict] | None = None,
 ) -> str:
@@ -68,6 +69,8 @@ def create_block(
         "group": group,
         "is_shared": is_shared,
     }
+    if sort_order is not None:
+        body["sort_order"] = sort_order
     if page_types is not None:
         body["page_types"] = page_types
     if schema is not None:
@@ -99,26 +102,34 @@ def create_block(
 @mcp_server.tool(
     name="phoxtail_studio_update_block",
     description=(
-        "Update a block's metadata and/or field schema. "
+        "Update any mutable field on a block: identifier, name, description, "
+        "icon, group, is_shared, sort_order, page_types, and schema. "
         "Requires the ETag from a prior phoxtail_studio_get_block call "
         "for optimistic concurrency control. Omitted fields are left "
-        "untouched. WARNING: changing the schema may break existing "
-        "variants' templates that reference removed or renamed fields. "
+        "untouched. "
+        "WARNING: renaming `identifier` will look like a delete+create on the "
+        "next studio dump/sync because filesystem paths are keyed on it. "
+        "WARNING: changing the schema may break existing variants' templates "
+        "that reference removed or renamed fields. "
         "On success, returns the updated block with a new ETag."
     ),
 )
 def update_block(
     block_id: int,
     etag: str,
+    identifier: str | None = None,
     name: str | None = None,
     description: str | None = None,
     icon: str | None = None,
     group: str | None = None,
     is_shared: bool | None = None,
+    sort_order: int | None = None,
     page_types: list[str] | None = None,
     schema: list[dict] | None = None,
 ) -> str:
     body: dict[str, Any] = {}
+    if identifier is not None:
+        body["identifier"] = identifier
     if name is not None:
         body["name"] = name
     if description is not None:
@@ -129,6 +140,8 @@ def update_block(
         body["group"] = group
     if is_shared is not None:
         body["is_shared"] = is_shared
+    if sort_order is not None:
+        body["sort_order"] = sort_order
     if page_types is not None:
         body["page_types"] = page_types
     if schema is not None:
@@ -141,6 +154,13 @@ def update_block(
         headers={"If-Match": etag},
     )
 
+    if resp.status_code == 409:
+        return json.dumps(
+            {
+                "error": "conflict",
+                "detail": resp.json().get("detail", "Identifier already exists."),
+            }
+        )
     if resp.status_code == 412:
         return json.dumps(
             {

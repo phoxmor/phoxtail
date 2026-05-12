@@ -158,22 +158,26 @@ def block_detail(b: Block) -> dict:
 
 
 def variant_etag(v: BlockVariant) -> str:
-    """Compute a weak ETag for a variant's content.
+    """Compute a weak ETag covering all mutable variant fields.
 
-    Hashes the three content fields (html, css, javascript) and returns a
-    16-hex-char prefix wrapped as a weak validator. Weak (``W/"..."``) is
-    the right qualifier because the representation is a serialization of
-    the content, not the bytes themselves — two semantically identical
-    responses with different JSON whitespace should still match.
-
-    This ETag is also the foundation for Phase 5's sync version field.
+    Includes metadata (identifier, name, description, collection, is_default,
+    preview_image) as well as content (html, css, javascript) so that any
+    update — not just content edits — invalidates a stale If-Match header.
     """
     h = hashlib.sha256()
-    h.update(v.html.encode("utf-8"))
-    h.update(b"\x00")
-    h.update(v.css.encode("utf-8"))
-    h.update(b"\x00")
-    h.update(v.javascript.encode("utf-8"))
+    for part in (
+        v.identifier,
+        v.name,
+        v.description,
+        str(v.collection_id),
+        str(v.is_default),
+        str(v.preview_image_id or ""),
+        v.html,
+        v.css,
+        v.javascript,
+    ):
+        h.update(part.encode("utf-8"))
+        h.update(b"\x00")
     return f'W/"{h.hexdigest()[:16]}"'
 
 
@@ -214,7 +218,15 @@ def collection_etag(c: VariantCollection) -> str:
 def block_etag(b: Block) -> str:
     """Compute a weak ETag for a block's schema and metadata."""
     h = hashlib.sha256()
-    fields = (b.name, b.identifier, b.description, b.icon, b.group, str(b.is_shared))
+    fields = (
+        b.name,
+        b.identifier,
+        b.description,
+        b.icon,
+        b.group,
+        str(b.is_shared),
+        str(b.sort_order or 0),
+    )
     for field in fields:
         h.update(field.encode("utf-8"))
         h.update(b"\x00")

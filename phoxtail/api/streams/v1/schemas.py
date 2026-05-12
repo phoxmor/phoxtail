@@ -82,8 +82,11 @@ class VariantUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
+    identifier: str | None = None
     name: str | None = None
     description: str | None = None
+    collection_id: int | None = None
+    preview_image_id: int | None = None
     html: str | None = None
     css: str | None = None
     javascript: str | None = None
@@ -192,6 +195,7 @@ class BlockUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
+    identifier: str | None = None
     name: str | None = None
     description: str | None = None
     icon: str | None = None

@@ -8,9 +8,11 @@ Endpoints:
 
 from __future__ import annotations
 
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
+from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
@@ -119,7 +121,7 @@ def get_variant_by_id(
 
 @router.put(
     "/{variant_id}/",
-    response={200: Variant, 404: Error, 412: Error, 428: Error},
+    response={200: Variant, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a BlockVariant by numeric ID (optimistic concurrency)",
 )
 def update_variant_by_id(
@@ -128,7 +130,7 @@ def update_variant_by_id(
     variant_id: int,
     payload: VariantUpdate,
 ):
-    """Update a variant's content, guarded by ``If-Match``."""
+    """Update a variant's fields, guarded by ``If-Match``."""
     if_match = request.headers.get("If-Match")
     if not if_match:
         raise HttpError(
@@ -146,6 +148,39 @@ def update_variant_by_id(
             "Re-fetch and retry.",
         )
 
+    new_collection = v.collection
+    if payload.collection_id is not None:
+        try:
+            new_collection = VariantCollection.objects.get(pk=payload.collection_id)
+        except VariantCollection.DoesNotExist:
+            raise HttpError(404, f"Collection {payload.collection_id} not found.")
+        v.collection = new_collection
+
+    new_identifier = (
+        payload.identifier if payload.identifier is not None else v.identifier
+    )
+    if payload.identifier is not None:
+        v.identifier = payload.identifier
+
+    # Check uniqueness of (block, collection, identifier) if either changed.
+    if payload.identifier is not None or payload.collection_id is not None:
+        collision = (
+            BlockVariant.objects.filter(
+                block=v.block,
+                collection=new_collection,
+                identifier=new_identifier,
+            )
+            .exclude(pk=v.pk)
+            .exists()
+        )
+        if collision:
+            raise HttpError(
+                409,
+                f"Variant '{new_identifier}' already exists for block "
+                f"'{v.block.identifier}' in collection "
+                f"'{new_collection.identifier}'.",
+            )
+
     if payload.name is not None:
         v.name = payload.name
     if payload.description is not None:
@@ -156,9 +191,26 @@ def update_variant_by_id(
         v.css = payload.css
     if payload.javascript is not None:
         v.javascript = payload.javascript
-    if payload.is_default is not None:
-        v.is_default = payload.is_default
-    v.save()
+
+    if "preview_image_id" in payload.model_fields_set:
+        if payload.preview_image_id is None:
+            v.preview_image = None
+        else:
+            Image = get_image_model()
+            try:
+                v.preview_image = Image.objects.get(pk=payload.preview_image_id)
+            except Image.DoesNotExist:
+                raise HttpError(404, f"Image {payload.preview_image_id} not found.")
+
+    with transaction.atomic():
+        if payload.is_default is True:
+            BlockVariant.objects.filter(block=v.block, is_default=True).exclude(
+                pk=v.pk
+            ).update(is_default=False)
+            v.is_default = True
+        elif payload.is_default is False:
+            v.is_default = False
+        v.save()
 
     response["ETag"] = variant_etag(v)
     return variant_detail(v)

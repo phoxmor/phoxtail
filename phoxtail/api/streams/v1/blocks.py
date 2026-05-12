@@ -59,7 +59,7 @@ def get_block_by_id(request: HttpRequest, response: HttpResponse, block_id: int)
 
 @router.patch(
     "/{block_id}/",
-    response={200: Block, 400: Error, 404: Error, 412: Error, 428: Error},
+    response={200: Block, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a Block by numeric ID",
 )
 def update_block_by_id(
@@ -86,7 +86,27 @@ def update_block_by_id(
             "Re-fetch and retry.",
         )
 
+    if payload.identifier is not None:
+        if (
+            BlockModel.objects.filter(identifier=payload.identifier)
+            .exclude(pk=b.pk)
+            .exists()
+        ):
+            raise HttpError(
+                409,
+                f"A block with identifier '{payload.identifier}' already exists.",
+            )
+        b.identifier = payload.identifier
     if payload.name is not None:
+        if (
+            BlockModel.objects.filter(name=payload.name)
+            .exclude(pk=b.pk)
+            .exists()
+        ):
+            raise HttpError(
+                409,
+                f"A block with name '{payload.name}' already exists.",
+            )
         b.name = payload.name
     if payload.description is not None:
         b.description = payload.description

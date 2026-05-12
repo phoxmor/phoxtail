@@ -63,13 +63,17 @@ def get_variant(variant_id: int) -> str:
     description=(
         "Show a unified diff between a variant's current content in the "
         "database and proposed new content. Pass the fields you intend to "
-        "change (html, css, javascript); omitted fields are not diffed. "
+        "change (identifier, name, description, html, css, javascript); "
+        "omitted fields are not diffed. "
         "Use this to preview changes before calling "
         "phoxtail_studio_update_variant."
     ),
 )
 def diff_variant(
     variant_id: int,
+    identifier: str | None = None,
+    name: str | None = None,
+    description: str | None = None,
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
@@ -80,6 +84,9 @@ def diff_variant(
 
     parts: list[str] = []
     for field, new_value in [
+        ("identifier", identifier),
+        ("name", name),
+        ("description", description),
         ("html", html),
         ("css", css),
         ("javascript", javascript),
@@ -106,13 +113,17 @@ def diff_variant(
 @mcp_server.tool(
     name="phoxtail_studio_update_variant",
     description=(
-        "Update a variant's HTML, CSS, and/or JavaScript content. "
+        "Update any mutable field on a variant: identifier, name, description, "
+        "collection_id (move to a different design system collection), "
+        "preview_image_id (set or clear the preview screenshot), "
+        "is_default (atomically demotes any existing default on the same block), "
+        "and content fields html, css, javascript. "
         "Pass the `variant_id` and the ETag from a prior "
         "phoxtail_studio_get_variant call for optimistic concurrency control "
         "— if the variant has been modified since you read it, the update "
         "will fail with a conflict error. Omitted fields are left untouched. "
-        "Set is_default=true to mark as the block's default variant "
-        "(only one default per block is allowed). "
+        "WARNING: renaming `identifier` will look like a delete+create on the "
+        "next studio dump/sync because the filesystem path is keyed on it. "
         "On success, returns the updated variant with a new ETag. "
         "NOTE: for surgical edits (changing specific lines rather than "
         "rewriting entire fields) prefer phoxtail_studio_open_variant + "
@@ -123,12 +134,27 @@ def diff_variant(
 def update_variant(
     variant_id: int,
     etag: str,
+    identifier: str | None = None,
+    name: str | None = None,
+    description: str | None = None,
+    collection_id: int | None = None,
+    preview_image_id: int | None = None,
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
     is_default: bool | None = None,
 ) -> str:
     body: dict[str, Any] = {}
+    if identifier is not None:
+        body["identifier"] = identifier
+    if name is not None:
+        body["name"] = name
+    if description is not None:
+        body["description"] = description
+    if collection_id is not None:
+        body["collection_id"] = collection_id
+    if preview_image_id is not None:
+        body["preview_image_id"] = preview_image_id
     if html is not None:
         body["html"] = html
     if css is not None:
