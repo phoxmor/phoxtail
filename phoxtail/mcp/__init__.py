@@ -24,7 +24,7 @@ mcp_server = FastMCP(
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
-        "(Wagtail page read/write + body editing). Optional "
+        "(Wagtail page read/write + body editing, sites, locales). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
         "Always fetch a resource before updating it to get the current "
@@ -48,6 +48,7 @@ def _register_core_tools() -> None:
     import phoxtail.mcp.content.media  # noqa: F401
     import phoxtail.mcp.content.pages  # noqa: F401
     import phoxtail.mcp.content.resources  # noqa: F401
+    import phoxtail.mcp.content.sites  # noqa: F401
     import phoxtail.mcp.studio.blocks  # noqa: F401
     import phoxtail.mcp.studio.collections  # noqa: F401
     import phoxtail.mcp.studio.context  # noqa: F401
