@@ -98,11 +98,7 @@ def update_block_by_id(
             )
         b.identifier = payload.identifier
     if payload.name is not None:
-        if (
-            BlockModel.objects.filter(name=payload.name)
-            .exclude(pk=b.pk)
-            .exists()
-        ):
+        if BlockModel.objects.filter(name=payload.name).exclude(pk=b.pk).exists():
             raise HttpError(
                 409,
                 f"A block with name '{payload.name}' already exists.",

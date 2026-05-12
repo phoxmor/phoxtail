@@ -236,9 +236,7 @@ def _load_blocks(root: Path, *, force: bool = False) -> None:
     id_by_identifier: dict[str, int] = {}
     if force:
         data = client.list_blocks()
-        id_by_identifier = {
-            b["identifier"]: b["id"] for b in data.get("blocks", [])
-        }
+        id_by_identifier = {b["identifier"]: b["id"] for b in data.get("blocks", [])}
 
     created = updated = skipped = 0
     for block_dir in sorted(d for d in blocks_dir.iterdir() if d.is_dir()):
@@ -308,8 +306,7 @@ def _load_blocks(root: Path, *, force: bool = False) -> None:
                         etag=etag or "*",
                     )
                     console.print(
-                        f"  [yellow]updated[/yellow] block"
-                        f" [cyan]{identifier}[/cyan]"
+                        f"  [yellow]updated[/yellow] block [cyan]{identifier}[/cyan]"
                     )
                     updated += 1
             else:

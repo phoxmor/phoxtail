@@ -117,7 +117,9 @@ def create_collection(
     if VariantCollection.objects.filter(
         Q(identifier=payload.identifier) | Q(name=payload.name)
     ).exists():
-        raise HttpError(409, "A collection with this identifier or name already exists.")
+        raise HttpError(
+            409, "A collection with this identifier or name already exists."
+        )
 
     c = VariantCollection(
         identifier=payload.identifier,
@@ -135,7 +137,9 @@ def create_collection(
     try:
         c.save()
     except IntegrityError:
-        raise HttpError(409, "A collection with this identifier or name already exists.")
+        raise HttpError(
+            409, "A collection with this identifier or name already exists."
+        )
 
     response["ETag"] = collection_etag(c)
     return 201, collection_detail(c, 0)
