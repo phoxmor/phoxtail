@@ -253,8 +253,17 @@ async def _run_turn(
             pass
         await _save_partial()
         raise
-    except Exception:
-        out.put(_sse("error", {"message": "An error occurred. Please try again."}))
+    except Exception as exc:
+        from pydantic_ai.exceptions import ModelHTTPError
+
+        if isinstance(exc, ModelHTTPError):
+            body = exc.body
+            msg = (
+                body.get("message", str(exc)) if isinstance(body, dict) else str(exc)
+            )
+        else:
+            msg = "An error occurred. Please try again."
+        out.put(_sse("error", {"message": msg}))
         raise
     finally:
         out.put(_SENTINEL)

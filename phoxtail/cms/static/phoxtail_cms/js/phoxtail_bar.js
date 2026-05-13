@@ -1221,6 +1221,10 @@
                                 _conversationUuid = data.conversation_uuid;
                                 try { localStorage.setItem(_LS_KEY, _conversationUuid); } catch (_) {}
                                 _setSending(false);
+                            } else if (evt === 'error') {
+                                var errMsg = (data && data.message) ? data.message : 'An error occurred. Please try again.';
+                                _appendMessage('phoxtail-chatbot-message--assistant', errMsg);
+                                _setSending(false);
                             }
                         });
                         processChunk();
