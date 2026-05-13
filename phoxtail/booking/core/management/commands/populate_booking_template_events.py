@@ -46,9 +46,7 @@ class Command(BaseCommand):
         # Get or create location
         location = self._get_location(options.get("location"))
         if not location:
-            self.stdout.write(
-                self.style.ERROR("No location found. Please create a location first.")
-            )
+            self.stdout.write(self.style.ERROR("No location found. Please create a location first."))
             return
 
         # Get or create spaces
@@ -65,16 +63,12 @@ class Command(BaseCommand):
         days = options["days"]
         until_date = start_date + timezone.timedelta(days=days)
 
-        self.stdout.write(
-            self.style.SUCCESS(f"\nPopulating schedule for {location.name}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"\nPopulating schedule for {location.name}"))
         self.stdout.write(f"Start date: {start_date.date()}")
         self.stdout.write(f"Until date: {until_date.date()}\n")
 
         # Define all recurring events
-        events_data = self._get_events_data(
-            services, room_a, room_b, start_date, until_date
-        )
+        events_data = self._get_events_data(services, room_a, room_b, start_date, until_date)
 
         # Create events
         created_count = 0
@@ -95,7 +89,8 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.WARNING(
                         f"Skipped (template exists): {event_data['service'].name} - "
-                        f"{event_data['start_datetime'].strftime('%H:%M')}-{event_data['end_datetime'].strftime('%H:%M')} "
+                        f"{event_data['start_datetime'].strftime('%H:%M')}"
+                        f"-{event_data['end_datetime'].strftime('%H:%M')} "
                         f"in {event_data['space'].name}"
                     )
                 )
@@ -111,17 +106,11 @@ class Command(BaseCommand):
                 f"(Days: {self._format_weekdays(event_data['recurrence_byweekday'])})"
             )
 
-        self.stdout.write(
-            self.style.SUCCESS(f"\n✓ Created {created_count} recurring event templates")
-        )
+        self.stdout.write(self.style.SUCCESS(f"\n✓ Created {created_count} recurring event templates"))
         if skipped_count > 0:
-            self.stdout.write(
-                self.style.WARNING(f"⊘ Skipped {skipped_count} existing events")
-            )
+            self.stdout.write(self.style.WARNING(f"⊘ Skipped {skipped_count} existing events"))
         self.stdout.write(
-            self.style.SUCCESS(
-                "\nRun 'python manage.py populate_recurrence_template_events' to create event instances"
-            )
+            self.style.SUCCESS("\nRun 'python manage.py populate_recurrence_template_events' to create event instances")
         )
 
     def _get_location(self, location_id):
@@ -174,17 +163,13 @@ class Command(BaseCommand):
         """Get start date, defaulting to Monday of current week"""
         if date_str:
             naive_date = datetime.strptime(date_str, "%Y-%m-%d")
-            return timezone.make_aware(
-                datetime.combine(naive_date, time(9, 0)), timezone=tz
-            )
+            return timezone.make_aware(datetime.combine(naive_date, time(9, 0)), timezone=tz)
 
         # Default to Monday of current week at 9:00 AM
         now = timezone.now().astimezone(tz)
         days_back = now.weekday()  # Monday is 0, so this is how many days since Monday
         current_monday = now - timezone.timedelta(days=days_back)
-        return timezone.make_aware(
-            datetime.combine(current_monday.date(), time(9, 0)), timezone=tz
-        )
+        return timezone.make_aware(datetime.combine(current_monday.date(), time(9, 0)), timezone=tz)
 
     def _format_weekdays(self, weekdays):
         """Format weekday list for display"""

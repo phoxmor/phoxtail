@@ -30,7 +30,8 @@ class RecurrenceMixin(models.Model):
         default=list,
         verbose_name=_("Weekdays"),
         help_text=_(
-            "Which days of the week to repeat on (0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday)"
+            "Which days of the week to repeat on"
+            " (0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday)"
         ),
     )
     recurrence_bymonthday = models.IntegerField(
@@ -58,9 +59,7 @@ class RecurrenceMixin(models.Model):
         blank=True,
         choices=RecurrenceWeekday.choices,
         verbose_name=_("Weekday for monthly recurrence"),
-        help_text=_(
-            "Which weekday to use with position (e.g., 'Monday' in 'First Monday')"
-        ),
+        help_text=_("Which weekday to use with position (e.g., 'Monday' in 'First Monday')"),
     )
     recurrence_until = models.DateTimeField(
         null=True,

@@ -251,8 +251,7 @@ class ReservationMoveSearchTargetEventView(SingleSelectSearchView):
     hx_include = "#move-reservation-parent-fields, #move-reservation-form-placeholder"
     item_template = "phoxtail_booking_events/admin/booking/partials/forms/move/widgets/event_item_display.html"
     oob_response_template = (
-        "phoxtail_booking_events/admin/booking/partials/forms/move/widgets/"
-        "target_event_search_response.html"
+        "phoxtail_booking_events/admin/booking/partials/forms/move/widgets/target_event_search_response.html"
     )
 
     def get_form(self, data):
@@ -379,9 +378,7 @@ class _ReservationCreateSingleSelectBase(SingleSelectSearchView):
     permission_policy = booking_permission_policy
     required_permissions = ["access_booking_management", "manage_reservations"]
     form_class = ReservationCreateForm
-    hx_include = (
-        "#create-reservation-parent-fields, #create-reservation-form-placeholder"
-    )
+    hx_include = "#create-reservation-parent-fields, #create-reservation-form-placeholder"
 
     def get_form(self, data):
         event = get_object_or_404(Event, uuid=self.kwargs["event_id"])
@@ -404,7 +401,9 @@ class _ReservationCreateSingleSelectBase(SingleSelectSearchView):
 class ReservationCreateSearchUserView(_ReservationCreateSingleSelectBase):
     field_name = "user"
     search_url_name = "booking_management:admin_reservation_create_search_user"
-    oob_response_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/user_search_response.html"
+    oob_response_template = (
+        "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/user_search_response.html"
+    )
     item_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/user_item_display.html"
 
     def get_extra_context(self, form):
@@ -427,8 +426,7 @@ class ReservationCreateSearchSubscriptionView(_ReservationCreateSingleSelectBase
     field_name = "subscription"
     search_url_name = "booking_management:admin_reservation_create_search_subscription"
     oob_response_template = (
-        "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/"
-        "subscription_search_response.html"
+        "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/subscription_search_response.html"
     )
     item_template = "phoxtail_booking_events/admin/booking/partials/forms/create/widgets/subscription_item_display.html"
 
@@ -464,9 +462,7 @@ def admin_booking_filters_view(request):
     )
 
 
-@booking_permission_required(
-    "access_booking_management", "manage_booking_event_details"
-)
+@booking_permission_required("access_booking_management", "manage_booking_event_details")
 def admin_booking_event_update_form_view(request, event_id):
     """
     Displays the update event form in the booking section for admin to edit existing events.
@@ -487,7 +483,8 @@ def admin_booking_event_update_form_view(request, event_id):
                 if events_updated == 1:
                     messages.success(
                         request,
-                        f"Event '{event.service.name}' successfully updated for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
+                        f"Event '{event.service.name}' successfully updated"
+                        f" for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
                     )
                 else:
                     messages.success(

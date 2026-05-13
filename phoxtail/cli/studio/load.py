@@ -161,18 +161,14 @@ def _load_collections(root: Path, *, force: bool = False) -> None:
     id_by_identifier: dict[str, int] = {}
     if force:
         data = client.list_collections()
-        id_by_identifier = {
-            c["identifier"]: c["id"] for c in data.get("collections", [])
-        }
+        id_by_identifier = {c["identifier"]: c["id"] for c in data.get("collections", [])}
 
     created = updated = skipped = 0
     for md_file in sorted(collections_dir.glob("*.md")):
         metadata, body = _parse_frontmatter(md_file.read_text(encoding="utf-8"))
         name = metadata.get("name")
         if not name:
-            console.print(
-                f"[yellow]  Skipping {md_file.name}: missing 'name' in frontmatter[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping {md_file.name}: missing 'name' in frontmatter[/yellow]")
             continue
 
         identifier = metadata.get("identifier", md_file.stem)
@@ -186,10 +182,7 @@ def _load_collections(root: Path, *, force: bool = False) -> None:
             if force:
                 coll_id = id_by_identifier.get(identifier)
                 if coll_id is None:
-                    console.print(
-                        f"[yellow]  {identifier}: exists but ID not found,"
-                        " skipping[/yellow]"
-                    )
+                    console.print(f"[yellow]  {identifier}: exists but ID not found, skipping[/yellow]")
                     skipped += 1
                 else:
                     _, etag = client.get_collection_by_id(coll_id)
@@ -200,18 +193,13 @@ def _load_collections(root: Path, *, force: bool = False) -> None:
                         template=body,
                         etag=etag or "*",
                     )
-                    console.print(
-                        f"  [yellow]updated[/yellow] collection"
-                        f" [cyan]{identifier}[/cyan]"
-                    )
+                    console.print(f"  [yellow]updated[/yellow] collection [cyan]{identifier}[/cyan]")
                     updated += 1
             else:
                 console.print(f"  [dim]{identifier} already exists, skipping[/dim]")
                 skipped += 1
         else:
-            console.print(
-                f"  [green]created[/green] collection [cyan]{identifier}[/cyan]"
-            )
+            console.print(f"  [green]created[/green] collection [cyan]{identifier}[/cyan]")
             created += 1
 
     summary = f"  Collections: {created} created"
@@ -244,30 +232,22 @@ def _load_blocks(root: Path, *, force: bool = False) -> None:
         schema_file = block_dir / "schema.json"
 
         if not metadata_file.exists():
-            console.print(
-                f"[yellow]  Skipping {block_dir.name}: missing block.yaml[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping {block_dir.name}: missing block.yaml[/yellow]")
             continue
         if not schema_file.exists():
-            console.print(
-                f"[yellow]  Skipping {block_dir.name}: missing schema.json[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping {block_dir.name}: missing schema.json[/yellow]")
             continue
 
         try:
             metadata = yaml.safe_load(metadata_file.read_text(encoding="utf-8")) or {}
         except yaml.YAMLError as exc:
-            console.print(
-                f"[yellow]  Skipping {block_dir.name}: invalid block.yaml — {exc}[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping {block_dir.name}: invalid block.yaml — {exc}[/yellow]")
             continue
 
         try:
             schema = json.loads(schema_file.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
-            console.print(
-                f"[yellow]  Skipping {block_dir.name}: invalid schema.json — {exc}[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping {block_dir.name}: invalid schema.json — {exc}[/yellow]")
             continue
 
         identifier = metadata.get("identifier", block_dir.name)
@@ -286,10 +266,7 @@ def _load_blocks(root: Path, *, force: bool = False) -> None:
             if force:
                 block_id = id_by_identifier.get(identifier)
                 if block_id is None:
-                    console.print(
-                        f"[yellow]  {identifier}: exists but ID not found,"
-                        " skipping[/yellow]"
-                    )
+                    console.print(f"[yellow]  {identifier}: exists but ID not found, skipping[/yellow]")
                     skipped += 1
                 else:
                     _, etag = client.get_block_by_id(block_id)
@@ -305,9 +282,7 @@ def _load_blocks(root: Path, *, force: bool = False) -> None:
                         sort_order=metadata.get("sort_order", 0),
                         etag=etag or "*",
                     )
-                    console.print(
-                        f"  [yellow]updated[/yellow] block [cyan]{identifier}[/cyan]"
-                    )
+                    console.print(f"  [yellow]updated[/yellow] block [cyan]{identifier}[/cyan]")
                     updated += 1
             else:
                 console.print(f"  [dim]{identifier} already exists, skipping[/dim]")
@@ -336,14 +311,10 @@ def _load_variants(root: Path, *, force: bool = False) -> None:
         return
 
     blocks_data = client.list_blocks()
-    block_id_by_identifier = {
-        b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])
-    }
+    block_id_by_identifier = {b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])}
 
     collections_data = client.list_collections()
-    collection_id_by_identifier = {
-        c["identifier"]: c["id"] for c in collections_data.get("collections", [])
-    }
+    collection_id_by_identifier = {c["identifier"]: c["id"] for c in collections_data.get("collections", [])}
 
     # (block_identifier, collection_identifier, variant_identifier) → variant_id
     variant_id_by_key: dict[tuple[str, str, str], int] = {}
@@ -366,53 +337,35 @@ def _load_variants(root: Path, *, force: bool = False) -> None:
         block_identifier = block_dir.name
         block_id = block_id_by_identifier.get(block_identifier)
         if block_id is None:
-            console.print(
-                f"[yellow]  Skipping block {block_identifier}: "
-                "not found on server[/yellow]"
-            )
+            console.print(f"[yellow]  Skipping block {block_identifier}: not found on server[/yellow]")
             continue
 
         for collection_dir in sorted(d for d in variants_dir.iterdir() if d.is_dir()):
             collection_identifier = collection_dir.name
             collection_id = collection_id_by_identifier.get(collection_identifier)
             if collection_id is None:
-                console.print(
-                    f"[yellow]  Skipping collection {collection_identifier}: "
-                    "not found on server[/yellow]"
-                )
+                console.print(f"[yellow]  Skipping collection {collection_identifier}: not found on server[/yellow]")
                 continue
 
-            for variant_dir in sorted(
-                d for d in collection_dir.iterdir() if d.is_dir()
-            ):
+            for variant_dir in sorted(d for d in collection_dir.iterdir() if d.is_dir()):
                 metadata_file = variant_dir / "variant.yaml"
                 description_file = variant_dir / "description.md"
                 html_file = variant_dir / "template.html"
 
                 if not metadata_file.exists():
-                    console.print(
-                        f"[yellow]  Skipping {variant_dir.name}: missing variant.yaml[/yellow]"
-                    )
+                    console.print(f"[yellow]  Skipping {variant_dir.name}: missing variant.yaml[/yellow]")
                     continue
                 if not description_file.exists():
-                    console.print(
-                        f"[yellow]  Skipping {variant_dir.name}: missing description.md[/yellow]"
-                    )
+                    console.print(f"[yellow]  Skipping {variant_dir.name}: missing description.md[/yellow]")
                     continue
                 if not html_file.exists():
-                    console.print(
-                        f"[yellow]  Skipping {variant_dir.name}: missing template.html[/yellow]"
-                    )
+                    console.print(f"[yellow]  Skipping {variant_dir.name}: missing template.html[/yellow]")
                     continue
 
                 try:
-                    metadata = (
-                        yaml.safe_load(metadata_file.read_text(encoding="utf-8")) or {}
-                    )
+                    metadata = yaml.safe_load(metadata_file.read_text(encoding="utf-8")) or {}
                 except yaml.YAMLError as exc:
-                    console.print(
-                        f"[yellow]  Skipping {variant_dir.name}: invalid variant.yaml — {exc}[/yellow]"
-                    )
+                    console.print(f"[yellow]  Skipping {variant_dir.name}: invalid variant.yaml — {exc}[/yellow]")
                     continue
 
                 css_file = variant_dir / "styles.css"
@@ -423,9 +376,7 @@ def _load_variants(root: Path, *, force: bool = False) -> None:
                 description = description_file.read_text(encoding="utf-8")
                 html = html_file.read_text(encoding="utf-8")
                 css = css_file.read_text(encoding="utf-8") if css_file.exists() else ""
-                javascript = (
-                    js_file.read_text(encoding="utf-8") if js_file.exists() else ""
-                )
+                javascript = js_file.read_text(encoding="utf-8") if js_file.exists() else ""
                 is_default = metadata.get("is_default", False)
 
                 _, status = client.create_variant(
@@ -470,12 +421,14 @@ def _load_variants(root: Path, *, force: bool = False) -> None:
                             updated += 1
                     else:
                         console.print(
-                            f"  [dim]{block_identifier}/{collection_identifier}/{identifier} already exists, skipping[/dim]"
+                            f"  [dim]{block_identifier}/{collection_identifier}"
+                            f"/{identifier} already exists, skipping[/dim]"
                         )
                         skipped += 1
                 else:
                     console.print(
-                        f"  [green]created[/green] variant [cyan]{block_identifier}/{collection_identifier}/{identifier}[/cyan]"
+                        f"  [green]created[/green] variant"
+                        f" [cyan]{block_identifier}/{collection_identifier}/{identifier}[/cyan]"
                     )
                     created += 1
 

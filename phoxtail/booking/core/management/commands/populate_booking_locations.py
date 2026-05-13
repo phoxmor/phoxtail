@@ -10,7 +10,11 @@ class Command(BaseCommand):
 
     LOCATION = {
         "name": "Pilates Studio",
-        "description": "A premier Pilates studio offering transformative movement experiences. Our expert instructors guide you through mindful, precise movements that build strength, flexibility, and body awareness.",
+        "description": (
+            "A premier Pilates studio offering transformative movement experiences."
+            " Our expert instructors guide you through mindful, precise movements"
+            " that build strength, flexibility, and body awareness."
+        ),
         "street_address_line1": "",
         "street_address_line2": "",
         "city": "Athens",
@@ -73,8 +77,6 @@ class Command(BaseCommand):
                 },
             )
             space_status = "Created" if space_created else "Already exists"
-            self.stdout.write(
-                f"  {space_status}: {space.name} (capacity {space.capacity})"
-            )
+            self.stdout.write(f"  {space_status}: {space.name} (capacity {space.capacity})")
 
         self.stdout.write(self.style.SUCCESS("Done."))

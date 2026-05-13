@@ -29,11 +29,7 @@ class BookingContextBuilder:
 
     def _extract_query_params(self):
         """Extract query parameters from GET or POST request."""
-        self.query_params = (
-            self.request.GET.copy()
-            if self.request.method == "GET"
-            else self.request.POST.copy()
-        )
+        self.query_params = self.request.GET.copy() if self.request.method == "GET" else self.request.POST.copy()
 
     def _load_locations(self):
         """Load active locations and count."""
@@ -63,15 +59,11 @@ class BookingContextBuilder:
     def _calculate_filter_count(self):
         """Calculate number of active filters."""
         prefix = self.filterset.form.prefix
-        filter_keys = [
-            f"{prefix}-{key}" for key in self.filterset.filters if key != "date"
-        ]
+        filter_keys = [f"{prefix}-{key}" for key in self.filterset.filters if key != "date"]
         self.filter_count = sum(
             1
             for k, v in self.filterset.data.items()
-            if k in filter_keys
-            and v
-            and (k != "filter-location" or self.location_count > 1)
+            if k in filter_keys and v and (k != "filter-location" or self.location_count > 1)
         )
 
     def _prepare_base_context(self, base_queryset):
@@ -202,11 +194,7 @@ class ScheduleContextBuilder:
 
     def _extract_query_params(self):
         """Extract query parameters from GET or POST request."""
-        self.query_params = (
-            self.request.GET.copy()
-            if self.request.method == "GET"
-            else self.request.POST.copy()
-        )
+        self.query_params = self.request.GET.copy() if self.request.method == "GET" else self.request.POST.copy()
 
     def _load_locations(self):
         """Load active locations and count."""
@@ -230,9 +218,7 @@ class ScheduleContextBuilder:
     def _build_space_queryset(self):
         """Build space queryset filtered by selected location."""
         if self.location:
-            self.space_queryset = Space.objects.filter(
-                location=self.location, is_active=True
-            ).order_by("name")
+            self.space_queryset = Space.objects.filter(location=self.location, is_active=True).order_by("name")
         else:
             self.space_queryset = Space.objects.filter(is_active=True).order_by("name")
 
@@ -246,17 +232,11 @@ class ScheduleContextBuilder:
     def _calculate_filter_count(self):
         """Calculate number of active filters."""
         prefix = self.filterset.form.prefix
-        filter_keys = [
-            f"{prefix}-{key}"
-            for key in self.filterset.filters
-            if key not in ["date", "show_empty_rows"]
-        ]
+        filter_keys = [f"{prefix}-{key}" for key in self.filterset.filters if key not in ["date", "show_empty_rows"]]
         self.filter_count = sum(
             1
             for k, v in self.filterset.data.items()
-            if k in filter_keys
-            and v
-            and (k != "filter-location" or self.location_count > 1)
+            if k in filter_keys and v and (k != "filter-location" or self.location_count > 1)
         )
 
     def _prepare_base_context(self, base_queryset):
@@ -284,11 +264,7 @@ class ScheduleContextBuilder:
 
     def _calculate_week_navigation(self, target_date):
         """Calculate week boundaries and navigation dates."""
-        today = (
-            timezone.now().astimezone(self.location.timezone).date()
-            if self.location
-            else timezone.now().date()
-        )
+        today = timezone.now().astimezone(self.location.timezone).date() if self.location else timezone.now().date()
 
         if not target_date:
             target_date = today
@@ -315,9 +291,7 @@ class ScheduleContextBuilder:
         """Build event queryset with annotations for the week."""
         return (
             Event.objects.order_by("start_datetime", "space__name")
-            .filter(
-                start_datetime__date__gte=week_start, start_datetime__date__lte=week_end
-            )
+            .filter(start_datetime__date__gte=week_start, start_datetime__date__lte=week_end)
             .select_related("service", "space", "space__location")
             .annotate(
                 is_past=Case(
@@ -328,9 +302,7 @@ class ScheduleContextBuilder:
             )
         )
 
-    def _build_calendar_structure(
-        self, filtered_queryset, week_start, week_end, week_days, today, show_empty_rows
-    ):
+    def _build_calendar_structure(self, filtered_queryset, week_start, week_end, week_days, today, show_empty_rows):
         """Build week grid with events organized by day and hour."""
         from phoxtail.booking.events.services import EventService
 
@@ -358,9 +330,7 @@ class ScheduleContextBuilder:
             # Find actual earliest and latest hours from events
             for event in all_events:
                 event_location = event.space.location
-                event_start_local = event.start_datetime.astimezone(
-                    event_location.timezone
-                )
+                event_start_local = event.start_datetime.astimezone(event_location.timezone)
                 event_end_local = event.end_datetime.astimezone(event_location.timezone)
 
                 earliest_hour = min(earliest_hour, event_start_local.hour)
@@ -450,9 +420,7 @@ class ScheduleContextBuilder:
         nav_context = self._calculate_week_navigation(target_date)
 
         # Step 4: NOW do the expensive event query
-        event_queryset = self._build_event_queryset(
-            nav_context["week_start"], nav_context["week_end"]
-        )
+        event_queryset = self._build_event_queryset(nav_context["week_start"], nav_context["week_end"])
 
         # Step 5: Recreate filterset with REAL queryset
         self._create_filterset(event_queryset)
@@ -473,7 +441,9 @@ class ScheduleContextBuilder:
 
         return {
             **schedule_structure,
-            "week_display": f"{nav_context['week_start'].strftime('%b %d')} - {nav_context['week_end'].strftime('%b %d, %Y')}",
+            "week_display": (
+                f"{nav_context['week_start'].strftime('%b %d')} - {nav_context['week_end'].strftime('%b %d, %Y')}"
+            ),
             "is_current_week": nav_context["is_current_week"],
             "filterset": self.filterset,
             "previous_week": nav_context["previous_week"].strftime("%Y-%m-%d"),

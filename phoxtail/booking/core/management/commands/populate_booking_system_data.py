@@ -75,35 +75,25 @@ class PilatesStudioDataGenerator:
 
         for i in range(count):
             # Select age range
-            age_range = random.choices(
-                list(age_weights.keys()), weights=list(age_weights.values())
-            )[0]
+            age_range = random.choices(list(age_weights.keys()), weights=list(age_weights.values()))[0]
             age = random.randint(*age_range)
 
             gender = random.choice(gender_distribution)
             first_name = (
                 self.fake.first_name_female()
                 if gender == "F"
-                else (
-                    self.fake.first_name_male()
-                    if gender == "M"
-                    else self.fake.first_name()
-                )
+                else (self.fake.first_name_male() if gender == "M" else self.fake.first_name())
             )
 
             birth_date = self.fake.date_of_birth(minimum_age=age, maximum_age=age)
 
             # Focus primarily on Greek users for Athens location
-            country = random.choices(
-                ["GR", "US", "GB", "DE"], weights=[0.7, 0.15, 0.1, 0.05]
-            )[0]
+            country = random.choices(["GR", "US", "GB", "DE"], weights=[0.7, 0.15, 0.1, 0.05])[0]
 
             # Generate realistic phone number for the country
             if country == "GR":
                 # Greek mobile format
-                prefix = random.choice(
-                    [694, 695, 697, 698, 699]
-                )  # Greek mobile prefixes
+                prefix = random.choice([694, 695, 697, 698, 699])  # Greek mobile prefixes
                 number = random.randint(1000000, 9999999)
                 phone = f"+30{prefix}{number}"
             elif country in ["US", "CA"]:
@@ -119,9 +109,7 @@ class PilatesStudioDataGenerator:
                 phone = f"+44{prefix}{number}"
             elif country == "DE":
                 # German mobile format
-                prefix = random.choice(
-                    [151, 152, 157, 159, 170, 171, 172, 173, 174, 175]
-                )
+                prefix = random.choice([151, 152, 157, 159, 170, 171, 172, 173, 174, 175])
                 number = random.randint(1000000, 9999999)
                 phone = f"+49{prefix}{number}"
             else:
@@ -165,11 +153,13 @@ class PilatesStudioDataGenerator:
         return [
             {
                 "name": "Pilates Studio",
-                "description": "A premier Pilates studio offering transformative movement experiences in the heart of Athens. Our expert instructors guide you through mindful, precise movements that build strength, flexibility, and body awareness.",
+                "description": (
+                    "A premier Pilates studio offering transformative movement experiences"
+                    " in the heart of Athens. Our expert instructors guide you through"
+                    " mindful, precise movements that build strength, flexibility, and body awareness."
+                ),
                 "street_address_1": f"{self.fake.building_number()} {self.fake.street_name()}",
-                "street_address_2": f"Suite {random.randint(100, 999)}"
-                if random.random() < 0.3
-                else "",
+                "street_address_2": f"Suite {random.randint(100, 999)}" if random.random() < 0.3 else "",
                 "city": athens_data["city"],
                 "state": athens_data["state"],
                 "country": athens_data["country"],
@@ -210,7 +200,10 @@ class PilatesStudioDataGenerator:
         return [
             {
                 "name": "4 Classes",
-                "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month",
+                "description": (
+                    "Participation in small group classes up to 4 people."
+                    " Online reservation management platform. Duration 1 month"
+                ),
                 "price": Decimal("55.00"),
                 "duration": 30,
                 "credits": 4,
@@ -219,7 +212,10 @@ class PilatesStudioDataGenerator:
             },
             {
                 "name": "8 Classes",
-                "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month",
+                "description": (
+                    "Participation in small group classes up to 4 people."
+                    " Online reservation management platform. Duration 1 month"
+                ),
                 "price": Decimal("99.00"),
                 "duration": 30,
                 "credits": 8,
@@ -228,7 +224,10 @@ class PilatesStudioDataGenerator:
             },
             {
                 "name": "12 Classes",
-                "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month.",
+                "description": (
+                    "Participation in small group classes up to 4 people."
+                    " Online reservation management platform. Duration 1 month."
+                ),
                 "price": Decimal("130.00"),
                 "duration": 30,
                 "credits": 12,
@@ -237,7 +236,10 @@ class PilatesStudioDataGenerator:
             },
             {
                 "name": "20 Classes",
-                "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 3 months",
+                "description": (
+                    "Participation in small group classes up to 4 people."
+                    " Online reservation management platform. Duration 3 months"
+                ),
                 "price": Decimal("240.00"),
                 "duration": 90,
                 "credits": 20,
@@ -326,11 +328,7 @@ class Command(BaseCommand):
 
         generator = PilatesStudioDataGenerator(options["locale"])
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"🧘‍♀️ Generating pilates studio data with {options['users']} users..."
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"🧘‍♀️ Generating pilates studio data with {options['users']} users..."))
 
         if options["clear_data"]:
             self._clear_existing_data()
@@ -361,26 +359,18 @@ class Command(BaseCommand):
         self.stdout.write(f"✅ Created {len(services)} pilates class offerings")
 
         # Get all non-template events for reservation creation
-        events = Event.objects.filter(is_recurrence_template=False).order_by(
-            "start_datetime"
-        )
+        events = Event.objects.filter(is_recurrence_template=False).order_by("start_datetime")
 
         # Create subscription system
         subscription_packages = generator.generate_subscription_types()
-        subscription_types = self._create_subscription_types(
-            subscription_packages, locations[0]
-        )
+        subscription_types = self._create_subscription_types(subscription_packages, locations[0])
         self.stdout.write(f"✅ Created {len(subscription_types)} membership packages")
 
-        subscriptions = self._create_subscriptions(
-            users, subscription_types, options["subscription_percentage"]
-        )
+        subscriptions = self._create_subscriptions(users, subscription_types, options["subscription_percentage"])
         self.stdout.write(f"✅ Created {len(subscriptions)} active memberships")
 
         # Create realistic reservations
-        reservations = self._create_reservations(
-            users, events, subscriptions, options["reservation_percentage"]
-        )
+        reservations = self._create_reservations(users, events, subscriptions, options["reservation_percentage"])
         self.stdout.write(f"✅ Created {len(reservations)} class reservations")
 
         self.stdout.write(
@@ -535,9 +525,7 @@ class Command(BaseCommand):
             certification = random.choice(certifications)
 
             bio_template = random.choice(bio_templates)
-            bio = bio_template.format(
-                experience_years, specialty, background, certification
-            )
+            bio = bio_template.format(experience_years, specialty, background, certification)
 
             staff_obj = Staff.objects.create(user=user, bio=bio)
             staff.append(staff_obj)
@@ -590,7 +578,9 @@ class Command(BaseCommand):
     def _get_or_create_services(self):
         """Get or create all required services"""
         services_config = {
-            "Reformer Pilates": "Professional Reformer Pilates instruction focusing on precision, control, and mindful movement.",
+            "Reformer Pilates": (
+                "Professional Reformer Pilates instruction focusing on precision, control, and mindful movement."
+            ),
             "Reformer Athletic Flow": "Athletic flow reformer class for building strength and endurance.",
             "Reformer Recovery Flow": "Recovery-focused reformer class for gentle movement and restoration.",
             "Prenatal Reformer Pilates": "Prenatal-safe reformer class designed for expecting mothers.",
@@ -629,10 +619,15 @@ class Command(BaseCommand):
                         )
                     )
 
+            _goals = ["build strength", "improve flexibility", "enhance body awareness", "develop core stability"]
             service, created = Service.objects.get_or_create(
                 name=data["name"],
                 defaults={
-                    "description": f"Professional {data['name']} instruction focusing on precision, control, and mindful movement. Suitable for practitioners looking to {random.choice(['build strength', 'improve flexibility', 'enhance body awareness', 'develop core stability'])}.",
+                    "description": (
+                        f"Professional {data['name']} instruction focusing on"
+                        f" precision, control, and mindful movement."
+                        f" Suitable for practitioners looking to {random.choice(_goals)}."
+                    ),
                     "is_active": True,
                     "palette": palette,
                 },
@@ -653,9 +648,7 @@ class Command(BaseCommand):
         # Get or create all services
         services_dict = self._get_or_create_services()
         personal_service = services_dict.get("Personal")
-        non_personal_services = [
-            service for name, service in services_dict.items() if name != "Personal"
-        ]
+        non_personal_services = [service for name, service in services_dict.items() if name != "Personal"]
 
         for data in packages_data:
             sub_type, created = SubscriptionType.objects.get_or_create(
@@ -712,9 +705,7 @@ class Command(BaseCommand):
                 1,  # Personal - Drop In
                 1,  # Personal - 4 Classes
             ]
-            sub_type = random.choices(
-                subscription_types, weights=weights[: len(subscription_types)]
-            )[0]
+            sub_type = random.choices(subscription_types, weights=weights[: len(subscription_types)])[0]
 
             # Random start date within last 3 months
             start_date = timezone.now().date() - timedelta(days=random.randint(0, 90))
@@ -729,13 +720,9 @@ class Command(BaseCommand):
 
         return subscriptions
 
-    def _create_reservations(
-        self, users, events, subscriptions, reservation_percentage
-    ):
+    def _create_reservations(self, users, events, subscriptions, reservation_percentage):
         """Create realistic reservations"""
-        future_events = [
-            e for e in events if e.start_datetime.date() >= timezone.now().date()
-        ]
+        future_events = [e for e in events if e.start_datetime.date() >= timezone.now().date()]
         target_reservations = int(len(future_events) * reservation_percentage / 100)
 
         reservations = []
@@ -750,18 +737,14 @@ class Command(BaseCommand):
             for user in users:
                 subscription = user_subscriptions.get(user.id)
                 if subscription and subscription.can_access_service(event.service):
-                    eligible_users.extend(
-                        [user] * 3
-                    )  # 3x weight for subscription holders
+                    eligible_users.extend([user] * 3)  # 3x weight for subscription holders
                 else:
                     eligible_users.append(user)
 
             user = random.choice(eligible_users)
 
             # Check if user already has reservation for this event
-            existing = any(
-                r for r in reservations if r["user"] == user and r["event"] == event
-            )
+            existing = any(r for r in reservations if r["user"] == user and r["event"] == event)
             if existing:
                 continue
 
@@ -782,18 +765,14 @@ class Command(BaseCommand):
                 "WAITLISTED": 0.10,
                 "CANCELLED": 0.05,
             }
-            status = random.choices(
-                list(status_weights.keys()), weights=list(status_weights.values())
-            )[0]
+            status = random.choices(list(status_weights.keys()), weights=list(status_weights.values()))[0]
 
             reservation_data = {
                 "user": user,
                 "event": event,
                 "subscription": subscription,
                 "status": status,
-                "notes": f"Booked for {event.service.name}"
-                if random.random() < 0.2
-                else "",
+                "notes": f"Booked for {event.service.name}" if random.random() < 0.2 else "",
             }
 
             reservation = Reservation.objects.create(**reservation_data)

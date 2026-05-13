@@ -16,7 +16,10 @@ class Command(BaseCommand):
     SUBSCRIPTION_TYPES = [
         {
             "name": "4 Classes",
-            "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month",
+            "description": (
+                "Participation in small group classes up to 4 people."
+                " Online reservation management platform. Duration 1 month"
+            ),
             "price": Decimal("55.00"),
             "duration": 30,
             "credits": 4,
@@ -25,7 +28,10 @@ class Command(BaseCommand):
         },
         {
             "name": "8 Classes",
-            "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month",
+            "description": (
+                "Participation in small group classes up to 4 people."
+                " Online reservation management platform. Duration 1 month"
+            ),
             "price": Decimal("99.00"),
             "duration": 30,
             "credits": 8,
@@ -34,7 +40,10 @@ class Command(BaseCommand):
         },
         {
             "name": "12 Classes",
-            "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 1 month.",
+            "description": (
+                "Participation in small group classes up to 4 people."
+                " Online reservation management platform. Duration 1 month."
+            ),
             "price": Decimal("130.00"),
             "duration": 30,
             "credits": 12,
@@ -43,7 +52,10 @@ class Command(BaseCommand):
         },
         {
             "name": "20 Classes",
-            "description": "Participation in small group classes up to 4 people. Online reservation management platform. Duration 3 months",
+            "description": (
+                "Participation in small group classes up to 4 people."
+                " Online reservation management platform. Duration 3 months"
+            ),
             "price": Decimal("240.00"),
             "duration": 90,
             "credits": 20,
@@ -89,25 +101,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         location = self._get_location(options.get("location"))
         if not location:
-            self.stdout.write(
-                self.style.ERROR(
-                    "No active location found. Run populate_booking_locations first."
-                )
-            )
+            self.stdout.write(self.style.ERROR("No active location found. Run populate_booking_locations first."))
             return
 
-        personal_service = Service.objects.filter(
-            name="Personal", is_active=True
-        ).first()
-        non_personal_services = list(
-            Service.objects.filter(is_active=True).exclude(name="Personal")
-        )
+        personal_service = Service.objects.filter(name="Personal", is_active=True).first()
+        non_personal_services = list(Service.objects.filter(is_active=True).exclude(name="Personal"))
 
         if not personal_service and not non_personal_services:
             self.stdout.write(
-                self.style.ERROR(
-                    "No services found. Run populate_booking_template_events first (it creates services)."
-                )
+                self.style.ERROR("No services found. Run populate_booking_template_events first (it creates services).")
             )
             return
 

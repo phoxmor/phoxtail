@@ -65,7 +65,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "--all",
             action="store_true",
-            help="Run all steps (groups + locations + services + subscription-types + templates + events + reservations)",
+            help=(
+                "Run all steps (groups + locations + services + subscription-types + templates + events + reservations)"
+            ),
         )
 
         # Event template options
@@ -140,10 +142,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(
-            self.style.SUCCESS(
-                "\n" + "=" * 70 + "\n"
-                "  BOOKING SYSTEM DATA POPULATION\n" + "=" * 70 + "\n"
-            )
+            self.style.SUCCESS("\n" + "=" * 70 + "\n  BOOKING SYSTEM DATA POPULATION\n" + "=" * 70 + "\n")
         )
 
         # Determine which steps to run
@@ -244,9 +243,7 @@ class Command(BaseCommand):
             template_count = Event.objects.filter(is_recurrence_template=True).count()
             if template_count == 0 and not run_templates:
                 self.stdout.write(
-                    self.style.WARNING(
-                        "\n⚠ No event templates found. Running --templates automatically...\n"
-                    )
+                    self.style.WARNING("\n⚠ No event templates found. Running --templates automatically...\n")
                 )
                 self._run_step(
                     step_name="CREATING EVENT TEMPLATES (auto)",
@@ -274,20 +271,14 @@ class Command(BaseCommand):
             # Check if events exist
             event_count = Event.objects.filter(is_recurrence_template=False).count()
             if event_count == 0:
-                self.stdout.write(
-                    self.style.WARNING(
-                        "\n⚠ No events found. Run with --events first or use --all\n"
-                    )
-                )
+                self.stdout.write(self.style.WARNING("\n⚠ No events found. Run with --events first or use --all\n"))
             else:
                 # WARNING: populate_booking_system_data with clear_data=True
                 # will delete ALL data including events, locations, services, etc.
                 # When using --all, we want to clear user data but NOT events/locations/services
                 # So we manually clear user-related data here
                 if options["all"]:
-                    self.stdout.write(
-                        "\n🧹 Clearing user/reservation data (preserving events)..."
-                    )
+                    self.stdout.write("\n🧹 Clearing user/reservation data (preserving events)...")
                     from allauth.account.models import EmailAddress
 
                     from phoxtail.booking.core.models import Staff
@@ -377,9 +368,7 @@ class Command(BaseCommand):
         stats["groups_created"] += groups_after - groups_before
         stats["locations_created"] += locations_after - locations_before
         stats["services_created"] += services_after - services_before
-        stats["subscription_types_created"] += (
-            subscription_types_after - subscription_types_before
-        )
+        stats["subscription_types_created"] += subscription_types_after - subscription_types_before
         stats["templates_created"] += templates_after - templates_before
         stats["events_created"] += events_after - events_before
         stats["users_created"] += users_after - users_before
@@ -399,9 +388,7 @@ class Command(BaseCommand):
     ):
         """Print final summary of what was created"""
         self.stdout.write(
-            f"\n{self.style.SUCCESS('=' * 70)}\n"
-            f"{self.style.SUCCESS('  SUMMARY')}\n"
-            f"{self.style.SUCCESS('=' * 70)}\n"
+            f"\n{self.style.SUCCESS('=' * 70)}\n{self.style.SUCCESS('  SUMMARY')}\n{self.style.SUCCESS('=' * 70)}\n"
         )
 
         summary_lines = []
@@ -410,38 +397,24 @@ class Command(BaseCommand):
             summary_lines.append(f"  👥 Booking Groups:   {stats['groups_created']:>6}")
 
         if run_locations:
-            summary_lines.append(
-                f"  📍 Locations:        {stats['locations_created']:>6}"
-            )
+            summary_lines.append(f"  📍 Locations:        {stats['locations_created']:>6}")
 
         if run_services:
-            summary_lines.append(
-                f"  🏃 Services:         {stats['services_created']:>6}"
-            )
+            summary_lines.append(f"  🏃 Services:         {stats['services_created']:>6}")
 
         if run_subscription_types:
-            summary_lines.append(
-                f"  🎫 Subscription Types:{stats['subscription_types_created']:>5}"
-            )
+            summary_lines.append(f"  🎫 Subscription Types:{stats['subscription_types_created']:>5}")
 
         if run_templates:
-            summary_lines.append(
-                f"  📅 Event Templates:  {stats['templates_created']:>6}"
-            )
+            summary_lines.append(f"  📅 Event Templates:  {stats['templates_created']:>6}")
 
         if run_events:
-            summary_lines.append(
-                f"  🗓️  Event Instances:   {stats['events_created']:>6}"
-            )
+            summary_lines.append(f"  🗓️  Event Instances:   {stats['events_created']:>6}")
 
         if run_reservations:
             summary_lines.append(f"  👤 Users Created:    {stats['users_created']:>6}")
-            summary_lines.append(
-                f"  🎫 Subscriptions:    {stats['subscriptions_created']:>6}"
-            )
-            summary_lines.append(
-                f"  📝 Reservations:     {stats['reservations_created']:>6}"
-            )
+            summary_lines.append(f"  🎫 Subscriptions:    {stats['subscriptions_created']:>6}")
+            summary_lines.append(f"  📝 Reservations:     {stats['reservations_created']:>6}")
 
         for line in summary_lines:
             self.stdout.write(line)

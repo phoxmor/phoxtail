@@ -30,14 +30,10 @@ def admin_subscription_list_view(request):
             context,
         )
 
-    return render(
-        request, "phoxtail_booking_subscriptions/admin/billing/index.html", context
-    )
+    return render(request, "phoxtail_booking_subscriptions/admin/billing/index.html", context)
 
 
-@booking_permission_required(
-    "access_billing_management", "manage_billing_subscriptions"
-)
+@booking_permission_required("access_billing_management", "manage_billing_subscriptions")
 def admin_subscription_update_form_view(request, subscription_id):
     """
     Displays the update subscription form in the billing section for admin to edit existing subscriptions.
@@ -66,7 +62,9 @@ def admin_subscription_update_form_view(request, subscription_id):
 
                 messages.success(
                     request,
-                    f"Subscription for {subscription.user.get_full_name() or subscription.user.username} successfully updated.",
+                    f"Subscription for"
+                    f" {subscription.user.get_full_name() or subscription.user.username}"
+                    " successfully updated.",
                 )
             except ValidationError as e:
                 for message in e.messages:
@@ -114,9 +112,7 @@ def admin_subscription_update_form_view(request, subscription_id):
     )
 
 
-@booking_permission_required(
-    "access_billing_management", "manage_billing_subscriptions"
-)
+@booking_permission_required("access_billing_management", "manage_billing_subscriptions")
 def admin_subscription_create_form_view(request):
     """
     Displays the create subscription drawer form for admin.
@@ -140,9 +136,7 @@ def admin_subscription_create_form_view(request):
     )
 
 
-@booking_permission_required(
-    "access_billing_management", "manage_billing_subscriptions"
-)
+@booking_permission_required("access_billing_management", "manage_billing_subscriptions")
 def admin_subscription_create_view(request):
     """
     Processes the subscription creation action for admin.
@@ -209,9 +203,7 @@ class _SubscriptionCreateSingleSelectBase(SingleSelectSearchView):
     permission_policy = booking_permission_policy
     required_permissions = ["access_billing_management", "manage_billing_subscriptions"]
     form_class = SubscriptionCreateForm
-    hx_include = (
-        "#create-subscription-parent-fields, #create-subscription-form-placeholder"
-    )
+    hx_include = "#create-subscription-parent-fields, #create-subscription-form-placeholder"
 
     def get_form(self, data):
         return self.form_class(data)
@@ -224,19 +216,15 @@ class SubscriptionCreateSearchUserView(_SubscriptionCreateSingleSelectBase):
     field_name = "user"
     search_url_name = "billing_management:admin_subscription_create_search_user"
     oob_response_template = (
-        "phoxtail_booking_subscriptions/admin/billing/partials/forms/create/widgets/"
-        "user_search_response.html"
+        "phoxtail_booking_subscriptions/admin/billing/partials/forms/create/widgets/user_search_response.html"
     )
 
 
 class SubscriptionCreateSearchSubscriptionTypeView(_SubscriptionCreateSingleSelectBase):
     field_name = "subscription_type"
-    search_url_name = (
-        "billing_management:admin_subscription_create_search_subscription_type"
-    )
+    search_url_name = "billing_management:admin_subscription_create_search_subscription_type"
     item_template = (
-        "phoxtail_booking_subscriptions/admin/billing/partials/forms/create/widgets/"
-        "subscription_type_item_display.html"
+        "phoxtail_booking_subscriptions/admin/billing/partials/forms/create/widgets/subscription_type_item_display.html"
     )
     oob_response_template = (
         "phoxtail_booking_subscriptions/admin/billing/partials/forms/create/widgets/"
@@ -289,18 +277,16 @@ def admin_billing_search_view(request):
     )
 
 
-@booking_permission_required(
-    "access_billing_management", "manage_billing_subscriptions"
-)
+@booking_permission_required("access_billing_management", "manage_billing_subscriptions")
 def admin_subscription_renew_form_view(request, subscription_id):
     """
     Display renewal confirmation form and process renewal for admin.
     Handles both GET (display form) and POST (process renewal) requests.
     """
     subscription = get_object_or_404(
-        Subscription.objects.select_related(
-            "subscription_type__location"
-        ).prefetch_related("subscription_type__credit_allocations__service"),
+        Subscription.objects.select_related("subscription_type__location").prefetch_related(
+            "subscription_type__credit_allocations__service"
+        ),
         uuid=subscription_id,
     )
 

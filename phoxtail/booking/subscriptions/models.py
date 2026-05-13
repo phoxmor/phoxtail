@@ -46,9 +46,7 @@ class SubscriptionType(
         max_length=255,
         help_text="Name of the subscription type (e.g., 'Monthly Unlimited', '5 Class Pack').",
     )
-    description = models.TextField(
-        blank=True, help_text="A detailed description of the subscription benefits."
-    )
+    description = models.TextField(blank=True, help_text="A detailed description of the subscription benefits.")
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -81,7 +79,9 @@ class SubscriptionType(
     unpaid_reservation_limit = models.PositiveIntegerField(
         default=0,
         validators=[MinValueValidator(0)],
-        help_text="Number of reservations users can make before paying subscriptions of this specific subscription type.",
+        help_text=(
+            "Number of reservations users can make before paying subscriptions of this specific subscription type."
+        ),
     )
 
     objects = SubscriptionTypeManager()
@@ -113,7 +113,8 @@ class SubscriptionType(
         InlinePanel(
             "credit_allocations",
             help_text=(
-                "Define credits per service. Each allocation specifies how many credits a user gets for that specific service. "
+                "Define credits per service. Each allocation specifies how many credits"
+                " a user gets for that specific service. "
                 "Leave credits blank for unlimited access to that service."
             ),
         ),
@@ -194,9 +195,7 @@ class SubscriptionTypeCreditAllocation(
         return f"{self.service.name}: {self.credits} credits"
 
 
-class Subscription(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel
-):
+class Subscription(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel):
     """
     An instance of a SubscriptionType purchased by a specific user. This tracks
     the user's individual subscription details and remaining credits/duration.
@@ -214,9 +213,7 @@ class Subscription(
         related_name="subscriptions",
         help_text="The type of subscription purchased.",
     )
-    start_date = models.DateField(
-        default=timezone.now, help_text="The date this subscription became active."
-    )
+    start_date = models.DateField(default=timezone.now, help_text="The date this subscription became active.")
     end_date = models.DateField(
         blank=True,
         null=True,
@@ -262,8 +259,10 @@ class Subscription(
         FieldPanel(
             "credits",
             help_text=(
-                "Remaining credits from the shared pool. This is the user's current balance of credits that can be used across multiple services. "
-                "Leave blank for unlimited shared credits. Set to 0 if this subscription only uses per-service credit balances."
+                "Remaining credits from the shared pool. This is the user's current"
+                " balance of credits that can be used across multiple services. "
+                "Leave blank for unlimited shared credits."
+                " Set to 0 if this subscription only uses per-service credit balances."
             ),
         ),
         InlinePanel(
@@ -373,9 +372,7 @@ class Subscription(
         return self.service.get_renewal_end_date()
 
 
-class SubscriptionCreditBalance(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, Orderable
-):
+class SubscriptionCreditBalance(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, Orderable):
     """
     Tracks the remaining credits for each service within a user's subscription.
     Only exists for services with limited credits (not unlimited).

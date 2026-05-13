@@ -124,7 +124,7 @@ testpaths = ["phoxtail/cli/tests", "phoxtail/core/tests", "phoxtail/dashboard/te
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]
-line-length = 88
+line-length = 120
 target-version = "py311"
 extend-exclude = ["*/migrations/*"]
 

@@ -40,12 +40,8 @@ class Event(
         related_name="events",
         help_text="The specific service offering for this event.",
     )
-    start_datetime = models.DateTimeField(
-        help_text="The exact date and time this event begins."
-    )
-    end_datetime = models.DateTimeField(
-        help_text="The exact date and time this event ends."
-    )
+    start_datetime = models.DateTimeField(help_text="The exact date and time this event begins.")
+    end_datetime = models.DateTimeField(help_text="The exact date and time this event ends.")
     space = models.ForeignKey(
         Space,
         on_delete=models.PROTECT,
@@ -58,9 +54,7 @@ class Event(
         blank=True,
         help_text="The staff members who are participating in or leading this event.",
     )
-    capacity = models.PositiveIntegerField(
-        help_text="Maximum number of participants allowed for this specific event."
-    )
+    capacity = models.PositiveIntegerField(help_text="Maximum number of participants allowed for this specific event.")
     group = models.ForeignKey(
         BookingGroup,
         on_delete=models.SET_NULL,
@@ -133,7 +127,8 @@ class Event(
     def __str__(self):
         location = getattr(self.space, "location", None)
         if location:
-            return f"{self.service.name} at {self.start_datetime.astimezone(location.timezone).strftime('%Y-%m-%d %H:%M %Z')}"
+            dt = self.start_datetime.astimezone(location.timezone).strftime("%Y-%m-%d %H:%M %Z")
+            return f"{self.service.name} at {dt}"
 
         return f"{self.service.name} at {self.start_datetime.strftime('%Y-%m-%d %H:%M %Z')}"
 
@@ -337,9 +332,7 @@ class EventGenerationScheduleExclusion(
     )
     name = models.CharField(
         max_length=255,
-        help_text=_(
-            "A descriptive name for this exclusion (e.g. 'Public Holidays 2026')."
-        ),
+        help_text=_("A descriptive name for this exclusion (e.g. 'Public Holidays 2026')."),
     )
 
     panels = [
@@ -387,10 +380,7 @@ class EventGenerationScheduleExclusionPeriod(
     end_date = models.DateField(
         null=True,
         blank=True,
-        help_text=_(
-            "End date of the exclusion period (inclusive). "
-            "Leave empty to exclude only the start date."
-        ),
+        help_text=_("End date of the exclusion period (inclusive). Leave empty to exclude only the start date."),
     )
 
     panels = [

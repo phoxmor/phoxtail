@@ -39,7 +39,8 @@ def admin_schedule_event_create_form_view(request):
                 event = form.save()
                 messages.success(
                     request,
-                    f"Event '{event.service.name}' successfully created for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
+                    f"Event '{event.service.name}' successfully created"
+                    f" for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
                 )
                 # Surface soft warnings as info messages
                 for warn in getattr(form, "_warnings", []):
@@ -77,18 +78,14 @@ def admin_schedule_event_create_form_view(request):
                 hour = int(hour_param)
 
                 # Create start_datetime (date + hour) - timezone-naive for the form
-                start_datetime = datetime.combine(
-                    event_date, datetime.min.time()
-                ).replace(hour=hour)
+                start_datetime = datetime.combine(event_date, datetime.min.time()).replace(hour=hour)
 
                 # Create end_datetime (1 hour later by default)
                 end_datetime = start_datetime + timedelta(hours=1)
 
                 # Format for datetime-local input (YYYY-MM-DDTHH:MM)
                 # Note: datetime-local inputs expect timezone-naive values
-                initial_data["start_datetime"] = start_datetime.strftime(
-                    "%Y-%m-%dT%H:%M"
-                )
+                initial_data["start_datetime"] = start_datetime.strftime("%Y-%m-%dT%H:%M")
                 initial_data["end_datetime"] = end_datetime.strftime("%Y-%m-%dT%H:%M")
             except (ValueError, TypeError):
                 # Invalid date/hour format, ignore and show empty form
@@ -128,7 +125,8 @@ def admin_schedule_event_update_form_view(request, event_id):
                 if events_updated == 1:
                     messages.success(
                         request,
-                        f"Event '{event.service.name}' successfully updated for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
+                        f"Event '{event.service.name}' successfully updated"
+                        f" for {event.start_datetime.strftime('%B %d, %Y at %I:%M %p')}.",
                     )
                 else:
                     messages.success(
@@ -192,9 +190,7 @@ def admin_event_schedule_view(request):
             context,
         )
 
-    return render(
-        request, "phoxtail_booking_events/admin/scheduling/index.html", context
-    )
+    return render(request, "phoxtail_booking_events/admin/scheduling/index.html", context)
 
 
 @booking_permission_required("access_scheduling_management")
@@ -273,9 +269,7 @@ def admin_schedule_event_frequency_form_field_view(request):
     if pluralize_freq:
         freq_field = form.fields["recurrence_freq"]
         # Create pluralized choices: "Day" → "Days", "Week" → "Weeks"
-        new_choices = [
-            (value, f"{label}s") for value, label in RecurrenceFrequency.choices
-        ]
+        new_choices = [(value, f"{label}s") for value, label in RecurrenceFrequency.choices]
         # Preserve the empty choice for non-required fields
         if not freq_field.required:
             new_choices = [("", "---------")] + new_choices
@@ -285,13 +279,9 @@ def admin_schedule_event_frequency_form_field_view(request):
     else:
         # Even when not pluralizing, ensure empty choice is present
         freq_field = form.fields["recurrence_freq"]
-        if not freq_field.required and not any(
-            choice[0] == "" for choice in freq_field.choices
-        ):
+        if not freq_field.required and not any(choice[0] == "" for choice in freq_field.choices):
             base_choices = list(RecurrenceFrequency.choices)
-            freq_field.widget = django_forms.Select(
-                choices=[("", "---------")] + base_choices
-            )
+            freq_field.widget = django_forms.Select(choices=[("", "---------")] + base_choices)
             freq_field.choices = [("", "---------")] + base_choices
 
     from django.urls import reverse
@@ -300,9 +290,7 @@ def admin_schedule_event_frequency_form_field_view(request):
         "field": form["recurrence_freq"],
         "show_label": False,
         "show_help_text": False,
-        "hx_get": reverse(
-            "scheduling_management:admin_schedule_event_weekdays_form_field"
-        ),
+        "hx_get": reverse("scheduling_management:admin_schedule_event_weekdays_form_field"),
         "hx_target": "#recurrence-frequency-dependent-wrapper",
         "hx_vals": "js:{recurrence_interval: document.getElementById('id_recurrence_interval').value}",
     }
@@ -409,9 +397,7 @@ def admin_schedule_actions_form_view(request):
     )
 
 
-@booking_permission_required(
-    "access_scheduling_management", "bulk_update_scheduled_events"
-)
+@booking_permission_required("access_scheduling_management", "bulk_update_scheduled_events")
 def admin_schedule_actions_view(request):
     """
     Processes action changes (show_empty_rows) and returns OOB swaps to update both the schedule and the actions form.
@@ -438,9 +424,7 @@ def admin_schedule_event_delete_view(request, event_id):
     event = get_object_or_404(Event, uuid=event_id)
 
     if request.method == "POST":
-        delete_scope = request.POST.get(
-            "update_scope", EventUpdateScope.THIS_EVENT_ONLY
-        )
+        delete_scope = request.POST.get("update_scope", EventUpdateScope.THIS_EVENT_ONLY)
 
         service_name = event.service.name
 
@@ -489,9 +473,7 @@ def admin_schedule_template_event_update_form_view(request, event_id):
     """
     from phoxtail.booking.events.forms import TemplateEventUpdateForm
 
-    template_event = get_object_or_404(
-        Event, uuid=event_id, is_recurrence_template=True
-    )
+    template_event = get_object_or_404(Event, uuid=event_id, is_recurrence_template=True)
 
     if request.method == "POST":
         form = TemplateEventUpdateForm(request.POST, instance=template_event)
@@ -500,7 +482,8 @@ def admin_schedule_template_event_update_form_view(request, event_id):
                 template_event = form.save()
                 messages.success(
                     request,
-                    f"Series template for '{template_event.service.name}' successfully updated. Future generated events will inherit these changes.",
+                    f"Series template for '{template_event.service.name}' successfully updated."
+                    " Future generated events will inherit these changes.",
                 )
                 # Surface soft warnings as info messages
                 for warn in getattr(form, "_warnings", []):
@@ -516,9 +499,7 @@ def admin_schedule_template_event_update_form_view(request, event_id):
 
         # Determine which frequency-dependent fields to show (needed for error re-render)
         show_weekdays = template_event.recurrence_freq == RecurrenceFrequency.WEEKLY
-        show_monthly_options = (
-            template_event.recurrence_freq == RecurrenceFrequency.MONTHLY
-        )
+        show_monthly_options = template_event.recurrence_freq == RecurrenceFrequency.MONTHLY
 
         schedule_context = ScheduleContextBuilder.get_full_context(request)
         context = {
@@ -538,16 +519,11 @@ def admin_schedule_template_event_update_form_view(request, event_id):
         form = TemplateEventUpdateForm(instance=template_event)
 
         # Pluralize frequency field choices if interval > 1 on initial load
-        if (
-            template_event.recurrence_interval
-            and template_event.recurrence_interval > 1
-        ):
+        if template_event.recurrence_interval and template_event.recurrence_interval > 1:
             from django import forms
 
             freq_field = form.fields["recurrence_freq"]
-            new_choices = [
-                (value, f"{label}s") for value, label in RecurrenceFrequency.choices
-            ]
+            new_choices = [(value, f"{label}s") for value, label in RecurrenceFrequency.choices]
             if not freq_field.required:
                 new_choices = [("", "---------")] + new_choices
             freq_field.widget = forms.Select(choices=new_choices)
@@ -571,9 +547,7 @@ def admin_schedule_template_event_update_form_view(request, event_id):
     )
 
 
-@booking_permission_required(
-    "access_scheduling_management", "bulk_update_scheduled_events"
-)
+@booking_permission_required("access_scheduling_management", "bulk_update_scheduled_events")
 def admin_schedule_bulk_update_status_form_view(request):
     """
     Displays the bulk update status form modal for the schedule view.
@@ -590,9 +564,7 @@ def admin_schedule_bulk_update_status_form_view(request):
             new_status = form.cleaned_data["status"]
 
             # Update all events in the date range
-            events_to_update = Event.objects.filter(
-                start_datetime__gte=from_datetime, start_datetime__lte=to_datetime
-            )
+            events_to_update = Event.objects.filter(start_datetime__gte=from_datetime, start_datetime__lte=to_datetime)
 
             updated_count = events_to_update.update(status=new_status)
 
