@@ -30,6 +30,7 @@
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     background: rgb(var(--color-surface-50));
     color: rgb(var(--color-surface-900));
+    font-family: var(--font-ui);
 }
 
 .auth-toast--hidden {
