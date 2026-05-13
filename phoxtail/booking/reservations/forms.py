@@ -51,17 +51,11 @@ class ReservationUpdateForm(forms.ModelForm):
         if new_status == ReservationStatus.CANCELLED:
             svc.admin.cancel(user=user)
             # cancel may delete the reservation
-            self.reservation_deleted = not Reservation.objects.filter(
-                id=self.instance.id
-            ).exists()
+            self.reservation_deleted = not Reservation.objects.filter(id=self.instance.id).exists()
             return self.instance
 
         if new_status == ReservationStatus.CONFIRMED:
-            subscription_id = (
-                str(self.instance.subscription.uuid)
-                if self.instance.subscription.uuid
-                else None
-            )
+            subscription_id = str(self.instance.subscription.uuid) if self.instance.subscription.uuid else None
             return svc.admin.confirm(subscription_id=subscription_id)
 
         if new_status == ReservationStatus.COMPLETED:

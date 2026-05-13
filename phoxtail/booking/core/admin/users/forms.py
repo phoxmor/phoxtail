@@ -19,9 +19,7 @@ class BookingGroupsMixin:
             widget=forms.CheckboxSelectMultiple,
         )
         if user is not None:
-            self.initial["booking_groups"] = user.booking_groups.values_list(
-                "pk", flat=True
-            )
+            self.initial["booking_groups"] = user.booking_groups.values_list("pk", flat=True)
 
 
 class UserUpdateForm(BookingGroupsMixin, forms.ModelForm):

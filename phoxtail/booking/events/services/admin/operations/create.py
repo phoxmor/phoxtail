@@ -45,9 +45,7 @@ class EventServiceAdminCreate:
         result.merge(validate_time_range(start_datetime, end_datetime))
 
         # Hard errors: recurrence settings
-        result.merge(
-            validate_recurrence_until(start_datetime, data.get("recurrence_until"))
-        )
+        result.merge(validate_recurrence_until(start_datetime, data.get("recurrence_until")))
         result.merge(
             validate_monthly_recurrence(
                 data.get("recurrence_freq"),

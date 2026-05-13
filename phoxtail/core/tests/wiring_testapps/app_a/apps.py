@@ -5,9 +5,7 @@ class AppAConfig(PhoxtailAppConfig):
     name = "phoxtail.core.tests.wiring_testapps.app_a"
     label = "wiring_testapp_a"
 
-    url_mount = UrlMount(
-        prefix="a/", module="phoxtail.core.tests.wiring_testapps.app_a.urls"
-    )
+    url_mount = UrlMount(prefix="a/", module="phoxtail.core.tests.wiring_testapps.app_a.urls")
     context_processors = ["phoxtail.core.tests.wiring_testapps.app_a.ctx.proc_a"]
     middleware = ["phoxtail.core.tests.wiring_testapps.app_a.middleware.MiddlewareA"]
     default_settings = {

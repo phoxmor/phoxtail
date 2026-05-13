@@ -37,9 +37,7 @@ class TestAdminConfirmWaitlisted:
         sub_type = SubscriptionTypeFactory(location=location)
         subscription = kw.pop(
             "subscription",
-            SubscriptionFactory(
-                user=user, subscription_type=sub_type, is_paid=True, credits=10
-            ),
+            SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10),
         )
         start = kw.pop("start_datetime", timezone.now() + datetime.timedelta(days=1))
         event = kw.pop(
@@ -115,9 +113,7 @@ class TestAdminConfirmCancelled:
         space = SpaceFactory(location=location)
         sub_type = SubscriptionTypeFactory(location=location)
         user = UserFactory()
-        subscription = SubscriptionFactory(
-            user=user, subscription_type=sub_type, is_paid=True, credits=10
-        )
+        subscription = SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10)
         event = EventFactory(
             service=service,
             space=space,
@@ -141,9 +137,7 @@ class TestAdminConfirmCancelled:
         space = SpaceFactory(location=location)
         sub_type = SubscriptionTypeFactory(location=location)
         user = UserFactory()
-        subscription = SubscriptionFactory(
-            user=user, subscription_type=sub_type, is_paid=True, credits=10
-        )
+        subscription = SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10)
         event = EventFactory(
             service=service,
             space=space,
@@ -172,9 +166,7 @@ class TestAdminConfirmNoShow:
         space = SpaceFactory(location=location)
         sub_type = SubscriptionTypeFactory(location=location)
         user = UserFactory()
-        subscription = SubscriptionFactory(
-            user=user, subscription_type=sub_type, is_paid=True, credits=10
-        )
+        subscription = SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10)
         event = EventFactory(
             service=service,
             space=space,

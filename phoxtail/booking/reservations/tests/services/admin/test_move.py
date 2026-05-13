@@ -35,9 +35,7 @@ class TestAdminMove:
         sub_type = SubscriptionTypeFactory(location=location)
         subscription = kw.pop(
             "subscription",
-            SubscriptionFactory(
-                user=user, subscription_type=sub_type, is_paid=True, credits=10
-            ),
+            SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10),
         )
         start = kw.pop("start_datetime", timezone.now() + datetime.timedelta(days=1))
         event = EventFactory(
@@ -112,9 +110,7 @@ class TestAdminMove:
     @freeze_time("2024-06-15 08:00:00")
     def test_duplicate_at_target_raises(self):
         r, target, _ = self._setup()
-        ReservationFactory(
-            user=r.user, event=target, status=ReservationStatus.CONFIRMED
-        )
+        ReservationFactory(user=r.user, event=target, status=ReservationStatus.CONFIRMED)
         with pytest.raises(ValidationError):
             ReservationService(r).admin.move(target_event_id=str(target.uuid))
 
@@ -159,8 +155,6 @@ class TestAdminMove:
             start_datetime=target.start_datetime,
             end_datetime=target.end_datetime,
         )
-        ReservationFactory(
-            user=r.user, event=overlap_event, status=ReservationStatus.CONFIRMED
-        )
+        ReservationFactory(user=r.user, event=overlap_event, status=ReservationStatus.CONFIRMED)
         with pytest.raises(ValidationError):
             ReservationService(r).admin.move(target_event_id=str(target.uuid))

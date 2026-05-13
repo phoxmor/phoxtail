@@ -39,14 +39,10 @@ class TestAdminCancel:
         sub_type = SubscriptionTypeFactory(location=location)
         subscription = overrides.pop(
             "subscription",
-            SubscriptionFactory(
-                user=user, subscription_type=sub_type, is_paid=True, credits=10
-            ),
+            SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10),
         )
 
-        start = overrides.pop(
-            "start_datetime", timezone.now() + datetime.timedelta(days=1)
-        )
+        start = overrides.pop("start_datetime", timezone.now() + datetime.timedelta(days=1))
         event = EventFactory(
             service=service,
             space=space,
@@ -88,9 +84,7 @@ class TestAdminCancel:
     @freeze_time("2024-06-15 08:00:00")
     def test_outside_cancellation_period_marks_cancelled(self):
         """Late cancellation marks the reservation as CANCELLED."""
-        r, sub = self._setup(
-            start_datetime=timezone.now() + datetime.timedelta(minutes=30)
-        )
+        r, sub = self._setup(start_datetime=timezone.now() + datetime.timedelta(minutes=30))
         ReservationService(r).admin.cancel(user=r.user)
 
         r.refresh_from_db()
@@ -99,9 +93,7 @@ class TestAdminCancel:
     @freeze_time("2024-06-15 08:00:00")
     def test_outside_cancellation_period_does_not_restore_credit(self):
         """Late cancellation does not restore credits."""
-        r, sub = self._setup(
-            start_datetime=timezone.now() + datetime.timedelta(minutes=30)
-        )
+        r, sub = self._setup(start_datetime=timezone.now() + datetime.timedelta(minutes=30))
         initial_credits = sub.credits
         ReservationService(r).admin.cancel(user=r.user)
 

@@ -37,9 +37,7 @@ class TestPublicRenew:
     # Happy path / state assertions
     # ------------------------------------------------------------------
 
-    def test_archives_old_and_returns_new_active_subscription(
-        self, renewable_subscription
-    ):
+    def test_archives_old_and_returns_new_active_subscription(self, renewable_subscription):
         old_pk = renewable_subscription.pk
         new_sub = SubscriptionService(renewable_subscription).public.renew()
         assert Subscription.objects.get(pk=old_pk).status == SubscriptionStatus.ARCHIVED
@@ -62,17 +60,13 @@ class TestPublicRenew:
         with pytest.raises(ValidationError):
             SubscriptionService(sub).public.renew()
 
-    def test_raises_when_subscription_status_is_not_active(
-        self, renewable_subscription
-    ):
+    def test_raises_when_subscription_status_is_not_active(self, renewable_subscription):
         renewable_subscription.status = SubscriptionStatus.SUSPENDED
         renewable_subscription.save()
         with pytest.raises(ValidationError):
             SubscriptionService(renewable_subscription).public.renew()
 
-    def test_raises_when_still_active_with_remaining_credits(
-        self, user, subscription_type
-    ):
+    def test_raises_when_still_active_with_remaining_credits(self, user, subscription_type):
         sub = SubscriptionFactory(
             user=user,
             subscription_type=subscription_type,

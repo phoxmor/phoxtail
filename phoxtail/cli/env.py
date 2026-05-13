@@ -76,9 +76,7 @@ def _prompt_development_env(output_file: Path) -> None:
 
     content = render_template("env/development.env", context)
     output_file.write_text(content)
-    console.print(
-        f"\n[green]✓[/green] Environment file created: [bold]{output_file}[/bold]"
-    )
+    console.print(f"\n[green]✓[/green] Environment file created: [bold]{output_file}[/bold]")
 
 
 def _prompt_production_env(output_file: Path) -> None:
@@ -134,26 +132,18 @@ def _prompt_production_env(output_file: Path) -> None:
         email_host_password = Prompt.ask("[red]*[/red] SMTP password", password=True)
         while not email_host_password.strip():
             console.print("[red]Error:[/red] SMTP password is required")
-            email_host_password = Prompt.ask(
-                "[red]*[/red] SMTP password", password=True
-            )
+            email_host_password = Prompt.ask("[red]*[/red] SMTP password", password=True)
         context["email_host_password"] = email_host_password
-        context["default_from_email"] = Prompt.ask(
-            "Default from email", default=domain_email
-        )
+        context["default_from_email"] = Prompt.ask("Default from email", default=domain_email)
 
     context["allow_signup"] = Confirm.ask("Allow user signup?", default=False)
 
     content = render_template("env/production.env", context)
     output_file.write_text(content)
 
-    console.print(
-        f"\n[green]✓[/green] Environment file created: [bold]{output_file}[/bold]"
-    )
+    console.print(f"\n[green]✓[/green] Environment file created: [bold]{output_file}[/bold]")
     console.print("\n[yellow]⚠[/yellow]  [bold]Security Reminder:[/bold]")
-    console.print(
-        "   • Keep your .env file secure and never commit it to version control"
-    )
+    console.print("   • Keep your .env file secure and never commit it to version control")
     console.print("   • Ensure .env is listed in your .gitignore file")
 
 
@@ -198,10 +188,7 @@ def create(
 
     env_lower = environment.lower()
     if env_lower not in ["development", "production"]:
-        console.print(
-            f"[red]Error:[/red] Invalid environment '{environment}'. "
-            "Must be 'development' or 'production'."
-        )
+        console.print(f"[red]Error:[/red] Invalid environment '{environment}'. Must be 'development' or 'production'.")
         raise typer.Exit(1)
 
     if output.exists() and not force:

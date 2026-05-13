@@ -40,7 +40,5 @@ def get_agent(artifact: ModelArtifact) -> Agent:
         identifier=artifact.identifier,
         base_url=provider.base_url or None,
         api_key_env_var=provider.api_key_env_var or None,
-        cache_key=(
-            f"{provider.updated_at.timestamp()}|{artifact.updated_at.timestamp()}"
-        ),
+        cache_key=(f"{provider.updated_at.timestamp()}|{artifact.updated_at.timestamp()}"),
     )

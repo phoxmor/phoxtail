@@ -37,9 +37,7 @@ class TestBlockVariant:
     def test_unique_block_collection_identifier(self, block, collection):
         BlockVariantFactory(block=block, collection=collection, identifier="same_id")
         with pytest.raises(IntegrityError):
-            BlockVariantFactory(
-                block=block, collection=collection, identifier="same_id"
-            )
+            BlockVariantFactory(block=block, collection=collection, identifier="same_id")
 
     def test_unique_default_per_block(self, block, collection):
         BlockVariantFactory(block=block, collection=collection, is_default=True)

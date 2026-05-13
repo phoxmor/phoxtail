@@ -9,8 +9,4 @@ def get_recent_blog_posts(blog_index_page, count=3):
         return []
     from phoxtail.blog.models import BlogPostPage
 
-    return (
-        BlogPostPage.objects.live()
-        .child_of(blog_index_page)
-        .order_by("-first_published_at")[:count]
-    )
+    return BlogPostPage.objects.live().child_of(blog_index_page).order_by("-first_published_at")[:count]

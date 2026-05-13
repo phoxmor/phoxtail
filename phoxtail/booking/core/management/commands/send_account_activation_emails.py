@@ -55,9 +55,7 @@ class Command(BaseCommand):
                 is_active=True,
                 last_login=None,
                 is_superuser=False,
-            ).exclude(
-                password__startswith="!"
-            )  # exclude unusable passwords already set
+            ).exclude(password__startswith="!")  # exclude unusable passwords already set
             label = "migrated users"
 
         count = users.count()
@@ -67,31 +65,22 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(
-            self.style.SUCCESS(
-                f"\n{'DRY RUN — ' if dry_run else ''}Sending activation emails to "
-                f"{count} {label}...\n"
-            )
+            self.style.SUCCESS(f"\n{'DRY RUN — ' if dry_run else ''}Sending activation emails to {count} {label}...\n")
         )
 
         sent = 0
         failed = 0
 
         protocol = "https" if not settings.DEBUG else "http"
-        domain = settings.WAGTAILADMIN_BASE_URL.replace("https://", "").replace(
-            "http://", ""
-        )
+        domain = settings.WAGTAILADMIN_BASE_URL.replace("https://", "").replace("http://", "")
 
         for user in users:
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            activation_url = (
-                f"{protocol}://{domain}/en/accounts/password/reset/key/{uid}-{token}/"
-            )
+            activation_url = f"{protocol}://{domain}/en/accounts/password/reset/key/{uid}-{token}/"
 
             if dry_run:
-                self.stdout.write(
-                    f"  Would email: {user.email} ({user.get_full_name()})"
-                )
+                self.stdout.write(f"  Would email: {user.email} ({user.get_full_name()})")
                 self.stdout.write(f"    Link: {activation_url}")
                 continue
 
@@ -126,8 +115,4 @@ class Command(BaseCommand):
                 failed += 1
 
         if not dry_run:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"\n{'=' * 50}\n  Sent:   {sent}\n  Failed: {failed}\n{'=' * 50}\n"
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"\n{'=' * 50}\n  Sent:   {sent}\n  Failed: {failed}\n{'=' * 50}\n"))

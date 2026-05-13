@@ -53,8 +53,7 @@ def _resolve(pk: int) -> InternalLink:
 def _format_validation_error(exc: ValidationError) -> str:
     if hasattr(exc, "message_dict"):
         return "; ".join(
-            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}"
-            for k, v in exc.message_dict.items()
+            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}" for k, v in exc.message_dict.items()
         )
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
 
@@ -62,9 +61,7 @@ def _format_validation_error(exc: ValidationError) -> str:
 @router.get("/", response={200: InternalLinkList}, summary="List InternalLinks")
 def list_internal_links(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on label and url_name."
-    ),
+    search: str | None = Query(None, description="Prefix search on label and url_name."),
 ):
     qs = InternalLink.objects.order_by("label")
     if search:
@@ -88,9 +85,7 @@ def get_internal_link(request: HttpRequest, response: HttpResponse, link_id: int
     response={201: InternalLinkItem, 400: Error, 409: Error},
     summary="Create an InternalLink",
 )
-def create_internal_link(
-    request: HttpRequest, response: HttpResponse, payload: InternalLinkCreate
-):
+def create_internal_link(request: HttpRequest, response: HttpResponse, payload: InternalLinkCreate):
     link = InternalLink(label=payload.label, url_name=payload.url_name)
     try:
         link.full_clean()
@@ -99,9 +94,7 @@ def create_internal_link(
     try:
         link.save()
     except IntegrityError:
-        raise HttpError(
-            409, f"InternalLink with url_name '{payload.url_name}' already exists."
-        )
+        raise HttpError(409, f"InternalLink with url_name '{payload.url_name}' already exists.")
     response["ETag"] = _etag(link)
     return 201, _serialize(link)
 
@@ -121,8 +114,7 @@ def update_internal_link(
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this internal link.",
+            "If-Match header is required. Send the ETag from your most recent GET of this internal link.",
         )
 
     link = _resolve(link_id)
@@ -134,8 +126,7 @@ def update_internal_link(
     if current_norm not in normalized and "*" not in candidates:
         raise HttpError(
             412,
-            "ETag mismatch: the link has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the link has changed since you last read it. Re-fetch and retry.",
         )
 
     if payload.label is not None:

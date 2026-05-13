@@ -50,16 +50,11 @@ class BlockPosition(Schema):
     index: int | None = None
 
     def validate_exclusive(self) -> None:
-        set_fields = [
-            k
-            for k in ("before_uuid", "after_uuid", "index")
-            if getattr(self, k) is not None
-        ]
+        set_fields = [k for k in ("before_uuid", "after_uuid", "index") if getattr(self, k) is not None]
         if len(set_fields) > 1:
             raise HttpError(
                 400,
-                f"Specify exactly one of before_uuid / after_uuid / index; "
-                f"got: {set_fields}",
+                f"Specify exactly one of before_uuid / after_uuid / index; got: {set_fields}",
             )
 
 
@@ -131,26 +126,20 @@ def _resolve_position(
     if position.index is not None:
         idx = position.index
         if idx < 0 or idx > len(working):
-            raise HttpError(
-                400, f"index {idx} out of range (body has {len(working)} blocks)."
-            )
+            raise HttpError(400, f"index {idx} out of range (body has {len(working)} blocks).")
         return idx
 
     if position.after_uuid is not None:
         for i, b in enumerate(working):
             if b.get("id") == position.after_uuid:
                 return i + 1
-        raise HttpError(
-            404, f"after_uuid '{position.after_uuid}' not found on this page."
-        )
+        raise HttpError(404, f"after_uuid '{position.after_uuid}' not found on this page.")
 
     if position.before_uuid is not None:
         for i, b in enumerate(working):
             if b.get("id") == position.before_uuid:
                 return i
-        raise HttpError(
-            404, f"before_uuid '{position.before_uuid}' not found on this page."
-        )
+        raise HttpError(404, f"before_uuid '{position.before_uuid}' not found on this page.")
 
     return len(working)  # all None → append
 

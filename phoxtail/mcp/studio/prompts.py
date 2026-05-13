@@ -9,9 +9,7 @@ from jinja2 import Environment, FileSystemLoader
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.studio._http import get_json
 
-_TEMPLATE_DIR = (
-    Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
-)
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
 _jinja_env = Environment(
     loader=FileSystemLoader(str(_TEMPLATE_DIR)),
     keep_trailing_newline=True,

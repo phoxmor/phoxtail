@@ -11,9 +11,7 @@ from .models import AccessTokensAdminPermission
 access_tokens_permission_policy = AppPermissionPolicy(AccessTokensAdminPermission)
 
 # ── FBV decorator ───────────────────────────────────────────────
-access_tokens_permission_required = permission_required_factory(
-    access_tokens_permission_policy
-)
+access_tokens_permission_required = permission_required_factory(access_tokens_permission_policy)
 
 
 # ── CBV mixin (pre-wired with access-tokens policy) ────────────

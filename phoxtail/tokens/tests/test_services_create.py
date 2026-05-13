@@ -61,9 +61,7 @@ class TestCreateDefaults:
         assert token.token_type == TokenType.PERSONAL
 
     def test_explicit_token_type_overrides_default(self, user):
-        token, _ = AccessTokenService().admin.create(
-            user_id=user.id, name="t", token_type=TokenType.PERSONAL
-        )
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", token_type=TokenType.PERSONAL)
         assert token.token_type == TokenType.PERSONAL
 
     def test_name_is_stripped(self, user):
@@ -91,10 +89,7 @@ class TestRawTokenShape:
         assert re.match(r"^phxt_[A-Za-z0-9]{3}[A-Za-z0-9_\-]{32}$", raw)
 
     def test_each_call_produces_unique_raw_token(self, user):
-        results = {
-            AccessTokenService().admin.create(user_id=user.id, name=f"t{i}")[1]
-            for i in range(20)
-        }
+        results = {AccessTokenService().admin.create(user_id=user.id, name=f"t{i}")[1] for i in range(20)}
         assert len(results) == 20
 
     def test_prefix_field_matches_first_8_of_raw(self, user):
@@ -135,14 +130,10 @@ class TestCreatePersistence:
             AccessTokenService().admin.create(user_id=999_999, name="t")
 
     def test_passes_description_through(self, user):
-        token, _ = AccessTokenService().admin.create(
-            user_id=user.id, name="t", description="why"
-        )
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", description="why")
         assert token.description == "why"
 
     def test_passes_future_expiry(self, user):
         when = timezone.now() + timedelta(days=7)
-        token, _ = AccessTokenService().admin.create(
-            user_id=user.id, name="t", expires_at=when
-        )
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", expires_at=when)
         assert token.expires_at == when

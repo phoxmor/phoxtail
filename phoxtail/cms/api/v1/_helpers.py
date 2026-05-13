@@ -23,9 +23,7 @@ def etag_matches(header_value: str | None, current: str) -> bool:
     if not header_value:
         return False
     candidates = {t.strip() for t in header_value.split(",")}
-    return "*" in candidates or _strip_weak(current) in {
-        _strip_weak(t) for t in candidates
-    }
+    return "*" in candidates or _strip_weak(current) in {_strip_weak(t) for t in candidates}
 
 
 def require_if_match(request, current_etag: str) -> None:
@@ -33,14 +31,12 @@ def require_if_match(request, current_etag: str) -> None:
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Fetch the resource first and pass "
-            "the ETag from the response.",
+            "If-Match header is required. Fetch the resource first and pass the ETag from the response.",
         )
     if not etag_matches(if_match, current_etag):
         raise HttpError(
             412,
-            "ETag mismatch: the resource has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the resource has changed since you last read it. Re-fetch and retry.",
         )
 
 
@@ -101,9 +97,7 @@ def resolve_site_font(site_id: int, font_id: int):
 
     setting = resolve_setting(site_id)
     try:
-        sf = SiteSettingFont.objects.select_related("font_family", "role").get(
-            pk=font_id, config=setting
-        )
+        sf = SiteSettingFont.objects.select_related("font_family", "role").get(pk=font_id, config=setting)
         return setting, sf
     except SiteSettingFont.DoesNotExist:
         raise HttpError(404, f"SiteSettingFont {font_id} not found for site {site_id}.")
@@ -114,14 +108,10 @@ def resolve_site_palette(site_id: int, palette_id: int):
 
     setting = resolve_setting(site_id)
     try:
-        sp = SiteSettingPalette.objects.select_related("palette", "role").get(
-            pk=palette_id, config=setting
-        )
+        sp = SiteSettingPalette.objects.select_related("palette", "role").get(pk=palette_id, config=setting)
         return setting, sp
     except SiteSettingPalette.DoesNotExist:
-        raise HttpError(
-            404, f"SiteSettingPalette {palette_id} not found for site {site_id}."
-        )
+        raise HttpError(404, f"SiteSettingPalette {palette_id} not found for site {site_id}.")
 
 
 def serialize_setting(s) -> dict:

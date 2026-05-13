@@ -15,9 +15,7 @@ class SubscriptionCreateForm(forms.Form):
     )
 
     subscription_type = SingleSelectSearchField(
-        queryset=SubscriptionType.objects.select_related("location")
-        .filter(is_active=True)
-        .order_by("name"),
+        queryset=SubscriptionType.objects.select_related("location").filter(is_active=True).order_by("name"),
         required=True,
         help_text="Select a subscription type",
     )

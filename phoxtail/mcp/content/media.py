@@ -29,9 +29,7 @@ from phoxtail.mcp.content.pages import _write_error_envelope
         "field expects an Image FK."
     ),
 )
-def list_images(
-    search: str | None = None, limit: int = 50, collection: int | None = None
-) -> str:
+def list_images(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
     params: dict = {"limit": limit}
     if search is not None:
         params["search"] = search
@@ -200,9 +198,7 @@ def delete_image(image_id: int) -> str:
         "expects a Document FK."
     ),
 )
-def list_documents(
-    search: str | None = None, limit: int = 50, collection: int | None = None
-) -> str:
+def list_documents(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
     params: dict = {"limit": limit}
     if search is not None:
         params["search"] = search
@@ -347,9 +343,7 @@ def delete_document(document_id: int) -> str:
         "The integer `id` is the value to pass wherever a block or page field expects a Video FK."
     ),
 )
-def list_videos(
-    search: str | None = None, limit: int = 50, collection: int | None = None
-) -> str:
+def list_videos(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
     params: dict = {"limit": limit}
     if search is not None:
         params["search"] = search
@@ -508,9 +502,7 @@ def delete_video(video_id: int) -> str:
         "The integer `id` is the value to pass wherever a block or page field expects an Audio FK."
     ),
 )
-def list_audio(
-    search: str | None = None, limit: int = 50, collection: int | None = None
-) -> str:
+def list_audio(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
     params: dict = {"limit": limit}
     if search is not None:
         params["search"] = search

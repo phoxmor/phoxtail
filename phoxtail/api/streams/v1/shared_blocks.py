@@ -55,9 +55,7 @@ def list_shared_blocks(
     response={200: SharedBlock, 404: Error},
     summary="Show a SharedBlock by numeric ID",
 )
-def get_shared_block_by_id(
-    request: HttpRequest, response: HttpResponse, shared_block_id: int
-):
+def get_shared_block_by_id(request: HttpRequest, response: HttpResponse, shared_block_id: int):
     sb = resolve_shared_block_by_pk(shared_block_id)
     response["ETag"] = shared_block_etag(sb)
     return shared_block_detail(sb)
@@ -68,9 +66,7 @@ def get_shared_block_by_id(
     response={201: SharedBlock, 400: Error, 404: Error, 409: Error},
     summary="Create a SharedBlock",
 )
-def create_shared_block(
-    request: HttpRequest, response: HttpResponse, payload: SharedBlockCreate
-):
+def create_shared_block(request: HttpRequest, response: HttpResponse, payload: SharedBlockCreate):
     block = resolve_block_by_pk(payload.block_id)
     if not block.is_shared:
         raise HttpError(
@@ -118,8 +114,7 @@ def update_shared_block_by_id(
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this shared block.",
+            "If-Match header is required. Send the ETag from your most recent GET of this shared block.",
         )
 
     sb = resolve_shared_block_by_pk(shared_block_id)
@@ -128,8 +123,7 @@ def update_shared_block_by_id(
     if not etag_matches(if_match, current):
         raise HttpError(
             412,
-            "ETag mismatch: the shared block has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the shared block has changed since you last read it. Re-fetch and retry.",
         )
 
     if payload.content is not None:
@@ -161,7 +155,6 @@ def delete_shared_block_by_id(request: HttpRequest, shared_block_id: int):
 def _format_validation_error(exc: ValidationError) -> str:
     if hasattr(exc, "message_dict"):
         return "; ".join(
-            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}"
-            for k, v in exc.message_dict.items()
+            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}" for k, v in exc.message_dict.items()
         )
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)

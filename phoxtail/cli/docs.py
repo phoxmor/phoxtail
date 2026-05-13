@@ -34,8 +34,7 @@ def _check_zensical():
     except ImportError:
         console.print(
             Panel(
-                "Docs dependencies are not installed.\n"
-                "Run: [bold]pip install phoxtail\\[docs][/bold]",
+                "Docs dependencies are not installed.\nRun: [bold]pip install phoxtail\\[docs][/bold]",
                 title="[red]Missing dependency[/red]",
                 border_style="red",
                 expand=False,
@@ -49,8 +48,7 @@ def _check_docs_exist(mkdocs_yml: Path):
     if not mkdocs_yml.exists():
         console.print(
             Panel(
-                "Documentation files not found.\n"
-                "Expected mkdocs.yml at: " + str(mkdocs_yml),
+                "Documentation files not found.\nExpected mkdocs.yml at: " + str(mkdocs_yml),
                 title="[red]Missing docs[/red]",
                 border_style="red",
                 expand=False,
@@ -64,9 +62,7 @@ def docs(
     ctx: typer.Context,
     port: int = typer.Option(8000, "--port", "-p", help="Port to serve on"),
     host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to"),
-    open_browser: bool = typer.Option(
-        True, "--open/--no-open", "-o", help="Open in browser after starting"
-    ),
+    open_browser: bool = typer.Option(True, "--open/--no-open", "-o", help="Open in browser after starting"),
 ):
     """Serve the Phoxtail documentation locally.
 
@@ -109,9 +105,7 @@ def docs(
 
 @app.command()
 def build(
-    clean: bool = typer.Option(
-        False, "--clean", "-c", help="Clear the cache before building"
-    ),
+    clean: bool = typer.Option(False, "--clean", "-c", help="Clear the cache before building"),
 ) -> None:
     """Build the documentation as a static site.
 

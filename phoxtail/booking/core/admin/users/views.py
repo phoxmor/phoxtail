@@ -21,9 +21,7 @@ def admin_users_list_view(request):
     context["is_htmx_request"] = is_htmx_request
 
     if is_htmx_request:
-        return render(
-            request, "phoxtail_booking_core/admin/users/partials/users.html", context
-        )
+        return render(request, "phoxtail_booking_core/admin/users/partials/users.html", context)
 
     return render(request, "phoxtail_booking_core/admin/users/index.html", context)
 

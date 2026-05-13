@@ -26,19 +26,14 @@ class SubscriptionManager(models.Manager):
         - end_date is today or in the future
         """
         today = timezone.now().date()
-        return self.filter(
-            models.Q(end_date__isnull=True) | models.Q(end_date__gte=today)
-        )
+        return self.filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=today))
 
     def active_and_not_expired(self):
         """
         Returns subscriptions that are active AND not expired.
         This is the main method to use when checking for valid user subscriptions.
         """
-        return self.active().filter(
-            models.Q(end_date__isnull=True)
-            | models.Q(end_date__gte=timezone.now().date())
-        )
+        return self.active().filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=timezone.now().date()))
 
     def archived(self):
         """Returns subscriptions that have been archived."""
@@ -73,27 +68,18 @@ class SubscriptionManager(models.Manager):
         from django.db.models import Q
 
         # Case 1: No whitelist exists - unlimited access to all services with shared credits
-        unlimited_access = Q(credit_balances__isnull=True) & (
-            Q(credits__isnull=True) | Q(credits__gt=0)
-        )
+        unlimited_access = Q(credit_balances__isnull=True) & (Q(credits__isnull=True) | Q(credits__gt=0))
 
         # Case 2: Service is whitelisted with unlimited access
-        service_unlimited = Q(credit_balances__service=service) & Q(
-            credit_balances__credits__isnull=True
-        )
+        service_unlimited = Q(credit_balances__service=service) & Q(credit_balances__credits__isnull=True)
 
         # Case 3: Service is whitelisted with remaining service-specific credits
-        service_has_credits = Q(credit_balances__service=service) & Q(
-            credit_balances__credits__gt=0
-        )
+        service_has_credits = Q(credit_balances__service=service) & Q(credit_balances__credits__gt=0)
 
         # Case 4: Service is whitelisted but can fall back to shared credits
         # This handles when service has 0 service-specific credits but subscription has shared credits
         service_fallback = Q(credit_balances__service=service) & Q(credits__gt=0)
 
         return eligible_subscriptions.filter(
-            unlimited_access
-            | service_unlimited
-            | service_has_credits
-            | service_fallback
+            unlimited_access | service_unlimited | service_has_credits | service_fallback
         ).distinct()

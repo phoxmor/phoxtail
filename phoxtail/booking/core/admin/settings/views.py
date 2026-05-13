@@ -36,17 +36,13 @@ def admin_settings_index_view(request):
             "label": _("Subscription Types"),
             "icon": "doc-full",
             "description": _("Define subscription plans, pricing, and durations."),
-            "url": reverse(
-                "wagtailsnippets_phoxtail_booking_subscriptions_subscriptiontype:list"
-            ),
+            "url": reverse("wagtailsnippets_phoxtail_booking_subscriptions_subscriptiontype:list"),
         },
         {
             "label": _("Subscriptions"),
             "icon": "payment-card",
             "description": _("View and manage member subscriptions."),
-            "url": reverse(
-                "wagtailsnippets_phoxtail_booking_subscriptions_subscription:list"
-            ),
+            "url": reverse("wagtailsnippets_phoxtail_booking_subscriptions_subscription:list"),
         },
         {
             "label": _("Events"),
@@ -58,34 +54,24 @@ def admin_settings_index_view(request):
             "label": _("Schedules"),
             "icon": "schedule",
             "description": _("Configure automatic event generation schedules."),
-            "url": reverse(
-                "wagtailsnippets_phoxtail_booking_events_eventgenerationschedule:list"
-            ),
+            "url": reverse("wagtailsnippets_phoxtail_booking_events_eventgenerationschedule:list"),
         },
         {
             "label": _("Schedule Exclusions"),
             "icon": "calendar-lock",
-            "description": _(
-                "Define date periods when events should not be generated (e.g. holidays, closures)."
-            ),
-            "url": reverse(
-                "wagtailsnippets_phoxtail_booking_events_eventgenerationscheduleexclusion:list"
-            ),
+            "description": _("Define date periods when events should not be generated (e.g. holidays, closures)."),
+            "url": reverse("wagtailsnippets_phoxtail_booking_events_eventgenerationscheduleexclusion:list"),
         },
         {
             "label": _("Reservations"),
             "icon": "event-available",
             "description": _("View and manage all reservations."),
-            "url": reverse(
-                "wagtailsnippets_phoxtail_booking_reservations_reservation:list"
-            ),
+            "url": reverse("wagtailsnippets_phoxtail_booking_reservations_reservation:list"),
         },
         {
             "label": _("Groups"),
             "icon": "lock",
-            "description": _(
-                "Manage booking groups and control access to restricted events."
-            ),
+            "description": _("Manage booking groups and control access to restricted events."),
             "url": reverse("wagtailsnippets_phoxtail_booking_core_bookinggroup:list"),
         },
     ]

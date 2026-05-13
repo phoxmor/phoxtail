@@ -65,9 +65,7 @@ class TokenFilter(django_filters.FilterSet):
 
     user = django_filters.ModelChoiceFilter(
         field_name="user",
-        queryset=User.objects.filter(access_tokens__isnull=False)
-        .distinct()
-        .order_by("email"),
+        queryset=User.objects.filter(access_tokens__isnull=False).distinct().order_by("email"),
         label="User",
         empty_label="All",
     )
@@ -85,11 +83,7 @@ class TokenFilter(django_filters.FilterSet):
         """Wagtail autocomplete across AccessToken.search_fields."""
         if not value:
             return queryset
-        return (
-            search_backend.autocomplete(value, queryset)
-            .get_queryset()
-            .order_by("-created_at")
-        )
+        return search_backend.autocomplete(value, queryset).get_queryset().order_by("-created_at")
 
     def filter_status(self, queryset, name, value):
         now = timezone.now()
@@ -98,9 +92,7 @@ class TokenFilter(django_filters.FilterSet):
         if value == TokenStatus.EXPIRED:
             return queryset.filter(revoked_at__isnull=True, expires_at__lt=now)
         if value == TokenStatus.ACTIVE:
-            return queryset.filter(revoked_at__isnull=True).filter(
-                Q(expires_at__isnull=True) | Q(expires_at__gte=now)
-            )
+            return queryset.filter(revoked_at__isnull=True).filter(Q(expires_at__isnull=True) | Q(expires_at__gte=now))
         return queryset
 
     def filter_page(self, queryset, name, value):

@@ -61,9 +61,7 @@ def _summary_panel(
         rows.append(f"  [dim]Architecture:[/dim]  {architecture}")
     if location:
         rows.append(
-            f"  [dim]Location:[/dim]      "
-            f"{location.description}, {location.country}"
-            f"  [dim]({location.name})[/dim]"
+            f"  [dim]Location:[/dim]      {location.description}, {location.country}  [dim]({location.name})[/dim]"
         )
     if server_type:
         rows.append(
@@ -74,23 +72,15 @@ def _summary_panel(
             f"  •  {fmt_price(server_type.price_monthly)}"
         )
     if image:
-        rows.append(
-            f"  [dim]OS image:[/dim]      {image.os_flavor} {image.os_version or ''}"
-        )
+        rows.append(f"  [dim]OS image:[/dim]      {image.os_flavor} {image.os_version or ''}")
     if ssh_keys is not None:
         if ssh_keys:
             names = ", ".join(k.name for k in ssh_keys)
             rows.append(f"  [dim]SSH keys:[/dim]      {names}")
         else:
-            rows.append(
-                "  [dim]SSH keys:[/dim]      none"
-                "  [dim](root password will be set)[/dim]"
-            )
+            rows.append("  [dim]SSH keys:[/dim]      none  [dim](root password will be set)[/dim]")
     if deploy_user:
-        rows.append(
-            f"  [dim]Deploy user:[/dim]   {deploy_user}"
-            f"  [dim](root SSH will be disabled)[/dim]"
-        )
+        rows.append(f"  [dim]Deploy user:[/dim]   {deploy_user}  [dim](root SSH will be disabled)[/dim]")
     if name:
         rows.append(f"  [dim]Server name:[/dim]   {name}")
 
@@ -118,10 +108,7 @@ def _clear_and_show(**kwargs: object) -> None:
 def _ask_architecture() -> str | None:
     return questionary.select(
         "Architecture:",
-        choices=[
-            questionary.Choice(title=label, value=arch)
-            for arch, label in _ARCH_LABELS.items()
-        ],
+        choices=[questionary.Choice(title=label, value=arch) for arch, label in _ARCH_LABELS.items()],
         default="x86",
     ).ask()
 
@@ -146,9 +133,7 @@ def _ask_location(locations: list[Location]) -> Location | None:
     ).ask()
 
 
-def _ask_server_type(
-    server_types: list[ServerType], location_name: str
-) -> ServerType | None:
+def _ask_server_type(server_types: list[ServerType], location_name: str) -> ServerType | None:
     shared = sorted(
         [st for st in server_types if st.cpu_type == "shared"],
         key=lambda t: price_key(t.price_monthly),
@@ -160,9 +145,7 @@ def _ask_server_type(
 
     choices: list = []
     if shared:
-        choices.append(
-            questionary.Separator("── Shared vCPU ───────────────────────────────")
-        )
+        choices.append(questionary.Separator("── Shared vCPU ───────────────────────────────"))
         for st in shared:
             choices.append(
                 questionary.Choice(
@@ -177,9 +160,7 @@ def _ask_server_type(
                 )
             )
     if dedicated:
-        choices.append(
-            questionary.Separator("── Dedicated vCPU ────────────────────────────")
-        )
+        choices.append(questionary.Separator("── Dedicated vCPU ────────────────────────────"))
         for st in dedicated:
             choices.append(
                 questionary.Choice(
@@ -223,11 +204,7 @@ def _ask_image(images: list[Image]) -> Image | None:
         for img in imgs:
             choices.append(
                 questionary.Choice(
-                    title=(
-                        f"{img.os_flavor:<14}"
-                        f"  {img.os_version or '':>8}"
-                        f"    ({img.name})"
-                    ),
+                    title=(f"{img.os_flavor:<14}  {img.os_version or '':>8}    ({img.name})"),
                     value=img,
                 )
             )
@@ -237,9 +214,7 @@ def _ask_image(images: list[Image]) -> Image | None:
         return None
 
     # Default to ubuntu latest
-    ubuntu_imgs = sorted(
-        flavors.get("ubuntu", []), key=lambda i: i.os_version or "", reverse=True
-    )
+    ubuntu_imgs = sorted(flavors.get("ubuntu", []), key=lambda i: i.os_version or "", reverse=True)
     default = ubuntu_imgs[0] if ubuntu_imgs else None
 
     return questionary.select("OS image:", choices=choices, default=default).ask()
@@ -295,9 +270,7 @@ def _resolve_token(token: str | None) -> str | None:
     if env:
         return env
     console.print()
-    console.print(
-        "  [dim]Tip: set [bold]HETZNER_TOKEN[/bold] to skip this prompt.[/dim]\n"
-    )
+    console.print("  [dim]Tip: set [bold]HETZNER_TOKEN[/bold] to skip this prompt.[/dim]\n")
     return questionary.password("Hetzner API token:").ask()
 
 
@@ -516,9 +489,7 @@ def provision(
 
         # --- Wait for Hetzner action (server OS installed and running) ---
         if server.action_id:
-            with console.status(
-                "[bold cyan]Waiting for server to be ready...[/bold cyan]"
-            ):
+            with console.status("[bold cyan]Waiting for server to be ready...[/bold cyan]"):
                 provisioned = False
                 for _ in range(90):  # up to 3 minutes
                     time.sleep(2)
@@ -544,8 +515,7 @@ def provision(
         if user_data and server.ipv4:
             console.print()
             console.print(
-                "[bold cyan]Waiting for cloud-init to finish "
-                "(Docker, uv, phoxtail, hardening)...[/bold cyan]\n"
+                "[bold cyan]Waiting for cloud-init to finish (Docker, uv, phoxtail, hardening)...[/bold cyan]\n"
             )
             cloud_init_ok = wait_for_cloud_init(deploy_user, server.ipv4)
             console.print()

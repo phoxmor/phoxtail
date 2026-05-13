@@ -33,9 +33,7 @@ User = get_user_model()
 
 @pytest.fixture
 def user():
-    return User.objects.create_user(
-        username="testuser", email="test@example.com", password="testpass123"
-    )
+    return User.objects.create_user(username="testuser", email="test@example.com", password="testpass123")
 
 
 def _grant(user, *codenames):
@@ -69,18 +67,14 @@ class TestBookingPermissionRequired:
 
     def test_allows_with_booking_permission(self, user, rf):
         user = _grant(user, "access_booking_management")
-        view = booking_permission_required("access_booking_management")(
-            self._dummy_view
-        )
+        view = booking_permission_required("access_booking_management")(self._dummy_view)
         request = rf.get("/")
         request.user = user
         response = view(request)
         assert response.status_code == 200
 
     def test_denies_without_booking_permission(self, user, rf):
-        view = booking_permission_required("access_booking_management")(
-            self._dummy_view
-        )
+        view = booking_permission_required("access_booking_management")(self._dummy_view)
         request = rf.get("/")
         request.user = user
         with pytest.raises(PermissionDenied):

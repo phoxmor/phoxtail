@@ -107,18 +107,12 @@ class Command(BaseCommand):
 
         palettes_dir = DATA_DIR / "palettes"
         if not palettes_dir.exists():
-            self.stdout.write(
-                self.style.ERROR(f"Palettes directory not found: {palettes_dir}")
-            )
+            self.stdout.write(self.style.ERROR(f"Palettes directory not found: {palettes_dir}"))
             return
 
         groups = sorted(d for d in palettes_dir.iterdir() if d.is_dir())
         if not groups:
-            self.stdout.write(
-                self.style.WARNING(
-                    "No palette group directories found in data/palettes/"
-                )
-            )
+            self.stdout.write(self.style.WARNING("No palette group directories found in data/palettes/"))
             return
 
         created_count = 0
@@ -131,17 +125,13 @@ class Command(BaseCommand):
             if order_file.exists():
                 ordered_names = yaml.safe_load(order_file.read_text())
                 palette_files = [
-                    group_dir / f"{name}.yaml"
-                    for name in ordered_names
-                    if (group_dir / f"{name}.yaml").exists()
+                    group_dir / f"{name}.yaml" for name in ordered_names if (group_dir / f"{name}.yaml").exists()
                 ]
             else:
                 palette_files = sorted(group_dir.glob("*.yaml"))
 
             if not palette_files:
-                self.stdout.write(
-                    self.style.WARNING(f"  No yaml files found in {group_dir.name}/")
-                )
+                self.stdout.write(self.style.WARNING(f"  No yaml files found in {group_dir.name}/"))
                 continue
 
             palette_set, _ = PaletteSet.objects.get_or_create(
@@ -179,23 +169,13 @@ class Command(BaseCommand):
                 )
                 sort_order += 1
                 if created:
-                    self.stdout.write(
-                        self.style.SUCCESS(f"    Created palette: {palette_name}")
-                    )
+                    self.stdout.write(self.style.SUCCESS(f"    Created palette: {palette_name}"))
                     created_count += 1
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"    Palette '{palette_name}' already exists, skipping"
-                        )
-                    )
+                    self.stdout.write(self.style.WARNING(f"    Palette '{palette_name}' already exists, skipping"))
                     skipped_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Palettes: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Palettes: {created_count} created, {skipped_count} skipped"))
 
     def import_palette_roles(self):
         """Import semantic palette roles from data/palette_roles.yaml."""
@@ -203,9 +183,7 @@ class Command(BaseCommand):
 
         roles_file = DATA_DIR / "palette_roles.yaml"
         if not roles_file.exists():
-            self.stdout.write(
-                self.style.ERROR(f"Palette roles data file not found: {roles_file}")
-            )
+            self.stdout.write(self.style.ERROR(f"Palette roles data file not found: {roles_file}"))
             return
 
         palette_roles = yaml.safe_load(roles_file.read_text())
@@ -224,25 +202,14 @@ class Command(BaseCommand):
 
             if created:
                 self.stdout.write(
-                    self.style.SUCCESS(
-                        f"  Created role: {role_data['name']} "
-                        f"({role_data['identifier']})"
-                    )
+                    self.style.SUCCESS(f"  Created role: {role_data['name']} ({role_data['identifier']})")
                 )
                 created_count += 1
             else:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"  {role_data['identifier']} already exists, skipping..."
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"  {role_data['identifier']} already exists, skipping..."))
                 skipped_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Palette roles: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Palette roles: {created_count} created, {skipped_count} skipped"))
 
     def import_fonts(self):
         """Import font families from data/fonts/ directories (pre-built WOFF2)."""
@@ -250,16 +217,12 @@ class Command(BaseCommand):
 
         fonts_dir = DATA_DIR / "fonts"
         if not fonts_dir.exists():
-            self.stdout.write(
-                self.style.WARNING(f"Fonts directory not found: {fonts_dir}")
-            )
+            self.stdout.write(self.style.WARNING(f"Fonts directory not found: {fonts_dir}"))
             return
 
         font_dirs = [d for d in fonts_dir.iterdir() if d.is_dir()]
         if not font_dirs:
-            self.stdout.write(
-                self.style.WARNING("No font directories found in fonts directory")
-            )
+            self.stdout.write(self.style.WARNING("No font directories found in fonts directory"))
             return
 
         created_families = 0
@@ -270,28 +233,18 @@ class Command(BaseCommand):
         for font_dir in sorted(font_dirs):
             metadata_file = font_dir / "font.yaml"
             if not metadata_file.exists():
-                self.stdout.write(
-                    self.style.WARNING(f"Skipping {font_dir.name}: missing font.yaml")
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {font_dir.name}: missing font.yaml"))
                 continue
 
             try:
                 metadata = yaml.safe_load(metadata_file.read_text())
             except yaml.YAMLError as e:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {font_dir.name}: invalid font.yaml - {e}"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {font_dir.name}: invalid font.yaml - {e}"))
                 continue
 
             name = metadata.get("name")
             if not name:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {font_dir.name}: missing 'name' in font.yaml"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {font_dir.name}: missing 'name' in font.yaml"))
                 continue
 
             family, family_created = FontFamily.objects.get_or_create(
@@ -299,34 +252,23 @@ class Command(BaseCommand):
                 defaults={
                     "description": metadata.get("description", ""),
                     "category": metadata.get("category", "sans-serif"),
-                    "fallback": metadata.get(
-                        "fallback", "system-ui, -apple-system, sans-serif"
-                    ),
+                    "fallback": metadata.get("fallback", "system-ui, -apple-system, sans-serif"),
                 },
             )
 
             if family_created:
-                self.stdout.write(
-                    self.style.SUCCESS(f"  Created font family: {family.name}")
-                )
+                self.stdout.write(self.style.SUCCESS(f"  Created font family: {family.name}"))
                 created_families += 1
             else:
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"  Font family '{family.name}' already exists, "
-                        f"checking weights..."
-                    )
+                    self.style.WARNING(f"  Font family '{family.name}' already exists, checking weights...")
                 )
                 skipped_families += 1
 
-            woff2_files = sorted(
-                list(font_dir.glob("*.woff2")) + list(font_dir.glob("*.WOFF2"))
-            )
+            woff2_files = sorted(list(font_dir.glob("*.woff2")) + list(font_dir.glob("*.WOFF2")))
 
             if not woff2_files:
-                self.stdout.write(
-                    self.style.WARNING(f"  No WOFF2 files found in {font_dir.name}/")
-                )
+                self.stdout.write(self.style.WARNING(f"  No WOFF2 files found in {font_dir.name}/"))
                 continue
 
             for woff2_file in woff2_files:
@@ -334,16 +276,11 @@ class Command(BaseCommand):
                 weight_value = font_meta["weight"]
                 style = font_meta["style"]
 
-                existing_weight = FontWeight.objects.filter(
-                    family=family, weight=weight_value, style=style
-                ).first()
+                existing_weight = FontWeight.objects.filter(family=family, weight=weight_value, style=style).first()
 
                 if existing_weight:
                     self.stdout.write(
-                        self.style.WARNING(
-                            f"    Weight {weight_value} {style} already "
-                            f"exists, skipping..."
-                        )
+                        self.style.WARNING(f"    Weight {weight_value} {style} already exists, skipping...")
                     )
                     skipped_weights += 1
                     continue
@@ -361,25 +298,12 @@ class Command(BaseCommand):
                         save=True,
                     )
 
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f"    Created weight: {weight_value} {style} "
-                        f"({woff2_file.name})"
-                    )
-                )
+                self.stdout.write(self.style.SUCCESS(f"    Created weight: {weight_value} {style} ({woff2_file.name})"))
                 created_weights += 1
 
         self.stdout.write("")
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Font families: {created_families} created, {skipped_families} skipped"
-            )
-        )
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Font weights: {created_weights} created, {skipped_weights} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Font families: {created_families} created, {skipped_families} skipped"))
+        self.stdout.write(self.style.SUCCESS(f"Font weights: {created_weights} created, {skipped_weights} skipped"))
 
     def import_font_roles(self):
         """Import semantic font roles from data/font_roles.yaml."""
@@ -387,9 +311,7 @@ class Command(BaseCommand):
 
         roles_file = DATA_DIR / "font_roles.yaml"
         if not roles_file.exists():
-            self.stdout.write(
-                self.style.ERROR(f"Font roles data file not found: {roles_file}")
-            )
+            self.stdout.write(self.style.ERROR(f"Font roles data file not found: {roles_file}"))
             return
 
         font_roles = yaml.safe_load(roles_file.read_text())
@@ -408,22 +330,11 @@ class Command(BaseCommand):
 
             if created:
                 self.stdout.write(
-                    self.style.SUCCESS(
-                        f"  Created role: {role_data['name']} "
-                        f"({role_data['identifier']})"
-                    )
+                    self.style.SUCCESS(f"  Created role: {role_data['name']} ({role_data['identifier']})")
                 )
                 created_count += 1
             else:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"  {role_data['identifier']} already exists, skipping..."
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"  {role_data['identifier']} already exists, skipping..."))
                 skipped_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Font roles: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Font roles: {created_count} created, {skipped_count} skipped"))

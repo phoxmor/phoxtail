@@ -10,9 +10,7 @@ class PhoxtailImage(AbstractImage):
 
 
 class PhoxtailImageRendition(AbstractRendition):
-    image = models.ForeignKey(
-        PhoxtailImage, on_delete=models.CASCADE, related_name="renditions"
-    )
+    image = models.ForeignKey(PhoxtailImage, on_delete=models.CASCADE, related_name="renditions")
 
     class Meta:
         unique_together = (("image", "filter_spec", "focal_point_key"),)

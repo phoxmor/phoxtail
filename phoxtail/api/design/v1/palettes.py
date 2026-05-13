@@ -95,9 +95,7 @@ def list_palettes(
 ):
     from phoxtail.design.models import Palette
 
-    qs = Palette.objects.select_related("palette_set").order_by(
-        "palette_set__name", "sort_order", "title"
-    )
+    qs = Palette.objects.select_related("palette_set").order_by("palette_set__name", "sort_order", "title")
     if palette_set_id is not None:
         qs = qs.filter(palette_set_id=palette_set_id)
     if search:
@@ -111,9 +109,7 @@ def list_palettes(
     response={201: PaletteSummary, 400: Error, 404: Error, 409: Error},
     summary="Create a palette",
 )
-def create_palette(
-    request: HttpRequest, response: HttpResponse, payload: PaletteCreate
-):
+def create_palette(request: HttpRequest, response: HttpResponse, payload: PaletteCreate):
     from phoxtail.design.models import Palette, PaletteSet
 
     try:
@@ -184,9 +180,7 @@ def patch_palette(
     try:
         p.save()
     except IntegrityError:
-        raise HttpError(
-            409, "A palette with that title already exists in this palette set."
-        )
+        raise HttpError(409, "A palette with that title already exists in this palette set.")
 
     p.refresh_from_db()
     response["ETag"] = palette_etag(p)

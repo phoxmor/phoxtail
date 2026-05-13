@@ -47,9 +47,7 @@ def other_user(db):
 
 @pytest.fixture
 def superuser(db):
-    return User.objects.create_superuser(
-        username="admin", email="admin@example.com", password="testpass123"
-    )
+    return User.objects.create_superuser(username="admin", email="admin@example.com", password="testpass123")
 
 
 @pytest.fixture
@@ -67,8 +65,7 @@ def grant_token_permissions(user, *codenames):
     ct = ContentType.objects.get_for_model(AccessTokensAdminPermission)
     perms = Permission.objects.filter(content_type=ct, codename__in=codenames)
     assert perms.count() == len(codenames), (
-        f"Missing tokens permissions; got {[p.codename for p in perms]}, "
-        f"expected {list(codenames)}"
+        f"Missing tokens permissions; got {[p.codename for p in perms]}, expected {list(codenames)}"
     )
     user.user_permissions.add(*perms)
     return User.objects.get(pk=user.pk)

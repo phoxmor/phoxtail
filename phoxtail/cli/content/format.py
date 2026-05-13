@@ -96,11 +96,7 @@ def render_documents(data: dict[str, Any], console: Console) -> None:
         console.print("[dim]No documents found.[/dim]")
         return
 
-    title = (
-        f"Documents ({len(items)} of {total})"
-        if total > len(items)
-        else f"Documents ({total})"
-    )
+    title = f"Documents ({len(items)} of {total})" if total > len(items) else f"Documents ({total})"
     table = Table(title=title, expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
@@ -159,9 +155,7 @@ def render_audio(data: dict[str, Any], console: Console) -> None:
         console.print("[dim]No audio files found.[/dim]")
         return
 
-    title = (
-        f"Audio ({len(items)} of {total})" if total > len(items) else f"Audio ({total})"
-    )
+    title = f"Audio ({len(items)} of {total})" if total > len(items) else f"Audio ({total})"
     table = Table(title=title, expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")

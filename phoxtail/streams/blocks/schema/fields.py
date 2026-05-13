@@ -399,9 +399,7 @@ _ChoiceItemBlock = StructBlock(
     [
         (
             "value",
-            CharBlock(
-                label="Value", help_text="The value stored when this choice is selected"
-            ),
+            CharBlock(label="Value", help_text="The value stored when this choice is selected"),
         ),
         ("label", CharBlock(label="Label", help_text="The text shown to the user")),
     ],
@@ -458,10 +456,7 @@ class PageChooserSchemaBlock(FieldSchemaBlock):
     page_type = CharBlock(
         required=False,
         max_length=255,
-        help_text=(
-            "Restrict to specific page types (optional)\\n"
-            "Example: blog.BlogPage or app.HomePage"
-        ),
+        help_text=("Restrict to specific page types (optional)\\nExample: blog.BlogPage or app.HomePage"),
     )
     can_choose_root = BooleanBlock(
         required=False,
@@ -509,10 +504,7 @@ class SnippetChooserSchemaBlock(FieldSchemaBlock):
 
     target_model = CharBlock(
         max_length=255,
-        help_text=(
-            "Target snippet model in format: app_label.ModelName\n"
-            "Example: blog.Author or products.Category"
-        ),
+        help_text=("Target snippet model in format: app_label.ModelName\nExample: blog.Author or products.Category"),
     )
 
     class Meta:
@@ -597,8 +589,7 @@ class RegistryMeta(type):
                 identifier = value[0]
                 if identifier in seen_identifiers:
                     raise AttributeError(
-                        f"Duplicate identifier found in {name}: '{identifier}'. "
-                        f"Check the definition of '{key}'."
+                        f"Duplicate identifier found in {name}: '{identifier}'. Check the definition of '{key}'."
                     )
                 seen_identifiers.add(identifier)
 
@@ -611,11 +602,7 @@ class RegistryMeta(type):
         Dynamically returns a list of all defined field block tuples.
         Filters out internal attributes and the property itself.
         """
-        return [
-            value
-            for key, value in cls.__dict__.items()
-            if not key.startswith("_") and key != "choices"
-        ]
+        return [value for key, value in cls.__dict__.items() if not key.startswith("_") and key != "choices"]
 
 
 class FIELD_BLOCK_CHOICES(metaclass=RegistryMeta):

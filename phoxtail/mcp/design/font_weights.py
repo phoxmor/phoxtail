@@ -41,9 +41,7 @@ def font_weights_list(font_family_id: int | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_font_weights_get",
-    description=(
-        "Get a single font weight by id. Response includes `_etag` needed for delete."
-    ),
+    description=("Get a single font weight by id. Response includes `_etag` needed for delete."),
 )
 def font_weights_get(weight_id: int) -> str:
     resp = request("GET", f"/font-weights/{weight_id}/")

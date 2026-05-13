@@ -43,10 +43,7 @@ class EventServiceAdminDelete:
             delete_scope = EventUpdateScope.THIS_EVENT_ONLY
 
         # Block single-delete on template events — CASCADE would destroy all children
-        if (
-            event.is_recurrence_template
-            and delete_scope == EventUpdateScope.THIS_EVENT_ONLY
-        ):
+        if event.is_recurrence_template and delete_scope == EventUpdateScope.THIS_EVENT_ONLY:
             result.add_error(
                 "Cannot delete a series template directly. "
                 "Use 'All events in series' to delete the entire series, "
@@ -123,8 +120,7 @@ class EventServiceAdminDelete:
             from django.db.models import Q
 
             return Event.objects.filter(
-                Q(recurrence_template=template, is_recurrence_template=False)
-                | Q(pk=template.pk)
+                Q(recurrence_template=template, is_recurrence_template=False) | Q(pk=template.pk)
             )
 
         return Event.objects.filter(pk=event.pk)
@@ -149,8 +145,7 @@ class EventServiceAdminDelete:
         if count > 0:
             if count == 1:
                 result.add_error(
-                    "Cannot delete: 1 event has active reservations. "
-                    "Cancel or remove reservations before deleting."
+                    "Cannot delete: 1 event has active reservations. Cancel or remove reservations before deleting."
                 )
             else:
                 result.add_error(
@@ -180,9 +175,7 @@ class EventServiceAdminDelete:
         from ....models import Event
 
         with transaction.atomic():
-            template = (
-                event if event.is_recurrence_template else event.recurrence_template
-            )
+            template = event if event.is_recurrence_template else event.recurrence_template
 
             original_start_datetime = Event.objects.get(pk=event.pk).start_datetime
 
@@ -206,9 +199,7 @@ class EventServiceAdminDelete:
         from ....models import Event
 
         with transaction.atomic():
-            template = (
-                event if event.is_recurrence_template else event.recurrence_template
-            )
+            template = event if event.is_recurrence_template else event.recurrence_template
 
             # Delete all generated events in the series
             series_events = Event.objects.filter(

@@ -35,9 +35,7 @@ class AccessTokenCreateForm(forms.Form):
     scopes = forms.CharField(
         label=_("Scopes"),
         required=False,
-        help_text=_(
-            "Comma-separated list of scopes. Leave empty for full access ('*')."
-        ),
+        help_text=_("Comma-separated list of scopes. Leave empty for full access ('*')."),
     )
     expires_at = forms.DateTimeField(
         label=_("Expires at"),

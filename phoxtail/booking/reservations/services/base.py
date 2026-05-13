@@ -83,11 +83,8 @@ class ReservationService:
         Returns:
             bool: True if within allowed cancellation period, False otherwise
         """
-        allowed_cancellation_period = (
-            self.reservation.event.start_datetime
-            - timezone.timedelta(
-                hours=self.reservation.event.service.cancellation_lockout_hours
-            )
+        allowed_cancellation_period = self.reservation.event.start_datetime - timezone.timedelta(
+            hours=self.reservation.event.service.cancellation_lockout_hours
         )
         return timezone.now() < allowed_cancellation_period
 
@@ -106,10 +103,7 @@ class ReservationValidator:
         Raises:
             ValidationError: If subscription has exhausted grace period reservations
         """
-        if (
-            subscription
-            and not subscription.service.can_access_grace_period_reservations()
-        ):
+        if subscription and not subscription.service.can_access_grace_period_reservations():
             raise ValidationError(
                 "This plan has reached its grace period limit. Payment is required for more bookings."
             )

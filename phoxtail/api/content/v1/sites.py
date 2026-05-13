@@ -98,9 +98,7 @@ def _etag_matches(header_value: str | None, current: str) -> bool:
     if not header_value:
         return False
     candidates = {t.strip() for t in header_value.split(",")}
-    return "*" in candidates or _strip_weak(current) in {
-        _strip_weak(t) for t in candidates
-    }
+    return "*" in candidates or _strip_weak(current) in {_strip_weak(t) for t in candidates}
 
 
 def _require_if_match(request: HttpRequest, site) -> None:
@@ -108,14 +106,12 @@ def _require_if_match(request: HttpRequest, site) -> None:
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this site.",
+            "If-Match header is required. Send the ETag from your most recent GET of this site.",
         )
     if not _etag_matches(if_match, site_etag(site)):
         raise HttpError(
             412,
-            "ETag mismatch: the site has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the site has changed since you last read it. Re-fetch and retry.",
         )
 
 
@@ -170,8 +166,7 @@ def _apply_and_save(site, data: dict) -> None:
     except IntegrityError:
         raise HttpError(
             409,
-            f"A site already exists with hostname '{site.hostname}'"
-            f" and port {site.port}.",
+            f"A site already exists with hostname '{site.hostname}' and port {site.port}.",
         )
 
 

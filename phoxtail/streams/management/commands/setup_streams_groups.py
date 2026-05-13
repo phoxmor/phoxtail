@@ -12,9 +12,7 @@ class Command(BaseCommand):
         )
 
         if not all_perms.exists():
-            self.stderr.write(
-                self.style.ERROR("No streams permissions found. Run migrate first.")
-            )
+            self.stderr.write(self.style.ERROR("No streams permissions found. Run migrate first."))
             return
 
         # Streams Admin — full access to everything

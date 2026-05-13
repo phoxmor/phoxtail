@@ -64,9 +64,7 @@ class SignupForm(AllauthSignupForm):
         widget=forms.DateInput(attrs={"type": "date"}),
         required=False,
     )
-    country = CountryField(blank_label=_("Select your country")).formfield(
-        label=_("Country"), required=False
-    )
+    country = CountryField(blank_label=_("Select your country")).formfield(label=_("Country"), required=False)
     phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"))
 
     def save(self, request):

@@ -70,10 +70,7 @@ class ListFieldSchemaBlock(FieldSchemaBlock):
         FIELD_BLOCK_CHOICES.choices,
         min_num=1,
         max_num=1,
-        help_text=(
-            "Define the field type and configuration for "
-            "each item in this list (add exactly one)"
-        ),
+        help_text=("Define the field type and configuration for each item in this list (add exactly one)"),
     )
 
     # List constraints
@@ -119,10 +116,7 @@ class ListStructSchemaBlock(FieldSchemaBlock):
             LAYER_BLOCK_CHOICES.LIST_STRUCT_L1,
         ],
         min_num=1,
-        help_text=(
-            "Blocks that define the structure of each "
-            "list item (supports nested structures)"
-        ),
+        help_text=("Blocks that define the structure of each list item (supports nested structures)"),
     )
 
     # List constraints

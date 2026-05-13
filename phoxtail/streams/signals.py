@@ -13,11 +13,7 @@ def _clear_shared_cache_if_page_referenced(sender, instance, **kwargs):
     from phoxtail.streams.models import SharedBlock
 
     shared_block_ct = ContentType.objects.get_for_model(SharedBlock)
-    is_referenced = (
-        ReferenceIndex.get_references_to(instance)
-        .filter(base_content_type=shared_block_ct)
-        .exists()
-    )
+    is_referenced = ReferenceIndex.get_references_to(instance).filter(base_content_type=shared_block_ct).exists()
     if is_referenced:
         clear_shared_block_cache()
 

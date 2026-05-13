@@ -14,9 +14,7 @@ console = Console()
 
 @app.command("list")
 def sessions_list(
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich table."
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit raw JSON instead of a Rich table."),
 ) -> None:
     """List active editing sessions."""
     active = session.list_sessions()
@@ -28,9 +26,7 @@ def sessions_list(
 
 @app.command("start")
 def sessions_start(
-    variant_id: int = typer.Argument(
-        ..., help="Variant ID (from `phoxtail studio list variants`)."
-    ),
+    variant_id: int = typer.Argument(..., help="Variant ID (from `phoxtail studio list variants`)."),
 ) -> None:
     """Start a new editing session on a variant.
 
@@ -154,10 +150,7 @@ def sessions_commit(
         raise typer.Exit(code=1)
 
     if "id" not in variant_meta:
-        console.print(
-            "[red]Error:[/red] session predates ID-based routing; "
-            "discard it and start a new one."
-        )
+        console.print("[red]Error:[/red] session predates ID-based routing; discard it and start a new one.")
         raise typer.Exit(code=1)
 
     updated, new_etag = client.update_variant_by_id(
@@ -210,10 +203,7 @@ def sessions_refresh(
     variant_meta = session_data["variant"]
 
     if "id" not in variant_meta:
-        console.print(
-            "[red]Error:[/red] session predates ID-based routing; "
-            "discard it and start a new one."
-        )
+        console.print("[red]Error:[/red] session predates ID-based routing; discard it and start a new one.")
         raise typer.Exit(code=1)
 
     _, new_etag = client.get_variant_by_id(variant_meta["id"])
@@ -223,7 +213,4 @@ def sessions_refresh(
         raise typer.Exit(code=1)
 
     session.update_session_etag(session_id, new_etag)
-    console.print(
-        f"[green]Refreshed[/green] session [bold]{session_id}[/bold] "
-        f"ETag -> [dim]{new_etag}[/dim]"
-    )
+    console.print(f"[green]Refreshed[/green] session [bold]{session_id}[/bold] ETag -> [dim]{new_etag}[/dim]")

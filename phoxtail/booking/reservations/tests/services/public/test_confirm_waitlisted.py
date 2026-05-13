@@ -35,9 +35,7 @@ class TestPublicConfirmWaitlisted:
         sub_type = SubscriptionTypeFactory(location=location)
         subscription = kw.pop(
             "subscription",
-            SubscriptionFactory(
-                user=user, subscription_type=sub_type, is_paid=True, credits=10
-            ),
+            SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10),
         )
         start = kw.pop("start_datetime", timezone.now() + datetime.timedelta(days=1))
         event = kw.pop(
@@ -82,9 +80,7 @@ class TestPublicConfirmWaitlisted:
 
     @freeze_time("2024-06-15 08:00:00")
     def test_past_event_raises(self):
-        r, user, sub = self._setup(
-            start_datetime=timezone.now() - datetime.timedelta(hours=1)
-        )
+        r, user, sub = self._setup(start_datetime=timezone.now() - datetime.timedelta(hours=1))
         with pytest.raises(ValidationError):
             ReservationService().public.confirm_waitlisted(
                 user=user,
@@ -126,9 +122,7 @@ class TestPublicConfirmWaitlisted:
             start_datetime=r.event.start_datetime,
             end_datetime=r.event.end_datetime,
         )
-        ReservationFactory(
-            user=user, event=overlap_event, status=ReservationStatus.CONFIRMED
-        )
+        ReservationFactory(user=user, event=overlap_event, status=ReservationStatus.CONFIRMED)
         with pytest.raises(ValidationError):
             ReservationService().public.confirm_waitlisted(
                 user=user,

@@ -37,9 +37,7 @@ def generate_recurring_events_task(days_ahead=7, location_id=None):
     from phoxtail.booking.events.models import Event
 
     location_msg = f" for location_id={location_id}" if location_id else ""
-    logger.info(
-        f"Starting recurring event generation ({days_ahead} days ahead{location_msg})..."
-    )
+    logger.info(f"Starting recurring event generation ({days_ahead} days ahead{location_msg})...")
 
     # Get all active recurrence templates
     recurring_templates = Event.objects.active_recurrence_templates()
@@ -63,9 +61,7 @@ def generate_recurring_events_task(days_ahead=7, location_id=None):
             total_created += created_count
 
             if created_count > 0:
-                logger.info(
-                    f"✓ Template '{template}': Created {created_count} event(s)"
-                )
+                logger.info(f"✓ Template '{template}': Created {created_count} event(s)")
             else:
                 logger.debug(f"✓ Template '{template}': No new events needed")
 

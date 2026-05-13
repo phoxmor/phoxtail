@@ -29,9 +29,7 @@ class TestAdminCreate:
     # Happy path / state assertions
     # ------------------------------------------------------------------
 
-    def test_creates_subscription_with_correct_user_and_type(
-        self, user, subscription_type
-    ):
+    def test_creates_subscription_with_correct_user_and_type(self, user, subscription_type):
         sub = SubscriptionService().admin.create(user, subscription_type)
         assert sub.user == user
         assert sub.subscription_type == subscription_type
@@ -56,9 +54,7 @@ class TestAdminCreate:
 
     def test_initializes_per_service_credit_balances(self, user, service):
         st = SubscriptionTypeFactory(credits=5)
-        SubscriptionTypeCreditAllocationFactory(
-            subscription_type=st, service=service, credits=7
-        )
+        SubscriptionTypeCreditAllocationFactory(subscription_type=st, service=service, credits=7)
         sub = SubscriptionService().admin.create(user, st)
         balance = sub.credit_balances.get(service=service)
         assert balance.credits == 7
@@ -71,9 +67,7 @@ class TestAdminCreate:
 
     def test_accepts_explicit_start_date(self, user, subscription_type):
         custom_date = datetime.date(2025, 3, 1)
-        sub = SubscriptionService().admin.create(
-            user, subscription_type, start_date=custom_date
-        )
+        sub = SubscriptionService().admin.create(user, subscription_type, start_date=custom_date)
         assert sub.start_date == custom_date
 
     def test_persists_subscription_to_database(self, user, subscription_type):
@@ -95,9 +89,7 @@ class TestAdminCreate:
         with pytest.raises(ValidationError):
             SubscriptionService().admin.create(user, subscription_type)
 
-    def test_raises_for_duplicate_active_subscription_of_same_type(
-        self, user, subscription_type
-    ):
+    def test_raises_for_duplicate_active_subscription_of_same_type(self, user, subscription_type):
         SubscriptionFactory(
             user=user,
             subscription_type=subscription_type,
@@ -107,9 +99,7 @@ class TestAdminCreate:
         with pytest.raises(ValidationError):
             SubscriptionService().admin.create(user, subscription_type)
 
-    def test_archived_subscription_does_not_block_creation(
-        self, user, subscription_type
-    ):
+    def test_archived_subscription_does_not_block_creation(self, user, subscription_type):
         # Historical (archived) subscriptions are not considered active duplicates
         SubscriptionFactory(
             user=user,

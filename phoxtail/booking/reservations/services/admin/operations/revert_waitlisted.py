@@ -45,9 +45,7 @@ class ReservationServiceAdminRevertWaitlisted:
         with transaction.atomic():
             # Restore credit if subscription was used
             if reservation.subscription:
-                reservation.subscription.service.restore_credit(
-                    reservation.event.service
-                )
+                reservation.subscription.service.restore_credit(reservation.event.service)
             reservation.status = ReservationStatus.WAITLISTED
             reservation.save(update_fields=["status"])
 

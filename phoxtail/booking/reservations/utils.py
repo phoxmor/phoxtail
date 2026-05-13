@@ -9,9 +9,7 @@ def get_reservation_list_context(user):
     """
     reservations = (
         Reservation.objects.filter(user=user, event__start_datetime__gte=timezone.now())
-        .select_related(
-            "event", "event__service", "event__space", "event__space__location"
-        )
+        .select_related("event", "event__service", "event__space", "event__space__location")
         .order_by("event__start_datetime")
     )
     return {"reservations": reservations}

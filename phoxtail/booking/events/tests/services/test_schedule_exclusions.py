@@ -77,9 +77,7 @@ class TestExclusionPeriodContainsDate:
 
 class TestGenerationSkipsExcludedDates:
     @freeze_time("2024-06-03 08:00:00")
-    def test_single_date_exclusion_skips_generation(
-        self, service, space, schedule, exclusion
-    ):
+    def test_single_date_exclusion_skips_generation(self, service, space, schedule, exclusion):
         """A single-date exclusion should prevent event generation on that date."""
         EventGenerationScheduleExclusionPeriod.objects.create(
             exclusion=exclusion,
@@ -89,9 +87,7 @@ class TestGenerationSkipsExcludedDates:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -108,9 +104,7 @@ class TestGenerationSkipsExcludedDates:
         assert datetime.date(2024, 6, 17) in generated_dates
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_date_range_exclusion_skips_generation(
-        self, service, space, schedule, exclusion
-    ):
+    def test_date_range_exclusion_skips_generation(self, service, space, schedule, exclusion):
         """A date range exclusion should prevent generation for all dates in range."""
         EventGenerationScheduleExclusionPeriod.objects.create(
             exclusion=exclusion,
@@ -121,9 +115,7 @@ class TestGenerationSkipsExcludedDates:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -141,9 +133,7 @@ class TestGenerationSkipsExcludedDates:
         assert datetime.date(2024, 6, 24) in generated_dates
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_exclusion_for_different_location_does_not_affect(
-        self, service, space, location
-    ):
+    def test_exclusion_for_different_location_does_not_affect(self, service, space, location):
         """Exclusions on one location should not affect another location's events."""
         from phoxtail.booking.subscriptions.tests.factories import LocationFactory
 
@@ -170,9 +160,7 @@ class TestGenerationSkipsExcludedDates:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -194,9 +182,7 @@ class TestGenerationSkipsExcludedDates:
 
 class TestProjectionSkipsExcludedDates:
     @freeze_time("2024-06-03 08:00:00")
-    def test_single_date_exclusion_skips_projection(
-        self, service, space, schedule, exclusion
-    ):
+    def test_single_date_exclusion_skips_projection(self, service, space, schedule, exclusion):
         """A single-date exclusion should prevent projection on that date."""
         EventGenerationScheduleExclusionPeriod.objects.create(
             exclusion=exclusion,
@@ -206,9 +192,7 @@ class TestProjectionSkipsExcludedDates:
         RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -217,17 +201,11 @@ class TestProjectionSkipsExcludedDates:
             start_date=datetime.date(2024, 6, 3),
             end_date=datetime.date(2024, 6, 17),
         )
-        projected_dates = [
-            e.start_datetime.date()
-            for e in all_events
-            if getattr(e, "is_projected", False)
-        ]
+        projected_dates = [e.start_datetime.date() for e in all_events if getattr(e, "is_projected", False)]
         assert datetime.date(2024, 6, 10) not in projected_dates
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_date_range_exclusion_skips_projection(
-        self, service, space, schedule, exclusion
-    ):
+    def test_date_range_exclusion_skips_projection(self, service, space, schedule, exclusion):
         """A date range exclusion should prevent projection for all dates in range."""
         EventGenerationScheduleExclusionPeriod.objects.create(
             exclusion=exclusion,
@@ -238,9 +216,7 @@ class TestProjectionSkipsExcludedDates:
         RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -249,11 +225,7 @@ class TestProjectionSkipsExcludedDates:
             start_date=datetime.date(2024, 6, 3),
             end_date=datetime.date(2024, 6, 24),
         )
-        projected_dates = [
-            e.start_datetime.date()
-            for e in all_events
-            if getattr(e, "is_projected", False)
-        ]
+        projected_dates = [e.start_datetime.date() for e in all_events if getattr(e, "is_projected", False)]
         assert datetime.date(2024, 6, 10) not in projected_dates
         assert datetime.date(2024, 6, 17) not in projected_dates
         # Dates outside range should still be projected
@@ -267,9 +239,7 @@ class TestProjectionSkipsExcludedDates:
 
 class TestMultipleExclusions:
     @freeze_time("2024-06-03 08:00:00")
-    def test_multiple_exclusion_periods_all_respected(
-        self, service, space, schedule, exclusion
-    ):
+    def test_multiple_exclusion_periods_all_respected(self, service, space, schedule, exclusion):
         """Multiple periods within the same exclusion should all be skipped."""
         EventGenerationScheduleExclusionPeriod.objects.create(
             exclusion=exclusion,
@@ -283,9 +253,7 @@ class TestMultipleExclusions:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 
@@ -325,9 +293,7 @@ class TestMultipleExclusions:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
 

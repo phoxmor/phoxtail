@@ -24,66 +24,36 @@ EXPECTED_PERMS = {
 class TestPermissionsRegistered:
     def test_all_expected_permissions_exist(self):
         ct = ContentType.objects.get_for_model(AccessTokensAdminPermission)
-        codenames = set(
-            Permission.objects.filter(content_type=ct).values_list(
-                "codename", flat=True
-            )
-        )
+        codenames = set(Permission.objects.filter(content_type=ct).values_list("codename", flat=True))
         assert EXPECTED_PERMS.issubset(codenames)
 
     def test_no_default_permissions(self):
         ct = ContentType.objects.get_for_model(AccessTokensAdminPermission)
-        codenames = set(
-            Permission.objects.filter(content_type=ct).values_list(
-                "codename", flat=True
-            )
-        )
+        codenames = set(Permission.objects.filter(content_type=ct).values_list("codename", flat=True))
         # default_permissions = () so add/change/delete/view should NOT exist.
         for forbidden in {"add_", "change_", "delete_", "view_"}:
-            assert not any(
-                cn.startswith(forbidden + "accesstokensadminpermission")
-                for cn in codenames
-            )
+            assert not any(cn.startswith(forbidden + "accesstokensadminpermission") for cn in codenames)
 
 
 class TestPolicyEvaluation:
     def test_anonymous_inactive_user_has_no_perms(self, user):
         user.is_active = False
         user.save()
-        assert (
-            access_tokens_permission_policy.user_has_permission(
-                user, "access_tokens_management"
-            )
-            is False
-        )
+        assert access_tokens_permission_policy.user_has_permission(user, "access_tokens_management") is False
 
     def test_user_without_grants_denied(self, user):
         for action in EXPECTED_PERMS:
-            assert (
-                access_tokens_permission_policy.user_has_permission(user, action)
-                is False
-            )
+            assert access_tokens_permission_policy.user_has_permission(user, action) is False
 
     def test_user_with_grant_allowed(self, user):
         u = grant_token_permissions(user, "access_tokens_management")
-        assert (
-            access_tokens_permission_policy.user_has_permission(
-                u, "access_tokens_management"
-            )
-            is True
-        )
+        assert access_tokens_permission_policy.user_has_permission(u, "access_tokens_management") is True
         # Did not grant unrelated permissions.
-        assert (
-            access_tokens_permission_policy.user_has_permission(u, "manage_all_tokens")
-            is False
-        )
+        assert access_tokens_permission_policy.user_has_permission(u, "manage_all_tokens") is False
 
     def test_superuser_short_circuits(self, superuser):
         for action in EXPECTED_PERMS:
-            assert (
-                access_tokens_permission_policy.user_has_permission(superuser, action)
-                is True
-            )
+            assert access_tokens_permission_policy.user_has_permission(superuser, action) is True
 
 
 class TestPermissionRequiredDecorator:
@@ -134,9 +104,7 @@ class TestPermissionRequiredDecorator:
         from django.core.exceptions import PermissionDenied
         from django.test import RequestFactory
 
-        @access_tokens_permission_required(
-            "access_tokens_management", "manage_all_tokens"
-        )
+        @access_tokens_permission_required("access_tokens_management", "manage_all_tokens")
         def view(request):
             return "ok"
 

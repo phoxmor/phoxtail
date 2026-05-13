@@ -56,9 +56,7 @@ class EventServiceAdminUpdate:
         result.merge(validate_time_range(start_datetime, end_datetime))
 
         # Hard errors: recurrence settings
-        recurrence_until = data.get(
-            "recurrence_until", event.recurrence_until if event.pk else None
-        )
+        recurrence_until = data.get("recurrence_until", event.recurrence_until if event.pk else None)
         result.merge(validate_recurrence_until(start_datetime, recurrence_until))
 
         result.merge(
@@ -93,14 +91,10 @@ class EventServiceAdminUpdate:
             if (
                 event.recurrence_template or event.is_recurrence_template
             ) and update_scope != EventUpdateScope.THIS_EVENT_ONLY:
-                template = (
-                    event if event.is_recurrence_template else event.recurrence_template
-                )
+                template = event if event.is_recurrence_template else event.recurrence_template
 
                 if update_scope == EventUpdateScope.THIS_AND_FUTURE_EVENTS:
-                    original_start_datetime = Event.objects.get(
-                        pk=event.pk
-                    ).start_datetime
+                    original_start_datetime = Event.objects.get(pk=event.pk).start_datetime
                     events_to_update = Event.objects.filter(
                         recurrence_template=template,
                         is_recurrence_template=False,
@@ -113,17 +107,9 @@ class EventServiceAdminUpdate:
                     ).order_by("start_datetime")
 
             if events_to_update is not None:
-                result.merge(
-                    self._validate_bulk_update_conflicts(
-                        event, data, events_to_update, space
-                    )
-                )
+                result.merge(self._validate_bulk_update_conflicts(event, data, events_to_update, space))
             else:
-                result.merge(
-                    self._validate_single_update_conflict(
-                        event, start_datetime, end_datetime, space
-                    )
-                )
+                result.merge(self._validate_single_update_conflict(event, start_datetime, end_datetime, space))
 
         # Soft warnings: staff availability (single update only)
         if start_datetime and end_datetime and events_to_update is None:
@@ -198,9 +184,7 @@ class EventServiceAdminUpdate:
         return new_start_datetime, new_end_datetime
 
     @staticmethod
-    def _apply_updates_to_event(
-        event: "Event", data: dict, new_start_datetime, new_end_datetime, staff
-    ) -> None:
+    def _apply_updates_to_event(event: "Event", data: dict, new_start_datetime, new_end_datetime, staff) -> None:
         """Apply field updates to a single event instance."""
         event_tz = event.space.location.timezone
 
@@ -247,17 +231,13 @@ class EventServiceAdminUpdate:
 
             return event, 1
 
-    def _perform_this_and_future_update(
-        self, event: "Event", **data
-    ) -> tuple["Event", int]:
+    def _perform_this_and_future_update(self, event: "Event", **data) -> tuple["Event", int]:
         from ....models import Event
 
         original_start_datetime = Event.objects.get(pk=event.pk).start_datetime
 
         with transaction.atomic():
-            template = (
-                event if event.is_recurrence_template else event.recurrence_template
-            )
+            template = event if event.is_recurrence_template else event.recurrence_template
 
             future_events = Event.objects.filter(
                 recurrence_template=template,
@@ -266,33 +246,23 @@ class EventServiceAdminUpdate:
             ).order_by("start_datetime")
 
             staff = data.pop("staff", None)
-            new_start_datetime, new_end_datetime = self._extract_times_from_data(
-                event, data
-            )
+            new_start_datetime, new_end_datetime = self._extract_times_from_data(event, data)
 
             events_updated = 0
             for future_event in future_events:
-                self._apply_updates_to_event(
-                    future_event, data, new_start_datetime, new_end_datetime, staff
-                )
+                self._apply_updates_to_event(future_event, data, new_start_datetime, new_end_datetime, staff)
                 events_updated += 1
 
             # Propagate to template so future generated events inherit changes
-            self._apply_updates_to_event(
-                template, data, new_start_datetime, new_end_datetime, staff
-            )
+            self._apply_updates_to_event(template, data, new_start_datetime, new_end_datetime, staff)
 
             return event, events_updated
 
-    def _perform_all_in_series_update(
-        self, event: "Event", **data
-    ) -> tuple["Event", int]:
+    def _perform_all_in_series_update(self, event: "Event", **data) -> tuple["Event", int]:
         from ....models import Event
 
         with transaction.atomic():
-            template = (
-                event if event.is_recurrence_template else event.recurrence_template
-            )
+            template = event if event.is_recurrence_template else event.recurrence_template
 
             series_events = Event.objects.filter(
                 recurrence_template=template,
@@ -300,21 +270,15 @@ class EventServiceAdminUpdate:
             ).order_by("start_datetime")
 
             staff = data.pop("staff", None)
-            new_start_datetime, new_end_datetime = self._extract_times_from_data(
-                event, data
-            )
+            new_start_datetime, new_end_datetime = self._extract_times_from_data(event, data)
 
             events_updated = 0
             for series_event in series_events:
-                self._apply_updates_to_event(
-                    series_event, data, new_start_datetime, new_end_datetime, staff
-                )
+                self._apply_updates_to_event(series_event, data, new_start_datetime, new_end_datetime, staff)
                 events_updated += 1
 
             # Propagate to template so future generated events inherit changes
-            self._apply_updates_to_event(
-                template, data, new_start_datetime, new_end_datetime, staff
-            )
+            self._apply_updates_to_event(template, data, new_start_datetime, new_end_datetime, staff)
 
             event.refresh_from_db()
             return event, events_updated
@@ -323,9 +287,7 @@ class EventServiceAdminUpdate:
     # Conflict validation helpers
     # ------------------------------------------------------------------
 
-    def _validate_single_update_conflict(
-        self, event: "Event", start_datetime, end_datetime, space
-    ) -> ValidationResult:
+    def _validate_single_update_conflict(self, event: "Event", start_datetime, end_datetime, space) -> ValidationResult:
         """Check a single event update for space-time conflicts."""
         from ....models import Event
 
@@ -353,17 +315,13 @@ class EventServiceAdminUpdate:
 
         return result
 
-    def _validate_bulk_update_conflicts(
-        self, event: "Event", data: dict, events_to_update, space
-    ) -> ValidationResult:
+    def _validate_bulk_update_conflicts(self, event: "Event", data: dict, events_to_update, space) -> ValidationResult:
         """Check a bulk series update for space-time and staff conflicts."""
         from ....models import Event
 
         result = ValidationResult()
 
-        new_start_datetime, new_end_datetime = self._extract_times_from_data(
-            event, data
-        )
+        new_start_datetime, new_end_datetime = self._extract_times_from_data(event, data)
         events_to_update_ids = list(events_to_update.values_list("pk", flat=True))
 
         for future_event in events_to_update:
@@ -438,9 +396,7 @@ class EventServiceAdminUpdate:
                     conflicting_staff = conflict.staff.filter(id__in=staff_ids).first()
                     conflict_start_local = conflict.start_datetime.astimezone(event_tz)
                     conflict_end_local = conflict.end_datetime.astimezone(event_tz)
-                    future_event_start_local = updated_start_datetime.astimezone(
-                        event_tz
-                    )
+                    future_event_start_local = updated_start_datetime.astimezone(event_tz)
                     result.add_warning(
                         f"Updating this series would create a staff conflict. "
                         f"Event on {future_event_start_local.strftime('%Y-%m-%d')}: "

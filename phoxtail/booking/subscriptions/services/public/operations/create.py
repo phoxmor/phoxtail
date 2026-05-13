@@ -41,11 +41,7 @@ class SubscriptionServicePublicCreate:
 
         # Validation 3: Check if user has unpaid subscriptions
         if Subscription.objects.filter(user=user, is_paid=False).exists():
-            raise ValidationError(
-                _(
-                    "You have unpaid plans. Please complete payment before purchasing a new plan."
-                )
-            )
+            raise ValidationError(_("You have unpaid plans. Please complete payment before purchasing a new plan."))
 
         # Validation 4: Check if user already has an ACTIVE subscription of the same type
         # (Archived/cancelled subscriptions don't count as duplicates)
@@ -54,11 +50,7 @@ class SubscriptionServicePublicCreate:
             subscription_type=subscription_type,
             status=SubscriptionStatus.ACTIVE,
         ).exists():
-            raise ValidationError(
-                _(
-                    f"You already have an active '{subscription_type.name}' subscription."
-                )
-            )
+            raise ValidationError(_(f"You already have an active '{subscription_type.name}' subscription."))
 
     def perform(
         self,
@@ -78,9 +70,7 @@ class SubscriptionServicePublicCreate:
 
             # Set end date if duration-based
             if subscription_type.duration is not None:
-                subscription.end_date = start_date + timedelta(
-                    days=subscription_type.duration
-                )
+                subscription.end_date = start_date + timedelta(days=subscription_type.duration)
 
             # Save the subscription
             subscription.save()

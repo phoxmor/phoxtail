@@ -10,10 +10,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = (
-        "Verify a user's email address in allauth. "
-        "Pass an email address or --all-superusers."
-    )
+    help = "Verify a user's email address in allauth. Pass an email address or --all-superusers."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -36,9 +33,7 @@ class Command(BaseCommand):
             return
 
         if not email:
-            self.stderr.write(
-                self.style.ERROR("Provide an email address or use --all-superusers.")
-            )
+            self.stderr.write(self.style.ERROR("Provide an email address or use --all-superusers."))
             sys.exit(1)
 
         try:
@@ -53,9 +48,7 @@ class Command(BaseCommand):
         """Verify all superuser emails."""
         superusers = User.objects.filter(is_superuser=True).exclude(email="")
         if not superusers.exists():
-            self.stderr.write(
-                self.style.WARNING("No superusers with email addresses found.")
-            )
+            self.stderr.write(self.style.WARNING("No superusers with email addresses found."))
             return
 
         for user in superusers:

@@ -26,9 +26,7 @@ class TestAccessTokenCreateForm:
         assert form.cleaned_data["scopes"] == ["*"]
 
     def test_comma_separated_scopes_split(self):
-        form = AccessTokenCreateForm(
-            {"name": "t", "scopes": "read:streams, write:design , publish"}
-        )
+        form = AccessTokenCreateForm({"name": "t", "scopes": "read:streams, write:design , publish"})
         assert form.is_valid()
         assert form.cleaned_data["scopes"] == [
             "read:streams",

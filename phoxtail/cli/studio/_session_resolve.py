@@ -33,9 +33,6 @@ def resolve_session_id(explicit: str | None) -> str:
         raise typer.Exit(code=1)
     if len(active) > 1:
         ids = ", ".join(s.get("session_id", "?") for s in active)
-        console.print(
-            f"[red]Error:[/red] Multiple active sessions ({ids}). "
-            "Specify one with --session."
-        )
+        console.print(f"[red]Error:[/red] Multiple active sessions ({ids}). Specify one with --session.")
         raise typer.Exit(code=1)
     return active[0]["session_id"]

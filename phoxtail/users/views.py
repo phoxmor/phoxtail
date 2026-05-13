@@ -39,6 +39,4 @@ def profile_update_view(request):
         messages.error(request, "Please correct the errors below.")
 
     context = {"form": form, "user": user}
-    return render(
-        request, "users/profile/partials/update_profile_response.html", context
-    )
+    return render(request, "users/profile/partials/update_profile_response.html", context)

@@ -47,10 +47,7 @@ class StreamSchemaBlock(FieldSchemaBlock):
             # Can be added later with lazy loading: ("stream", StreamSchemaBlock())
         ],
         min_num=1,
-        help_text=(
-            "Blocks that can be used in this stream. "
-            "Editors can add any of these in any order."
-        ),
+        help_text=("Blocks that can be used in this stream. Editors can add any of these in any order."),
     )
 
     # Stream constraints

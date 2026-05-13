@@ -158,9 +158,7 @@ def event_reservation_cancel_view(request, reservation_id):
     Cancels a specific reservation for the logged-in user.
     """
     if request.method == "POST":
-        reservation = get_object_or_404(
-            Reservation, uuid=reservation_id, user=request.user
-        )
+        reservation = get_object_or_404(Reservation, uuid=reservation_id, user=request.user)
 
         try:
             ReservationService(reservation).admin.cancel(request.user)
@@ -300,13 +298,10 @@ def event_waitlisted_reservation_cancel_view(request, reservation_id):
 
             messages.success(
                 request,
-                f"You have been removed from the waitlist for '{event_service_name}' "
-                f"on {event_date}.",
+                f"You have been removed from the waitlist for '{event_service_name}' on {event_date}.",
             )
         except Exception as e:
-            messages.error(
-                request, f"An error occurred while leaving the waitlist: {e}"
-            )
+            messages.error(request, f"An error occurred while leaving the waitlist: {e}")
 
         context = BookingContextBuilder.get_full_context(request)
         return render(

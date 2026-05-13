@@ -42,12 +42,8 @@ class EventFactory(factory.django.DjangoModelFactory):
         model = Event
 
     service = factory.SubFactory(ServiceFactory)
-    start_datetime = factory.LazyFunction(
-        lambda: timezone.now().replace(hour=10, minute=0, second=0, microsecond=0)
-    )
-    end_datetime = factory.LazyFunction(
-        lambda: timezone.now().replace(hour=11, minute=0, second=0, microsecond=0)
-    )
+    start_datetime = factory.LazyFunction(lambda: timezone.now().replace(hour=10, minute=0, second=0, microsecond=0))
+    end_datetime = factory.LazyFunction(lambda: timezone.now().replace(hour=11, minute=0, second=0, microsecond=0))
     space = factory.SubFactory(SpaceFactory)
     capacity = 12
     status = EventStatus.CONFIRMED
@@ -61,6 +57,4 @@ class RecurringTemplateFactory(EventFactory):
     recurrence_freq = RecurrenceFrequency.WEEKLY
     recurrence_interval = 1
     recurrence_byweekday = [0]  # Monday
-    recurrence_until = factory.LazyAttribute(
-        lambda obj: obj.start_datetime + datetime.timedelta(days=90)
-    )
+    recurrence_until = factory.LazyAttribute(lambda obj: obj.start_datetime + datetime.timedelta(days=90))

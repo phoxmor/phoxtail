@@ -18,9 +18,7 @@ console = Console()
 def lint(
     ctx: typer.Context,
     fix: bool = typer.Option(True, "--fix/--no-fix", help="Auto-fix issues"),
-    templates: bool = typer.Option(
-        True, "--templates/--no-templates", help="Include djlint template formatting"
-    ),
+    templates: bool = typer.Option(True, "--templates/--no-templates", help="Include djlint template formatting"),
 ) -> None:
     """Run code linting and formatting.
 

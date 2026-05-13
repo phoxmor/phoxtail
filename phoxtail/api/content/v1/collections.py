@@ -103,9 +103,7 @@ def _etag_matches(header_value: str | None, current: str) -> bool:
     if not header_value:
         return False
     candidates = {t.strip() for t in header_value.split(",")}
-    return "*" in candidates or _strip_weak(current) in {
-        _strip_weak(t) for t in candidates
-    }
+    return "*" in candidates or _strip_weak(current) in {_strip_weak(t) for t in candidates}
 
 
 def _require_if_match(request: HttpRequest, c, restriction=None) -> None:
@@ -113,14 +111,12 @@ def _require_if_match(request: HttpRequest, c, restriction=None) -> None:
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this collection.",
+            "If-Match header is required. Send the ETag from your most recent GET of this collection.",
         )
     if not _etag_matches(if_match, _collection_etag(c, restriction)):
         raise HttpError(
             412,
-            "ETag mismatch: the collection has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the collection has changed since you last read it. Re-fetch and retry.",
         )
 
 
@@ -137,9 +133,7 @@ def _serialize_restriction(restriction) -> dict | None:
         groups = [{"id": g.pk, "name": g.name} for g in restriction.groups.all()]
     return {
         "type": restriction.restriction_type,
-        "password": (
-            restriction.password if restriction.restriction_type == "password" else None
-        ),
+        "password": (restriction.password if restriction.restriction_type == "password" else None),
         "groups": groups,
     }
 
@@ -234,9 +228,9 @@ def list_collections(request: HttpRequest):
 
     restrictions = {
         r.collection_id: r
-        for r in CollectionViewRestriction.objects.filter(
-            collection_id__in=[c.pk for c in qs]
-        ).prefetch_related("groups")
+        for r in CollectionViewRestriction.objects.filter(collection_id__in=[c.pk for c in qs]).prefetch_related(
+            "groups"
+        )
     }
 
     items = []
@@ -253,9 +247,7 @@ def list_collections(request: HttpRequest):
     response={201: CollectionItem, 400: Error, 403: Error, 409: Error},
     summary="Create a collection",
 )
-def create_collection(
-    request: HttpRequest, response: HttpResponse, payload: CollectionCreate
-):
+def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
     if not request.auth.has_perm("wagtailcore.add_collection"):
         raise HttpError(403, "User does not have permission to create collections.")
 
@@ -275,11 +267,7 @@ def create_collection(
     if payload.view_restriction and payload.view_restriction.type != "none":
         from wagtail.models import CollectionViewRestriction
 
-        restriction = (
-            CollectionViewRestriction.objects.filter(collection=c)
-            .prefetch_related("groups")
-            .first()
-        )
+        restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
 
     response["ETag"] = _collection_etag(c, restriction)
     return 201, _serialize(c, parent.pk, restriction)
@@ -301,11 +289,7 @@ def get_collection(request: HttpRequest, response: HttpResponse, collection_id: 
     parent = Collection.objects.filter(path=parent_path).first()
     parent_id = parent.pk if parent else None
 
-    restriction = (
-        CollectionViewRestriction.objects.filter(collection=c)
-        .prefetch_related("groups")
-        .first()
-    )
+    restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
     response["ETag"] = _collection_etag(c, restriction)
     return _serialize(c, parent_id, restriction)
 
@@ -336,11 +320,7 @@ def patch_collection(
 
     c = _resolve_collection(collection_id)
 
-    restriction = (
-        CollectionViewRestriction.objects.filter(collection=c)
-        .prefetch_related("groups")
-        .first()
-    )
+    restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
     _require_if_match(request, c, restriction)
 
     if c.depth == 1:
@@ -351,17 +331,10 @@ def patch_collection(
     with transaction.atomic():
         if "name" in data and data["name"] is not None:
             current_parent = c.get_parent()
-            if (
-                current_parent
-                and current_parent.get_children()
-                .filter(name=data["name"])
-                .exclude(pk=c.pk)
-                .exists()
-            ):
+            if current_parent and current_parent.get_children().filter(name=data["name"]).exclude(pk=c.pk).exists():
                 raise HttpError(
                     409,
-                    f"A collection named '{data['name']}' already exists "
-                    "under this parent.",
+                    f"A collection named '{data['name']}' already exists under this parent.",
                 )
             c.name = data["name"]
             c.save(update_fields=["name"])
@@ -382,11 +355,7 @@ def patch_collection(
         if "view_restriction" in data:
             _apply_restriction(c, payload.view_restriction)
 
-    restriction = (
-        CollectionViewRestriction.objects.filter(collection=c)
-        .prefetch_related("groups")
-        .first()
-    )
+    restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
 
     step = c.steplen
     parent_path = c.path[:-step]
@@ -434,8 +403,7 @@ def delete_collection(request: HttpRequest, collection_id: int):
             parts.append(f"{member_count} media item(s)")
         raise HttpError(
             409,
-            f"Collection is not empty: contains {' and '.join(parts)}. "
-            "Reassign or delete its contents first.",
+            f"Collection is not empty: contains {' and '.join(parts)}. Reassign or delete its contents first.",
         )
 
     c.delete()

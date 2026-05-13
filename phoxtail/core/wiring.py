@@ -28,11 +28,7 @@ def find_phoxtail_config(dotted_app: str) -> type[PhoxtailAppConfig] | None:
         return None
 
     for _, obj in inspect.getmembers(module, inspect.isclass):
-        if (
-            issubclass(obj, PhoxtailAppConfig)
-            and obj is not PhoxtailAppConfig
-            and obj.__module__ == module.__name__
-        ):
+        if issubclass(obj, PhoxtailAppConfig) and obj is not PhoxtailAppConfig and obj.__module__ == module.__name__:
             return obj
     return None
 
@@ -92,9 +88,7 @@ def wire_apps(settings_globals: dict) -> None:
             celery_enabled = True
 
     if extra_context_processors and settings_globals.get("TEMPLATES"):
-        cps = settings_globals["TEMPLATES"][0]["OPTIONS"].setdefault(
-            "context_processors", []
-        )
+        cps = settings_globals["TEMPLATES"][0]["OPTIONS"].setdefault("context_processors", [])
         for cp in extra_context_processors:
             if cp not in cps:
                 cps.append(cp)
@@ -109,9 +103,7 @@ def wire_apps(settings_globals: dict) -> None:
 
     settings_globals.setdefault("PHOXTAIL_CELERY_ENABLED", celery_enabled)
     if celery_enabled:
-        settings_globals.setdefault(
-            "CELERY_TIMEZONE", settings_globals.get("TIME_ZONE", "UTC")
-        )
+        settings_globals.setdefault("CELERY_TIMEZONE", settings_globals.get("TIME_ZONE", "UTC"))
 
 
 def collect_url_patterns():
@@ -130,9 +122,7 @@ def collect_url_patterns():
         if mount is None:
             continue
         if mount.namespace:
-            patterns.append(
-                path(mount.prefix, include((mount.module, mount.namespace)))
-            )
+            patterns.append(path(mount.prefix, include((mount.module, mount.namespace))))
         else:
             patterns.append(path(mount.prefix, include(mount.module)))
     return patterns

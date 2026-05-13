@@ -39,17 +39,13 @@ def _mask(token: str) -> str:
 
 @app.command("login")
 def login(
-    token: str | None = typer.Option(
-        None, "--token", help="Token value. Prompted (hidden) if omitted."
-    ),
+    token: str | None = typer.Option(None, "--token", help="Token value. Prompted (hidden) if omitted."),
     host: str | None = typer.Option(
         None,
         "--host",
         help="Override host key (defaults to the project's api_url host).",
     ),
-    no_verify: bool = typer.Option(
-        False, "--no-verify", help="Skip live verification against the API."
-    ),
+    no_verify: bool = typer.Option(False, "--no-verify", help="Skip live verification against the API."),
 ) -> None:
     """Store a Personal Access Token for the current project's API."""
     base_url = _resolve_base_url(host)
@@ -76,8 +72,7 @@ def login(
             )
         except httpx.HTTPError as exc:
             console.print(
-                f"[yellow]Warning:[/yellow] could not verify token "
-                f"({exc.__class__.__name__}). Saving anyway."
+                f"[yellow]Warning:[/yellow] could not verify token ({exc.__class__.__name__}). Saving anyway."
             )
         else:
             if resp.status_code == 401:
@@ -85,8 +80,7 @@ def login(
                 raise typer.Exit(code=1)
             if resp.status_code >= 400:
                 console.print(
-                    f"[yellow]Warning:[/yellow] verification returned "
-                    f"HTTP {resp.status_code}. Saving anyway."
+                    f"[yellow]Warning:[/yellow] verification returned HTTP {resp.status_code}. Saving anyway."
                 )
 
     credentials.save_token(host_key, token)
@@ -99,17 +93,14 @@ def status() -> None:
     env_value = os.environ.get(credentials.ENV_VAR, "")
     if env_value:
         console.print(
-            f"[green]${credentials.ENV_VAR}[/green] is set "
-            f"({_mask(env_value.strip())}) — this overrides the file."
+            f"[green]${credentials.ENV_VAR}[/green] is set ({_mask(env_value.strip())}) — this overrides the file."
         )
     else:
         console.print(f"[dim]${credentials.ENV_VAR} is not set.[/dim]")
 
     hosts = credentials.list_hosts()
     if not hosts:
-        console.print(
-            f"No tokens stored in [bold]{credentials.CREDENTIALS_FILE}[/bold]."
-        )
+        console.print(f"No tokens stored in [bold]{credentials.CREDENTIALS_FILE}[/bold].")
     else:
         console.print(f"Stored in [bold]{credentials.CREDENTIALS_FILE}[/bold]:")
         for h in hosts:

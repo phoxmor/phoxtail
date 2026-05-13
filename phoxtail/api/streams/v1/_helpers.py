@@ -44,9 +44,7 @@ def resolve_collection_by_pk(pk: int) -> VariantCollection:
 
 def resolve_block_by_pk(pk: int) -> Block:
     try:
-        return Block.objects.prefetch_related("variants__collection", "page_types").get(
-            pk=pk
-        )
+        return Block.objects.prefetch_related("variants__collection", "page_types").get(pk=pk)
     except Block.DoesNotExist as exc:
         raise HttpError(404, f"Block {pk} not found.") from exc
 
@@ -60,9 +58,7 @@ def resolve_collection(identifier: str) -> VariantCollection:
 
 def resolve_block(identifier: str) -> Block:
     try:
-        return Block.objects.prefetch_related("variants__collection", "page_types").get(
-            identifier=identifier
-        )
+        return Block.objects.prefetch_related("variants__collection", "page_types").get(identifier=identifier)
     except Block.DoesNotExist as exc:
         raise HttpError(404, f"Block '{identifier}' not found.") from exc
 

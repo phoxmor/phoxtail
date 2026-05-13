@@ -122,9 +122,7 @@ class TestCanAccessService:
         sub = SubscriptionFactory(credits=10)
         whitelisted = ServiceFactory()
         unlisted = ServiceFactory()
-        SubscriptionCreditBalanceFactory(
-            subscription=sub, service=whitelisted, credits=5
-        )
+        SubscriptionCreditBalanceFactory(subscription=sub, service=whitelisted, credits=5)
         assert SubscriptionService(sub).can_access_service(unlisted) is False
 
     def test_whitelist_mode_listed_service_with_credits_returns_true(self):
@@ -177,9 +175,7 @@ class TestUseCredit:
     def test_whitelist_mode_decrements_service_balance(self):
         sub = SubscriptionFactory(credits=10)
         service = ServiceFactory()
-        balance = SubscriptionCreditBalanceFactory(
-            subscription=sub, service=service, credits=5
-        )
+        balance = SubscriptionCreditBalanceFactory(subscription=sub, service=service, credits=5)
         result = SubscriptionService(sub).use_credit(service)
         balance.refresh_from_db()
         assert result is True
@@ -198,9 +194,7 @@ class TestUseCredit:
         sub = SubscriptionFactory(credits=10)
         whitelisted = ServiceFactory()
         unlisted = ServiceFactory()
-        SubscriptionCreditBalanceFactory(
-            subscription=sub, service=whitelisted, credits=5
-        )
+        SubscriptionCreditBalanceFactory(subscription=sub, service=whitelisted, credits=5)
         assert SubscriptionService(sub).use_credit(unlisted) is False
 
     def test_whitelist_mode_all_exhausted_returns_false(self):
@@ -253,12 +247,8 @@ class TestRestoreCredit:
         sub = SubscriptionFactory(credits=10)
         service = ServiceFactory()
         st = sub.subscription_type
-        SubscriptionTypeCreditAllocationFactory(
-            subscription_type=st, service=service, credits=5
-        )
-        balance = SubscriptionCreditBalanceFactory(
-            subscription=sub, service=service, credits=2
-        )
+        SubscriptionTypeCreditAllocationFactory(subscription_type=st, service=service, credits=5)
+        balance = SubscriptionCreditBalanceFactory(subscription=sub, service=service, credits=2)
         result = SubscriptionService(sub).restore_credit(service)
         balance.refresh_from_db()
         assert result is True
@@ -295,9 +285,7 @@ class TestCanRenew:
         assert SubscriptionService(sub).can_renew() is False
 
     def test_non_active_status_cannot_renew(self):
-        sub = SubscriptionFactory(
-            status=SubscriptionStatus.CANCELLED, is_paid=True, credits=0
-        )
+        sub = SubscriptionFactory(status=SubscriptionStatus.CANCELLED, is_paid=True, credits=0)
         assert SubscriptionService(sub).can_renew() is False
 
     def test_still_has_credits_cannot_renew(self):
@@ -330,18 +318,14 @@ class TestCreateInitialCreditBalances:
         assert sub.credits == 15
 
     def test_creates_one_balance_per_allocation(self, subscription_type, service):
-        SubscriptionTypeCreditAllocationFactory(
-            subscription_type=subscription_type, service=service, credits=8
-        )
+        SubscriptionTypeCreditAllocationFactory(subscription_type=subscription_type, service=service, credits=8)
         sub = SubscriptionFactory(subscription_type=subscription_type)
         SubscriptionService(None).create_initial_credit_balances(sub)
         balance = sub.credit_balances.get(service=service)
         assert balance.credits == 8
 
     def test_none_allocation_credits_means_unlimited(self, subscription_type, service):
-        SubscriptionTypeCreditAllocationFactory(
-            subscription_type=subscription_type, service=service, credits=None
-        )
+        SubscriptionTypeCreditAllocationFactory(subscription_type=subscription_type, service=service, credits=None)
         sub = SubscriptionFactory(subscription_type=subscription_type)
         SubscriptionService(None).create_initial_credit_balances(sub)
         balance = sub.credit_balances.get(service=service)
@@ -350,9 +334,7 @@ class TestCreateInitialCreditBalances:
     def test_inherits_unpaid_reservation_limit(self, subscription_type):
         subscription_type.unpaid_reservation_limit = 3
         subscription_type.save()
-        sub = SubscriptionFactory(
-            subscription_type=subscription_type, unpaid_reservation_limit=0
-        )
+        sub = SubscriptionFactory(subscription_type=subscription_type, unpaid_reservation_limit=0)
         SubscriptionService(None).create_initial_credit_balances(sub)
         sub.refresh_from_db()
         assert sub.unpaid_reservation_limit == 3

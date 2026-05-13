@@ -71,9 +71,7 @@ class TestIsWithinAllowedCancellationPeriod:
             end_datetime=timezone.now() + datetime.timedelta(minutes=90),
         )
         r = ReservationFactory(event=event)
-        assert (
-            ReservationService(r).get_is_within_allowed_cancellation_period() is False
-        )
+        assert ReservationService(r).get_is_within_allowed_cancellation_period() is False
 
 
 # ---------------------------------------------------------------------------

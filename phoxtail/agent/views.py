@@ -40,12 +40,7 @@ def media_picker(request):
 
     if tab == "images":
         Image = get_image_model()
-        qs = (
-            Image.objects.all()
-            .select_related("collection")
-            .prefetch_related("tags")
-            .order_by("-created_at")
-        )
+        qs = Image.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
         if query:
             qs = s.autocomplete(query, qs)[:40]
         else:
@@ -89,12 +84,7 @@ def media_picker(request):
             results = []
     elif tab == "documents":
         Document = get_document_model()
-        qs = (
-            Document.objects.all()
-            .select_related("collection")
-            .prefetch_related("tags")
-            .order_by("-created_at")
-        )
+        qs = Document.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
         if query:
             qs = s.autocomplete(query, qs)[:40]
         else:
@@ -134,9 +124,7 @@ def model_picker_panel(request):
     except Exception:
         agent_settings = None
     default_artifact_id = (
-        agent_settings.default_artifact_id
-        if agent_settings and agent_settings.default_artifact_id
-        else None
+        agent_settings.default_artifact_id if agent_settings and agent_settings.default_artifact_id else None
     )
     return render(
         request,

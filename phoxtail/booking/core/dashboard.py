@@ -64,9 +64,7 @@ def get_upcoming_reservations(request):
     reservations = (
         Reservation.objects.filter(user=request.user)
         .exclude(status__in=[ReservationStatus.CANCELLED, ReservationStatus.NO_SHOW])
-        .select_related(
-            "event", "event__service", "event__space", "event__service__palette"
-        )
+        .select_related("event", "event__service", "event__space", "event__service__palette")
         .order_by("event__start_datetime")[:5]
     )
     return {"reservations": reservations}

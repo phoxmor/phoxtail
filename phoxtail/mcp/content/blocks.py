@@ -38,9 +38,7 @@ def get_block(page_id: int, block_uuid: str) -> str:
         "Prefer this over phoxtail_pages_replace_body when editing a single block."
     ),
 )
-def update_block(
-    page_id: int, block_uuid: str, etag: str, value: dict[str, Any]
-) -> str:
+def update_block(page_id: int, block_uuid: str, etag: str, value: dict[str, Any]) -> str:
     resp = request(
         "PATCH",
         f"/pages/{page_id}/blocks/{block_uuid}/",
@@ -130,9 +128,7 @@ def delete_block(page_id: int, block_uuid: str, etag: str) -> str:
         "Returns {moved_uuid: '...', _etag, _changed_blocks: [uuid]}."
     ),
 )
-def move_block(
-    page_id: int, block_uuid: str, etag: str, position: dict[str, Any]
-) -> str:
+def move_block(page_id: int, block_uuid: str, etag: str, position: dict[str, Any]) -> str:
     resp = request(
         "POST",
         f"/pages/{page_id}/blocks/{block_uuid}/move/",

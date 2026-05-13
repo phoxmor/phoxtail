@@ -45,9 +45,7 @@ class ReservationServiceAdminCreate:
         from ....models import Reservation
 
         if event.user_can_access_event(user) is False:
-            raise ValidationError(
-                "User does not have the required level to book this class."
-            )
+            raise ValidationError("User does not have the required level to book this class.")
 
         # Check for duplicate reservation
         existing_reservation = Reservation.objects.filter(
@@ -59,21 +57,15 @@ class ReservationServiceAdminCreate:
             if existing_reservation.status == ReservationStatus.COMPLETED:
                 raise ValidationError("User already attended this event.")
             elif existing_reservation.status == ReservationStatus.CONFIRMED:
-                raise ValidationError(
-                    "User already has a confirmed reservation for this event."
-                )
+                raise ValidationError("User already has a confirmed reservation for this event.")
             elif existing_reservation.status == ReservationStatus.WAITLISTED:
                 raise ValidationError("User is already on the waitlist for this event.")
             elif existing_reservation.status == ReservationStatus.CANCELLED:
-                raise ValidationError(
-                    "User already has a cancelled reservation for this event."
-                )
+                raise ValidationError("User already has a cancelled reservation for this event.")
 
         # Check if event is cancelled
         if event.is_cancelled:
-            raise ValidationError(
-                "This class has been cancelled and is no longer available."
-            )
+            raise ValidationError("This class has been cancelled and is no longer available.")
 
         # Check event capacity
         if event.is_full and reservation_status in [
@@ -89,22 +81,15 @@ class ReservationServiceAdminCreate:
             event__end_datetime__gt=event.start_datetime,
             status__in=[ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED],
         ).exists():
-            raise ValidationError(
-                "User already has a reservation for another event at that time."
-            )
+            raise ValidationError("User already has a reservation for another event at that time.")
 
         # Validate subscription access
-        if not subscription.service.is_event_within_subscription_period(
-            event.start_datetime
-        ):
-            raise ValidationError(
-                "This event is outside the subscription's valid period."
-            )
+        if not subscription.service.is_event_within_subscription_period(event.start_datetime):
+            raise ValidationError("This event is outside the subscription's valid period.")
 
         if not subscription.service.can_access_service(event.service):
             raise ValidationError(
-                f"Selected subscription doesn't provide access to '{event.service.name}' "
-                "or has no credits remaining."
+                f"Selected subscription doesn't provide access to '{event.service.name}' or has no credits remaining."
             )
 
         # Validate grace period access
@@ -135,9 +120,7 @@ class ReservationServiceAdminCreate:
             if subscription and reservation_status != ReservationStatus.WAITLISTED:
                 credit_used = subscription.service.use_credit(event.service)
                 if not credit_used:
-                    raise ValidationError(
-                        f"No credits available in subscription for '{event.service.name}'."
-                    )
+                    raise ValidationError(f"No credits available in subscription for '{event.service.name}'.")
 
         return reservation
 
@@ -165,16 +148,12 @@ class ReservationServiceAdminCreate:
 
         subscription = None
         try:
-            subscription = Subscription.objects.get(
-                uuid=subscription_id, user=user, status=SubscriptionStatus.ACTIVE
-            )
+            subscription = Subscription.objects.get(uuid=subscription_id, user=user, status=SubscriptionStatus.ACTIVE)
         except Subscription.DoesNotExist:
             pass
 
         if not subscription:
-            subscription_type = SubscriptionType.objects.filter(
-                uuid=subscription_id, is_active=True
-            ).first()
+            subscription_type = SubscriptionType.objects.filter(uuid=subscription_id, is_active=True).first()
             if not subscription_type:
                 raise ValidationError("Selected subscription is invalid or inactive.")
 

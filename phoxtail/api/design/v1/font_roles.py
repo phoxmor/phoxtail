@@ -59,9 +59,7 @@ class Error(Schema):
 @router.get("/", response={200: FontRoleList}, summary="List font roles")
 def list_font_roles(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on name and identifier."
-    ),
+    search: str | None = Query(None, description="Prefix search on name and identifier."),
 ):
     from phoxtail.design.models import FontRole
 
@@ -77,9 +75,7 @@ def list_font_roles(
     response={201: FontRoleSummary, 400: Error, 409: Error},
     summary="Create a font role",
 )
-def create_font_role(
-    request: HttpRequest, response: HttpResponse, payload: FontRoleCreate
-):
+def create_font_role(request: HttpRequest, response: HttpResponse, payload: FontRoleCreate):
     from phoxtail.design.models import FontRole
 
     try:
@@ -91,8 +87,7 @@ def create_font_role(
     except IntegrityError:
         raise HttpError(
             409,
-            f"A font role with name '{payload.name}' or identifier "
-            f"'{payload.identifier}' already exists.",
+            f"A font role with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = font_role_etag(r)
     return 201, font_role_summary(r)

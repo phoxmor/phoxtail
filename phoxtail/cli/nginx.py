@@ -17,9 +17,7 @@ console = Console()
 
 @create_app.command("initial")
 def initial(
-    output: Path = typer.Option(
-        Path("nginx.conf"), "--output", "-o", help="Output file path"
-    ),
+    output: Path = typer.Option(Path("nginx.conf"), "--output", "-o", help="Output file path"),
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing file"),
 ) -> None:
     """Create initial nginx.conf for SSL retrieval."""
@@ -39,9 +37,7 @@ def production(
     domain: str | None = typer.Option(None, "--domain", "-d"),
     output: Path = typer.Option(Path("nginx.conf"), "--output", "-o"),
     force: bool = typer.Option(False, "--force", "-f"),
-    wildcard: bool = typer.Option(
-        False, "--wildcard", "-w", help="Enable wildcard subdomains"
-    ),
+    wildcard: bool = typer.Option(False, "--wildcard", "-w", help="Enable wildcard subdomains"),
 ) -> None:
     """Create production nginx.conf with optional wildcard support."""
     if output.exists() and not force:
@@ -50,11 +46,7 @@ def production(
 
     env_domain = read_env_value("DOMAIN")
     if domain is None:
-        domain = (
-            Prompt.ask("Domain name", default=env_domain)
-            if env_domain
-            else Prompt.ask("Domain name")
-        )
+        domain = Prompt.ask("Domain name", default=env_domain) if env_domain else Prompt.ask("Domain name")
 
     if not domain:
         console.print("[red]Error:[/red] Domain is required")
@@ -80,9 +72,7 @@ def production(
     )
     output.write_text(content)
 
-    console.print(
-        f"[green]✓[/green] Production nginx.conf created: [bold]{output}[/bold]"
-    )
+    console.print(f"[green]✓[/green] Production nginx.conf created: [bold]{output}[/bold]")
     console.print(f"[dim]Domain:[/dim] {domain}")
     console.print("[dim]SSL:[/dim] TLS 1.2/1.3 with Let's Encrypt certificates")
     console.print("[dim]HTTP/2:[/dim] Enabled (with IPv6 resolver fix)")
@@ -90,8 +80,6 @@ def production(
     if wildcard:
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS (preserves subdomain)")
         console.print(f"[yellow]Wildcard support enabled (.{domain})[/yellow]")
-        console.print(
-            "[dim]Note:[/dim] Wildcard certs require DNS-01 challenge, not HTTP-01"
-        )
+        console.print("[dim]Note:[/dim] Wildcard certs require DNS-01 challenge, not HTTP-01")
     else:
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS, www → non-www")

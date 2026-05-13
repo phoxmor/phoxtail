@@ -59,9 +59,7 @@ def get_weekly_schedule(location):
         event_date = local_start.date()
         start_hour = local_start.hour
         events_by_day[event_date].append(event)
-        events_by_day_and_hour[event_date][start_hour].append(
-            {"event": event, "start_hour": start_hour}
-        )
+        events_by_day_and_hour[event_date][start_hour].append({"event": event, "start_hour": start_hour})
 
     hours_with_events = set()
     for day_events in events_by_day_and_hour.values():

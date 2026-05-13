@@ -72,14 +72,10 @@ app.add_typer(ssl.app, name="ssl", help="SSL certificate management")
 app.add_typer(mcp.app, name="mcp", help="MCP server for AI agents")
 app.add_typer(auth.app, name="auth", help="Manage Phoxtail API credentials")
 app.add_typer(studio.app, name="studio", help="Design and exchange block variants")
-app.add_typer(
-    content.app, name="content", help="Manage CMS content (pages, locales, sites)"
-)
+app.add_typer(content.app, name="content", help="Manage CMS content (pages, locales, sites)")
 
 # Top-level commands
-app.command(
-    context_settings={"allow_extra_args": True, "allow_interspersed_args": False}
-)(manage.manage)
+app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args": False})(manage.manage)
 app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
 app.command()(hatch.hatch)

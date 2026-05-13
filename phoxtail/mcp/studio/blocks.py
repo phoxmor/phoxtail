@@ -177,8 +177,7 @@ def update_block(
             {
                 "error": "precondition_required",
                 "detail": (
-                    "ETag is required. Call phoxtail_studio_get_block "
-                    "first and pass the _etag value from the response."
+                    "ETag is required. Call phoxtail_studio_get_block first and pass the _etag value from the response."
                 ),
             }
         )

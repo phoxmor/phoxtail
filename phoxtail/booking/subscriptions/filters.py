@@ -54,11 +54,7 @@ class BillingFilter(django_filters.FilterSet):
         if not value:
             return queryset
 
-        return (
-            search_backend.autocomplete(value, queryset)
-            .get_queryset()
-            .order_by("-start_date")
-        )
+        return search_backend.autocomplete(value, queryset).get_queryset().order_by("-start_date")
 
     def filter_page(self, queryset, name, value):
         """This filter doesn't affect the queryset - it's used for pagination state only."""

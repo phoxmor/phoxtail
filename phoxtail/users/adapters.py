@@ -19,9 +19,7 @@ class AccountAdapter(DefaultAccountAdapter):
             first_name = user.first_name or ""
             last_name = user.last_name or ""
             email = user.email or ""
-            basename = allauth_utils._generate_unique_username_base(
-                [first_name, last_name, email, "user"]
-            )
+            basename = allauth_utils._generate_unique_username_base([first_name, last_name, email, "user"])
             if len(basename.strip("-_.")) < 2:
                 # Fall back: derive username from email only.
                 user.username = self.generate_unique_username([email, "user"])

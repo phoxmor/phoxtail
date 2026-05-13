@@ -75,13 +75,11 @@ class TestSetupBookingGroups:
         codenames = _group_codenames("Booking Manager")
         assert "access_booking_settings" not in codenames
         custom = set(
-            _get_custom_permissions()
-            .exclude(codename="access_booking_settings")
-            .values_list("codename", flat=True)
+            _get_custom_permissions().exclude(codename="access_booking_settings").values_list("codename", flat=True)
         )
-        snippet = _get_snippet_permissions(
-            OPERATIONAL_MODELS
-        ) | _get_snippet_permissions(CONFIG_MODELS, actions=["view"])
+        snippet = _get_snippet_permissions(OPERATIONAL_MODELS) | _get_snippet_permissions(
+            CONFIG_MODELS, actions=["view"]
+        )
         assert codenames == custom | snippet
 
     def test_booking_staff_has_correct_permissions(self):
@@ -91,9 +89,7 @@ class TestSetupBookingGroups:
             "manage_reservations",
             "access_scheduling_management",
         }
-        expected_snippet = _get_snippet_permissions(
-            STAFF_CONFIG_MODELS, actions=["view"]
-        ) | _get_snippet_permissions(
+        expected_snippet = _get_snippet_permissions(STAFF_CONFIG_MODELS, actions=["view"]) | _get_snippet_permissions(
             STAFF_OPERATIONAL_MODELS, actions=["view", "change"]
         )
         assert _group_codenames("Booking Staff") == expected_custom | expected_snippet
@@ -101,18 +97,12 @@ class TestSetupBookingGroups:
     def test_booking_viewer_has_only_access_and_view_permissions(self):
         call_command("setup_booking_groups")
         codenames = _group_codenames("Booking Viewer")
-        custom_codenames = set(
-            _get_custom_permissions().values_list("codename", flat=True)
-        )
+        custom_codenames = set(_get_custom_permissions().values_list("codename", flat=True))
         for codename in codenames:
             if codename in custom_codenames:
-                assert codename.startswith("access_"), (
-                    f"Unexpected non-access custom permission: {codename}"
-                )
+                assert codename.startswith("access_"), f"Unexpected non-access custom permission: {codename}"
             else:
-                assert codename.startswith("view_"), (
-                    f"Unexpected non-view snippet permission: {codename}"
-                )
+                assert codename.startswith("view_"), f"Unexpected non-view snippet permission: {codename}"
         expected_custom = {
             "access_booking_management",
             "access_scheduling_management",
@@ -120,9 +110,7 @@ class TestSetupBookingGroups:
             "access_users_management",
             "access_booking_settings",
         }
-        expected_snippet = _get_snippet_permissions(
-            CONFIG_MODELS + OPERATIONAL_MODELS, actions=["view"]
-        )
+        expected_snippet = _get_snippet_permissions(CONFIG_MODELS + OPERATIONAL_MODELS, actions=["view"])
         assert codenames == expected_custom | expected_snippet
 
 

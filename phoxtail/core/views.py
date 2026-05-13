@@ -200,15 +200,11 @@ class MultiSelectChipsSearchView(PermissionMixin, View):
             selected_pks = [str(value)] if value else []
 
         if selected_pks:
-            selected_items = self.get_selected_items_queryset(queryset.model).filter(
-                pk__in=selected_pks
-            )
+            selected_items = self.get_selected_items_queryset(queryset.model).filter(pk__in=selected_pks)
         else:
             selected_items = queryset.none()
 
-        available_items = (
-            queryset.exclude(pk__in=selected_pks) if selected_pks else queryset
-        )
+        available_items = queryset.exclude(pk__in=selected_pks) if selected_pks else queryset
 
         if search_value:
             s = get_search_backend()
@@ -240,8 +236,7 @@ class MultiSelectChipsSearchView(PermissionMixin, View):
         context.update(self.get_extra_context(form))
 
         template = (
-            self.oob_response_template
-            or "phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html"
+            self.oob_response_template or "phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html"
         )
         return render(request, template, context)
 
@@ -347,8 +342,5 @@ class SingleSelectSearchView(PermissionMixin, View):
         # Selection changed: return full widget + optional OOB updates
         context.update(self.get_extra_context(form))
 
-        template = (
-            self.oob_response_template
-            or "phoxtail_core/forms/widgets/htmx/single_select_search/input.html"
-        )
+        template = self.oob_response_template or "phoxtail_core/forms/widgets/htmx/single_select_search/input.html"
         return render(request, template, context)

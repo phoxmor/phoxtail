@@ -34,24 +34,16 @@ class ReservationServiceAdminCancel:
     def perform(self, user: User) -> None:
         reservation = self.service.reservation
 
-        allowed_cancellation_period = (
-            reservation.event.start_datetime
-            - timezone.timedelta(
-                hours=reservation.event.service.cancellation_lockout_hours
-            )
+        allowed_cancellation_period = reservation.event.start_datetime - timezone.timedelta(
+            hours=reservation.event.service.cancellation_lockout_hours
         )
 
         with transaction.atomic():
             # Allowed cancellation period - delete the reservation and restore credit
             if timezone.now() < allowed_cancellation_period:
                 # Restore credit if subscription was used and not waitlisted
-                if (
-                    reservation.status != ReservationStatus.WAITLISTED
-                    and reservation.subscription
-                ):
-                    reservation.subscription.service.restore_credit(
-                        reservation.event.service
-                    )
+                if reservation.status != ReservationStatus.WAITLISTED and reservation.subscription:
+                    reservation.subscription.service.restore_credit(reservation.event.service)
 
                 reservation.delete()
             else:

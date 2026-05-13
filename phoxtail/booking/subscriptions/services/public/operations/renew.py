@@ -52,9 +52,7 @@ class SubscriptionServicePublicRenew:
         # Only ACTIVE subscriptions can be renewed (not CANCELLED, SUSPENDED, etc.)
         renewable_statuses = [SubscriptionStatus.ACTIVE]
         if subscription.status not in renewable_statuses:
-            raise ValidationError(
-                _("This subscription cannot be renewed due to its current status.")
-            )
+            raise ValidationError(_("This subscription cannot be renewed due to its current status."))
 
         # Validation 5: Can only renew if expired OR credits depleted
         # Block renewal only when subscription is still active AND has remaining credits
@@ -69,10 +67,7 @@ class SubscriptionServicePublicRenew:
         # Validation 6: Subscription must be paid before renewal
         if not subscription.is_paid:
             raise ValidationError(
-                _(
-                    "This subscription has not been paid for. "
-                    "Please complete the payment before renewing."
-                )
+                _("This subscription has not been paid for. Please complete the payment before renewing.")
             )
 
     def perform(self, start_date: date) -> "Subscription":

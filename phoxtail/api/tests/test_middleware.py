@@ -65,24 +65,18 @@ class TestI18nRedirectBlocking:
 
     def test_blocks_english_i18n_redirect(self, rf):
         request = rf.get("/api/streams/v1/variants")
-        response = make_middleware(self._redirect("/en/api/streams/v1/variants/"))(
-            request
-        )
+        response = make_middleware(self._redirect("/en/api/streams/v1/variants/"))(request)
         assert response.status_code == 404
         assert response["Content-Type"] == "application/json"
 
     def test_blocks_two_letter_language_redirect(self, rf):
         request = rf.get("/api/streams/v1/variants")
-        response = make_middleware(self._redirect("/fr/api/streams/v1/variants/"))(
-            request
-        )
+        response = make_middleware(self._redirect("/fr/api/streams/v1/variants/"))(request)
         assert response.status_code == 404
 
     def test_blocks_region_qualified_language_redirect(self, rf):
         request = rf.get("/api/streams/v1/variants")
-        response = make_middleware(self._redirect("/zh-Hans/api/streams/v1/variants/"))(
-            request
-        )
+        response = make_middleware(self._redirect("/zh-Hans/api/streams/v1/variants/"))(request)
         assert response.status_code == 404
 
     def test_passes_through_non_i18n_redirect(self, rf):

@@ -401,9 +401,7 @@ class TestCreateServer:
             url="https://api.hetzner.cloud/v1/servers",
             method="POST",
             status_code=422,
-            json={
-                "error": {"code": "invalid_input", "message": "server_type is invalid"}
-            },
+            json={"error": {"code": "invalid_input", "message": "server_type is invalid"}},
         )
         spec = ServerSpec(
             name="test",

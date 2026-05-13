@@ -116,13 +116,10 @@ def waitlisted_reservation_cancel_view(request, reservation_id):
 
             messages.success(
                 request,
-                f"You have been removed from the waitlist for '{event_service_name}' "
-                f"on {event_date}.",
+                f"You have been removed from the waitlist for '{event_service_name}' on {event_date}.",
             )
         except Exception as e:
-            messages.error(
-                request, f"An error occurred while leaving the waitlist: {e}"
-            )
+            messages.error(request, f"An error occurred while leaving the waitlist: {e}")
 
         context = get_reservation_list_context(request.user)
         return render(

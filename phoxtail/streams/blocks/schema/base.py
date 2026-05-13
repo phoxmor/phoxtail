@@ -21,13 +21,9 @@ class FieldSchemaBlock(StructBlock):
 
     name = CharBlock(
         max_length=100,
-        help_text=(
-            "Field name (e.g., 'title', 'subtitle'). Use lowercase with underscores."
-        ),
+        help_text=("Field name (e.g., 'title', 'subtitle'). Use lowercase with underscores."),
     )
-    required = BooleanBlock(
-        required=False, default=True, help_text="Is this field required?"
-    )
+    required = BooleanBlock(required=False, default=True, help_text="Is this field required?")
     help_text = CharBlock(
         required=False,
         max_length=255,
@@ -37,8 +33,6 @@ class FieldSchemaBlock(StructBlock):
         required=False,
         max_length=100,
         help_text=(
-            "Wagtail icon name (e.g., 'image', 'doc-full', "
-            "'media'). Can use default Wagtail icons or "
-            "custom SVG icons."
+            "Wagtail icon name (e.g., 'image', 'doc-full', 'media'). Can use default Wagtail icons or custom SVG icons."
         ),
     )

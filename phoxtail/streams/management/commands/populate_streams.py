@@ -158,9 +158,7 @@ class Command(BaseCommand):
                 md_files.extend(collections_dir.glob("*.md"))
 
         if not md_files:
-            self.stdout.write(
-                self.style.WARNING("No collection files found in any app")
-            )
+            self.stdout.write(self.style.WARNING("No collection files found in any app"))
             return
 
         created_count = 0
@@ -172,20 +170,14 @@ class Command(BaseCommand):
 
             name = metadata.get("name")
             if not name:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {md_file.name}: missing 'name' in frontmatter"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {md_file.name}: missing 'name' in frontmatter"))
                 continue
 
             identifier = metadata.get("identifier", md_file.stem)
             description = metadata.get("description", "")
 
             if VariantCollection.objects.filter(identifier=identifier).exists():
-                self.stdout.write(
-                    self.style.WARNING(f"  {identifier} already exists, skipping...")
-                )
+                self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
                 skipped_count += 1
                 continue
 
@@ -195,16 +187,10 @@ class Command(BaseCommand):
                 description=description,
                 template=body,
             )
-            self.stdout.write(
-                self.style.SUCCESS(f"  Created collection: {collection.name}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"  Created collection: {collection.name}"))
             created_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Collections: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Collections: {created_count} created, {skipped_count} skipped"))
 
     def import_blocks(self):
         """Import blocks from data/blocks/<identifier>/ directories."""
@@ -217,9 +203,7 @@ class Command(BaseCommand):
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
 
         if not block_dirs:
-            self.stdout.write(
-                self.style.WARNING("No block directories found in any app")
-            )
+            self.stdout.write(self.style.WARNING("No block directories found in any app"))
             return
 
         created_count = 0
@@ -229,48 +213,32 @@ class Command(BaseCommand):
             # Load metadata from block.yaml
             metadata_file = block_dir / "block.yaml"
             if not metadata_file.exists():
-                self.stdout.write(
-                    self.style.WARNING(f"Skipping {block_dir.name}: missing block.yaml")
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: missing block.yaml"))
                 continue
 
             try:
                 metadata = yaml.safe_load(metadata_file.read_text())
             except yaml.YAMLError as e:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {block_dir.name}: invalid block.yaml - {e}"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: invalid block.yaml - {e}"))
                 continue
 
             identifier = metadata.get("identifier", block_dir.name)
 
             if Block.objects.filter(identifier=identifier).exists():
-                self.stdout.write(
-                    self.style.WARNING(f"  {identifier} already exists, skipping...")
-                )
+                self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
                 skipped_count += 1
                 continue
 
             # Load schema from schema.json
             schema_file = block_dir / "schema.json"
             if not schema_file.exists():
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {block_dir.name}: missing schema.json"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: missing schema.json"))
                 continue
 
             try:
                 schema = json.loads(schema_file.read_text())
             except json.JSONDecodeError as e:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Skipping {block_dir.name}: invalid schema.json - {e}"
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: invalid schema.json - {e}"))
                 continue
 
             # Validate that all app references are resolvable
@@ -279,8 +247,7 @@ class Command(BaseCommand):
             if missing_apps:
                 self.stdout.write(
                     self.style.WARNING(
-                        f"  Skipping {identifier}: references uninstalled "
-                        f"app(s): {', '.join(missing_apps)}"
+                        f"  Skipping {identifier}: references uninstalled app(s): {', '.join(missing_apps)}"
                     )
                 )
                 skipped_count += 1
@@ -304,29 +271,15 @@ class Command(BaseCommand):
                 for app_model in page_types_config:
                     try:
                         app_label, model_name = app_model.rsplit(".", 1)
-                        ct = ContentType.objects.get(
-                            app_label=app_label, model=model_name.lower()
-                        )
+                        ct = ContentType.objects.get(app_label=app_label, model=model_name.lower())
                         block.page_types.add(ct)
                     except (ValueError, ContentType.DoesNotExist) as e:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"  Could not add page_type '{app_model}': {e}"
-                            )
-                        )
+                        self.stdout.write(self.style.WARNING(f"  Could not add page_type '{app_model}': {e}"))
 
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"  Created block: {block.name} ({block.identifier})"
-                )
-            )
+            self.stdout.write(self.style.SUCCESS(f"  Created block: {block.name} ({block.identifier})"))
             created_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Blocks: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Blocks: {created_count} created, {skipped_count} skipped"))
 
     def import_variants(self):
         """
@@ -348,9 +301,7 @@ class Command(BaseCommand):
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
 
         if not block_dirs:
-            self.stdout.write(
-                self.style.WARNING("No block directories found in any app")
-            )
+            self.stdout.write(self.style.WARNING("No block directories found in any app"))
             return
 
         created_count = 0
@@ -365,11 +316,7 @@ class Command(BaseCommand):
             block_identifier = block_dir.name
             block = Block.objects.filter(identifier=block_identifier).first()
             if not block:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"Block {block_identifier} not found, skipping variants..."
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"Block {block_identifier} not found, skipping variants..."))
                 continue
 
             # Iterate over collection folders within variants/
@@ -379,9 +326,7 @@ class Command(BaseCommand):
 
                 # Get collection by identifier (folder name)
                 collection_identifier = collection_dir.name
-                collection = VariantCollection.objects.filter(
-                    identifier=collection_identifier
-                ).first()
+                collection = VariantCollection.objects.filter(identifier=collection_identifier).first()
                 if not collection:
                     self.stdout.write(
                         self.style.WARNING(
@@ -400,21 +345,14 @@ class Command(BaseCommand):
                     # Load variant.yaml
                     metadata_file = variant_dir / "variant.yaml"
                     if not metadata_file.exists():
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"Skipping {variant_dir.name}: missing variant.yaml"
-                            )
-                        )
+                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing variant.yaml"))
                         continue
 
                     try:
                         metadata = yaml.safe_load(metadata_file.read_text())
                     except yaml.YAMLError as e:
                         self.stdout.write(
-                            self.style.WARNING(
-                                f"Skipping {variant_dir.name}: "
-                                f"invalid variant.yaml - {e}"
-                            )
+                            self.style.WARNING(f"Skipping {variant_dir.name}: invalid variant.yaml - {e}")
                         )
                         continue
 
@@ -422,36 +360,22 @@ class Command(BaseCommand):
                     identifier = metadata.get("identifier", variant_dir.name)
 
                     # Check if variant already exists
-                    if BlockVariant.objects.filter(
-                        block=block, collection=collection, identifier=identifier
-                    ).exists():
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"  {identifier} already exists, skipping..."
-                            )
-                        )
+                    if BlockVariant.objects.filter(block=block, collection=collection, identifier=identifier).exists():
+                        self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
                         skipped_count += 1
                         continue
 
                     # Load required description.md
                     description_file = variant_dir / "description.md"
                     if not description_file.exists():
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"Skipping {variant_dir.name}: missing description.md"
-                            )
-                        )
+                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing description.md"))
                         continue
                     description = description_file.read_text()
 
                     # Load required template.html
                     html_file = variant_dir / "template.html"
                     if not html_file.exists():
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"Skipping {variant_dir.name}: missing template.html"
-                            )
-                        )
+                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing template.html"))
                         continue
                     html = html_file.read_text()
 
@@ -481,14 +405,9 @@ class Command(BaseCommand):
 
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"  Created variant: {variant.name} "
-                            f"({block.identifier}/{collection.identifier})"
+                            f"  Created variant: {variant.name} ({block.identifier}/{collection.identifier})"
                         )
                     )
                     created_count += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Variants: {created_count} created, {skipped_count} skipped"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Variants: {created_count} created, {skipped_count} skipped"))

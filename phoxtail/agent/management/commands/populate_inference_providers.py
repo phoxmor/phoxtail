@@ -81,9 +81,7 @@ PROVIDERS = [
 
 
 class Command(BaseCommand):
-    help = (
-        "Populate InferenceProvider and ModelArtifact records for Google and Anthropic"  # noqa: E501
-    )
+    help = "Populate InferenceProvider and ModelArtifact records for Google and Anthropic"  # noqa: E501
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -121,9 +119,7 @@ class Command(BaseCommand):
             )
 
             if p_created:
-                self.stdout.write(
-                    self.style.SUCCESS(f"  Created provider: {provider.display_name}")
-                )
+                self.stdout.write(self.style.SUCCESS(f"  Created provider: {provider.display_name}"))
                 total_providers_created += 1
             else:
                 self.stdout.write(f"  Updated provider: {provider.display_name}")
@@ -154,14 +150,8 @@ class Command(BaseCommand):
 
         self.stdout.write("")
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Providers: {total_providers_created} created, "
-                f"{total_providers_updated} updated"
-            )
+            self.style.SUCCESS(f"Providers: {total_providers_created} created, {total_providers_updated} updated")
         )
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Artifacts: {total_artifacts_created} created, "
-                f"{total_artifacts_updated} updated"
-            )
+            self.style.SUCCESS(f"Artifacts: {total_artifacts_created} created, {total_artifacts_updated} updated")
         )

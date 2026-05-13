@@ -76,11 +76,7 @@ def list_site_palettes(request: HttpRequest, site_id: int):
     from phoxtail.cms.models import SiteSettingPalette
 
     setting = resolve_setting(site_id)
-    qs = (
-        SiteSettingPalette.objects.select_related("palette", "role")
-        .filter(config=setting)
-        .order_by("sort_order")
-    )
+    qs = SiteSettingPalette.objects.select_related("palette", "role").filter(config=setting).order_by("sort_order")
     items = [serialize_site_palette(sp) for sp in qs]
     return {"palettes": items, "total": len(items)}
 
@@ -121,8 +117,7 @@ def create_site_palette(
     except IntegrityError:
         raise HttpError(
             409,
-            f"A palette assignment for role {payload.role_id} already exists "
-            "on this site.",
+            f"A palette assignment for role {payload.role_id} already exists on this site.",
         )
 
     sp = SiteSettingPalette.objects.select_related("palette", "role").get(pk=sp.pk)
@@ -135,9 +130,7 @@ def create_site_palette(
     response={200: SiteSettingPaletteItem, 404: Error},
     summary="Get a palette assignment",
 )
-def get_site_palette(
-    request: HttpRequest, response: HttpResponse, site_id: int, palette_id: int
-):
+def get_site_palette(request: HttpRequest, response: HttpResponse, site_id: int, palette_id: int):
     _, sp = resolve_site_palette(site_id, palette_id)
     response["ETag"] = site_setting_palette_etag(sp)
     return serialize_site_palette(sp)

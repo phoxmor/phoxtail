@@ -118,9 +118,7 @@ def site_settings_clear_image(site_id: int, etag: str, fields: str) -> str:
     to_clear = [f.strip() for f in fields.split(",") if f.strip()]
     unknown = [f for f in to_clear if f not in valid]
     if unknown:
-        return json.dumps(
-            {"error": True, "status": 400, "detail": f"Unknown fields: {unknown}"}
-        )
+        return json.dumps({"error": True, "status": 400, "detail": f"Unknown fields: {unknown}"})
 
     body = {f: None for f in to_clear}
     resp = request(

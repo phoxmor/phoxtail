@@ -38,9 +38,7 @@ class ReservationServiceAdminMarkNoShow:
             )
 
         if reservation.event.is_cancelled:
-            raise ValidationError(
-                "Cannot mark reservation as no-show for a cancelled event."
-            )
+            raise ValidationError("Cannot mark reservation as no-show for a cancelled event.")
 
     def perform(self) -> "Reservation":
         reservation = self.service.reservation

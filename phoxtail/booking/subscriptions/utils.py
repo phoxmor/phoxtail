@@ -10,9 +10,7 @@ def get_subscription_types_context():
     # Prefetch credit allocations with their services
     prefetched_credit_allocations = Prefetch(
         "credit_allocations",
-        queryset=SubscriptionTypeCreditAllocation.objects.select_related(
-            "service"
-        ).order_by("sort_order"),
+        queryset=SubscriptionTypeCreditAllocation.objects.select_related("service").order_by("sort_order"),
         to_attr="prefetched_credit_allocations",
     )
 

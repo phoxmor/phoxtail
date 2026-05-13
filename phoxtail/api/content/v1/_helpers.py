@@ -64,15 +64,13 @@ def require_if_match(request: HttpRequest, page: Page) -> None:
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this page.",
+            "If-Match header is required. Send the ETag from your most recent GET of this page.",
         )
     current = page_etag(page)
     if not etag_matches(if_match, current):
         raise HttpError(
             412,
-            "ETag mismatch: the page has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the page has changed since you last read it. Re-fetch and retry.",
         )
 
 

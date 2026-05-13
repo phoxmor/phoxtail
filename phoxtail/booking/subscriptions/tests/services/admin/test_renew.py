@@ -79,17 +79,13 @@ class TestAdminRenew:
         with pytest.raises(ValidationError):
             SubscriptionService(sub).admin.renew()
 
-    def test_raises_when_subscription_status_is_not_active(
-        self, renewable_subscription
-    ):
+    def test_raises_when_subscription_status_is_not_active(self, renewable_subscription):
         renewable_subscription.status = SubscriptionStatus.CANCELLED
         renewable_subscription.save()
         with pytest.raises(ValidationError):
             SubscriptionService(renewable_subscription).admin.renew()
 
-    def test_raises_when_still_active_with_remaining_credits(
-        self, user, subscription_type
-    ):
+    def test_raises_when_still_active_with_remaining_credits(self, user, subscription_type):
         sub = SubscriptionFactory(
             user=user,
             subscription_type=subscription_type,

@@ -162,10 +162,7 @@ class FontRole(index.Indexed, models.Model):
     identifier = models.CharField(
         max_length=50,
         unique=True,
-        help_text=(
-            "CSS namespace identifier (e.g., 'heading'). "
-            "Used as prefix in CSS variables: --font-{identifier}"
-        ),
+        help_text=("CSS namespace identifier (e.g., 'heading'). Used as prefix in CSS variables: --font-{identifier}"),
     )
     description = models.TextField(
         help_text="Describes the semantic purpose of this font role.",
@@ -197,8 +194,7 @@ class PaletteRole(index.Indexed, models.Model):
         max_length=50,
         unique=True,
         help_text=(
-            "CSS namespace identifier (e.g., 'surface'). "
-            "Used as prefix in CSS variables: --color-{identifier}-{shade}"
+            "CSS namespace identifier (e.g., 'surface'). Used as prefix in CSS variables: --color-{identifier}-{shade}"
         ),
     )
     description = models.TextField(

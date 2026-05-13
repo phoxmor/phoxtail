@@ -62,20 +62,14 @@ class Block(index.Indexed, Orderable, ClusterableModel):
         blank=True,
         default="",
         help_text=_(
-            "Wagtail icon name for this block "
-            "(e.g., 'image', 'doc-full', 'media'). "
-            "Displayed in the block chooser."
+            "Wagtail icon name for this block (e.g., 'image', 'doc-full', 'media'). Displayed in the block chooser."
         ),
     )
     group = models.CharField(
         max_length=100,
         blank=True,
         default="",
-        help_text=_(
-            "Group label shown in the block chooser "
-            "(e.g., 'Blog', 'Media'). "
-            "Leave empty for no grouping."
-        ),
+        help_text=_("Group label shown in the block chooser (e.g., 'Blog', 'Media'). Leave empty for no grouping."),
     )
     is_shared = models.BooleanField(
         default=False,
@@ -91,10 +85,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
         related_name="+",
         verbose_name=_("Page Types"),
         limit_choices_to=_page_content_type_choices,
-        help_text=_(
-            "Restrict this block to specific page types. "
-            "Leave empty to make it available on all pages."
-        ),
+        help_text=_("Restrict this block to specific page types. Leave empty to make it available on all pages."),
     )
     schema = StreamField(
         [
@@ -140,9 +131,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
         use_json_field=True,
         blank=True,
         help_text=_(
-            "Define the structure of this block using "
-            "field schema blocks, nested structures, "
-            "lists, and streams"
+            "Define the structure of this block using field schema blocks, nested structures, lists, and streams"
         ),
         collapsed=True,
     )
@@ -223,29 +212,18 @@ class BlockVariant(index.Indexed, models.Model):
     )
     name = models.CharField(
         max_length=255,
-        help_text=_(
-            "Variant name for identification (e.g., 'Centered', 'With Background')"
-        ),
+        help_text=_("Variant name for identification (e.g., 'Centered', 'With Background')"),
     )
     identifier = models.CharField(
         max_length=100,
-        help_text=_(
-            "Identifier for this variant (e.g., 'centered_dark', 'split_layout')"
-        ),
+        help_text=_("Identifier for this variant (e.g., 'centered_dark', 'split_layout')"),
     )
     description = models.TextField(
-        help_text=_(
-            "Design rationale and approach. Explain why "
-            "this variant exists and what makes it "
-            "different."
-        ),
+        help_text=_("Design rationale and approach. Explain why this variant exists and what makes it different."),
     )
     is_default = models.BooleanField(
         default=False,
-        help_text=_(
-            "Whether this is the default variant for its "
-            "block. Only one default per block."
-        ),
+        help_text=_("Whether this is the default variant for its block. Only one default per block."),
     )
 
     # Template fields (split from single 'code' field)
@@ -375,13 +353,7 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
         super().clean()
         # Ensure the block FK points to a shared block
         if self.block_id and not self.block.is_shared:
-            raise ValidationError(
-                {
-                    "block": (
-                        "Only blocks with 'is_shared' enabled can have shared content."
-                    )
-                }
-            )
+            raise ValidationError({"block": ("Only blocks with 'is_shared' enabled can have shared content.")})
         # Ensure the content block type matches the block FK
         if self.block_id and self.content and len(self.content) > 0:
             content_block_type = self.content[0].block_type

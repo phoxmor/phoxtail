@@ -16,11 +16,7 @@ class BillingContextBuilder:
 
     def _extract_query_params(self):
         """Extract query parameters from GET or POST request."""
-        self.query_params = (
-            self.request.GET.copy()
-            if self.request.method == "GET"
-            else self.request.POST.copy()
-        )
+        self.query_params = self.request.GET.copy() if self.request.method == "GET" else self.request.POST.copy()
 
     def _create_filterset(self, base_queryset):
         """Create and configure filterset."""
@@ -32,11 +28,7 @@ class BillingContextBuilder:
         form.is_valid()
 
         filter_keys = [k for k in form.cleaned_data if k not in ["page", "search"]]
-        self.filter_count = sum(
-            1
-            for k, v in form.cleaned_data.items()
-            if k in filter_keys and v not in ["", None]
-        )
+        self.filter_count = sum(1 for k, v in form.cleaned_data.items() if k in filter_keys and v not in ["", None])
 
     def _prepare_base_context(self, base_queryset):
         """Prepare common context for both lightweight and full builders."""

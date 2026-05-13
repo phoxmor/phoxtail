@@ -34,9 +34,7 @@ class EventCreateForm(forms.ModelForm):
         if location:
             from phoxtail.booking.core.models import Space
 
-            self.fields["space"].queryset = Space.objects.filter(
-                location=location, is_active=True
-            ).order_by("name")
+            self.fields["space"].queryset = Space.objects.filter(location=location, is_active=True).order_by("name")
 
         # Override Django's default min=0 for PositiveIntegerField
         self.fields["recurrence_interval"].widget.attrs["min"] = 1
@@ -130,9 +128,7 @@ class EventUpdateForm(forms.ModelForm):
             from phoxtail.booking.core.models import Space
 
             location = self.instance.space.location
-            self.fields["space"].queryset = Space.objects.filter(
-                location=location, is_active=True
-            ).order_by("name")
+            self.fields["space"].queryset = Space.objects.filter(location=location, is_active=True).order_by("name")
 
     class Meta:
         model = Event
@@ -163,16 +159,10 @@ class EventUpdateForm(forms.ModelForm):
 
         if not self.errors:
             # Extract update_scope before spreading — it's not a model field
-            validate_data = {
-                k: v for k, v in cleaned_data.items() if k != "update_scope"
-            }
-            update_scope = cleaned_data.get(
-                "update_scope", EventUpdateScope.THIS_EVENT_ONLY
-            )
+            validate_data = {k: v for k, v in cleaned_data.items() if k != "update_scope"}
+            update_scope = cleaned_data.get("update_scope", EventUpdateScope.THIS_EVENT_ONLY)
 
-            result = EventService(self.instance).admin.validate_update(
-                update_scope=update_scope, **validate_data
-            )
+            result = EventService(self.instance).admin.validate_update(update_scope=update_scope, **validate_data)
             if result.has_errors:
                 for err in result.errors:
                     self.add_error(err.field, err.message)
@@ -190,13 +180,9 @@ class EventUpdateForm(forms.ModelForm):
             return super().save(commit=False)
 
         # Extract update_scope from cleaned_data (not a model field)
-        update_scope = self.cleaned_data.pop(
-            "update_scope", EventUpdateScope.THIS_EVENT_ONLY
-        )
+        update_scope = self.cleaned_data.pop("update_scope", EventUpdateScope.THIS_EVENT_ONLY)
 
-        event, events_updated = EventService(self.instance).admin.update(
-            update_scope=update_scope, **self.cleaned_data
-        )
+        event, events_updated = EventService(self.instance).admin.update(update_scope=update_scope, **self.cleaned_data)
 
         # Store the count for potential use in the view
         self.events_updated = events_updated
@@ -236,9 +222,7 @@ class TemplateEventUpdateForm(forms.ModelForm):
             from phoxtail.booking.core.models import Space
 
             location = self.instance.space.location
-            self.fields["space"].queryset = Space.objects.filter(
-                location=location, is_active=True
-            ).order_by("name")
+            self.fields["space"].queryset = Space.objects.filter(location=location, is_active=True).order_by("name")
 
         # Override Django's default min=0 for PositiveIntegerField
         self.fields["recurrence_interval"].widget.attrs["min"] = 1
@@ -285,9 +269,7 @@ class TemplateEventUpdateForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         if not self.errors:
-            result = EventService(self.instance).admin.validate_update_template(
-                **cleaned_data
-            )
+            result = EventService(self.instance).admin.validate_update_template(**cleaned_data)
             if result.has_errors:
                 for err in result.errors:
                     self.add_error(err.field, err.message)
@@ -342,8 +324,6 @@ class EventBulkUpdateStatusForm(forms.Form):
 
         if from_datetime and to_datetime:
             if from_datetime > to_datetime:
-                raise ValidationError(
-                    _("Start date must be before or equal to end date.")
-                )
+                raise ValidationError(_("Start date must be before or equal to end date."))
 
         return cleaned_data

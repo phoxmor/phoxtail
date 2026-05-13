@@ -27,18 +27,14 @@ def _make_tool(mcp_tool) -> Tool:
 
     fn.__name__ = mcp_tool.name
 
-    async def prepare(
-        ctx: RunContext[None], tool_def: ToolDefinition
-    ) -> ToolDefinition:
+    async def prepare(ctx: RunContext[None], tool_def: ToolDefinition) -> ToolDefinition:
         return ToolDefinition(
             name=mcp_tool.name,
             description=mcp_tool.description or "",
             parameters_json_schema=mcp_tool.parameters,
         )
 
-    return Tool(
-        fn, name=mcp_tool.name, description=mcp_tool.description or "", prepare=prepare
-    )
+    return Tool(fn, name=mcp_tool.name, description=mcp_tool.description or "", prepare=prepare)
 
 
 def get_tools() -> list[Tool]:

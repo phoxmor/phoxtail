@@ -27,9 +27,7 @@ _NEXT_STEPS = (
     "reference material only — edits to it are not saved to the database."
 )
 
-_TEMPLATE_DIR = (
-    Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
-)
+_TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
 
 
 def _file_paths(sdir: Path) -> dict:
@@ -69,9 +67,7 @@ def _resolve(session_id: str | None) -> str | dict:
         ids = [s["session_id"] for s in active]
         return {
             "error": "ambiguous",
-            "detail": (
-                f"Multiple active sessions: {ids}. Pass `session_id` to disambiguate."
-            ),
+            "detail": (f"Multiple active sessions: {ids}. Pass `session_id` to disambiguate."),
             "sessions": ids,
         }
     return active[0]["session_id"]
@@ -165,9 +161,7 @@ def _render_context(variant_data: dict) -> str:
             },
         )
         if ctx_resp.is_success:
-            return jinja_env.get_template("variant_design_context.md").render(
-                **ctx_resp.json()
-            )
+            return jinja_env.get_template("variant_design_context.md").render(**ctx_resp.json())
     except Exception:
         pass
     return ""

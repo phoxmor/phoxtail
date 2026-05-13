@@ -19,12 +19,8 @@ console = Console()
 @app.callback()
 def test(
     ctx: typer.Context,
-    coverage: bool = typer.Option(
-        False, "--coverage", "--cov", help="Run with coverage report"
-    ),
-    cli: bool = typer.Option(
-        False, "--cli", help="Run CLI tests only (no Docker required)"
-    ),
+    coverage: bool = typer.Option(False, "--coverage", "--cov", help="Run with coverage report"),
+    cli: bool = typer.Option(False, "--cli", help="Run CLI tests only (no Docker required)"),
 ) -> None:
     """Run the test suite.
 

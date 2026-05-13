@@ -33,15 +33,11 @@ class SubscriptionServiceAdminCreate:
 
         # Validation 1: Do not allow to subscribe to an inactive subscription type
         if not subscription_type.service.is_active():
-            raise ValidationError(
-                _("The subscription type is inactive and cannot be assigned.")
-            )
+            raise ValidationError(_("The subscription type is inactive and cannot be assigned."))
 
         # Validation 2: Check if user has unpaid subscriptions
         if Subscription.objects.filter(user=user, is_paid=False).exists():
-            raise ValidationError(
-                _("This user has unpaid subscriptions that must be resolved first.")
-            )
+            raise ValidationError(_("This user has unpaid subscriptions that must be resolved first."))
 
         # Validation 3: Check if user already has an ACTIVE subscription of the same type
         # (Archived/cancelled subscriptions don't count as duplicates)
@@ -75,9 +71,7 @@ class SubscriptionServiceAdminCreate:
 
             # Set end date if duration-based
             if subscription_type.duration is not None:
-                subscription.end_date = start_date + timedelta(
-                    days=subscription_type.duration
-                )
+                subscription.end_date = start_date + timedelta(days=subscription_type.duration)
 
             # Save the subscription
             subscription.save()

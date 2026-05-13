@@ -28,11 +28,7 @@ class BookingContextBuilder:
 
     def _extract_query_params(self):
         """Extract query parameters from GET or POST request."""
-        self.query_params = (
-            self.request.GET.copy()
-            if self.request.method == "GET"
-            else self.request.POST.copy()
-        )
+        self.query_params = self.request.GET.copy() if self.request.method == "GET" else self.request.POST.copy()
 
     def _load_locations(self):
         """Load active locations and count."""
@@ -62,15 +58,11 @@ class BookingContextBuilder:
     def _calculate_filter_count(self):
         """Calculate number of active filters."""
         prefix = self.filterset.form.prefix
-        filter_keys = [
-            f"{prefix}-{key}" for key in self.filterset.filters if key != "date"
-        ]
+        filter_keys = [f"{prefix}-{key}" for key in self.filterset.filters if key != "date"]
         self.filter_count = sum(
             1
             for k, v in self.filterset.data.items()
-            if k in filter_keys
-            and v
-            and (k != "filter-location" or self.location_count > 1)
+            if k in filter_keys and v and (k != "filter-location" or self.location_count > 1)
         )
 
     def _prepare_base_context(self, base_queryset):
@@ -130,9 +122,7 @@ class BookingContextBuilder:
         from phoxtail.booking.events.constants import EventStatus
         from phoxtail.booking.reservations.constants import ReservationStatus
 
-        user_reservation_qs = Reservation.objects.filter(
-            event=OuterRef("pk"), user=self.request.user
-        )
+        user_reservation_qs = Reservation.objects.filter(event=OuterRef("pk"), user=self.request.user)
         return (
             Event.objects.order_by("start_datetime")
             .filter(start_datetime__date=target_date, is_recurrence_template=False)
@@ -140,9 +130,7 @@ class BookingContextBuilder:
             .prefetch_related("staff")
             .annotate(
                 user_reservation_id=Subquery(user_reservation_qs.values("uuid")[:1]),
-                user_reservation_status=Subquery(
-                    user_reservation_qs.values("status")[:1]
-                ),
+                user_reservation_status=Subquery(user_reservation_qs.values("status")[:1]),
                 is_past=Case(
                     When(start_datetime__lt=timezone.now(), then=Value(True)),
                     default=Value(False),

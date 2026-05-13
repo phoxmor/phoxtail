@@ -78,9 +78,7 @@ class BlogIndexPage(Page):
 
     body = BlogIndexBodyStreamField
 
-    posts_per_page = models.PositiveIntegerField(
-        default=10, help_text=_("How many blog posts to display per page")
-    )
+    posts_per_page = models.PositiveIntegerField(default=10, help_text=_("How many blog posts to display per page"))
 
     content_panels = Page.content_panels + [
         FieldPanel("body"),
@@ -126,9 +124,7 @@ class BlogIndexPage(Page):
 
 
 class BlogPostPageTag(TaggedItemBase):
-    content_object = ParentalKey(
-        "BlogPostPage", on_delete=models.CASCADE, related_name="tagged_items"
-    )
+    content_object = ParentalKey("BlogPostPage", on_delete=models.CASCADE, related_name="tagged_items")
 
 
 class BlogPostPage(TimestampMixin, Page):
@@ -200,9 +196,7 @@ class BlogPostPage(TimestampMixin, Page):
     hide_dates = models.BooleanField(
         default=False,
         verbose_name=_("Hide Dates"),
-        help_text=_(
-            "If checked, no publication or update dates will be shown on this post."
-        ),
+        help_text=_("If checked, no publication or update dates will be shown on this post."),
     )
 
     content_panels = [
@@ -251,12 +245,7 @@ class BlogPostPage(TimestampMixin, Page):
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
 
-        related_posts = (
-            BlogPostPage.objects.live()
-            .child_of(self.get_parent())
-            .exclude(id=self.id)
-            .distinct()
-        )
+        related_posts = BlogPostPage.objects.live().child_of(self.get_parent()).exclude(id=self.id).distinct()
         context["related_posts"] = related_posts[:3]
 
         return context

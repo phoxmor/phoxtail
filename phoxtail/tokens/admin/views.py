@@ -173,9 +173,7 @@ def admin_token_detail_form_view(request, token_id):
         {
             "token": token,
             "can_revoke": can_user_revoke(request, token),
-            "can_manage_all": access_tokens_permission_policy.user_has_permission(
-                request.user, "manage_all_tokens"
-            ),
+            "can_manage_all": access_tokens_permission_policy.user_has_permission(request.user, "manage_all_tokens"),
         },
     )
 

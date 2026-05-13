@@ -455,9 +455,7 @@ def _create_field_block(block_type, field_def):
                 if isinstance(value, list):
                     kwargs["features"] = value
                 elif isinstance(value, str):
-                    kwargs["features"] = [
-                        f.strip() for f in value.strip().split("\n") if f.strip()
-                    ]
+                    kwargs["features"] = [f.strip() for f in value.strip().split("\n") if f.strip()]
                 else:
                     kwargs["features"] = []
             # Special handling for regex (required parameter)
@@ -492,11 +490,7 @@ def _parse_choices(choices_data):
     Input: ListValue of StructValues, each with 'value' and 'label' keys
     Output: [("phone", "Phone"), ("mobile", "Mobile"), ...]
     """
-    return [
-        (str(item["value"]), str(item["label"]))
-        for item in choices_data
-        if item.get("value")
-    ]
+    return [(str(item["value"]), str(item["label"])) for item in choices_data if item.get("value")]
 
 
 def _to_class_name(snake_case_name):
@@ -558,9 +552,7 @@ def build_dynamic_blocks():
 
     try:
         PageTypeRelation = Block.page_types.through
-        no_restriction = ~Exists(
-            PageTypeRelation.objects.filter(block_id=OuterRef("pk"))
-        )
+        no_restriction = ~Exists(PageTypeRelation.objects.filter(block_id=OuterRef("pk")))
         for block_def in Block.objects.filter(no_restriction):
             try:
                 if block_def.is_shared:
@@ -603,14 +595,8 @@ def build_blocks_for_page_type(content_type_id):
 
     try:
         PageTypeRelation = Block.page_types.through
-        no_restriction = ~Exists(
-            PageTypeRelation.objects.filter(block_id=OuterRef("pk"))
-        )
-        has_this_type = Exists(
-            PageTypeRelation.objects.filter(
-                block_id=OuterRef("pk"), contenttype_id=content_type_id
-            )
-        )
+        no_restriction = ~Exists(PageTypeRelation.objects.filter(block_id=OuterRef("pk")))
+        has_this_type = Exists(PageTypeRelation.objects.filter(block_id=OuterRef("pk"), contenttype_id=content_type_id))
         for block_def in Block.objects.filter(no_restriction | has_this_type):
             try:
                 if block_def.is_shared:

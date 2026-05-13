@@ -119,10 +119,7 @@ def _write_error_envelope(resp) -> str | None:
             "The page has been modified since you last read it. Call "
             "phoxtail_pages_get_page again and retry with the fresh _etag."
         ),
-        428: (
-            "etag is required. Call phoxtail_pages_get_page and pass "
-            "the _etag from its response."
-        ),
+        428: ("etag is required. Call phoxtail_pages_get_page and pass the _etag from its response."),
         409: (
             "The server refused the write because of a conflicting "
             "state (e.g. no draft revision yet). Re-read the page and "
@@ -309,10 +306,7 @@ def translate_page(
 
 @mcp_server.tool(
     name="phoxtail_pages_unpublish",
-    description=(
-        "Take a page offline. Requires the ETag from a prior "
-        "phoxtail_pages_get_page call."
-    ),
+    description=("Take a page offline. Requires the ETag from a prior phoxtail_pages_get_page call."),
 )
 def unpublish_page(page_id: int, etag: str) -> str:
     resp = request(

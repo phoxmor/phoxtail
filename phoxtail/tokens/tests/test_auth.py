@@ -37,15 +37,11 @@ class TestAuthenticateValidToken:
         assert authenticate(token._raw_token) is None
 
     def test_returns_none_for_expired_token(self, user):
-        token = AccessTokenFactory(
-            user=user, expires_at=timezone.now() - timedelta(minutes=1)
-        )
+        token = AccessTokenFactory(user=user, expires_at=timezone.now() - timedelta(minutes=1))
         assert authenticate(token._raw_token) is None
 
     def test_returns_user_when_expiry_in_future(self, user):
-        token = AccessTokenFactory(
-            user=user, expires_at=timezone.now() + timedelta(days=1)
-        )
+        token = AccessTokenFactory(user=user, expires_at=timezone.now() + timedelta(days=1))
         assert authenticate(token._raw_token) == user
 
 

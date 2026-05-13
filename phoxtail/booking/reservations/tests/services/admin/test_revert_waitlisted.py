@@ -31,18 +31,14 @@ class TestAdminRevertWaitlisted:
         service = ServiceFactory()
         space = SpaceFactory(location=location)
         sub_type = SubscriptionTypeFactory(location=location)
-        subscription = SubscriptionFactory(
-            user=user, subscription_type=sub_type, is_paid=True, credits=10
-        )
+        subscription = SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10)
         event = EventFactory(
             service=service,
             space=space,
             start_datetime=timezone.now() + datetime.timedelta(days=1),
             end_datetime=timezone.now() + datetime.timedelta(days=1, hours=1),
         )
-        r = ReservationFactory(
-            user=user, event=event, subscription=subscription, status=status
-        )
+        r = ReservationFactory(user=user, event=event, subscription=subscription, status=status)
         return r, subscription
 
     def test_confirmed_becomes_waitlisted(self):

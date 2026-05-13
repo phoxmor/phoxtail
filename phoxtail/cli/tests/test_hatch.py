@@ -185,9 +185,7 @@ class TestHatchCommand:
         assert "gunicorn" in content
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_requirements_in_omits_celery_by_default(
-        self, mock_run, tmp_path, monkeypatch
-    ):
+    def test_requirements_in_omits_celery_by_default(self, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
@@ -263,9 +261,7 @@ class TestHatchCommand:
         """phoxtail hatch myproject <dir> scaffolds into that directory."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        result = runner.invoke(
-            app, ["hatch", "myproject", str(tmp_path), "--no-wizard"]
-        )
+        result = runner.invoke(app, ["hatch", "myproject", str(tmp_path), "--no-wizard"])
         assert result.exit_code == 0
         # Files should be in tmp_path directly, not wrapped in an extra
         # "myproject" project folder. The user-app directory (also named
@@ -289,9 +285,7 @@ class TestHatchCommand:
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         (tmp_path / "existing.txt").write_text("hello")
-        result = runner.invoke(
-            app, ["hatch", "myproject", str(tmp_path), "--no-wizard"]
-        )
+        result = runner.invoke(app, ["hatch", "myproject", str(tmp_path), "--no-wizard"])
         assert result.exit_code == 0
         # Existing file preserved, new files added
         assert (tmp_path / "existing.txt").read_text() == "hello"
@@ -324,9 +318,7 @@ class TestHatchCommand:
 
         # Accept wizard + 4 config + migrate(y) + stream_engine(y)
         # + bootstrap_site(y) + superuser(y) + launch(y) = 10 y's
-        result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
         assert result.exit_code == 0
         # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate
         # + 1 bootstrap_site + 2 superuser (createsuperuser + verify_email)
@@ -335,18 +327,14 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_calls_correct_subcommands(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_wizard_calls_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y)
-        runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         # calls[0] is requirements compile
@@ -371,9 +359,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_production_uses_correct_subcommands(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_wizard_production_uses_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.checkbox.return_value.ask.return_value = []
@@ -388,9 +374,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_superuser_verifies_email(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_wizard_superuser_verifies_email(self, mock_q, mock_run, tmp_path, monkeypatch):
         """verify_email --all-superusers is called after createsuperuser succeeds."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
@@ -405,9 +389,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_superuser_failure_skips_verify_email(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_wizard_superuser_failure_skips_verify_email(self, mock_q, mock_run, tmp_path, monkeypatch):
         """verify_email is NOT called when createsuperuser fails."""
         monkeypatch.chdir(tmp_path)
         mock_q.checkbox.return_value.ask.return_value = []
@@ -452,18 +434,14 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_done_panel_omits_completed_steps(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_done_panel_omits_completed_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
-        result = runner.invoke(
-            app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n"
-        )
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
         assert result.exit_code == 0
         # All steps completed — should show "is ready!" and no next-steps panel
         assert "is ready!" in result.output
@@ -500,9 +478,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_runs_design_before_streams(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_populate_step_runs_design_before_streams(self, mock_q, mock_run, tmp_path, monkeypatch):
         """populate_design runs before populate_streams within the populate step."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
@@ -519,9 +495,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_skips_streams_on_design_failure(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_populate_step_skips_streams_on_design_failure(self, mock_q, mock_run, tmp_path, monkeypatch):
         """If populate_design fails, populate_streams is not attempted."""
         monkeypatch.chdir(tmp_path)
         mock_q.checkbox.return_value.ask.return_value = []
@@ -550,9 +524,7 @@ class TestHatchCommand:
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_runs_all_db_operations(
-        self, mock_q, mock_run, tmp_path, monkeypatch
-    ):
+    def test_populate_step_runs_all_db_operations(self, mock_q, mock_run, tmp_path, monkeypatch):
         """Accepting the populate step runs migrate, populate_design, populate_streams,
         and bootstrap_site as a single unit."""
         monkeypatch.chdir(tmp_path)

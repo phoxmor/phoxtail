@@ -235,9 +235,7 @@ class EventService:
 
         return events_created
 
-    def _calculate_occurrences(
-        self, days_ahead=7, start_date=None, end_date=None
-    ) -> list:
+    def _calculate_occurrences(self, days_ahead=7, start_date=None, end_date=None) -> list:
         """
         Calculate occurrence datetimes based on recurrence settings.
 
@@ -266,9 +264,7 @@ class EventService:
         if self.event.recurrence_until:
             end_dt = min(end_dt, self.event.recurrence_until)
 
-        weekdays = (
-            self.event.recurrence_byweekday if self.event.recurrence_byweekday else None
-        )
+        weekdays = self.event.recurrence_byweekday if self.event.recurrence_byweekday else None
 
         bymonthday = self.event.recurrence_bymonthday
         bysetpos = self.event.recurrence_bysetpos
@@ -291,11 +287,7 @@ class EventService:
             occurrences = rule.between(start_dt, end_dt, inc=True)
         else:
             occurrences = list(rule)
-            if (
-                occurrences
-                and occurrences[0] == event_start_local
-                and not self.event.is_recurrence_template
-            ):
+            if occurrences and occurrences[0] == event_start_local and not self.event.is_recurrence_template:
                 occurrences = occurrences[1:]
 
         return occurrences
@@ -315,9 +307,7 @@ class EventService:
         """
         from ..models import Event
 
-        events = queryset.filter(is_recurrence_template=False).annotate(
-            is_projected=Value(False)
-        )
+        events = queryset.filter(is_recurrence_template=False).annotate(is_projected=Value(False))
 
         active_templates = Event.objects.active_recurrence_templates()
 
@@ -353,11 +343,7 @@ class EventService:
 
                     # Skip dates covered by location-level exclusion periods
                     if any(
-                        (
-                            start <= occurrence_date <= end
-                            if end
-                            else occurrence_date == start
-                        )
+                        (start <= occurrence_date <= end if end else occurrence_date == start)
                         for start, end in location_exclusion_periods
                     ):
                         continue
@@ -371,9 +357,7 @@ class EventService:
                         continue
 
                     occurrence_end = occurrence_start + duration
-                    projected_events.append(
-                        ProjectedEvent(template, occurrence_start, occurrence_end)
-                    )
+                    projected_events.append(ProjectedEvent(template, occurrence_start, occurrence_end))
 
         all_events = list(events) + projected_events
         all_events.sort(key=lambda e: e.start_datetime)

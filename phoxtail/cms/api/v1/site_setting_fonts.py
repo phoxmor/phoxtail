@@ -76,11 +76,7 @@ def list_site_fonts(request: HttpRequest, site_id: int):
     from phoxtail.cms.models import SiteSettingFont
 
     setting = resolve_setting(site_id)
-    qs = (
-        SiteSettingFont.objects.select_related("font_family", "role")
-        .filter(config=setting)
-        .order_by("sort_order")
-    )
+    qs = SiteSettingFont.objects.select_related("font_family", "role").filter(config=setting).order_by("sort_order")
     items = [serialize_site_font(sf) for sf in qs]
     return {"fonts": items, "total": len(items)}
 
@@ -121,8 +117,7 @@ def create_site_font(
     except IntegrityError:
         raise HttpError(
             409,
-            f"A font assignment for role {payload.role_id} already exists "
-            "on this site.",
+            f"A font assignment for role {payload.role_id} already exists on this site.",
         )
 
     sf = SiteSettingFont.objects.select_related("font_family", "role").get(pk=sf.pk)
@@ -135,9 +130,7 @@ def create_site_font(
     response={200: SiteSettingFontItem, 404: Error},
     summary="Get a font assignment",
 )
-def get_site_font(
-    request: HttpRequest, response: HttpResponse, site_id: int, font_id: int
-):
+def get_site_font(request: HttpRequest, response: HttpResponse, site_id: int, font_id: int):
     _, sf = resolve_site_font(site_id, font_id)
     response["ETag"] = site_setting_font_etag(sf)
     return serialize_site_font(sf)

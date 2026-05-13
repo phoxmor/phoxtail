@@ -30,9 +30,7 @@ TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 # Files that are only copied into a hatched project when a predicate holds.
 # The predicate receives the list of selected optional-app dotted names.
 CONDITIONAL_FILES: dict[str, callable] = {
-    "src/celery.py": lambda apps: any(
-        _get_app_info(app)["requires_celery"] for app in apps
-    ),
+    "src/celery.py": lambda apps: any(_get_app_info(app)["requires_celery"] for app in apps),
 }
 
 # Optional phoxtail apps available during hatching.
@@ -116,9 +114,7 @@ def _render_progress(
 
     return Panel(
         "\n".join(lines),
-        title=(
-            f"[bold cyan]Hatching '{project_name}'[/bold cyan] [dim]{environment}[/dim]"
-        ),
+        title=(f"[bold cyan]Hatching '{project_name}'[/bold cyan] [dim]{environment}[/dim]"),
         border_style="cyan",
         expand=False,
     )
@@ -143,17 +139,11 @@ def _clear_and_show_progress(
         console.input("[dim]Press Enter to continue...[/dim]")
     console.clear()
     console.print()
-    console.print(
-        _render_progress(
-            project_name, steps, details, wizard_steps, environment, current_index
-        )
-    )
+    console.print(_render_progress(project_name, steps, details, wizard_steps, environment, current_index))
     console.print()
 
 
-def _copy_template(
-    project_name: str, target_dir: Path, optional_apps: list[str] | None = None
-) -> int:
+def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str] | None = None) -> int:
     """Copy project_template into target_dir, replacing placeholders.
 
     Uses str.replace() for substitution — NOT Jinja2 — because scaffold
@@ -182,9 +172,7 @@ def _copy_template(
         apps_replacement = ""
 
     # Evaluate which conditional files should be skipped for this project.
-    skipped_rel_paths = {
-        rel for rel, predicate in CONDITIONAL_FILES.items() if not predicate(selected)
-    }
+    skipped_rel_paths = {rel for rel, predicate in CONDITIONAL_FILES.items() if not predicate(selected)}
 
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
@@ -197,9 +185,7 @@ def _copy_template(
 
         # Rename sentinel path components (e.g. __project_name__/) to the
         # concrete project name — both for directories and file names.
-        rel_parts = tuple(
-            project_name if part == DIR_SENTINEL else part for part in rel_path.parts
-        )
+        rel_parts = tuple(project_name if part == DIR_SENTINEL else part for part in rel_path.parts)
         dest_path = target_dir.joinpath(*rel_parts)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -231,9 +217,7 @@ def _run_step(target_dir: Path, args: list[str]) -> bool:
     return result.returncode == 0
 
 
-def _run_wizard(
-    project_name: str, target_dir: Path, environment: str
-) -> dict[str, str]:
+def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[str, str]:
     """Walk the user through optional post-scaffold setup steps.
 
     Each step invokes an existing phoxtail CLI command as a subprocess
@@ -309,9 +293,7 @@ def _run_wizard(
                 prev_failed = True
             else:
                 _redraw("generating docker-compose.yaml…")
-                compose_ok = _run_step(
-                    target_dir, ["docker", "create", "compose", environment]
-                )
+                compose_ok = _run_step(target_dir, ["docker", "create", "compose", environment])
 
                 if not compose_ok:
                     steps["configure"] = "failed"
@@ -351,9 +333,7 @@ def _run_wizard(
         current_index=step_idx["setup_db"],
         pause=prev_failed,
     )
-    console.print(
-        "  Run migrations, seed design tokens, populate blocks, and bootstrap the site\n"
-    )
+    console.print("  Run migrations, seed design tokens, populate blocks, and bootstrap the site\n")
 
     def _redraw_db(detail: str = "") -> None:
         """Clear and redraw the progress panel for the database step."""
@@ -478,9 +458,7 @@ def _run_wizard(
         prev_failed = False
 
     # Show final state
-    _clear_and_show_progress(
-        project_name, steps, details, active_steps, environment, pause=prev_failed
-    )
+    _clear_and_show_progress(project_name, steps, details, active_steps, environment, pause=prev_failed)
 
     return steps
 
@@ -570,9 +548,7 @@ def hatch(
                 or []
             )
             if selected_apps:
-                names = ", ".join(
-                    a["name"] for a in OPTIONAL_APPS if a["value"] in selected_apps
-                )
+                names = ", ".join(a["name"] for a in OPTIONAL_APPS if a["value"] in selected_apps)
                 console.print(f"  [green]Enabled:[/green] {names}")
                 console.print()
 
@@ -604,9 +580,7 @@ def hatch(
             if extras:
                 suffix = "\n# Optional phoxtail apps\n" + "\n".join(extras) + "\n"
                 requirements_in = requirements_in.rstrip("\n") + "\n" + suffix
-            (target_dir / "requirements.in").write_text(
-                requirements_in, encoding="utf-8"
-            )
+            (target_dir / "requirements.in").write_text(requirements_in, encoding="utf-8")
             file_count += 1
 
             # Compile requirements.in → requirements.txt (quiet — no user interaction)
@@ -626,15 +600,11 @@ def hatch(
         req_note = (
             ""
             if compiled.returncode == 0
-            else (
-                "\n[yellow]⚠[/yellow] requirements not compiled"
-                " — run [cyan]phoxtail requirements compile[/cyan]"
-            )
+            else ("\n[yellow]⚠[/yellow] requirements not compiled — run [cyan]phoxtail requirements compile[/cyan]")
         )
         console.print(
             Panel(
-                f"[green]Project '{project_name}' created[/green] "
-                f"at [bold]{target_dir}[/bold]" + req_note,
+                f"[green]Project '{project_name}' created[/green] at [bold]{target_dir}[/bold]" + req_note,
                 border_style="green",
                 expand=False,
             )
@@ -644,9 +614,7 @@ def hatch(
         # Run the setup wizard unless --no-wizard
         wizard_steps: dict[str, str] = {}
         if not no_wizard:
-            run_wizard = Confirm.ask(
-                "Would you like to run the setup wizard?", default=True
-            )
+            run_wizard = Confirm.ask("Would you like to run the setup wizard?", default=True)
             if run_wizard:
                 wizard_steps = _run_wizard(project_name, target_dir, environment)
 
@@ -670,11 +638,7 @@ def hatch(
             f"phoxtail env create {environment or 'development'}"
             " && phoxtail docker create dockerfile"
             f" && phoxtail docker create compose {environment or 'development'}"
-            + (
-                " && phoxtail nginx create production"
-                if environment == "production"
-                else ""
-            )
+            + (" && phoxtail nginx create production" if environment == "production" else "")
         )
         _check("configure", configure_cmd, "generate project configuration files")
         _check(
@@ -699,10 +663,7 @@ def hatch(
         )
 
         # Assemble next steps
-        all_steps = [
-            f"  • [cyan]cd {target_dir}[/cyan]"
-            "\n    [dim]navigate to the project directory[/dim]"
-        ]
+        all_steps = [f"  • [cyan]cd {target_dir}[/cyan]\n    [dim]navigate to the project directory[/dim]"]
         if failed_steps:
             all_steps.append("")
             all_steps.append("  [bold red]Failed (retry):[/bold red]")

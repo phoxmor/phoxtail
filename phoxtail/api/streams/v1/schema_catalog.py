@@ -98,8 +98,7 @@ def get_schema_catalog() -> dict[str, Any]:
     "/",
     summary="Schema field type catalog",
     description=(
-        "Returns the complete catalog of available schema field types "
-        "and their parameters for designing block schemas."
+        "Returns the complete catalog of available schema field types and their parameters for designing block schemas."
     ),
 )
 def schema_catalog(request: HttpRequest):

@@ -28,9 +28,7 @@ class UserServiceAdminUpdate:
     def validate(self, **data) -> None:
         user = self.service.user
         if user.is_superuser and data.get("is_active") is False:
-            raise ValidationError(
-                _("Superuser accounts cannot be deactivated through this interface.")
-            )
+            raise ValidationError(_("Superuser accounts cannot be deactivated through this interface."))
 
     def perform(self, request: HttpRequest | None = None, **data) -> "AbstractUser":
         from allauth.account.adapter import get_adapter
@@ -49,9 +47,7 @@ class UserServiceAdminUpdate:
                 adapter = get_adapter(request)
                 adapter.populate_username(request, user)
 
-                EmailAddress.objects.filter(user=user, email=old_email).update(
-                    email=new_email
-                )
+                EmailAddress.objects.filter(user=user, email=old_email).update(email=new_email)
 
             user.save()
 

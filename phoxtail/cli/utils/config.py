@@ -127,10 +127,7 @@ def validate_project_name(name: str) -> str | None:
 
     try:
         if find_spec(name) is not None:
-            return (
-                f"'{name}' conflicts with an existing Python module or "
-                "package and cannot be used as a project name."
-            )
+            return f"'{name}' conflicts with an existing Python module or package and cannot be used as a project name."
     except (ModuleNotFoundError, ValueError):
         pass
 

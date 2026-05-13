@@ -73,14 +73,10 @@ class TestUpdateTemplateValidationErrors:
 
     def test_recurrence_until_before_start_raises(self):
         template = RecurringTemplateFactory(
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 5, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 11, 0), UTC),
         )
         with pytest.raises(ValidationError):
             EventService(template).admin.update_template(
-                recurrence_until=timezone.make_aware(
-                    datetime.datetime(2024, 6, 4, 10, 0), UTC
-                ),
+                recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 4, 10, 0), UTC),
             )

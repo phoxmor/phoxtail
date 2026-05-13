@@ -35,9 +35,7 @@ class TestPublicCreate:
         sub_type = SubscriptionTypeFactory(location=location)
         subscription = kw.pop(
             "subscription",
-            SubscriptionFactory(
-                user=user, subscription_type=sub_type, is_paid=True, credits=10
-            ),
+            SubscriptionFactory(user=user, subscription_type=sub_type, is_paid=True, credits=10),
         )
         start = kw.pop("start_datetime", timezone.now() + datetime.timedelta(days=1))
         event = kw.pop(
@@ -77,9 +75,7 @@ class TestPublicCreate:
 
     @freeze_time("2024-06-15 08:00:00")
     def test_past_event_raises(self):
-        user, event, sub = self._setup(
-            start_datetime=timezone.now() - datetime.timedelta(hours=1)
-        )
+        user, event, sub = self._setup(start_datetime=timezone.now() - datetime.timedelta(hours=1))
         with pytest.raises(ValidationError):
             ReservationService().public.create(
                 user=user,
@@ -144,9 +140,7 @@ class TestPublicCreate:
             start_datetime=event.start_datetime,
             end_datetime=event.end_datetime,
         )
-        ReservationFactory(
-            user=user, event=overlap_event, status=ReservationStatus.CONFIRMED
-        )
+        ReservationFactory(user=user, event=overlap_event, status=ReservationStatus.CONFIRMED)
         with pytest.raises(ValidationError):
             ReservationService().public.create(
                 user=user,

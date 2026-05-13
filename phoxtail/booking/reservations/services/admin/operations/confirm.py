@@ -47,15 +47,11 @@ class ReservationServiceAdminConfirm:
             raise ValidationError("This class is no longer available.")
 
         if event.user_can_access_event(reservation.user) is False:
-            raise ValidationError(
-                "You do not have the required level to book this class."
-            )
+            raise ValidationError("You do not have the required level to book this class.")
 
         # Check if event is cancelled
         if event.is_cancelled:
-            raise ValidationError(
-                "This class has been cancelled and is no longer available."
-            )
+            raise ValidationError("This class has been cancelled and is no longer available.")
 
         # Check event capacity
         if event.is_full:
@@ -76,9 +72,7 @@ class ReservationServiceAdminConfirm:
             .exclude(id=reservation.id)
             .exists()
         ):
-            raise ValidationError(
-                "You already have a reservation for another event at that time."
-            )
+            raise ValidationError("You already have a reservation for another event at that time.")
 
         # Validate subscription access
         if subscription:
@@ -98,9 +92,7 @@ class ReservationServiceAdminConfirm:
         reservation = self.service.reservation
 
         if not subscription_id:
-            raise ValidationError(
-                "Subscription selection is required for waitlisted reservations."
-            )
+            raise ValidationError("Subscription selection is required for waitlisted reservations.")
 
         with transaction.atomic():
             subscription = Subscription.objects.filter(
@@ -110,13 +102,9 @@ class ReservationServiceAdminConfirm:
             ).first()
 
             if not subscription:
-                subscription_type = SubscriptionType.objects.filter(
-                    uuid=subscription_id, is_active=True
-                ).first()
+                subscription_type = SubscriptionType.objects.filter(uuid=subscription_id, is_active=True).first()
                 if not subscription_type:
-                    raise ValidationError(
-                        "Selected subscription is invalid or inactive."
-                    )
+                    raise ValidationError("Selected subscription is invalid or inactive.")
 
             self.validate(subscription=subscription)
 
@@ -137,9 +125,7 @@ class ReservationServiceAdminConfirm:
         reservation = self.service.reservation
 
         if not reservation.subscription:
-            raise ValidationError(
-                "Cancelled reservation must have an associated subscription to be confirmed."
-            )
+            raise ValidationError("Cancelled reservation must have an associated subscription to be confirmed.")
 
         with transaction.atomic():
             self.validate(
@@ -166,6 +152,4 @@ class ReservationServiceAdminConfirm:
         ]:
             return self._confirm_cancelled()
         else:
-            raise ValidationError(
-                f"Cannot confirm booking with status '{reservation.status}'"
-            )
+            raise ValidationError(f"Cannot confirm booking with status '{reservation.status}'")

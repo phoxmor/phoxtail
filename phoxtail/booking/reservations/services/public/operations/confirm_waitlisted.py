@@ -42,15 +42,11 @@ class ReservationServicePublicConfirmWaitlisted:
             raise ValidationError(_("This class is no longer available."))
 
         if event.user_can_access_event(user) is False:
-            raise ValidationError(
-                _("You do not have the required level to book this class.")
-            )
+            raise ValidationError(_("You do not have the required level to book this class."))
 
         # Check if event is cancelled
         if event.is_cancelled:
-            raise ValidationError(
-                _("This class has been cancelled and is no longer available.")
-            )
+            raise ValidationError(_("This class has been cancelled and is no longer available."))
 
         # Check if event is unpublished
         if event.is_unpublished:
@@ -67,9 +63,7 @@ class ReservationServicePublicConfirmWaitlisted:
             event__end_datetime__gt=event.start_datetime,
             status__in=[ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED],
         ).exists():
-            raise ValidationError(
-                "You already have a reservation for another event at that time."
-            )
+            raise ValidationError("You already have a reservation for another event at that time.")
 
         # Validate subscription access
         if subscription:
@@ -109,9 +103,7 @@ class ReservationServicePublicConfirmWaitlisted:
 
         # Get the waitlisted reservation
         try:
-            reservation = Reservation.objects.get(
-                uuid=reservation_id, user=user, status=ReservationStatus.WAITLISTED
-            )
+            reservation = Reservation.objects.get(uuid=reservation_id, user=user, status=ReservationStatus.WAITLISTED)
         except Reservation.DoesNotExist:
             raise ValidationError("Waitlisted reservation not found.")
 
@@ -122,13 +114,9 @@ class ReservationServicePublicConfirmWaitlisted:
             ).first()
 
             if not subscription:
-                subscription_type = SubscriptionType.objects.filter(
-                    uuid=subscription_id, is_active=True
-                ).first()
+                subscription_type = SubscriptionType.objects.filter(uuid=subscription_id, is_active=True).first()
                 if not subscription_type:
-                    raise ValidationError(
-                        "Selected subscription is invalid or inactive."
-                    )
+                    raise ValidationError("Selected subscription is invalid or inactive.")
 
         self.authorize()
         self.validate(user, reservation.event, subscription)

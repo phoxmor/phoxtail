@@ -62,12 +62,8 @@ def list_pages(
     ),
     parent: int | None = Query(None, description="Filter by parent page ID."),
     live: bool | None = Query(None, description="Filter by live status."),
-    search: str | None = Query(
-        None, description="Autocomplete prefix search on title."
-    ),
-    locale: str | None = Query(
-        None, description="Filter by locale language code, e.g. 'en'."
-    ),
+    search: str | None = Query(None, description="Autocomplete prefix search on title."),
+    locale: str | None = Query(None, description="Filter by locale language code, e.g. 'en'."),
     site: int | None = Query(None, description="Filter by site ID."),
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),

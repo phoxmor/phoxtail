@@ -29,27 +29,17 @@ class AccessTokensContextBuilder:
 
     # ── Permission helpers ──
     def _can_manage_all(self) -> bool:
-        return access_tokens_permission_policy.user_has_permission(
-            self.request.user, "manage_all_tokens"
-        )
+        return access_tokens_permission_policy.user_has_permission(self.request.user, "manage_all_tokens")
 
     def _can_create(self) -> bool:
-        return access_tokens_permission_policy.user_has_permission(
-            self.request.user, "create_access_tokens"
-        )
+        return access_tokens_permission_policy.user_has_permission(self.request.user, "create_access_tokens")
 
     def _can_revoke(self) -> bool:
-        return access_tokens_permission_policy.user_has_permission(
-            self.request.user, "revoke_access_tokens"
-        )
+        return access_tokens_permission_policy.user_has_permission(self.request.user, "revoke_access_tokens")
 
     # ── Filter / pagination pipeline ──
     def _extract_query_params(self):
-        self.query_params = (
-            self.request.GET.copy()
-            if self.request.method == "GET"
-            else self.request.POST.copy()
-        )
+        self.query_params = self.request.GET.copy() if self.request.method == "GET" else self.request.POST.copy()
 
     def _create_filterset(self, base_queryset):
         self.filterset = TokenFilter(
@@ -63,11 +53,7 @@ class AccessTokensContextBuilder:
         form.is_valid()
 
         filter_keys = [k for k in form.cleaned_data if k not in ["page", "search"]]
-        self.filter_count = sum(
-            1
-            for k, v in form.cleaned_data.items()
-            if k in filter_keys and v not in ["", None]
-        )
+        self.filter_count = sum(1 for k, v in form.cleaned_data.items() if k in filter_keys and v not in ["", None])
 
     def _prepare_base_context(self, base_queryset):
         self._extract_query_params()
@@ -129,13 +115,9 @@ def can_user_revoke(request, token: AccessToken) -> bool:
     Rule: revoking *your own* token needs ``revoke_access_tokens``;
     revoking *someone else's* additionally needs ``manage_all_tokens``.
     """
-    has_revoke = access_tokens_permission_policy.user_has_permission(
-        request.user, "revoke_access_tokens"
-    )
+    has_revoke = access_tokens_permission_policy.user_has_permission(request.user, "revoke_access_tokens")
     if not has_revoke:
         return False
     if token.user_id == request.user.id:
         return True
-    return access_tokens_permission_policy.user_has_permission(
-        request.user, "manage_all_tokens"
-    )
+    return access_tokens_permission_policy.user_has_permission(request.user, "manage_all_tokens")

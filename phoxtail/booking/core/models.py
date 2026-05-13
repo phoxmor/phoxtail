@@ -21,9 +21,7 @@ User = get_user_model()
 from .permissions.models import BookingAdminPermission  # noqa: E402, F401
 
 
-class BookingGroup(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model
-):
+class BookingGroup(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model):
     """
     A named group of users for controlling access to booking resources (events,
     services, etc.). Completely separate from Django's auth Group model to avoid
@@ -93,9 +91,7 @@ class BookingGroup(
         return self.members.filter(pk=user.pk).exists()
 
 
-class Location(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel, Orderable
-):
+class Location(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel, Orderable):
     """
     Represents a physical address or establishment where events can take place.
     Designed for comprehensive global identification and contact information.
@@ -131,9 +127,7 @@ class Location(
         blank=True,
         help_text="Secondary address information (e.g., 'Suite 400', 'Unit B').",
     )
-    city = models.CharField(
-        max_length=100, help_text="The city where the location is situated."
-    )
+    city = models.CharField(max_length=100, help_text="The city where the location is situated.")
     state_province = models.CharField(
         max_length=100,
         blank=True,

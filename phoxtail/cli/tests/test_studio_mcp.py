@@ -573,9 +573,7 @@ class TestUpdateBlock:
             status_code=400,
             json={"detail": "Invalid schema."},
         )
-        result = json.loads(
-            update_block(1, etag='W/"block123"', schema=[{"type": "bad", "value": {}}])
-        )
+        result = json.loads(update_block(1, etag='W/"block123"', schema=[{"type": "bad", "value": {}}]))
         assert result["error"] == "validation_error"
 
 
@@ -756,9 +754,7 @@ class TestOpenVariant:
         assert "javascript" in result["files"]
         assert "next_steps" in result
 
-    def test_idempotent_when_already_open(
-        self, httpx_mock: HTTPXMock, tmp_path, monkeypatch
-    ):
+    def test_idempotent_when_already_open(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
         httpx_mock.add_response(
             url=url("/api/streams/v1/variants/1/"),
             json=SAMPLE_VARIANT_DETAIL,

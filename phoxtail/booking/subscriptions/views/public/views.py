@@ -25,9 +25,7 @@ def subscription_list_view(request):
         Subscription.objects.filter(user=request.user)
         .exclude(status=SubscriptionStatus.ARCHIVED)
         .select_related("subscription_type")
-        .prefetch_related(
-            "credit_balances__service", "subscription_type__credit_allocations__service"
-        )
+        .prefetch_related("credit_balances__service", "subscription_type__credit_allocations__service")
         .order_by("-start_date")
     )
 
@@ -76,9 +74,7 @@ def subscription_create_view(request):
 
     if request.method == "POST":
         subscription_type_id = request.POST.get("subscription_type_id")
-        subscription_type = get_object_or_404(
-            SubscriptionType, uuid=subscription_type_id
-        )
+        subscription_type = get_object_or_404(SubscriptionType, uuid=subscription_type_id)
 
         try:
             # Create subscription using the centralized service
@@ -93,9 +89,7 @@ def subscription_create_view(request):
             )
 
             # Use HX-Redirect for HTMX compatibility
-            return HttpResponseClientRedirect(
-                reverse("dashboard:booking:subscriptions:subscription-list")
-            )
+            return HttpResponseClientRedirect(reverse("dashboard:booking:subscriptions:subscription-list"))
 
         except ValidationError as e:
             for message in e.messages:
@@ -122,9 +116,7 @@ def subscription_renew_form_view(request, subscription_id):
     Handles both GET (display form) and POST (process renewal) requests.
     """
     subscription = get_object_or_404(
-        Subscription.objects.select_related("subscription_type__location").filter(
-            user=request.user
-        ),
+        Subscription.objects.select_related("subscription_type__location").filter(user=request.user),
         uuid=subscription_id,
     )
 

@@ -35,11 +35,7 @@ class UserFilter(django_filters.FilterSet):
         if not value:
             return queryset
 
-        return (
-            search_backend.autocomplete(value, queryset)
-            .get_queryset()
-            .order_by("-date_joined")
-        )
+        return search_backend.autocomplete(value, queryset).get_queryset().order_by("-date_joined")
 
     def filter_page(self, queryset, name, value):
         """This filter doesn't affect the queryset - it's used for pagination state only."""

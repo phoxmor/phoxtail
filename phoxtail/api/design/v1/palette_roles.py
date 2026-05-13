@@ -59,9 +59,7 @@ class Error(Schema):
 @router.get("/", response={200: PaletteRoleList}, summary="List palette roles")
 def list_palette_roles(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on name and identifier."
-    ),
+    search: str | None = Query(None, description="Prefix search on name and identifier."),
 ):
     from phoxtail.design.models import PaletteRole
 
@@ -77,9 +75,7 @@ def list_palette_roles(
     response={201: PaletteRoleSummary, 400: Error, 409: Error},
     summary="Create a palette role",
 )
-def create_palette_role(
-    request: HttpRequest, response: HttpResponse, payload: PaletteRoleCreate
-):
+def create_palette_role(request: HttpRequest, response: HttpResponse, payload: PaletteRoleCreate):
     from phoxtail.design.models import PaletteRole
 
     try:
@@ -91,8 +87,7 @@ def create_palette_role(
     except IntegrityError:
         raise HttpError(
             409,
-            f"A palette role with name '{payload.name}' or identifier "
-            f"'{payload.identifier}' already exists.",
+            f"A palette role with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = palette_role_etag(r)
     return 201, palette_role_summary(r)
@@ -136,9 +131,7 @@ def patch_palette_role(
     try:
         r.save()
     except IntegrityError:
-        raise HttpError(
-            409, "A palette role with that name or identifier already exists."
-        )
+        raise HttpError(409, "A palette role with that name or identifier already exists.")
 
     response["ETag"] = palette_role_etag(r)
     return palette_role_summary(r)

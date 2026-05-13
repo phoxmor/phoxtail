@@ -42,12 +42,8 @@ router = Router()
 def list_variants(
     request: HttpRequest,
     block: str | None = Query(None, description="Filter by block identifier."),
-    collection: str | None = Query(
-        None, description="Filter by collection identifier."
-    ),
-    search: str | None = Query(
-        None, description="Prefix search on variant name and identifier."
-    ),
+    collection: str | None = Query(None, description="Filter by collection identifier."),
+    search: str | None = Query(None, description="Prefix search on variant name and identifier."),
 ):
     qs = BlockVariant.objects.select_related("block", "collection").all()
     if block:
@@ -80,9 +76,7 @@ def create_variant(
     except VariantCollection.DoesNotExist:
         raise HttpError(404, f"Collection {payload.collection_id} not found.")
 
-    if BlockVariant.objects.filter(
-        identifier=payload.identifier, block=block, collection=collection
-    ).exists():
+    if BlockVariant.objects.filter(identifier=payload.identifier, block=block, collection=collection).exists():
         raise HttpError(
             409,
             f"Variant '{payload.identifier}' already exists "
@@ -135,8 +129,7 @@ def update_variant_by_id(
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this variant.",
+            "If-Match header is required. Send the ETag from your most recent GET of this variant.",
         )
 
     v = resolve_variant_by_pk(variant_id)
@@ -144,8 +137,7 @@ def update_variant_by_id(
     if not etag_matches(if_match, current):
         raise HttpError(
             412,
-            "ETag mismatch: the variant has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the variant has changed since you last read it. Re-fetch and retry.",
         )
 
     new_collection = v.collection
@@ -156,9 +148,7 @@ def update_variant_by_id(
             raise HttpError(404, f"Collection {payload.collection_id} not found.")
         v.collection = new_collection
 
-    new_identifier = (
-        payload.identifier if payload.identifier is not None else v.identifier
-    )
+    new_identifier = payload.identifier if payload.identifier is not None else v.identifier
     if payload.identifier is not None:
         v.identifier = payload.identifier
 
@@ -204,9 +194,7 @@ def update_variant_by_id(
 
     with transaction.atomic():
         if payload.is_default is True:
-            BlockVariant.objects.filter(block=v.block, is_default=True).exclude(
-                pk=v.pk
-            ).update(is_default=False)
+            BlockVariant.objects.filter(block=v.block, is_default=True).exclude(pk=v.pk).update(is_default=False)
             v.is_default = True
         elif payload.is_default is False:
             v.is_default = False

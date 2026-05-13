@@ -35,9 +35,7 @@ class TestPermissionRequired:
         response = view(request)
         assert response.status_code == 200
 
-    def test_raises_permission_denied_when_user_lacks_permission(
-        self, decorator, user, rf
-    ):
+    def test_raises_permission_denied_when_user_lacks_permission(self, decorator, user, rf):
         view = decorator("access_test_management")(_dummy_view)
         request = rf.get("/")
         request.user = user

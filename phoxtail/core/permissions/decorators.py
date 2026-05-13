@@ -37,10 +37,7 @@ def permission_required_factory(policy):
                                 response,
                                 "showToast",
                                 {
-                                    "message": _(
-                                        "You do not have permission to "
-                                        "perform this action."
-                                    ),
+                                    "message": _("You do not have permission to perform this action."),
                                     "type": "error",
                                 },
                             )

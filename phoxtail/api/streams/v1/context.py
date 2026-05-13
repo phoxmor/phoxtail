@@ -113,11 +113,7 @@ def _resolve_references(ids: list[int]) -> list[BlockVariant]:
     resolved: list[BlockVariant] = []
     for variant_id in ids:
         try:
-            resolved.append(
-                BlockVariant.objects.select_related("block", "collection").get(
-                    pk=variant_id
-                )
-            )
+            resolved.append(BlockVariant.objects.select_related("block", "collection").get(pk=variant_id))
         except BlockVariant.DoesNotExist:
             from ninja.errors import HttpError
 

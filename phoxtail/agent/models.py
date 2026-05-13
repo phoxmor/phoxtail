@@ -9,9 +9,7 @@ from wagtail.search import index
 from phoxtail.core.mixins import AdminURLMixin, TimestampMixin, UUIDMixin
 
 
-class InferenceProvider(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model
-):
+class InferenceProvider(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model):
     identifier = models.SlugField(unique=True)
     display_name = models.CharField(max_length=100)
     model_prefix = models.CharField(max_length=64, blank=True)
@@ -33,9 +31,7 @@ class InferenceProvider(
 
 
 class ModelArtifact(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, Orderable):
-    provider = models.ForeignKey(
-        InferenceProvider, on_delete=models.CASCADE, related_name="artifacts"
-    )
+    provider = models.ForeignKey(InferenceProvider, on_delete=models.CASCADE, related_name="artifacts")
     identifier = models.CharField(max_length=200)
     display_name = models.CharField(max_length=100)
     permission = models.ForeignKey(

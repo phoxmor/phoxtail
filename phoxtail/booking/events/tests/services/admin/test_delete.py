@@ -39,30 +39,22 @@ class TestDeleteSingleEvent:
         assert not Event.objects.filter(pk=event_pk).exists()
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_deletes_single_recurring_event_with_this_event_only_scope(
-        self, service, space
-    ):
+    def test_deletes_single_recurring_event_with_this_event_only_scope(self, service, space):
         template = RecurringTemplateFactory(service=service, space=space)
         event1 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
         )
         event2 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
 
-        deleted = EventService(event1).admin.delete(
-            delete_scope=EventUpdateScope.THIS_EVENT_ONLY
-        )
+        deleted = EventService(event1).admin.delete(delete_scope=EventUpdateScope.THIS_EVENT_ONLY)
 
         assert deleted == 1
         assert not Event.objects.filter(pk=event1.pk).exists()
@@ -78,9 +70,7 @@ class TestDeleteSingleEvent:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 3),
         )
 
@@ -96,21 +86,15 @@ class TestDeleteSingleEvent:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
@@ -133,21 +117,15 @@ class TestDeleteSingleEvent:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
@@ -159,17 +137,11 @@ class TestDeleteSingleEvent:
             start_date=datetime.date(2024, 6, 3),
             end_date=datetime.date(2024, 6, 17),
         )
-        projected_dates = [
-            e.start_datetime.date()
-            for e in all_events
-            if getattr(e, "is_projected", False)
-        ]
+        projected_dates = [e.start_datetime.date() for e in all_events if getattr(e, "is_projected", False)]
         assert datetime.date(2024, 6, 10) not in projected_dates
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_single_delete_without_source_date_does_not_record_exclusion(
-        self, service, space
-    ):
+    def test_single_delete_without_source_date_does_not_record_exclusion(self, service, space):
         """If the event has no recurrence_source_date, no exclusion is recorded."""
         template = RecurringTemplateFactory(service=service, space=space)
         event = EventFactory(
@@ -198,37 +170,25 @@ class TestDeleteThisAndFutureEvents:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 11, 0), UTC),
         )
         current_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         future_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
         )
 
-        deleted = EventService(current_event).admin.delete(
-            delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS
-        )
+        deleted = EventService(current_event).admin.delete(delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS)
 
         assert deleted == 2
         assert Event.objects.filter(pk=past_event.pk).exists()
@@ -248,9 +208,7 @@ class TestDeleteThisAndFutureEvents:
         template = RecurringTemplateFactory(
             service=service,
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         # Pre-existing event for June 3 (template's own start date)
@@ -258,9 +216,7 @@ class TestDeleteThisAndFutureEvents:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 3),
         )
@@ -268,18 +224,12 @@ class TestDeleteThisAndFutureEvents:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
-        EventService(event_to_delete).admin.delete(
-            delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS
-        )
+        EventService(event_to_delete).admin.delete(delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS)
 
         template.refresh_from_db()
         # recurrence_until is now just before June 10 — no new events
@@ -301,22 +251,16 @@ class TestDeleteAllEventsInSeries:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
         )
         event2 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
 
-        deleted = EventService(event1).admin.delete(
-            delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-        )
+        deleted = EventService(event1).admin.delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
         assert deleted == 3  # 2 events + 1 template
         assert not Event.objects.filter(pk=event1.pk).exists()
@@ -335,9 +279,7 @@ class TestDeleteNonRecurringWithScope:
         event = EventFactory(service=service, space=space)
         event_pk = event.pk
 
-        deleted = EventService(event).admin.delete(
-            delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-        )
+        deleted = EventService(event).admin.delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
         assert deleted == 1
         assert not Event.objects.filter(pk=event_pk).exists()
@@ -361,9 +303,7 @@ class TestDeleteTemplateProtection:
         )
 
         with pytest.raises(ValidationError, match="Cannot delete a series template"):
-            EventService(template).admin.delete(
-                delete_scope=EventUpdateScope.THIS_EVENT_ONLY
-            )
+            EventService(template).admin.delete(delete_scope=EventUpdateScope.THIS_EVENT_ONLY)
 
         # Template and child must still exist
         assert Event.objects.filter(pk=template.pk).exists()
@@ -387,9 +327,7 @@ class TestDeleteTemplateProtection:
             recurrence_template=template,
         )
 
-        deleted = EventService(template).admin.delete(
-            delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-        )
+        deleted = EventService(template).admin.delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
         assert deleted == 2  # 1 child + 1 template
         assert not Event.objects.filter(pk=template.pk).exists()
@@ -459,25 +397,19 @@ class TestDeleteBlockedByReservations:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
         )
         event2 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
         # Only event2 has a reservation
         ReservationFactory(event=event2, status=ReservationStatus.CONFIRMED)
 
         with pytest.raises(ValidationError, match="1 event has active reservations"):
-            EventService(event1).admin.delete(
-                delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-            )
+            EventService(event1).admin.delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
         # Both events and template should still exist
         assert Event.objects.filter(pk=event1.pk).exists()
@@ -491,59 +423,41 @@ class TestDeleteBlockedByReservations:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 10, 0), UTC),
         )
         future_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
         ReservationFactory(event=future_event, status=ReservationStatus.CONFIRMED)
 
         with pytest.raises(ValidationError, match="active reservations"):
-            EventService(future_event).admin.delete(
-                delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS
-            )
+            EventService(future_event).admin.delete(delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS)
 
     @freeze_time("2024-06-03 08:00:00")
-    def test_future_delete_not_blocked_by_reservation_on_past_event(
-        self, service, space
-    ):
+    def test_future_delete_not_blocked_by_reservation_on_past_event(self, service, space):
         """Past events with reservations shouldn't block deleting future events."""
         template = RecurringTemplateFactory(service=service, space=space)
         past_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 11, 0), UTC),
         )
         future_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
         )
         # Reservation is on the past event, not the future one
         ReservationFactory(event=past_event, status=ReservationStatus.CONFIRMED)
 
-        deleted = EventService(future_event).admin.delete(
-            delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS
-        )
+        deleted = EventService(future_event).admin.delete(delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS)
 
         assert deleted == 1
         assert Event.objects.filter(pk=past_event.pk).exists()
@@ -556,25 +470,19 @@ class TestDeleteBlockedByReservations:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
         )
         event2 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
         ReservationFactory(event=event1, status=ReservationStatus.CONFIRMED)
         ReservationFactory(event=event2, status=ReservationStatus.CONFIRMED)
 
         with pytest.raises(ValidationError, match="2 events have active reservations"):
-            EventService(event1).admin.delete(
-                delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-            )
+            EventService(event1).admin.delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
 
 # ---------------------------------------------------------------------------
@@ -606,9 +514,7 @@ class TestDeleteValidation:
     def test_validate_template_single_delete_returns_error(self, service, space):
         template = RecurringTemplateFactory(service=service, space=space)
 
-        result = EventService(template).admin.validate_delete(
-            delete_scope=EventUpdateScope.THIS_EVENT_ONLY
-        )
+        result = EventService(template).admin.validate_delete(delete_scope=EventUpdateScope.THIS_EVENT_ONLY)
 
         assert result.has_errors
         assert "series template" in result.errors[0].message
@@ -621,23 +527,17 @@ class TestDeleteValidation:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
         )
         event2 = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
         ReservationFactory(event=event2, status=ReservationStatus.COMPLETED)
 
-        result = EventService(event2).admin.validate_delete(
-            delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES
-        )
+        result = EventService(event2).admin.validate_delete(delete_scope=EventUpdateScope.ALL_EVENTS_IN_SERIES)
 
         assert result.has_errors
         assert "active reservations" in result.errors[0].message
@@ -650,22 +550,16 @@ class TestDeleteValidation:
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 5, 27, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 5, 27, 10, 0), UTC),
         )
         future_event = EventFactory(
             service=service,
             space=space,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
         )
         ReservationFactory(event=past_event, status=ReservationStatus.CONFIRMED)
 
-        result = EventService(future_event).admin.validate_delete(
-            delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS
-        )
+        result = EventService(future_event).admin.validate_delete(delete_scope=EventUpdateScope.THIS_AND_FUTURE_EVENTS)
 
         assert result.is_valid

@@ -130,8 +130,7 @@ def _raise_for_error(response: httpx.Response) -> None:
     console.print(f"[red]Error:[/red] {detail}")
     if response.status_code == 401:
         console.print(
-            "Run [bold]phoxtail auth login[/bold] to store an API token, "
-            "or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
+            "Run [bold]phoxtail auth login[/bold] to store an API token, or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
         )
     raise typer.Exit(code=EXIT_GENERAL_FAILURE)
 
@@ -146,11 +145,7 @@ def _extract_detail(response: httpx.Response) -> str:
             return f"HTTP {response.status_code} (server returned an HTML error page)"
         return response.text or f"HTTP {response.status_code}"
     if isinstance(payload, dict):
-        return (
-            payload.get("detail")
-            or payload.get("message")
-            or f"HTTP {response.status_code}: {payload}"
-        )
+        return payload.get("detail") or payload.get("message") or f"HTTP {response.status_code}: {payload}"
     return f"HTTP {response.status_code}: {payload}"
 
 

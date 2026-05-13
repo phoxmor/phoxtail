@@ -11,9 +11,7 @@ from phoxtail.cli.utils.docker import docker_db, docker_manage
 class TestDockerManage:
     @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_builds_correct_command(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="", stderr=""
-        )
+        mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
         docker_manage("migrate", "--no-input")
         cmd = mock_run.call_args[0][0]
         assert cmd == [
@@ -39,9 +37,7 @@ class TestDockerManage:
 
     @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_capture_false_does_not_raise(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=1, stdout="", stderr=""
-        )
+        mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="")
         # Should not raise when capture=False
         result = docker_manage("runserver", capture=False)
         assert result.returncode == 1
@@ -50,9 +46,7 @@ class TestDockerManage:
 class TestDockerDb:
     @patch("phoxtail.cli.utils.docker.subprocess.run")
     def test_builds_correct_command(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0, stdout="", stderr=""
-        )
+        mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr="")
         docker_db("pg_dump -h localhost")
         cmd = mock_run.call_args[0][0]
         assert cmd == [

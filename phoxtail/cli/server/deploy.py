@@ -97,10 +97,7 @@ def deploy(
 
         for tool in ("git", "docker", "phoxtail"):
             if not ssh_check(user, ip, f"command -v {tool}"):
-                console.print(
-                    f"[red]{tool} not found on server.[/red]\n"
-                    "  Cloud-init may not have finished."
-                )
+                console.print(f"[red]{tool} not found on server.[/red]\n  Cloud-init may not have finished.")
                 raise typer.Exit(1)
         console.print("  [green]✓[/green] Prerequisites (git, docker, phoxtail)")
 
@@ -138,14 +135,10 @@ def deploy(
                 r = ssh_run(
                     user,
                     ip,
-                    "ssh-keygen -t ed25519 "
-                    "-f ~/.ssh/deploy_key "
-                    '-N "" -C "phoxtail-deploy"',
+                    'ssh-keygen -t ed25519 -f ~/.ssh/deploy_key -N "" -C "phoxtail-deploy"',
                 )
                 if r.returncode != 0:
-                    console.print(
-                        f"[red]Failed to generate deploy key:[/red] {r.stderr}"
-                    )
+                    console.print(f"[red]Failed to generate deploy key:[/red] {r.stderr}")
                     raise typer.Exit(1)
             console.print("  [green]✓[/green] Deploy key generated")
         else:
@@ -211,9 +204,7 @@ def deploy(
         if "successfully" in out or "welcome" in out:
             console.print(f"  [green]✓[/green] Git access to {host} confirmed")
         else:
-            console.print(
-                f"  [yellow]Warning:[/yellow] Could not verify access to {host}."
-            )
+            console.print(f"  [yellow]Warning:[/yellow] Could not verify access to {host}.")
             if test.stdout.strip():
                 console.print(f"    [dim]{test.stdout.strip()}[/dim]")
             console.print("  Continuing — clone may still work.")
@@ -255,9 +246,7 @@ def deploy(
         ssh_run(
             user,
             ip,
-            f"mkdir -p {PROJECT_DIR}/db-backups "
-            f"{PROJECT_DIR}/media "
-            f"{PROJECT_DIR}/static",
+            f"mkdir -p {PROJECT_DIR}/db-backups {PROJECT_DIR}/media {PROJECT_DIR}/static",
         )
 
         # ----------------------------------------------------------
@@ -290,9 +279,7 @@ def deploy(
             if rc != 0:
                 console.print(f"  [red]✗[/red] {label} failed")
                 console.print(
-                    "\n  [dim]Fix the issue and re-run "
-                    "server deploy — completed "
-                    "steps will be skipped.[/dim]"
+                    "\n  [dim]Fix the issue and re-run server deploy — completed steps will be skipped.[/dim]"
                 )
                 raise typer.Exit(1)
             console.print(f"  [green]✓[/green] {label}")

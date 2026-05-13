@@ -77,9 +77,7 @@ class TestThisAndFutureUpdate:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         # Create series instances
@@ -87,36 +85,24 @@ class TestThisAndFutureUpdate:
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
         e2 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 17, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 17, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 17),
         )
         e3 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 24, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 24, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 24, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 24, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 24),
         )
 
@@ -146,33 +132,23 @@ class TestAllInSeriesUpdate:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         e1 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
         e2 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 17, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 17, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 17),
         )
 
@@ -202,21 +178,15 @@ class TestTemplatePropagation:
         new_space = SpaceFactory(location=space.location, name="Room C")
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         e1 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
@@ -236,21 +206,15 @@ class TestTemplatePropagation:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         e1 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
@@ -273,9 +237,7 @@ class TestTemplatePropagation:
         staff2 = StaffFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         template.staff.add(staff1)
@@ -284,12 +246,8 @@ class TestTemplatePropagation:
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
 
@@ -334,9 +292,7 @@ class TestUpdateValidationWarnings:
 
         event = EventFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 6, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 6, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 6, 11, 0), UTC),
         )
         with pytest.raises(ValidationError):
@@ -351,33 +307,23 @@ class TestUpdateValidationWarnings:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
         )
         e1 = EventFactory(
             space=space,
             service=template.service,
             recurrence_template=template,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
         # Create an unrelated event that would conflict if series is moved to 14:00
         other_space = SpaceFactory()
         EventFactory(
             space=other_space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
         )
         with pytest.raises(ValidationError):
             EventService(e1).admin.update(

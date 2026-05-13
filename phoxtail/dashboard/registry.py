@@ -39,9 +39,7 @@ class DashboardRegistry:
 
     def register(self, module):
         if module.app_name in self._modules:
-            raise ValueError(
-                f"Dashboard module '{module.app_name}' is already registered."
-            )
+            raise ValueError(f"Dashboard module '{module.app_name}' is already registered.")
         self._modules[module.app_name] = module
 
     def get_nav_items(self):
@@ -57,11 +55,7 @@ class DashboardRegistry:
         return sorted(items, key=lambda x: x.order)
 
     def get_url_patterns(self):
-        return [
-            (module.url_prefix, module.url_patterns)
-            for module in self._modules.values()
-            if module.url_patterns
-        ]
+        return [(module.url_prefix, module.url_patterns) for module in self._modules.values() if module.url_patterns]
 
     def get_widgets(self):
         widgets = []

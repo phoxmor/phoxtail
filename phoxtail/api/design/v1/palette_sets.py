@@ -62,9 +62,7 @@ class Error(Schema):
 @router.get("/", response={200: PaletteSetList}, summary="List palette sets")
 def list_palette_sets(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on name and identifier."
-    ),
+    search: str | None = Query(None, description="Prefix search on name and identifier."),
 ):
     from django.db.models import Count
 
@@ -82,9 +80,7 @@ def list_palette_sets(
     response={201: PaletteSetSummary, 400: Error, 409: Error},
     summary="Create a palette set",
 )
-def create_palette_set(
-    request: HttpRequest, response: HttpResponse, payload: PaletteSetCreate
-):
+def create_palette_set(request: HttpRequest, response: HttpResponse, payload: PaletteSetCreate):
     from phoxtail.design.models import PaletteSet
 
     try:
@@ -96,8 +92,7 @@ def create_palette_set(
     except IntegrityError:
         raise HttpError(
             409,
-            f"A palette set with name '{payload.name}' or identifier "
-            f"'{payload.identifier}' already exists.",
+            f"A palette set with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = palette_set_etag(ps)
     return 201, palette_set_summary(ps)
@@ -114,9 +109,7 @@ def get_palette_set(request: HttpRequest, response: HttpResponse, palette_set_id
     from phoxtail.design.models import PaletteSet
 
     try:
-        ps = PaletteSet.objects.annotate(_palette_count=Count("palettes")).get(
-            pk=palette_set_id
-        )
+        ps = PaletteSet.objects.annotate(_palette_count=Count("palettes")).get(pk=palette_set_id)
     except PaletteSet.DoesNotExist:
         raise HttpError(404, f"PaletteSet {palette_set_id} not found.")
     response["ETag"] = palette_set_etag(ps)
@@ -150,9 +143,7 @@ def patch_palette_set(
     try:
         ps.save()
     except IntegrityError:
-        raise HttpError(
-            409, "A palette set with that name or identifier already exists."
-        )
+        raise HttpError(409, "A palette set with that name or identifier already exists.")
 
     response["ETag"] = palette_set_etag(ps)
     return palette_set_summary(ps)

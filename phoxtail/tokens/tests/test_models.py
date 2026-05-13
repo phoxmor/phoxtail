@@ -26,15 +26,11 @@ class TestAccessTokenIsActive:
         assert token.is_active is False
 
     def test_inactive_when_expired(self, user):
-        token = AccessTokenFactory(
-            user=user, expires_at=timezone.now() - timedelta(seconds=1)
-        )
+        token = AccessTokenFactory(user=user, expires_at=timezone.now() - timedelta(seconds=1))
         assert token.is_active is False
 
     def test_active_with_future_expiry(self, user):
-        token = AccessTokenFactory(
-            user=user, expires_at=timezone.now() + timedelta(days=1)
-        )
+        token = AccessTokenFactory(user=user, expires_at=timezone.now() + timedelta(days=1))
         assert token.is_active is True
 
     def test_revocation_beats_future_expiry(self, user):
@@ -78,9 +74,7 @@ class TestAccessTokenIntegrity:
         # auto_now_add timestamps may collide; force order
         from phoxtail.tokens.models import AccessToken
 
-        AccessToken.objects.filter(pk=older.pk).update(
-            created_at=timezone.now() - timedelta(days=1)
-        )
+        AccessToken.objects.filter(pk=older.pk).update(created_at=timezone.now() - timedelta(days=1))
         ordered = list(AccessToken.objects.values_list("pk", flat=True))
         assert ordered[0] == newer.pk
         assert ordered[-1] == older.pk

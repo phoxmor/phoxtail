@@ -63,9 +63,7 @@ class SubscriptionTypeFactory(factory.django.DjangoModelFactory):
 
     location = factory.SubFactory(LocationFactory)
     name = factory.Sequence(lambda n: f"Subscription Type {n}")
-    price = factory.Faker(
-        "pydecimal", left_digits=3, right_digits=2, positive=True, min_value=1
-    )
+    price = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True, min_value=1)
     is_active = True
     is_public = True
     duration = 30  # days

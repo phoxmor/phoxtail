@@ -79,9 +79,7 @@ class SubscriptionService:
         Returns float('inf') for unlimited credits, 0 for no access or no credits.
         """
         try:
-            allocation = self.subscription.subscription_type.credit_allocations.get(
-                service=service
-            )
+            allocation = self.subscription.subscription_type.credit_allocations.get(service=service)
 
             if allocation.credits is None:
                 return float("inf")
@@ -98,9 +96,7 @@ class SubscriptionService:
         """
         with transaction.atomic():
             # Lock the subscription row to prevent concurrent modifications
-            subscription = self.subscription.__class__.objects.select_for_update().get(
-                pk=self.subscription.pk
-            )
+            subscription = self.subscription.__class__.objects.select_for_update().get(pk=self.subscription.pk)
 
             credits = subscription.credits
             balances = subscription.credit_balances
@@ -137,9 +133,7 @@ class SubscriptionService:
 
             return False  # No credits available
 
-    def can_access_service(
-        self, service: "Service", skip_credit_validation=False, skip_active_check=False
-    ) -> bool:
+    def can_access_service(self, service: "Service", skip_credit_validation=False, skip_active_check=False) -> bool:
         """
         Check if the subscription can access a specific service.
         Considers overall subscription activity, duration, and credit balances.
@@ -151,10 +145,7 @@ class SubscriptionService:
         """
         from ..constants import SubscriptionStatus
 
-        if (
-            not skip_active_check
-            and self.subscription.status != SubscriptionStatus.ACTIVE
-        ):
+        if not skip_active_check and self.subscription.status != SubscriptionStatus.ACTIVE:
             return False
 
         if skip_credit_validation:
@@ -193,9 +184,7 @@ class SubscriptionService:
         """
         with transaction.atomic():
             # Lock subscription and get fresh data
-            subscription = self.subscription.__class__.objects.select_for_update().get(
-                pk=self.subscription.pk
-            )
+            subscription = self.subscription.__class__.objects.select_for_update().get(pk=self.subscription.pk)
 
             credits = subscription.credits
             allocated_credits = subscription.subscription_type.credits
@@ -217,25 +206,15 @@ class SubscriptionService:
                 return False  # Service not whitelisted
 
             # Step 1: Try to restore shared credits first (if limited)
-            if (
-                credits is not None
-                and allocated_credits is not None
-                and credits < allocated_credits
-            ):
+            if credits is not None and allocated_credits is not None and credits < allocated_credits:
                 subscription.credits += 1
                 subscription.save(update_fields=["credits"])
                 return True
 
             # Step 2: If shared credits are full/unlimited, restore service-specific
-            balance_allocated = (
-                subscription.subscription_type.credit_allocations.filter(
-                    service=service
-                ).first()
-            )
+            balance_allocated = subscription.subscription_type.credit_allocations.filter(service=service).first()
 
-            if balance.credits is None or (
-                balance_allocated and balance_allocated.credits is None
-            ):
+            if balance.credits is None or (balance_allocated and balance_allocated.credits is None):
                 return True  # Unlimited service - nothing to restore
 
             if balance_allocated and balance_allocated.credits is not None:
@@ -297,9 +276,7 @@ class SubscriptionService:
 
         return subscription.credits > 0
 
-    def has_remaining_per_service_credits(
-        self, service: Optional["Service"] = None
-    ) -> bool:
+    def has_remaining_per_service_credits(self, service: Optional["Service"] = None) -> bool:
         """
         Check if the subscription has any remaining per-service credits.
 
@@ -473,9 +450,7 @@ class SubscriptionService:
         end_date = start_date + timedelta(days=subscription_type.duration)
         return end_date
 
-    def is_event_within_subscription_period(
-        self, event_start_datetime: timezone.datetime
-    ) -> bool:
+    def is_event_within_subscription_period(self, event_start_datetime: timezone.datetime) -> bool:
         """
         Checks if an event falls within the subscription's valid period.
 
@@ -513,9 +488,7 @@ class SubscriptionService:
 
         # Inherit unpaid reservation limit from subscription type if not set
         if not subscription.unpaid_reservation_limit:
-            subscription.unpaid_reservation_limit = (
-                subscription_type.unpaid_reservation_limit
-            )
+            subscription.unpaid_reservation_limit = subscription_type.unpaid_reservation_limit
 
         subscription.save(update_fields=["credits", "unpaid_reservation_limit"])
 

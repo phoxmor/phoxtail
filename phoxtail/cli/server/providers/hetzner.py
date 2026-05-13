@@ -40,9 +40,7 @@ class HetznerProvider(Provider):
         results: list[dict] = []
         page = 1
         while True:
-            resp = self._client.get(
-                path, params={"page": page, "per_page": 50, **params}
-            )
+            resp = self._client.get(path, params={"page": page, "per_page": 50, **params})
             self._raise_for_error(resp)
             data = resp.json()
             results.extend(data[key])
@@ -77,11 +75,7 @@ class HetznerProvider(Provider):
 
         # Filter to types available at the requested location
         if location:
-            items = [
-                item
-                for item in items
-                if any(loc["name"] == location for loc in item.get("locations", []))
-            ]
+            items = [item for item in items if any(loc["name"] == location for loc in item.get("locations", []))]
 
         result = []
         for item in items:
@@ -162,12 +156,8 @@ class HetznerProvider(Provider):
             id=srv["id"],
             name=srv["name"],
             status=srv["status"],
-            ipv4=srv["public_net"]["ipv4"]["ip"]
-            if srv["public_net"].get("ipv4")
-            else None,
-            ipv6=srv["public_net"]["ipv6"]["ip"]
-            if srv["public_net"].get("ipv6")
-            else None,
+            ipv4=srv["public_net"]["ipv4"]["ip"] if srv["public_net"].get("ipv4") else None,
+            ipv6=srv["public_net"]["ipv6"]["ip"] if srv["public_net"].get("ipv6") else None,
             action_id=action.get("id"),
         )
 

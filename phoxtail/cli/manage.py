@@ -53,9 +53,7 @@ def _get_django_commands() -> list[tuple[str, str]]:
 
 def manage(
     ctx: typer.Context,
-    command: Annotated[
-        str | None, typer.Argument(help="Django management command to run")
-    ] = None,
+    command: Annotated[str | None, typer.Argument(help="Django management command to run")] = None,
 ) -> None:
     """Run a Django management command inside the web container.
 

@@ -12,14 +12,8 @@ def error_envelope(resp) -> str | None:
         return None
 
     hints = {
-        412: (
-            "The resource has been modified since you last read it. "
-            "Re-fetch to get the current ETag, then retry."
-        ),
-        428: (
-            "ETag is required. Fetch the resource first and pass the "
-            "`_etag` value from the response."
-        ),
+        412: ("The resource has been modified since you last read it. Re-fetch to get the current ETag, then retry."),
+        428: ("ETag is required. Fetch the resource first and pass the `_etag` value from the response."),
         409: "Conflict — another assignment already uses that role on this site.",
         403: "Permission denied.",
         404: "Resource not found.",

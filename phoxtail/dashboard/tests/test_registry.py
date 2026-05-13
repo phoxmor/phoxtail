@@ -29,9 +29,7 @@ class TestDashboardNavItem:
 
 class TestDashboardWidget:
     def test_defaults(self):
-        widget = DashboardWidget(
-            template_name="test.html", context_function=lambda r: {}
-        )
+        widget = DashboardWidget(template_name="test.html", context_function=lambda r: {})
         assert widget.order == 100
         assert widget.css_files == []
 
@@ -65,12 +63,8 @@ class TestDashboardRegistry:
     def test_register_and_get_nav_items(self):
         reg = DashboardRegistry()
         module = DashboardModule("booking", "booking/")
-        module.add_nav_item(
-            label="Events", url_name="events:list", icon="calendar", order=50
-        )
-        module.add_nav_item(
-            label="Plans", url_name="plans:list", icon="plans", order=10
-        )
+        module.add_nav_item(label="Events", url_name="events:list", icon="calendar", order=50)
+        module.add_nav_item(label="Plans", url_name="plans:list", icon="plans", order=10)
         reg.register(module)
 
         items = reg.get_nav_items()
@@ -117,12 +111,8 @@ class TestDashboardRegistry:
     def test_get_widgets_sorted(self):
         reg = DashboardRegistry()
         module = DashboardModule("test", "test/")
-        module.add_widget(
-            template_name="b.html", context_function=lambda r: {}, order=200
-        )
-        module.add_widget(
-            template_name="a.html", context_function=lambda r: {}, order=50
-        )
+        module.add_widget(template_name="b.html", context_function=lambda r: {}, order=200)
+        module.add_widget(template_name="a.html", context_function=lambda r: {}, order=50)
         reg.register(module)
 
         widgets = reg.get_widgets()

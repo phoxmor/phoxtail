@@ -210,15 +210,11 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],  # Monday
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 24, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 24, 23, 59), UTC),
         )
         count = EventService(template).generate_recurring_events(days_ahead=30)
         # Template is is_recurrence_template=True so its own date is included:
@@ -232,21 +228,17 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 17, 23, 59), UTC),
         )
         EventService(template).generate_recurring_events(days_ahead=30)
 
-        generated = Event.objects.filter(
-            recurrence_template=template, is_recurrence_template=False
-        ).order_by("start_datetime")
+        generated = Event.objects.filter(recurrence_template=template, is_recurrence_template=False).order_by(
+            "start_datetime"
+        )
         assert generated.count() == 3
         assert generated[0].recurrence_source_date == datetime.date(2024, 6, 3)
         assert generated[1].recurrence_source_date == datetime.date(2024, 6, 10)
@@ -258,26 +250,18 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 17, 23, 59), UTC),
         )
         # Pre-create an event for June 10 with matching source_date
         EventFactory(
             space=space,
             service=template.service,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_template=template,
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
@@ -293,26 +277,18 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 17, 23, 59), UTC),
         )
         # Moved to 14:00 but source_date still June 10
         EventFactory(
             space=space,
             service=template.service,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 14, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 15, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 14, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 15, 0), UTC),
             recurrence_template=template,
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
@@ -328,25 +304,17 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 17, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 17, 23, 59), UTC),
         )
         # Unrelated event in the same slot — should NOT block generation
         EventFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
         )
         count = EventService(template).generate_recurring_events(days_ahead=30)
         # All three occurrences created — June 10 is no longer skipped
@@ -357,15 +325,11 @@ class TestGenerateRecurringEvents:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 10, 23, 59), UTC),
         )
         count = EventService(template).generate_recurring_events(days_ahead=30)
         # June 3 and June 10 — recurrence_until cuts off before June 17
@@ -383,9 +347,7 @@ class TestGetEventsWithRecurrenceProjections:
         from phoxtail.booking.events.models import Event
 
         event = EventFactory(
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 5, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 11, 0), UTC),
         )
         qs = Event.objects.all()
@@ -404,15 +366,11 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         qs = Event.objects.all()
         result = EventService.get_events_with_recurrence_projections(
@@ -430,15 +388,11 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         qs = Event.objects.all()
         result = EventService.get_events_with_recurrence_projections(
@@ -459,26 +413,18 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         # Create a real event for June 10 — should suppress projection
         EventFactory(
             space=space,
             service=template.service,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 10, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 11, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 10, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 11, 0), UTC),
             recurrence_template=template,
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
@@ -489,9 +435,7 @@ class TestGetEventsWithRecurrenceProjections:
             end_date=datetime.date(2024, 6, 30),
         )
         # No projection should exist for June 10
-        projected_dates = [
-            e.start_datetime.date() for e in result if getattr(e, "is_projected", False)
-        ]
+        projected_dates = [e.start_datetime.date() for e in result if getattr(e, "is_projected", False)]
         assert datetime.date(2024, 6, 10) not in projected_dates
 
     @freeze_time("2024-06-03 08:00:00")
@@ -503,26 +447,18 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         template = RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         # Moved to 14:00 but source_date is still June 10
         EventFactory(
             space=space,
             service=template.service,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 14, 0), UTC
-            ),
-            end_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 10, 15, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 14, 0), UTC),
+            end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 10, 15, 0), UTC),
             recurrence_template=template,
             recurrence_source_date=datetime.date(2024, 6, 10),
         )
@@ -532,9 +468,7 @@ class TestGetEventsWithRecurrenceProjections:
             start_date=datetime.date(2024, 6, 1),
             end_date=datetime.date(2024, 6, 30),
         )
-        projected_dates = [
-            e.start_datetime.date() for e in result if getattr(e, "is_projected", False)
-        ]
+        projected_dates = [e.start_datetime.date() for e in result if getattr(e, "is_projected", False)]
         assert datetime.date(2024, 6, 10) not in projected_dates
 
     @freeze_time("2024-06-20 08:00:00")
@@ -544,15 +478,11 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         qs = Event.objects.all()
         # Query a past range — should get no projections
@@ -573,15 +503,11 @@ class TestGetEventsWithRecurrenceProjections:
         space = SpaceFactory()
         RecurringTemplateFactory(
             space=space,
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 3, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 3, 11, 0), UTC),
             recurrence_freq=RecurrenceFrequency.WEEKLY,
             recurrence_byweekday=[0],
-            recurrence_until=timezone.make_aware(
-                datetime.datetime(2024, 6, 30, 23, 59), UTC
-            ),
+            recurrence_until=timezone.make_aware(datetime.datetime(2024, 6, 30, 23, 59), UTC),
         )
         qs = Event.objects.all()
         result = EventService.get_events_with_recurrence_projections(
@@ -613,9 +539,7 @@ class TestValidateStaffAvailability:
     def test_overlapping_event_returns_warning(self):
         staff = StaffFactory()
         existing = EventFactory(
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 5, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 11, 0), UTC),
         )
         existing.staff.add(staff)
@@ -623,9 +547,7 @@ class TestValidateStaffAvailability:
         new_event = EventFactory()
         start = timezone.make_aware(datetime.datetime(2024, 6, 5, 10, 30), UTC)
         end = timezone.make_aware(datetime.datetime(2024, 6, 5, 11, 30), UTC)
-        result = EventService.validate_staff_availability(
-            new_event, start, end, [staff]
-        )
+        result = EventService.validate_staff_availability(new_event, start, end, [staff])
         assert result.has_warnings
         assert any(w.field == "staff" for w in result.warnings)
 
@@ -633,9 +555,7 @@ class TestValidateStaffAvailability:
     def test_excluded_events_are_ignored(self):
         staff = StaffFactory()
         existing = EventFactory(
-            start_datetime=timezone.make_aware(
-                datetime.datetime(2024, 6, 5, 10, 0), UTC
-            ),
+            start_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 10, 0), UTC),
             end_datetime=timezone.make_aware(datetime.datetime(2024, 6, 5, 11, 0), UTC),
         )
         existing.staff.add(staff)

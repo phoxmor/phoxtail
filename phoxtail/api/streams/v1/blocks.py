@@ -33,13 +33,9 @@ router = Router()
 @router.get("/", response={200: BlockList}, summary="List Blocks")
 def list_blocks(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on block name and identifier."
-    ),
+    search: str | None = Query(None, description="Prefix search on block name and identifier."),
 ):
-    qs = BlockModel.objects.annotate(
-        _variant_count=Count("variants", distinct=True)
-    ).order_by("group", "name")
+    qs = BlockModel.objects.annotate(_variant_count=Count("variants", distinct=True)).order_by("group", "name")
     if search:
         qs = get_search_backend().autocomplete(search, qs)
     blocks = [block_summary(b, b._variant_count) for b in qs]
@@ -72,8 +68,7 @@ def update_block_by_id(
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this block.",
+            "If-Match header is required. Send the ETag from your most recent GET of this block.",
         )
 
     b = resolve_block_by_pk(block_id)
@@ -82,16 +77,11 @@ def update_block_by_id(
     if not etag_matches(if_match, current):
         raise HttpError(
             412,
-            "ETag mismatch: the block has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the block has changed since you last read it. Re-fetch and retry.",
         )
 
     if payload.identifier is not None:
-        if (
-            BlockModel.objects.filter(identifier=payload.identifier)
-            .exclude(pk=b.pk)
-            .exists()
-        ):
+        if BlockModel.objects.filter(identifier=payload.identifier).exclude(pk=b.pk).exists():
             raise HttpError(
                 409,
                 f"A block with identifier '{payload.identifier}' already exists.",
@@ -139,9 +129,7 @@ def update_block_by_id(
     summary="Create a Block",
 )
 def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCreate):
-    if BlockModel.objects.filter(
-        Q(identifier=payload.identifier) | Q(name=payload.name)
-    ).exists():
+    if BlockModel.objects.filter(Q(identifier=payload.identifier) | Q(name=payload.name)).exists():
         raise HttpError(409, "A block with this identifier or name already exists.")
 
     b = BlockModel(
@@ -178,7 +166,6 @@ def _format_validation_error(exc: ValidationError) -> str:
     """Extract a human-readable string from a Django ``ValidationError``."""
     if hasattr(exc, "message_dict"):
         return "; ".join(
-            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}"
-            for k, v in exc.message_dict.items()
+            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}" for k, v in exc.message_dict.items()
         )
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)

@@ -95,8 +95,7 @@ def collect_contributed_routers():
         short = _short_label(config)
         if short in _CORE_SHORT_LABELS:
             raise RuntimeError(
-                f"App '{config.label}' tries to mount /api/{short}/v1/ "
-                f"but that namespace is reserved by a core domain."
+                f"App '{config.label}' tries to mount /api/{short}/v1/ but that namespace is reserved by a core domain."
             )
         if short in seen:
             raise RuntimeError(f"Two apps both try to mount /api/{short}/v1/.")

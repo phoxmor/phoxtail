@@ -171,9 +171,7 @@ def delete_shared_block(shared_block_id: int) -> str:
         return json.dumps(
             {
                 "error": "not_found",
-                "detail": resp.json().get(
-                    "detail", f"SharedBlock {shared_block_id} not found."
-                ),
+                "detail": resp.json().get("detail", f"SharedBlock {shared_block_id} not found."),
             }
         )
     resp.raise_for_status()

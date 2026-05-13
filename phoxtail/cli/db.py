@@ -109,9 +109,7 @@ def pull(
                 " -f -",
             ]
             with open(local_dump_path) as f:
-                result = subprocess.run(
-                    restore_cmd, stdin=f, capture_output=True, text=True
-                )
+                result = subprocess.run(restore_cmd, stdin=f, capture_output=True, text=True)
             if result.returncode != 0:
                 raise subprocess.CalledProcessError(
                     result.returncode,
@@ -121,9 +119,7 @@ def pull(
                 )
 
             # 5. Update Wagtail Site hostnames to local domain.
-            progress.update(
-                task, description=f"Updating hostnames to {local_domain}..."
-            )
+            progress.update(task, description=f"Updating hostnames to {local_domain}...")
             docker_db(
                 "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
                 " -U $POSTGRES_USER -d $POSTGRES_DB"
@@ -154,11 +150,7 @@ def pull(
             )
             # Use a unique marker to ignore Django shell startup noise.
             marker_line = next(
-                (
-                    line
-                    for line in result.stdout.splitlines()
-                    if line.startswith("__SUPERUSERS__:")
-                ),
+                (line for line in result.stdout.splitlines() if line.startswith("__SUPERUSERS__:")),
                 None,
             )
             raw = (marker_line or "").removeprefix("__SUPERUSERS__:")
@@ -239,8 +231,7 @@ def restore(
     from rich.prompt import Confirm
 
     if not Confirm.ask(
-        "This will replace the current database with "
-        f"[bold]{backup_file}[/bold]. Continue?",
+        f"This will replace the current database with [bold]{backup_file}[/bold]. Continue?",
         default=False,
     ):
         raise typer.Exit(0)
@@ -251,18 +242,14 @@ def restore(
         transient=True,
     ) as progress:
         try:
-            progress.add_task(
-                description="Creating safety backup of current state...", total=None
-            )
+            progress.add_task(description="Creating safety backup of current state...", total=None)
             docker_db(
                 "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
                 " -U $POSTGRES_USER $POSTGRES_DB"
                 " > /db-backups/pre_restore_safety.sql"
             )
 
-            progress.add_task(
-                description=f"Restoring from {backup_file}...", total=None
-            )
+            progress.add_task(description=f"Restoring from {backup_file}...", total=None)
             docker_db(
                 "PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost"
                 " -U $POSTGRES_USER -d $POSTGRES_DB"
@@ -272,9 +259,7 @@ def restore(
                 ' GRANT ALL ON SCHEMA public TO public;"'
                 f" -f /db-backups/{backup_file}"
             )
-            console.print(
-                f"[green bold]✓ Database restored from {backup_file}[/green bold]"
-            )
+            console.print(f"[green bold]✓ Database restored from {backup_file}[/green bold]")
         except subprocess.CalledProcessError as e:
             stderr = e.stderr if e.stderr else str(e)
             console.print(f"[red]Error:[/red] {stderr}")

@@ -26,8 +26,7 @@ class AccessTokenServiceAdminRevoke:
     def validate(self) -> None:
         if self.service.token is None:
             raise ValueError(
-                "AccessTokenServiceAdminRevoke requires a bound token — "
-                "initialize AccessTokenService(token) first."
+                "AccessTokenServiceAdminRevoke requires a bound token — initialize AccessTokenService(token) first."
             )
 
     def perform(self) -> AccessToken:

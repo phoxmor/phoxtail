@@ -69,8 +69,7 @@ def context(
                     ref_list.append(int(r))
                 except ValueError:
                     console.print(
-                        f"[red]Error:[/red] --references must be comma-separated"
-                        f" variant IDs (integers); got '{r}'"
+                        f"[red]Error:[/red] --references must be comma-separated variant IDs (integers); got '{r}'"
                     )
                     raise typer.Exit(code=1)
 
@@ -91,8 +90,7 @@ def context(
     if output is not None:
         output.write_text(rendered)
         console.print(
-            f"[green]\u2713[/green] Wrote context to [bold]{output}[/bold] "
-            f"([dim]{len(rendered)} chars[/dim])"
+            f"[green]\u2713[/green] Wrote context to [bold]{output}[/bold] ([dim]{len(rendered)} chars[/dim])"
         )
         return
 

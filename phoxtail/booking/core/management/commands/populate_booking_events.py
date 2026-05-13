@@ -23,27 +23,15 @@ class Command(BaseCommand):
         days_ahead = options["days_ahead"]
         run_async = options["async"]
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Generating recurring events ({days_ahead} days ahead)..."
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"Generating recurring events ({days_ahead} days ahead)..."))
 
         if run_async:
             # Run asynchronously via Celery
             task = generate_recurring_events_task.delay(days_ahead=days_ahead)
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Task queued for async execution! Task ID: {task.id}"
-                )
-            )
-            self.stdout.write(
-                "Check Celery worker logs for progress: docker compose logs celery-worker -f"
-            )
+            self.stdout.write(self.style.SUCCESS(f"Task queued for async execution! Task ID: {task.id}"))
+            self.stdout.write("Check Celery worker logs for progress: docker compose logs celery-worker -f")
         else:
             # Run synchronously (blocking)
             self.stdout.write("Running synchronously (this may take a moment)...")
             total_created = generate_recurring_events_task(days_ahead=days_ahead)
-            self.stdout.write(
-                self.style.SUCCESS(f"\nTotal events created: {total_created}")
-            )
+            self.stdout.write(self.style.SUCCESS(f"\nTotal events created: {total_created}"))

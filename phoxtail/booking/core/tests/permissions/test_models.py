@@ -68,11 +68,7 @@ class TestPermissionsExistInDatabase:
         # delete_scheduled_events should not be flagged.
         auto_crud_suffixes = (f"_{BookingAdminPermission._meta.model_name}",)
         for prefix in ("add_", "change_", "delete_", "view_"):
-            matching = [
-                c
-                for c in codenames
-                if c.startswith(prefix) and c.endswith(auto_crud_suffixes)
-            ]
+            matching = [c for c in codenames if c.startswith(prefix) and c.endswith(auto_crud_suffixes)]
             assert matching == [], f"Unexpected auto-permission: {matching}"
 
     def test_permissions_have_content_type_booking_core(self):

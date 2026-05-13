@@ -49,9 +49,7 @@ def get_internal_link(link_id: int) -> str:
     ),
 )
 def create_internal_link(label: str, url_name: str) -> str:
-    resp = request(
-        "POST", "/internal-links/", json_body={"label": label, "url_name": url_name}
-    )
+    resp = request("POST", "/internal-links/", json_body={"label": label, "url_name": url_name})
 
     if resp.status_code == 409:
         return json.dumps(
@@ -141,8 +139,7 @@ def update_internal_link(
 @mcp_server.tool(
     name="phoxtail_content_delete_internal_link",
     description=(
-        "Delete an internal link by numeric ID. Pass the integer `link_id` from "
-        "phoxtail_content_list_internal_links."
+        "Delete an internal link by numeric ID. Pass the integer `link_id` from phoxtail_content_list_internal_links."
     ),
 )
 def delete_internal_link(link_id: int) -> str:
@@ -152,9 +149,7 @@ def delete_internal_link(link_id: int) -> str:
         return json.dumps(
             {
                 "error": "not_found",
-                "detail": resp.json().get(
-                    "detail", f"InternalLink {link_id} not found."
-                ),
+                "detail": resp.json().get("detail", f"InternalLink {link_id} not found."),
             }
         )
     resp.raise_for_status()

@@ -63,9 +63,7 @@ class TestProjectApps:
 
     def test_get_project_apps_returns_list(self, tmp_path, monkeypatch):
         toml = tmp_path / "phoxtail.toml"
-        toml.write_text(
-            '[project]\nname = "test"\napps = ["phoxtail.blog", "phoxtail.booking"]\n'
-        )
+        toml.write_text('[project]\nname = "test"\napps = ["phoxtail.blog", "phoxtail.booking"]\n')
         monkeypatch.chdir(tmp_path)
         load_config.cache_clear()
         assert get_project_apps() == ["phoxtail.blog", "phoxtail.booking"]
@@ -82,18 +80,14 @@ class TestApiBaseUrl:
 
     def test_reads_studio_api_url(self, tmp_path, monkeypatch):
         toml = tmp_path / "phoxtail.toml"
-        toml.write_text(
-            '[project]\nname = "test"\n\n[studio]\napi_url = "http://localhost:8080"\n'
-        )
+        toml.write_text('[project]\nname = "test"\n\n[studio]\napi_url = "http://localhost:8080"\n')
         monkeypatch.chdir(tmp_path)
         load_config.cache_clear()
         assert get_api_base_url() == "http://localhost:8080"
 
     def test_strips_trailing_slash(self, tmp_path, monkeypatch):
         toml = tmp_path / "phoxtail.toml"
-        toml.write_text(
-            '[project]\nname = "t"\n\n[studio]\napi_url = "https://x.example.com/"\n'
-        )
+        toml.write_text('[project]\nname = "t"\n\n[studio]\napi_url = "https://x.example.com/"\n')
         monkeypatch.chdir(tmp_path)
         load_config.cache_clear()
         assert get_api_base_url() == "https://x.example.com"

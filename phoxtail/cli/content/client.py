@@ -68,11 +68,7 @@ def _raise_for_error(response: httpx.Response) -> None:
     try:
         payload = response.json()
         detail = (
-            (
-                payload.get("detail")
-                or payload.get("message")
-                or f"HTTP {response.status_code}: {payload}"
-            )
+            (payload.get("detail") or payload.get("message") or f"HTTP {response.status_code}: {payload}")
             if isinstance(payload, dict)
             else f"HTTP {response.status_code}: {payload}"
         )
@@ -81,8 +77,7 @@ def _raise_for_error(response: httpx.Response) -> None:
     console.print(f"[red]Error:[/red] {detail}")
     if response.status_code == 401:
         console.print(
-            "Run [bold]phoxtail auth login[/bold] to store an API token, "
-            "or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
+            "Run [bold]phoxtail auth login[/bold] to store an API token, or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
         )
     raise typer.Exit(code=EXIT_GENERAL_FAILURE)
 
@@ -115,27 +110,19 @@ def list_pages(
 
 
 def list_images(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request(
-        "GET", "/media/images/", params={"search": search, "limit": limit}
-    ).json()
+    return request("GET", "/media/images/", params={"search": search, "limit": limit}).json()
 
 
 def list_documents(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request(
-        "GET", "/media/documents/", params={"search": search, "limit": limit}
-    ).json()
+    return request("GET", "/media/documents/", params={"search": search, "limit": limit}).json()
 
 
 def list_videos(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request(
-        "GET", "/media/videos/", params={"search": search, "limit": limit}
-    ).json()
+    return request("GET", "/media/videos/", params={"search": search, "limit": limit}).json()
 
 
 def list_audio(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request(
-        "GET", "/media/audio/", params={"search": search, "limit": limit}
-    ).json()
+    return request("GET", "/media/audio/", params={"search": search, "limit": limit}).json()
 
 
 def list_locales() -> dict[str, Any]:

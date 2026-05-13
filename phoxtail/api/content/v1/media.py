@@ -273,9 +273,7 @@ def upload_document(
     response={200: DocumentItem, 404: dict},
     summary="Update document metadata (title, tags)",
 )
-def update_document(
-    request: HttpRequest, document_id: int, payload: DocumentPatch = Body(...)
-):
+def update_document(request: HttpRequest, document_id: int, payload: DocumentPatch = Body(...)):
     from wagtail.documents import get_document_model
 
     Document = get_document_model()
@@ -659,9 +657,7 @@ def _safe_url(obj, request: HttpRequest | None = None) -> str | None:
     return raw
 
 
-def _safe_url_field(
-    obj, field_name: str, request: HttpRequest | None = None
-) -> str | None:
+def _safe_url_field(obj, field_name: str, request: HttpRequest | None = None) -> str | None:
     f = getattr(obj, field_name, None)
     if not f:
         return None

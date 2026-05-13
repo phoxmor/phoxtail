@@ -87,9 +87,7 @@ def list_font_families(
     response={201: FontFamilySummary, 400: Error, 409: Error},
     summary="Create a font family",
 )
-def create_font_family(
-    request: HttpRequest, response: HttpResponse, payload: FontFamilyCreate
-):
+def create_font_family(request: HttpRequest, response: HttpResponse, payload: FontFamilyCreate):
     from phoxtail.design.models import FontFamily
 
     if payload.category not in _CATEGORY_CHOICES:

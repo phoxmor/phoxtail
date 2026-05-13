@@ -53,9 +53,7 @@ from phoxtail.cli.studio import client
 
 console = Console()
 
-_YAML_OPTS: dict = dict(
-    default_flow_style=False, allow_unicode=True, sort_keys=False, width=1000
-)
+_YAML_OPTS: dict = dict(default_flow_style=False, allow_unicode=True, sort_keys=False, width=1000)
 
 
 class DumpScope(str, Enum):
@@ -154,9 +152,7 @@ def _write_collection(collections_dir: Path, detail: dict) -> None:
     body = detail.get("template", "").strip()
 
     content = f"---\n{fm_text}\n---\n\n{body}\n" if body else f"---\n{fm_text}\n---\n"
-    (collections_dir / f"{detail['identifier']}.md").write_text(
-        content, encoding="utf-8"
-    )
+    (collections_dir / f"{detail['identifier']}.md").write_text(content, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -196,9 +192,7 @@ def _write_block(blocks_dir: Path, detail: dict) -> None:
     if sort_order:
         metadata["sort_order"] = sort_order
 
-    (block_dir / "block.yaml").write_text(
-        yaml.dump(metadata, **_YAML_OPTS), encoding="utf-8"
-    )
+    (block_dir / "block.yaml").write_text(yaml.dump(metadata, **_YAML_OPTS), encoding="utf-8")
 
     field_schema_raw = detail.get("field_schema", "[]")
     try:
@@ -227,9 +221,7 @@ def _dump_variants(root: Path) -> None:
         variant_slug = summary["identifier"]
 
         detail, _ = client.get_variant_by_id(summary["id"])
-        variant_dir = (
-            blocks_dir / block_slug / "variants" / collection_slug / variant_slug
-        )
+        variant_dir = blocks_dir / block_slug / "variants" / collection_slug / variant_slug
         variant_dir.mkdir(parents=True, exist_ok=True)
         _write_variant(variant_dir, detail)
         console.print(f"  [cyan]{block_slug}/{collection_slug}/{variant_slug}[/cyan]")
@@ -241,12 +233,8 @@ def _write_variant(variant_dir: Path, detail: dict) -> None:
     if detail.get("is_default"):
         variant_meta["is_default"] = True
 
-    (variant_dir / "variant.yaml").write_text(
-        yaml.dump(variant_meta, **_YAML_OPTS), encoding="utf-8"
-    )
-    (variant_dir / "description.md").write_text(
-        detail.get("description", ""), encoding="utf-8"
-    )
+    (variant_dir / "variant.yaml").write_text(yaml.dump(variant_meta, **_YAML_OPTS), encoding="utf-8")
+    (variant_dir / "description.md").write_text(detail.get("description", ""), encoding="utf-8")
     (variant_dir / "template.html").write_text(detail.get("html", ""), encoding="utf-8")
 
     css = detail.get("css", "")

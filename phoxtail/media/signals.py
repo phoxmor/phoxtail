@@ -23,12 +23,7 @@ def connect():
 
 def _should_process(instance) -> bool:
     if instance.type == "video":
-        return (
-            not instance.thumbnail
-            or not instance.duration
-            or instance.width is None
-            or instance.height is None
-        )
+        return not instance.thumbnail or not instance.duration or instance.width is None or instance.height is None
     if instance.type == "audio":
         return not instance.duration
     return False
@@ -161,8 +156,6 @@ def _fill_thumbnail(instance, video_path: str, update_fields: list[str]) -> None
         subprocess.TimeoutExpired,
         FileNotFoundError,
     ):
-        logger.warning(
-            "ffmpeg thumbnail extraction failed for media pk=%s", instance.pk
-        )
+        logger.warning("ffmpeg thumbnail extraction failed for media pk=%s", instance.pk)
     finally:
         os.unlink(tmp_out_path)

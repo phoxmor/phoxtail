@@ -94,10 +94,7 @@ def collect_page_schemas() -> dict[str, PageSchemaContribution]:
             factory = _import_dotted(dotted)
             contribution = factory()
             if not isinstance(contribution, PageSchemaContribution):
-                raise TypeError(
-                    f"{dotted} must return a PageSchemaContribution, "
-                    f"got {type(contribution).__name__}"
-                )
+                raise TypeError(f"{dotted} must return a PageSchemaContribution, got {type(contribution).__name__}")
             if contribution.content_type in result:
                 raise RuntimeError(
                     f"Duplicate page_schema contribution for "

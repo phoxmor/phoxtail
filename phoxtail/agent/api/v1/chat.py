@@ -78,13 +78,9 @@ _BLOCK_WRITE_TOOLS = {
 }
 
 
-async def _run_turn(
-    conversation_pk: int, user_text: str, out: queue.Queue, artifact_pk: int
-) -> None:
+async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, artifact_pk: int) -> None:
     conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
-    artifact = await sync_to_async(
-        ModelArtifact.objects.select_related("provider").get
-    )(pk=artifact_pk)
+    artifact = await sync_to_async(ModelArtifact.objects.select_related("provider").get)(pk=artifact_pk)
     history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
     agent = get_agent(artifact)
     aq: asyncio.Queue[Any] = asyncio.Queue()
@@ -111,15 +107,9 @@ async def _run_turn(
                             # No per-block UUIDs — full-body refresh.
                             # Only emit if the publish succeeded (no error envelope).
                             try:
-                                result_content = (
-                                    str(event.result.content)
-                                    if hasattr(event.result, "content")
-                                    else ""
-                                )
+                                result_content = str(event.result.content) if hasattr(event.result, "content") else ""
                                 if "error" not in json.loads(result_content):
-                                    await aq.put(
-                                        ("blocks_changed", int(page_id), [], kind)
-                                    )
+                                    await aq.put(("blocks_changed", int(page_id), [], kind))
                             except (
                                 json.JSONDecodeError,
                                 AttributeError,
@@ -132,18 +122,10 @@ async def _run_turn(
                             # ToolReturnPart.content is the raw return value; our
                             # tools always return a JSON string.
                             try:
-                                result_content = (
-                                    str(event.result.content)
-                                    if hasattr(event.result, "content")
-                                    else ""
-                                )
-                                changed = json.loads(result_content).get(
-                                    "_changed_blocks"
-                                )
+                                result_content = str(event.result.content) if hasattr(event.result, "content") else ""
+                                changed = json.loads(result_content).get("_changed_blocks")
                                 if changed:
-                                    await aq.put(
-                                        ("blocks_changed", int(page_id), changed, kind)
-                                    )
+                                    await aq.put(("blocks_changed", int(page_id), changed, kind))
                             except (
                                 json.JSONDecodeError,
                                 AttributeError,
@@ -157,9 +139,7 @@ async def _run_turn(
                     text_sent = True
                     _partial_text.append(event.part.content)
                     await aq.put(("token", event.part.content))
-            elif isinstance(event, PartDeltaEvent) and isinstance(
-                event.delta, TextPartDelta
-            ):
+            elif isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
                 if event.delta.content_delta:
                     text_sent = True
                     _partial_text.append(event.delta.content_delta)
@@ -179,9 +159,7 @@ async def _run_turn(
                 await aq.put(("token", str(result.output)))
 
             updated = history + list(result.new_messages())
-            conversation.message_history = ModelMessagesTypeAdapter.dump_python(
-                updated, mode="json"
-            )
+            conversation.message_history = ModelMessagesTypeAdapter.dump_python(updated, mode="json")
             conversation.last_artifact_used_id = artifact_pk
             await sync_to_async(conversation.save)(
                 update_fields=["message_history", "updated_at", "last_artifact_used"]
@@ -190,9 +168,7 @@ async def _run_turn(
                 stripped = _CONTEXT_STRIP.sub("", user_text).strip()
                 if stripped:
                     conversation.title = stripped[:80]
-                    await sync_to_async(conversation.save)(
-                        update_fields=["title", "updated_at"]
-                    )
+                    await sync_to_async(conversation.save)(update_fields=["title", "updated_at"])
         finally:
             await aq.put(_SENTINEL)
 
@@ -205,9 +181,7 @@ async def _run_turn(
             if partial:
                 new_msgs.append(ModelResponse(parts=[TextPart(content=partial)]))
             updated = history + new_msgs
-            conversation.message_history = ModelMessagesTypeAdapter.dump_python(
-                updated, mode="json"
-            )
+            conversation.message_history = ModelMessagesTypeAdapter.dump_python(updated, mode="json")
             conversation.last_artifact_used_id = artifact_pk
             await sync_to_async(conversation.save)(
                 update_fields=["message_history", "updated_at", "last_artifact_used"]
@@ -216,9 +190,7 @@ async def _run_turn(
                 stripped = _CONTEXT_STRIP.sub("", user_text).strip()
                 if stripped:
                     conversation.title = stripped[:80]
-                    await sync_to_async(conversation.save)(
-                        update_fields=["title", "updated_at"]
-                    )
+                    await sync_to_async(conversation.save)(update_fields=["title", "updated_at"])
         except Exception:
             pass
 
@@ -258,9 +230,7 @@ async def _run_turn(
 
         if isinstance(exc, ModelHTTPError):
             body = exc.body
-            msg = (
-                body.get("message", str(exc)) if isinstance(body, dict) else str(exc)
-            )
+            msg = body.get("message", str(exc)) if isinstance(body, dict) else str(exc)
         else:
             msg = "An error occurred. Please try again."
         out.put(_sse("error", {"message": msg}))
@@ -275,9 +245,7 @@ async def _run_turn(
 def _stream_turn_sync(conversation_pk: int, user_text: str, artifact_pk: int):
     out: queue.Queue[Any] = queue.Queue()
     loop = _get_loop()
-    future = asyncio.run_coroutine_threadsafe(
-        _run_turn(conversation_pk, user_text, out, artifact_pk), loop
-    )
+    future = asyncio.run_coroutine_threadsafe(_run_turn(conversation_pk, user_text, out, artifact_pk), loop)
 
     try:
         while True:
@@ -311,14 +279,10 @@ def get_conversation(request, uuid: str):
     from ninja.errors import HttpError
 
     user = request.auth
-    if not user or not agent_permission_policy.user_has_permission(
-        user, "access_chatbot"
-    ):
+    if not user or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
         raise HttpError(403, "Access denied.")
     try:
-        conversation = Conversation.objects.select_related("last_artifact_used").get(
-            uuid=uuid, user=user
-        )
+        conversation = Conversation.objects.select_related("last_artifact_used").get(uuid=uuid, user=user)
     except Conversation.DoesNotExist:
         raise HttpError(404, "Conversation not found.")
 
@@ -352,9 +316,7 @@ def chat_stream(request, payload: StreamRequest):
     from ninja.errors import HttpError
 
     user = request.auth
-    if not user or not agent_permission_policy.user_has_permission(
-        user, "access_chatbot"
-    ):
+    if not user or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
         raise HttpError(403, "Access denied.")
     message = payload.message.strip()
     if not message:
@@ -374,9 +336,7 @@ def chat_stream(request, payload: StreamRequest):
         except Exception:
             agent_settings = None
         default_pk = (
-            agent_settings.default_artifact_id
-            if agent_settings and agent_settings.default_artifact_id
-            else None
+            agent_settings.default_artifact_id if agent_settings and agent_settings.default_artifact_id else None
         )
         artifact = (
             ModelArtifact.objects.select_related("provider", "permission__content_type")
@@ -398,15 +358,12 @@ def chat_stream(request, payload: StreamRequest):
     if env_var and not os.environ.get(env_var):
         raise HttpError(
             400,
-            f"No API key configured for {artifact.provider.display_name}. "
-            f"Set {env_var} in the environment.",
+            f"No API key configured for {artifact.provider.display_name}. Set {env_var} in the environment.",
         )
 
     if payload.conversation_uuid:
         try:
-            conversation = Conversation.objects.get(
-                uuid=payload.conversation_uuid, user=user
-            )
+            conversation = Conversation.objects.get(uuid=payload.conversation_uuid, user=user)
         except Conversation.DoesNotExist:
             raise HttpError(404, "Conversation not found.")
     else:

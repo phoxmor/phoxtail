@@ -35,9 +35,7 @@ CONTEXT_RESPONSE = {
 class TestContextCommand:
     def test_basic_renders_output(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(json=CONTEXT_RESPONSE)
-        result = runner.invoke(
-            app, ["context", "--block", "1", "--collection", "2", "--raw"]
-        )
+        result = runner.invoke(app, ["context", "--block", "1", "--collection", "2", "--raw"])
         assert result.exit_code == 0
         assert "Header Section" in result.output
 

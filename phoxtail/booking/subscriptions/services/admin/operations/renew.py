@@ -42,19 +42,14 @@ class SubscriptionServiceAdminRenew:
 
         # Validation 2: Subscription type must still be active
         if not subscription_type.service.is_active():
-            raise ValidationError(
-                _("This subscription type is no longer active and cannot be renewed.")
-            )
+            raise ValidationError(_("This subscription type is no longer active and cannot be renewed."))
 
         # Validation 3: Subscription must be in a renewable status
         # Only ACTIVE subscriptions can be renewed (not CANCELLED, SUSPENDED, etc.)
         renewable_statuses = [SubscriptionStatus.ACTIVE]
         if subscription.status not in renewable_statuses:
             raise ValidationError(
-                _(
-                    f"Subscription with status '{subscription.get_status_display()}' "
-                    "cannot be renewed."
-                )
+                _(f"Subscription with status '{subscription.get_status_display()}' cannot be renewed.")
             )
 
         # Validation 4: Can only renew if expired OR credits depleted
@@ -69,12 +64,7 @@ class SubscriptionServiceAdminRenew:
 
         # Validation 5: Subscription must be paid before renewal
         if not subscription.is_paid:
-            raise ValidationError(
-                _(
-                    "This subscription has not been paid for. "
-                    "Please mark it as paid before renewing."
-                )
-            )
+            raise ValidationError(_("This subscription has not been paid for. Please mark it as paid before renewing."))
 
     def perform(self, start_date: date) -> "Subscription":
         old_subscription = self.service.subscription

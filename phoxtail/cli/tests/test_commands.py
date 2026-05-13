@@ -110,18 +110,14 @@ class TestManage:
     @patch("phoxtail.cli.manage.sys.exit")
     @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
     @patch("phoxtail.cli.manage.subprocess.run")
-    def test_interactive_mode_selects_command(
-        self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
-    ):
+    def test_interactive_mode_selects_command(self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary):
         """Without a command, interactive mode fetches and presents choices."""
         mock_stdin.isatty.return_value = True
         mock_run.return_value = MagicMock(
             returncode=0,
             stdout="[streams]\n    populate_streams\n    setup_streams_groups\n",
         )
-        mock_questionary.autocomplete.return_value.ask.return_value = (
-            "[streams] populate_streams"
-        )
+        mock_questionary.autocomplete.return_value.ask.return_value = "[streams] populate_streams"
 
         manage_fn(self._make_ctx())
 

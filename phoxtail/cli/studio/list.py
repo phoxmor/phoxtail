@@ -13,18 +13,10 @@ console = Console()
 
 @app.command("variants")
 def list_variants(
-    block: str | None = typer.Option(
-        None, "--block", help="Filter by block identifier."
-    ),
-    collection: str | None = typer.Option(
-        None, "--collection", help="Filter by collection identifier."
-    ),
-    search: str | None = typer.Option(
-        None, "--search", "-s", help="Prefix search on variant name and identifier."
-    ),
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich table."
-    ),
+    block: str | None = typer.Option(None, "--block", help="Filter by block identifier."),
+    collection: str | None = typer.Option(None, "--collection", help="Filter by collection identifier."),
+    search: str | None = typer.Option(None, "--search", "-s", help="Prefix search on variant name and identifier."),
+    json_output: bool = typer.Option(False, "--json", help="Emit raw JSON instead of a Rich table."),
 ) -> None:
     """List BlockVariants, optionally filtered by block and/or collection."""
     data = client.list_variants(block=block, collection=collection, search=search)
@@ -36,12 +28,8 @@ def list_variants(
 
 @app.command("collections")
 def list_collections(
-    search: str | None = typer.Option(
-        None, "--search", "-s", help="Prefix search on collection name and identifier."
-    ),
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich table."
-    ),
+    search: str | None = typer.Option(None, "--search", "-s", help="Prefix search on collection name and identifier."),
+    json_output: bool = typer.Option(False, "--json", help="Emit raw JSON instead of a Rich table."),
 ) -> None:
     """List all VariantCollections."""
     data = client.list_collections(search=search)
@@ -53,12 +41,8 @@ def list_collections(
 
 @app.command("blocks")
 def list_blocks(
-    search: str | None = typer.Option(
-        None, "--search", "-s", help="Prefix search on block name and identifier."
-    ),
-    json_output: bool = typer.Option(
-        False, "--json", help="Emit raw JSON instead of a Rich table."
-    ),
+    search: str | None = typer.Option(None, "--search", "-s", help="Prefix search on block name and identifier."),
+    json_output: bool = typer.Option(False, "--json", help="Emit raw JSON instead of a Rich table."),
 ) -> None:
     """List all Blocks."""
     data = client.list_blocks(search=search)

@@ -32,12 +32,8 @@ console = Console()
 )
 def up(
     ctx: typer.Context,
-    detach: bool = typer.Option(
-        True, "--detach/--no-detach", "-d", help="Run in background"
-    ),
-    build: bool = typer.Option(
-        False, "--build", "-b", help="Build images before starting"
-    ),
+    detach: bool = typer.Option(True, "--detach/--no-detach", "-d", help="Run in background"),
+    build: bool = typer.Option(False, "--build", "-b", help="Build images before starting"),
 ) -> None:
     """Start Docker services.
 
@@ -189,22 +185,16 @@ def dockerfile(
             raise typer.Exit(0)
     elif python_version not in PYTHON_VERSIONS:
         console.print(
-            f"[red]Error:[/red] Invalid Python version '{python_version}'. "
-            f"Must be one of: {', '.join(PYTHON_VERSIONS)}"
+            f"[red]Error:[/red] Invalid Python version '{python_version}'. Must be one of: {', '.join(PYTHON_VERSIONS)}"
         )
         raise typer.Exit(1)
 
     if port < 1 or port > 65535:
-        console.print(
-            f"[red]Error:[/red] Invalid port '{port}'. Must be between 1 and 65535"
-        )
+        console.print(f"[red]Error:[/red] Invalid port '{port}'. Must be between 1 and 65535")
         raise typer.Exit(1)
 
     if gunicorn_workers < 1:
-        console.print(
-            f"[red]Error:[/red] Invalid worker count '{gunicorn_workers}'. "
-            "Must be at least 1"
-        )
+        console.print(f"[red]Error:[/red] Invalid worker count '{gunicorn_workers}'. Must be at least 1")
         raise typer.Exit(1)
 
     try:
@@ -228,9 +218,7 @@ def dockerfile(
         ignore_path = output.parent / ".dockerignore"
         if not ignore_path.exists() or force:
             ignore_path.write_text(render_template("docker/dockerignore", {}))
-            console.print(
-                f"[green]✓[/green] .dockerignore created: [bold]{ignore_path}[/bold]"
-            )
+            console.print(f"[green]✓[/green] .dockerignore created: [bold]{ignore_path}[/bold]")
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")
         raise typer.Exit(0)
@@ -334,10 +322,7 @@ def compose(
 
     env_lower = environment.lower()
     if env_lower not in ["development", "production"]:
-        console.print(
-            f"[red]Error:[/red] Invalid environment '{environment}'. "
-            "Must be 'development' or 'production'."
-        )
+        console.print(f"[red]Error:[/red] Invalid environment '{environment}'. Must be 'development' or 'production'.")
         raise typer.Exit(1)
 
     if output.exists() and not force:
@@ -389,9 +374,7 @@ def compose(
 
         content = render_template("docker/docker-compose.yaml", context)
         output.write_text(content)
-        console.print(
-            f"\n[green]✓[/green] Docker Compose file created: [bold]{output}[/bold]"
-        )
+        console.print(f"\n[green]✓[/green] Docker Compose file created: [bold]{output}[/bold]")
         console.print(f"[dim]Image:[/dim] {IMAGE_PREFIX}/{project_name}:latest")
         console.print(f"[dim]PostgreSQL version:[/dim] {postgres_version}")
         console.print(f"[dim]Environment:[/dim] {env_lower}")

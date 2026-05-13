@@ -45,9 +45,7 @@ class ReservationServiceAdminMove:
 
         # Check if user has access to target event
         if target_event.user_can_access_event(reservation.user) is False:
-            raise ValidationError(
-                "User does not have the required level to access the target event."
-            )
+            raise ValidationError("User does not have the required level to access the target event.")
 
         # Check for duplicate reservation in target event
         existing_reservation = Reservation.objects.filter(
@@ -59,21 +57,13 @@ class ReservationServiceAdminMove:
             if existing_reservation.status == ReservationStatus.COMPLETED:
                 raise ValidationError("User already attended the target event.")
             elif existing_reservation.status == ReservationStatus.CONFIRMED:
-                raise ValidationError(
-                    "User already has a confirmed reservation for the target event."
-                )
+                raise ValidationError("User already has a confirmed reservation for the target event.")
             elif existing_reservation.status == ReservationStatus.WAITLISTED:
-                raise ValidationError(
-                    "User is already on the waitlist for the target event."
-                )
+                raise ValidationError("User is already on the waitlist for the target event.")
             elif existing_reservation.status == ReservationStatus.NO_SHOW:
-                raise ValidationError(
-                    "User already has a no-show reservation for the target event."
-                )
+                raise ValidationError("User already has a no-show reservation for the target event.")
             elif existing_reservation.status == ReservationStatus.CANCELLED:
-                raise ValidationError(
-                    "User already has a cancelled reservation for the target event."
-                )
+                raise ValidationError("User already has a cancelled reservation for the target event.")
             else:
                 raise ValidationError(
                     f"User already has a reservation of status '{existing_reservation.status}' for the target event."
@@ -105,9 +95,7 @@ class ReservationServiceAdminMove:
             .exclude(id=reservation.id)
             .exists()
         ):
-            raise ValidationError(
-                "User already has a reservation for another event at that time."
-            )
+            raise ValidationError("User already has a reservation for another event at that time.")
 
         # Validate subscription access to target event service
         if reservation.subscription:
@@ -136,9 +124,7 @@ class ReservationServiceAdminMove:
                 if original_event.service != target_event.service:
                     original_subscription.service.restore_credit(original_event.service)
 
-                    credit_used = original_subscription.service.use_credit(
-                        target_event.service
-                    )
+                    credit_used = original_subscription.service.use_credit(target_event.service)
                     if not credit_used:
                         reservation.event = original_event
                         reservation.save(update_fields=["event"])

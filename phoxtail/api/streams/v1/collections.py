@@ -32,13 +32,9 @@ router = Router()
 @router.get("/", response={200: CollectionList}, summary="List VariantCollections")
 def list_collections(
     request: HttpRequest,
-    search: str | None = Query(
-        None, description="Prefix search on collection name and identifier."
-    ),
+    search: str | None = Query(None, description="Prefix search on collection name and identifier."),
 ):
-    qs = VariantCollection.objects.annotate(
-        _variant_count=Count("variants", distinct=True)
-    ).order_by("name")
+    qs = VariantCollection.objects.annotate(_variant_count=Count("variants", distinct=True)).order_by("name")
     if search:
         qs = get_search_backend().autocomplete(search, qs)
     collections = [collection_summary(c, c._variant_count) for c in qs]
@@ -50,9 +46,7 @@ def list_collections(
     response={200: Collection, 404: Error},
     summary="Show a VariantCollection by numeric ID",
 )
-def get_collection_by_id(
-    request: HttpRequest, response: HttpResponse, collection_id: int
-):
+def get_collection_by_id(request: HttpRequest, response: HttpResponse, collection_id: int):
     c = resolve_collection_by_pk(collection_id)
     response["ETag"] = collection_etag(c)
     return collection_detail(c, c.variants.count())
@@ -73,8 +67,7 @@ def update_collection_by_id(
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Send the ETag from your most "
-            "recent GET of this collection.",
+            "If-Match header is required. Send the ETag from your most recent GET of this collection.",
         )
 
     c = resolve_collection_by_pk(collection_id)
@@ -83,8 +76,7 @@ def update_collection_by_id(
     if not etag_matches(if_match, current):
         raise HttpError(
             412,
-            "ETag mismatch: the collection has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the collection has changed since you last read it. Re-fetch and retry.",
         )
 
     if payload.name is not None:
@@ -111,15 +103,9 @@ def update_collection_by_id(
     response={201: Collection, 400: Error, 409: Error},
     summary="Create a VariantCollection",
 )
-def create_collection(
-    request: HttpRequest, response: HttpResponse, payload: CollectionCreate
-):
-    if VariantCollection.objects.filter(
-        Q(identifier=payload.identifier) | Q(name=payload.name)
-    ).exists():
-        raise HttpError(
-            409, "A collection with this identifier or name already exists."
-        )
+def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
+    if VariantCollection.objects.filter(Q(identifier=payload.identifier) | Q(name=payload.name)).exists():
+        raise HttpError(409, "A collection with this identifier or name already exists.")
 
     c = VariantCollection(
         identifier=payload.identifier,
@@ -137,9 +123,7 @@ def create_collection(
     try:
         c.save()
     except IntegrityError:
-        raise HttpError(
-            409, "A collection with this identifier or name already exists."
-        )
+        raise HttpError(409, "A collection with this identifier or name already exists.")
 
     response["ETag"] = collection_etag(c)
     return 201, collection_detail(c, 0)
@@ -148,7 +132,6 @@ def create_collection(
 def _format_validation_error(exc: ValidationError) -> str:
     if hasattr(exc, "message_dict"):
         return "; ".join(
-            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}"
-            for k, v in exc.message_dict.items()
+            f"{k}: {', '.join(v)}" if isinstance(v, list) else f"{k}: {v}" for k, v in exc.message_dict.items()
         )
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)

@@ -115,10 +115,7 @@ def pull(
     if dry_run:
         rsync_cmd[2:2] = ["--dry-run", "--verbose"]
         rsync_cmd.remove("--info=progress2")
-        console.print(
-            f"[bold]Dry run:[/bold] checking what would sync from "
-            f"[cyan]{remote_path}[/cyan]\n"
-        )
+        console.print(f"[bold]Dry run:[/bold] checking what would sync from [cyan]{remote_path}[/cyan]\n")
 
     if verbose and not dry_run:
         rsync_cmd[2:2] = ["--verbose", "--progress"]
@@ -135,17 +132,12 @@ def pull(
             size = stats.get("size", "0 bytes")
 
             if files > 0:
-                console.print(
-                    f"[green bold]✓ Synced {files} file{'s' if files != 1 else ''} "
-                    f"({size})[/green bold]"
-                )
+                console.print(f"[green bold]✓ Synced {files} file{'s' if files != 1 else ''} ({size})[/green bold]")
             else:
                 console.print("[green bold]✓ Already up to date[/green bold]")
 
         if dry_run:
-            console.print(
-                "\n[dim]No files were transferred. Remove --dry-run to sync.[/dim]"
-            )
+            console.print("\n[dim]No files were transferred. Remove --dry-run to sync.[/dim]")
 
     except subprocess.CalledProcessError:
         console.print("[red]Error syncing media[/red]")

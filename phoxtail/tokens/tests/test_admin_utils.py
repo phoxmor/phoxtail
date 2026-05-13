@@ -42,33 +42,25 @@ def can_user_revoke():
 # can_user_revoke
 # ─────────────────────────────────────────────────────────
 class TestCanUserRevoke:
-    def test_user_without_revoke_permission_cannot_revoke_own(
-        self, user, access_token, can_user_revoke
-    ):
+    def test_user_without_revoke_permission_cannot_revoke_own(self, user, access_token, can_user_revoke):
         req = RequestFactory().get("/")
         req.user = user
         assert can_user_revoke(req, access_token) is False
 
-    def test_user_with_revoke_permission_can_revoke_own(
-        self, user, access_token, can_user_revoke
-    ):
+    def test_user_with_revoke_permission_can_revoke_own(self, user, access_token, can_user_revoke):
         u = grant_token_permissions(user, "revoke_access_tokens")
         req = RequestFactory().get("/")
         req.user = u
         assert can_user_revoke(req, access_token) is True
 
-    def test_user_with_revoke_only_cannot_revoke_others(
-        self, user, other_user, can_user_revoke
-    ):
+    def test_user_with_revoke_only_cannot_revoke_others(self, user, other_user, can_user_revoke):
         token = AccessTokenFactory(user=other_user)
         u = grant_token_permissions(user, "revoke_access_tokens")
         req = RequestFactory().get("/")
         req.user = u
         assert can_user_revoke(req, token) is False
 
-    def test_user_with_manage_all_can_revoke_others(
-        self, user, other_user, can_user_revoke
-    ):
+    def test_user_with_manage_all_can_revoke_others(self, user, other_user, can_user_revoke):
         token = AccessTokenFactory(user=other_user)
         u = grant_token_permissions(user, "revoke_access_tokens", "manage_all_tokens")
         req = RequestFactory().get("/")
@@ -82,9 +74,7 @@ class TestCanUserRevoke:
         req.user = u
         assert can_user_revoke(req, token) is False
 
-    def test_superuser_can_revoke_anything(
-        self, superuser, other_user, can_user_revoke
-    ):
+    def test_superuser_can_revoke_anything(self, superuser, other_user, can_user_revoke):
         token = AccessTokenFactory(user=other_user)
         req = RequestFactory().get("/")
         req.user = superuser
@@ -95,9 +85,7 @@ class TestCanUserRevoke:
 # AccessTokensContextBuilder
 # ─────────────────────────────────────────────────────────
 class TestContextBuilderScoping:
-    def test_self_only_for_user_without_manage_all(
-        self, user, other_user, AccessTokensContextBuilder
-    ):
+    def test_self_only_for_user_without_manage_all(self, user, other_user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user, name="mine")
         AccessTokenFactory(user=other_user, name="theirs")
         req = RequestFactory().get("/")
@@ -108,9 +96,7 @@ class TestContextBuilderScoping:
         assert ctx["total_tokens"] == 1
         assert ctx["can_manage_all"] is False
 
-    def test_org_wide_for_user_with_manage_all(
-        self, user, other_user, AccessTokensContextBuilder
-    ):
+    def test_org_wide_for_user_with_manage_all(self, user, other_user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user, name="mine")
         AccessTokenFactory(user=other_user, name="theirs")
         u = grant_token_permissions(user, "manage_all_tokens")
@@ -122,9 +108,7 @@ class TestContextBuilderScoping:
         assert ctx["total_tokens"] == 2
         assert ctx["can_manage_all"] is True
 
-    def test_superuser_sees_all(
-        self, superuser, user, other_user, AccessTokensContextBuilder
-    ):
+    def test_superuser_sees_all(self, superuser, user, other_user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user, name="mine")
         AccessTokenFactory(user=other_user, name="theirs")
         req = RequestFactory().get("/")
@@ -161,9 +145,7 @@ class TestContextBuilderPermissionFlags:
 
 
 class TestContextBuilderPagination:
-    def test_pagination_limits_tokens(
-        self, user, PAGE_SIZE, AccessTokensContextBuilder
-    ):
+    def test_pagination_limits_tokens(self, user, PAGE_SIZE, AccessTokensContextBuilder):
         for _ in range(PAGE_SIZE + 5):
             AccessTokenFactory(user=user)
         req = RequestFactory().get("/")
@@ -183,13 +165,9 @@ class TestContextBuilderPagination:
 
 
 class TestContextBuilderFilterCount:
-    def test_filter_count_excludes_search_and_page(
-        self, user, AccessTokensContextBuilder
-    ):
+    def test_filter_count_excludes_search_and_page(self, user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user)
-        req = RequestFactory().get(
-            "/", {"filter-search": "x", "filter-page": "1", "filter-status": "active"}
-        )
+        req = RequestFactory().get("/", {"filter-search": "x", "filter-page": "1", "filter-status": "active"})
         req.user = user
         ctx = AccessTokensContextBuilder.get_full_context(req)
         # Only status counts.
@@ -203,9 +181,7 @@ class TestContextBuilderFilterCount:
 
 
 class TestFiltersContext:
-    def test_filters_context_does_not_load_tokens(
-        self, user, AccessTokensContextBuilder
-    ):
+    def test_filters_context_does_not_load_tokens(self, user, AccessTokensContextBuilder):
         AccessTokenFactory(user=user)
         req = RequestFactory().get("/")
         req.user = user
@@ -226,9 +202,7 @@ class TestPostMethodReadsPostParams:
 
 
 class TestQuerysetIsolation:
-    def test_no_query_when_listing_with_no_tokens(
-        self, user, AccessTokensContextBuilder
-    ):
+    def test_no_query_when_listing_with_no_tokens(self, user, AccessTokensContextBuilder):
         # Sanity: builder should still resolve cleanly with empty DB.
         req = RequestFactory().get("/")
         req.user = user

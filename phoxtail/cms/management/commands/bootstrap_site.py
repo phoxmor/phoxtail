@@ -20,10 +20,7 @@ from django.db import connection
 
 
 class Command(BaseCommand):
-    help = (
-        "Replace Wagtail's welcome page with a project ContentPage "
-        "and wire the default Site."
-    )
+    help = "Replace Wagtail's welcome page with a project ContentPage and wire the default Site."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -60,20 +57,16 @@ class Command(BaseCommand):
         if existing.exists():
             self.stdout.write(
                 self.style.WARNING(
-                    "A page already exists at depth 2 that is not the welcome page. "
-                    "Skipping bootstrap_site."
+                    "A page already exists at depth 2 that is not the welcome page. Skipping bootstrap_site."
                 )
             )
             return
 
         # Find the default hatchling variant (populated by populate_streams).
-        default_variant = BlockVariant.objects.filter(
-            block__identifier="hatchling", is_default=True
-        ).first()
+        default_variant = BlockVariant.objects.filter(block__identifier="hatchling", is_default=True).first()
         if default_variant is None:
             raise CommandError(
-                "No default hatchling BlockVariant found. "
-                "Run 'manage.py populate_streams' before bootstrap_site."
+                "No default hatchling BlockVariant found. Run 'manage.py populate_streams' before bootstrap_site."
             )
 
         locale = Locale.objects.first()
@@ -90,9 +83,7 @@ class Command(BaseCommand):
 
         Page.objects.filter(depth=2, slug="home").delete()
 
-        homepage_ct, _ = ContentType.objects.get_or_create(
-            model="contentpage", app_label=app_label
-        )
+        homepage_ct, _ = ContentType.objects.get_or_create(model="contentpage", app_label=app_label)
 
         homepage = ContentPage.objects.create(
             title="Home",
@@ -140,7 +131,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Homepage created for '{app_label}' with hatchling block. "
-                f"Site name set to '{site_name}'."
+                f"Homepage created for '{app_label}' with hatchling block. Site name set to '{site_name}'."
             )
         )

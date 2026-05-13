@@ -15,9 +15,7 @@ from .services import ReservationService
 User = get_user_model()
 
 
-class Reservation(
-    UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel
-):
+class Reservation(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, ClusterableModel):
     """
     Represents a user's reservation for a specific Event. This links a user
     to an event and tracks which subscription was used.
@@ -47,9 +45,7 @@ class Reservation(
         default=ReservationStatus.CONFIRMED,
         help_text="Current status of the reservation (e.g., Confirmed, Cancelled, Waitlisted).",
     )
-    notes = models.TextField(
-        blank=True, help_text="Any private notes for this reservation."
-    )
+    notes = models.TextField(blank=True, help_text="Any private notes for this reservation.")
 
     objects = ReservationQuerySet.as_manager()
 

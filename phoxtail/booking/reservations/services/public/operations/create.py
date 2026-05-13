@@ -42,9 +42,7 @@ class ReservationServicePublicCreate:
             raise ValidationError("This class is no longer available.")
 
         if event.user_can_access_event(user) is False:
-            raise ValidationError(
-                "You do not have the required level to book this class."
-            )
+            raise ValidationError("You do not have the required level to book this class.")
 
         # Check for duplicate reservation (confirmed or completed)
         if Reservation.objects.filter(
@@ -53,8 +51,7 @@ class ReservationServicePublicCreate:
             status__in=[ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED],
         ).exists():
             raise ValidationError(
-                f"You already have a reservation for '{event.service.name}' "
-                f"on {event.start_datetime.date()}."
+                f"You already have a reservation for '{event.service.name}' on {event.start_datetime.date()}."
             )
 
         # Check for overlapping reservations
@@ -64,15 +61,11 @@ class ReservationServicePublicCreate:
             event__end_datetime__gt=event.start_datetime,
             status__in=[ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED],
         ).exists():
-            raise ValidationError(
-                "You already have a reservation for another event at that time."
-            )
+            raise ValidationError("You already have a reservation for another event at that time.")
 
         # Check if event is cancelled
         if event.is_cancelled:
-            raise ValidationError(
-                _("This class has been cancelled and is no longer available.")
-            )
+            raise ValidationError(_("This class has been cancelled and is no longer available."))
 
         # Check if event is unpublished
         if event.is_unpublished:
@@ -83,17 +76,12 @@ class ReservationServicePublicCreate:
             raise ValidationError(_("This class is fully booked."))
 
         # Validate subscription access
-        if not subscription.service.is_event_within_subscription_period(
-            event.start_datetime
-        ):
-            raise ValidationError(
-                "This event is outside your subscription's valid period."
-            )
+        if not subscription.service.is_event_within_subscription_period(event.start_datetime):
+            raise ValidationError("This event is outside your subscription's valid period.")
 
         if not subscription.service.can_access_service(event.service):
             raise ValidationError(
-                f"Your subscription doesn't provide access to '{event.service.name}' "
-                "or you have no credits remaining."
+                f"Your subscription doesn't provide access to '{event.service.name}' or you have no credits remaining."
             )
 
         # Validate grace period access
@@ -112,9 +100,7 @@ class ReservationServicePublicCreate:
             if subscription:
                 credit_used = subscription.service.use_credit(event.service)
                 if not credit_used:
-                    raise ValidationError(
-                        f"No credits available in subscription for '{event.service.name}'."
-                    )
+                    raise ValidationError(f"No credits available in subscription for '{event.service.name}'.")
 
         return reservation
 

@@ -154,10 +154,7 @@ def validate_monthly_recurrence(
     has_byweekday_monthly = recurrence_byweekday_monthly is not None
 
     if has_bymonthday and (has_bysetpos or has_byweekday_monthly):
-        result.add_error(
-            "Cannot specify both 'day of month' and 'position + weekday' options. "
-            "Please choose one."
-        )
+        result.add_error("Cannot specify both 'day of month' and 'position + weekday' options. Please choose one.")
 
     if has_bysetpos and not has_byweekday_monthly:
         result.add_error(
@@ -172,9 +169,6 @@ def validate_monthly_recurrence(
         )
 
     if not has_bymonthday and not (has_bysetpos and has_byweekday_monthly):
-        result.add_error(
-            "For monthly recurrence, you must specify either "
-            "'day of month' or 'position + weekday'."
-        )
+        result.add_error("For monthly recurrence, you must specify either 'day of month' or 'position + weekday'.")
 
     return result

@@ -32,10 +32,7 @@ class TestPhoxtailTokenAuth:
         assert auth.authenticate(req, None) is None
 
     def test_returns_none_for_unknown_token(self, auth, req):
-        assert (
-            auth.authenticate(req, "Bearer phxt_zzznosuchtokennosuchtokennosuchto")
-            is None
-        )
+        assert auth.authenticate(req, "Bearer phxt_zzznosuchtokennosuchtokennosuchto") is None
 
     def test_param_name_is_authorization(self, auth):
         assert auth.param_name == "Authorization"

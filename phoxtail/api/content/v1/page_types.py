@@ -28,9 +28,4 @@ router = Router()
 )
 def list_page_types(request: HttpRequest):
     schemas = collect_page_schemas()
-    return {
-        "types": {
-            content_type: contribution_as_dict(contrib)
-            for content_type, contrib in schemas.items()
-        }
-    }
+    return {"types": {content_type: contribution_as_dict(contrib) for content_type, contrib in schemas.items()}}

@@ -132,22 +132,17 @@ def _fetch_url(font_url: str) -> bytes:
     _ssrf_guard(font_url)
     headers = {
         "User-Agent": (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
     }
     chunks: list[bytes] = []
     total = 0
     try:
-        with httpx.stream(
-            "GET", font_url, headers=headers, follow_redirects=True, timeout=30.0
-        ) as resp:
+        with httpx.stream("GET", font_url, headers=headers, follow_redirects=True, timeout=30.0) as resp:
             try:
                 resp.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                raise HttpError(
-                    400, f"Remote returned {exc.response.status_code} for URL."
-                )
+                raise HttpError(400, f"Remote returned {exc.response.status_code} for URL.")
             for chunk in resp.iter_bytes(chunk_size=65536):
                 total += len(chunk)
                 if total > _MAX_URL_BYTES:
@@ -171,9 +166,7 @@ def list_font_weights(
 ):
     from phoxtail.design.models import FontWeight
 
-    qs = FontWeight.objects.select_related("family").order_by(
-        "family__name", "weight", "style"
-    )
+    qs = FontWeight.objects.select_related("family").order_by("family__name", "weight", "style")
     if font_family_id is not None:
         qs = qs.filter(family_id=font_family_id)
     items = [font_weight_summary(w) for w in qs]

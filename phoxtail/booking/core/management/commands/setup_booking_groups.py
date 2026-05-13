@@ -48,9 +48,7 @@ class Command(BaseCommand):
         )
         if actions:
             prefixes = tuple(f"{a}_" for a in actions)
-            qs = qs.filter(
-                codename__regex=r"^(%s)" % "|".join(f"{a}_" for a in actions)
-            )
+            qs = qs.filter(codename__regex=r"^(%s)" % "|".join(f"{a}_" for a in actions))
         return set(qs.values_list("pk", flat=True))
 
     def _set_group_perms(self, group_name, perm_ids):
@@ -66,9 +64,7 @@ class Command(BaseCommand):
         )
 
         if not custom_perms.exists():
-            self.stderr.write(
-                self.style.ERROR("No booking permissions found. Run migrate first.")
-            )
+            self.stderr.write(self.style.ERROR("No booking permissions found. Run migrate first."))
             return
 
         all_custom_ids = set(custom_perms.values_list("pk", flat=True))
@@ -80,11 +76,7 @@ class Command(BaseCommand):
 
         # ── Booking Manager — all custom except settings, full CRUD operational,
         #    view-only config ──
-        manager_custom_ids = set(
-            custom_perms.exclude(codename="access_booking_settings").values_list(
-                "pk", flat=True
-            )
-        )
+        manager_custom_ids = set(custom_perms.exclude(codename="access_booking_settings").values_list("pk", flat=True))
         manager_ids = (
             manager_custom_ids
             | self._snippet_perm_ids(OPERATIONAL_MODELS)
@@ -106,21 +98,13 @@ class Command(BaseCommand):
         staff_ids = (
             staff_custom_ids
             | self._snippet_perm_ids(STAFF_CONFIG_MODELS, actions=["view"])
-            | self._snippet_perm_ids(
-                STAFF_OPERATIONAL_MODELS, actions=["view", "change"]
-            )
+            | self._snippet_perm_ids(STAFF_OPERATIONAL_MODELS, actions=["view", "change"])
         )
         self._set_group_perms("Booking Staff", staff_ids)
 
         # ── Booking Viewer — read-only access to all views ──
-        viewer_custom_ids = set(
-            custom_perms.filter(codename__startswith="access_").values_list(
-                "pk", flat=True
-            )
-        )
-        viewer_ids = viewer_custom_ids | self._snippet_perm_ids(
-            all_snippet_models, actions=["view"]
-        )
+        viewer_custom_ids = set(custom_perms.filter(codename__startswith="access_").values_list("pk", flat=True))
+        viewer_ids = viewer_custom_ids | self._snippet_perm_ids(all_snippet_models, actions=["view"])
         self._set_group_perms("Booking Viewer", viewer_ids)
 
         self.stdout.write(self.style.SUCCESS("Booking groups ready."))

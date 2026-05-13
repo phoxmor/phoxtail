@@ -31,9 +31,7 @@ class SchemaStreamField(StreamField):
     """
 
     def __init__(self, block_types_arg, **kwargs):
-        self._block_types_callable = (
-            block_types_arg if callable(block_types_arg) else None
-        )
+        self._block_types_callable = block_types_arg if callable(block_types_arg) else None
 
         self._stream_block_kwargs = {}
         stream_block_params = ["min_num", "max_num", "block_counts", "collapsed"]
@@ -52,19 +50,14 @@ class SchemaStreamField(StreamField):
             from phoxtail.streams.cache import get_cache_generation
 
             current_generation = get_cache_generation()
-            if (
-                self._cached_stream_block is None
-                or self._cache_generation != current_generation
-            ):
+            if self._cached_stream_block is None or self._cache_generation != current_generation:
                 block_types = self._block_types_callable()
 
                 stream_block_kwargs = {
                     "required": not self.blank,
                     **self._stream_block_kwargs,
                 }
-                self._cached_stream_block = StreamBlock(
-                    block_types, **stream_block_kwargs
-                )
+                self._cached_stream_block = StreamBlock(block_types, **stream_block_kwargs)
                 self._cache_generation = current_generation
 
             return self._cached_stream_block

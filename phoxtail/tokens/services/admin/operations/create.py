@@ -66,9 +66,7 @@ class AccessTokenServiceAdminCreate:
         if not isinstance(scopes, list) or not scopes:
             # Empty scopes would be a footgun: the token exists but can do
             # nothing. "*" is the explicit wildcard; callers must opt in.
-            raise ValidationError(
-                {"scopes": "At least one scope is required. Use ['*'] for full access."}
-            )
+            raise ValidationError({"scopes": "At least one scope is required. Use ['*'] for full access."})
         if not all(isinstance(s, str) and s for s in scopes):
             raise ValidationError({"scopes": "Scopes must be non-empty strings."})
 

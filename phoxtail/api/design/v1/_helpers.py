@@ -19,9 +19,7 @@ def etag_matches(header_value: str | None, current: str) -> bool:
     if not header_value:
         return False
     candidates = {t.strip() for t in header_value.split(",")}
-    return "*" in candidates or _strip_weak(current) in {
-        _strip_weak(t) for t in candidates
-    }
+    return "*" in candidates or _strip_weak(current) in {_strip_weak(t) for t in candidates}
 
 
 def _hash(*parts: str) -> str:
@@ -43,10 +41,7 @@ def palette_set_etag(ps) -> str:
 
 
 def palette_etag(p) -> str:
-    shades = "".join(
-        getattr(p, f"shade_{s}") or ""
-        for s in (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)
-    )
+    shades = "".join(getattr(p, f"shade_{s}") or "" for s in (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950))
     return _hash(
         str(p.pk),
         str(p.palette_set_id),
@@ -93,10 +88,7 @@ def font_weight_etag(w) -> str:
 
 
 def _shades(p) -> dict:
-    return {
-        str(s): getattr(p, f"shade_{s}") or ""
-        for s in (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)
-    }
+    return {str(s): getattr(p, f"shade_{s}") or "" for s in (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)}
 
 
 def palette_set_summary(ps) -> dict:
@@ -105,9 +97,7 @@ def palette_set_summary(ps) -> dict:
         "name": ps.name,
         "identifier": ps.identifier,
         "description": ps.description,
-        "palette_count": ps._palette_count
-        if hasattr(ps, "_palette_count")
-        else ps.palettes.count(),
+        "palette_count": ps._palette_count if hasattr(ps, "_palette_count") else ps.palettes.count(),
         "created_at": ps.created_at.isoformat() if ps.created_at else None,
         "updated_at": ps.updated_at.isoformat(),
     }
@@ -143,9 +133,7 @@ def font_family_summary(ff) -> dict:
         "description": ff.description,
         "category": ff.category,
         "fallback": ff.fallback,
-        "weight_count": ff._weight_count
-        if hasattr(ff, "_weight_count")
-        else ff.weights.count(),
+        "weight_count": ff._weight_count if hasattr(ff, "_weight_count") else ff.weights.count(),
         "created_at": ff.created_at.isoformat() if ff.created_at else None,
         "updated_at": ff.updated_at.isoformat(),
     }
@@ -244,12 +232,10 @@ def require_if_match(request, current_etag: str) -> None:
     if not if_match:
         raise HttpError(
             428,
-            "If-Match header is required. Fetch the resource first and pass "
-            "the ETag from the response.",
+            "If-Match header is required. Fetch the resource first and pass the ETag from the response.",
         )
     if not etag_matches(if_match, current_etag):
         raise HttpError(
             412,
-            "ETag mismatch: the resource has changed since you last read it. "
-            "Re-fetch and retry.",
+            "ETag mismatch: the resource has changed since you last read it. Re-fetch and retry.",
         )

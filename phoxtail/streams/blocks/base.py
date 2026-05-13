@@ -54,9 +54,7 @@ class BlockVariantStructBlock(blocks.StructBlock):
             if context is None:
                 new_context = self.get_context(render_value)
             else:
-                new_context = self.get_context(
-                    render_value, parent_context=dict(context)
-                )
+                new_context = self.get_context(render_value, parent_context=dict(context))
 
             template_context = Context(new_context)
 

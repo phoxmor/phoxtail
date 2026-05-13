@@ -16,9 +16,7 @@ class Service(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Mo
         unique=True,
         help_text="Name of the specific service offering (e.g., 'Pilates Mat Class', 'Reformer Session').",
     )
-    description = models.TextField(
-        blank=True, help_text="A brief description of what this service entails."
-    )
+    description = models.TextField(blank=True, help_text="A brief description of what this service entails.")
     is_active = models.BooleanField(
         default=True,
         help_text="Indicates if this service offering is currently available.",

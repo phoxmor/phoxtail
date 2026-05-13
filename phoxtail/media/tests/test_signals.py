@@ -47,34 +47,26 @@ class TestSignalGating:
         proc.assert_called_once_with(m)
 
     def test_skips_when_video_fully_populated(self):
-        m = _make_media(
-            type="video", thumbnail="t.jpg", duration=10.0, width=1920, height=1080
-        )
+        m = _make_media(type="video", thumbnail="t.jpg", duration=10.0, width=1920, height=1080)
         with patch("phoxtail.media.signals._process_media") as proc:
             _on_media_save(sender=None, instance=m)
         proc.assert_not_called()
 
     def test_fires_for_video_without_thumbnail(self):
-        m = _make_media(
-            type="video", thumbnail="", duration=10.0, width=1920, height=1080
-        )
+        m = _make_media(type="video", thumbnail="", duration=10.0, width=1920, height=1080)
         with patch("phoxtail.media.signals._process_media") as proc:
             _on_media_save(sender=None, instance=m)
         proc.assert_called_once_with(m)
 
     def test_fires_for_video_without_duration(self):
-        m = _make_media(
-            type="video", thumbnail="t.jpg", duration=0.0, width=1920, height=1080
-        )
+        m = _make_media(type="video", thumbnail="t.jpg", duration=0.0, width=1920, height=1080)
         with patch("phoxtail.media.signals._process_media") as proc:
             _on_media_save(sender=None, instance=m)
         proc.assert_called_once_with(m)
 
     def test_exception_does_not_propagate(self):
         m = _make_media(type="video", thumbnail="")
-        with patch(
-            "phoxtail.media.signals._process_media", side_effect=RuntimeError("boom")
-        ):
+        with patch("phoxtail.media.signals._process_media", side_effect=RuntimeError("boom")):
             _on_media_save(sender=None, instance=m)  # must not raise
 
 
@@ -88,9 +80,7 @@ class TestProcessMedia:
             patch("tempfile.NamedTemporaryFile") as mock_tmp,
             patch("os.unlink"),
         ):
-            mock_storage.open.return_value.__enter__ = lambda s: MagicMock(
-                read=lambda: b""
-            )
+            mock_storage.open.return_value.__enter__ = lambda s: MagicMock(read=lambda: b"")
             mock_storage.open.return_value.__exit__ = MagicMock(return_value=False)
             mock_tmp.return_value.__enter__ = lambda s: s
             mock_tmp.return_value.__exit__ = MagicMock(return_value=False)
@@ -107,9 +97,7 @@ class TestProcessMedia:
             patch("tempfile.NamedTemporaryFile") as mock_tmp,
             patch("os.unlink"),
         ):
-            mock_storage.open.return_value.__enter__ = lambda s: MagicMock(
-                read=lambda: b""
-            )
+            mock_storage.open.return_value.__enter__ = lambda s: MagicMock(read=lambda: b"")
             mock_storage.open.return_value.__exit__ = MagicMock(return_value=False)
             mock_tmp.return_value.__enter__ = lambda s: s
             mock_tmp.return_value.__exit__ = MagicMock(return_value=False)
@@ -212,9 +200,7 @@ class TestFillThumbnail:
 
         m = _make_media()
         with (
-            patch(
-                "subprocess.run", side_effect=subprocess.CalledProcessError(1, "ffmpeg")
-            ),
+            patch("subprocess.run", side_effect=subprocess.CalledProcessError(1, "ffmpeg")),
             patch("os.unlink"),
             patch("tempfile.NamedTemporaryFile") as mock_tmp,
         ):

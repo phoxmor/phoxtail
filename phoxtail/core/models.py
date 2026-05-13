@@ -43,11 +43,7 @@ class InternalLink(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed):
             reverse(self.url_name)
         except NoReverseMatch:
             raise ValidationError(
-                {
-                    "url_name": _(
-                        "Not a valid URL name. Run 'phoxtail manage show_urls' to see available choices."
-                    )
-                },
+                {"url_name": _("Not a valid URL name. Run 'phoxtail manage show_urls' to see available choices.")},
             )
 
     @property
@@ -55,9 +51,7 @@ class InternalLink(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed):
         try:
             return reverse(self.url_name)
         except NoReverseMatch:
-            logger.warning(
-                "InternalLink '%s' has invalid url_name '%s'", self.label, self.url_name
-            )
+            logger.warning("InternalLink '%s' has invalid url_name '%s'", self.label, self.url_name)
             return "#"
 
     def __str__(self):

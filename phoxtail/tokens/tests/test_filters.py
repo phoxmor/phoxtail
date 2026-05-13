@@ -38,9 +38,7 @@ def tokens(user, other_user):
             name="Expired Self",
             expires_at=timezone.now() - timedelta(days=1),
         ),
-        "revoked_self": AccessTokenFactory(
-            user=user, name="Revoked Self", revoked_at=timezone.now()
-        ),
+        "revoked_self": AccessTokenFactory(user=user, name="Revoked Self", revoked_at=timezone.now()),
         "active_other": AccessTokenFactory(user=other_user, name="Active Other"),
     }
 
@@ -62,9 +60,7 @@ class TestStatusFilter:
         f = TokenFilter({"filter-status": TokenStatus.REVOKED}, queryset=qs)
         assert set(f.qs.values_list("name", flat=True)) == {"Revoked Self"}
 
-    def test_revoked_then_expired_classified_as_revoked(
-        self, user, TokenFilter, TokenStatus
-    ):
+    def test_revoked_then_expired_classified_as_revoked(self, user, TokenFilter, TokenStatus):
         AccessTokenFactory(
             user=user,
             name="Both",

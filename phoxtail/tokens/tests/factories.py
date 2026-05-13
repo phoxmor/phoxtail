@@ -36,9 +36,7 @@ class AccessTokenFactory(factory.django.DjangoModelFactory):
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
-        raw = kwargs.pop("raw_token", None) or _make_raw_token(
-            kwargs.get("name", "tok")
-        )
+        raw = kwargs.pop("raw_token", None) or _make_raw_token(kwargs.get("name", "tok"))
         kwargs["prefix"] = raw[:8]
         kwargs["suffix"] = raw[-4:]
         kwargs["digest"] = hashlib.sha256(raw.encode()).hexdigest()

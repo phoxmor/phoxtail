@@ -71,9 +71,7 @@ def get_cached_blocks_for_page_type(content_type_id) -> list:
     if content_type_id not in _page_type_blocks_cache:
         from phoxtail.streams.blocks.factory import build_blocks_for_page_type
 
-        _page_type_blocks_cache[content_type_id] = build_blocks_for_page_type(
-            content_type_id
-        )
+        _page_type_blocks_cache[content_type_id] = build_blocks_for_page_type(content_type_id)
     return _page_type_blocks_cache[content_type_id]
 
 
@@ -102,11 +100,7 @@ def get_cache_generation() -> int:
 
 
 def clear_block_cache(**kwargs):
-    global \
-        _dynamic_blocks_cache, \
-        _shared_blocks_cache, \
-        _cache_generation, \
-        _page_type_blocks_cache
+    global _dynamic_blocks_cache, _shared_blocks_cache, _cache_generation, _page_type_blocks_cache
     _block_cache.clear()
     _default_variant_cache.clear()
     _template_cache.clear()

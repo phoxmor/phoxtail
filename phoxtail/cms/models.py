@@ -101,10 +101,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         null=True,
         blank=True,
         verbose_name=_("Open Graph Image"),
-        help_text=_(
-            "Image displayed when sharing on social media in light mode."
-            " Recommended size: 1200x630px"
-        ),
+        help_text=_("Image displayed when sharing on social media in light mode. Recommended size: 1200x630px"),
     )
     og_image_dark = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -113,10 +110,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         null=True,
         blank=True,
         verbose_name=_("Open Graph Image (Dark)"),
-        help_text=_(
-            "Image displayed when sharing on social media in dark mode."
-            " Recommended size: 1200x630px"
-        ),
+        help_text=_("Image displayed when sharing on social media in dark mode. Recommended size: 1200x630px"),
     )
 
     # Admin Branding
@@ -145,9 +139,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         null=True,
         blank=True,
         verbose_name=_("Admin Symbol"),
-        help_text=_(
-            "Displayed as the small icon in admin areas like the sidebar (light mode)."
-        ),
+        help_text=_("Displayed as the small icon in admin areas like the sidebar (light mode)."),
     )
     symbol_admin_dark = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -156,9 +148,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         null=True,
         blank=True,
         verbose_name=_("Admin Symbol (Dark)"),
-        help_text=_(
-            "Displayed as the small icon in admin areas like the sidebar (dark mode)."
-        ),
+        help_text=_("Displayed as the small icon in admin areas like the sidebar (dark mode)."),
     )
 
     # Theming
@@ -188,10 +178,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
                             FieldPanel("favicon_dark"),
                         ],
                         heading=_("Favicon"),
-                        help_text=_(
-                            "Favicons are small icons displayed in browser"
-                            " tabs and bookmarks."
-                        ),
+                        help_text=_("Favicons are small icons displayed in browser tabs and bookmarks."),
                     ),
                 ],
                 heading=_("Branding"),
@@ -205,8 +192,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
                         ],
                         heading=_("Open Graph"),
                         help_text=_(
-                            "Open Graph images are displayed when your site is"
-                            " shared on social media platforms."
+                            "Open Graph images are displayed when your site is shared on social media platforms."
                         ),
                     ),
                 ],
@@ -232,18 +218,13 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
                         "fonts",
                         label=_("Font"),
                         heading=_("Typography"),
-                        help_text=_(
-                            "Assign fonts to semantic roles (e.g. heading, body, mono)."
-                        ),
+                        help_text=_("Assign fonts to semantic roles (e.g. heading, body, mono)."),
                     ),
                     InlinePanel(
                         "palettes",
                         label=_("Palette"),
                         heading=_("Color Palettes"),
-                        help_text=_(
-                            "Assign palettes to semantic roles"
-                            " (e.g. surface, primary, accent)."
-                        ),
+                        help_text=_("Assign palettes to semantic roles (e.g. surface, primary, accent)."),
                     ),
                 ],
                 heading=_("Theme"),
@@ -277,9 +258,7 @@ class SiteSettingFont(Orderable, models.Model):
     """Links a FontFamily to a SiteSetting with a semantic role."""
 
     config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="fonts")
-    font_family = models.ForeignKey(
-        "phoxtail_design.FontFamily", on_delete=models.CASCADE, related_name="+"
-    )
+    font_family = models.ForeignKey("phoxtail_design.FontFamily", on_delete=models.CASCADE, related_name="+")
     role = models.ForeignKey(
         "phoxtail_design.FontRole",
         on_delete=models.PROTECT,
@@ -310,16 +289,12 @@ class SiteSettingPalette(Orderable, models.Model):
     """Links a Palette to a SiteSetting with a semantic role."""
 
     config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="palettes")
-    palette = models.ForeignKey(
-        "phoxtail_design.Palette", on_delete=models.CASCADE, related_name="+"
-    )
+    palette = models.ForeignKey("phoxtail_design.Palette", on_delete=models.CASCADE, related_name="+")
     role = models.ForeignKey(
         "phoxtail_design.PaletteRole",
         on_delete=models.PROTECT,
         related_name="+",
-        help_text=_(
-            "Semantic role this palette serves (e.g., surface, primary, accent)."
-        ),
+        help_text=_("Semantic role this palette serves (e.g., surface, primary, accent)."),
     )
 
     class Meta(Orderable.Meta):
