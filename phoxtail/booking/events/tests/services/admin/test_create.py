@@ -9,13 +9,13 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
-UTC = datetime.UTC
-
 from phoxtail.booking.events.constants import EventStatus, RecurrenceFrequency
 from phoxtail.booking.events.models import Event
 from phoxtail.booking.events.services import EventService
 
 from ...factories import EventFactory, SpaceFactory, StaffFactory
+
+UTC = datetime.UTC
 
 pytestmark = pytest.mark.django_db
 

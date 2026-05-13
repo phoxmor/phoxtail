@@ -13,9 +13,6 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from phoxtail.booking.core.models import BookingGroup
-
-UTC = datetime.UTC
-
 from phoxtail.booking.events.constants import EventStatus, RecurrenceFrequency
 from phoxtail.booking.events.services import EventService
 from phoxtail.booking.events.services.projected import ProjectedEvent
@@ -31,6 +28,8 @@ from ..factories import (
     SpaceFactory,
     StaffFactory,
 )
+
+UTC = datetime.UTC
 
 pytestmark = pytest.mark.django_db
 

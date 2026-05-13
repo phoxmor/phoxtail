@@ -10,8 +10,6 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-UTC = datetime.UTC
-
 from phoxtail.booking.events.models import (
     Event,
     EventGenerationSchedule,
@@ -21,6 +19,8 @@ from phoxtail.booking.events.models import (
 from phoxtail.booking.events.services import EventService
 
 from ..factories import RecurringTemplateFactory
+
+UTC = datetime.UTC
 
 pytestmark = pytest.mark.django_db
 
@@ -140,7 +140,7 @@ class TestGenerationSkipsExcludedDates:
         from ..factories import SpaceFactory
 
         other_location = LocationFactory(timezone="UTC")
-        other_space = SpaceFactory(location=other_location)
+        SpaceFactory(location=other_location)
         other_schedule = EventGenerationSchedule.objects.create(
             location=other_location,
             days_ahead=30,

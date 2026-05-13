@@ -36,7 +36,7 @@ import json
 import shutil
 import tempfile
 import zipfile
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
@@ -49,7 +49,7 @@ from phoxtail.cli.studio import client
 console = Console()
 
 
-class LoadScope(str, Enum):
+class LoadScope(StrEnum):
     all = "all"
     collections = "collections"
     blocks = "blocks"

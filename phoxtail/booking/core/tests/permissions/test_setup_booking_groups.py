@@ -33,7 +33,7 @@ def _get_snippet_permissions(models, actions=None):
         content_type__model__in=models,
     )
     if actions:
-        qs = qs.filter(codename__regex=r"^(%s)" % "|".join(f"{a}_" for a in actions))
+        qs = qs.filter(codename__regex=r"^({})".format("|".join(f"{a}_" for a in actions)))
     return set(qs.values_list("codename", flat=True))
 
 

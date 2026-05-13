@@ -41,7 +41,7 @@ from __future__ import annotations
 import json
 import shutil
 import zipfile
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
@@ -56,7 +56,7 @@ console = Console()
 _YAML_OPTS: dict = dict(default_flow_style=False, allow_unicode=True, sort_keys=False, width=1000)
 
 
-class DumpScope(str, Enum):
+class DumpScope(StrEnum):
     all = "all"
     collections = "collections"
     blocks = "blocks"

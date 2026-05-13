@@ -78,7 +78,7 @@ def subscription_create_view(request):
 
         try:
             # Create subscription using the centralized service
-            subscription = SubscriptionService().public.create(
+            SubscriptionService().public.create(
                 user=request.user,
                 subscription_type=subscription_type,
             )

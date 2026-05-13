@@ -9,8 +9,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
-UTC = datetime.UTC
-
 from phoxtail.booking.events.constants import EventUpdateScope
 from phoxtail.booking.events.models import Event
 from phoxtail.booking.events.services import EventService
@@ -18,6 +16,8 @@ from phoxtail.booking.reservations.constants import ReservationStatus
 from phoxtail.booking.reservations.tests.factories import ReservationFactory
 
 from ...factories import EventFactory, RecurringTemplateFactory
+
+UTC = datetime.UTC
 
 pytestmark = pytest.mark.django_db
 
@@ -101,7 +101,7 @@ class TestDeleteSingleEvent:
         EventService(event).admin.delete(delete_scope=EventUpdateScope.THIS_EVENT_ONLY)
 
         # Generation should skip the excluded date
-        count = EventService(template).generate_recurring_events(days_ahead=30)
+        EventService(template).generate_recurring_events(days_ahead=30)
         generated_dates = list(
             Event.objects.filter(
                 recurrence_template=template,

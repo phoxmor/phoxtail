@@ -47,8 +47,7 @@ class Command(BaseCommand):
             content_type__model__in=models,
         )
         if actions:
-            prefixes = tuple(f"{a}_" for a in actions)
-            qs = qs.filter(codename__regex=r"^(%s)" % "|".join(f"{a}_" for a in actions))
+            qs = qs.filter(codename__regex=r"^({})".format("|".join(f"{a}_" for a in actions)))
         return set(qs.values_list("pk", flat=True))
 
     def _set_group_perms(self, group_name, perm_ids):

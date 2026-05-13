@@ -775,7 +775,7 @@ class Command(BaseCommand):
                 "notes": f"Booked for {event.service.name}" if random.random() < 0.2 else "",
             }
 
-            reservation = Reservation.objects.create(**reservation_data)
+            Reservation.objects.create(**reservation_data)
             reservations.append(reservation_data)
 
         return reservations
