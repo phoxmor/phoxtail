@@ -13,6 +13,8 @@ class PhoxtailCmsConfig(PhoxtailAppConfig):
         "phoxtail.streams",
     ]
 
+    api_version_router = "phoxtail.cms.api.v1.router"
+
     page_schema_contributors = [
         "phoxtail.cms.api.v1.page_schemas.contribute_site_page",
     ]

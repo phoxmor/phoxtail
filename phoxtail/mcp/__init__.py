@@ -42,6 +42,9 @@ mcp_server = FastMCP(
 
 def _register_core_tools() -> None:
     """Import core domain modules to trigger tool/resource/prompt registration."""
+    import phoxtail.mcp.cms.site_setting_fonts  # noqa: F401
+    import phoxtail.mcp.cms.site_setting_palettes  # noqa: F401
+    import phoxtail.mcp.cms.site_settings  # noqa: F401
     import phoxtail.mcp.content.blocks  # noqa: F401
     import phoxtail.mcp.content.body  # noqa: F401
     import phoxtail.mcp.content.collections  # noqa: F401
