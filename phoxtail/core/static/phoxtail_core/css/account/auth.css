@@ -18,12 +18,7 @@
     inset: 0;
     overflow: hidden;
     z-index: -20;
-    background: linear-gradient(
-        to bottom right,
-        rgb(var(--color-primary-50)),
-        rgb(var(--color-primary-100)),
-        rgb(var(--color-accent-50))
-    );
+    background: rgb(var(--color-surface-50));
 }
 
 .auth-bg-orbs {
@@ -47,8 +42,8 @@
     height: 18rem;
     background: linear-gradient(
         to right,
-        rgb(var(--color-primary-300) / 0.3),
-        rgb(var(--color-accent-400) / 0.3)
+        rgb(var(--color-primary-400) / 0.12),
+        rgb(var(--color-accent-400) / 0.12)
     );
 }
 
@@ -59,8 +54,8 @@
     height: 24rem;
     background: linear-gradient(
         to right,
-        rgb(var(--color-primary-300) / 0.25),
-        rgb(var(--color-primary-400) / 0.25)
+        rgb(var(--color-primary-400) / 0.06),
+        rgb(var(--color-primary-400) / 0.06)
     );
     animation-delay: -2s;
 }
@@ -72,8 +67,8 @@
     height: 16rem;
     background: linear-gradient(
         to right,
-        rgb(var(--color-accent-300) / 0.2),
-        rgb(var(--color-primary-400) / 0.2)
+        rgb(var(--color-accent-400) / 0.05),
+        rgb(var(--color-primary-400) / 0.05)
     );
     animation-delay: -4s;
 }
@@ -136,24 +131,6 @@
 
 .auth-card:hover {
     background: rgba(255, 255, 255, 0.9);
-    transform: scale(1.02);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-}
-
-.auth-card-shimmer {
-    position: absolute;
-    inset: 0;
-    border-radius: 1.5rem;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 60s infinite;
-    opacity: 0;
-    transition: opacity 0.7s ease;
-    z-index: -10;
-}
-
-.auth-card:hover .auth-card-shimmer {
-    opacity: 1;
 }
 
 @keyframes laser {
