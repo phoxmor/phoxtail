@@ -235,8 +235,8 @@ assertions.
 
 ## 4. Test matrix — minimum coverage
 
-Write each test below. Rows marked **[MUST]** are the regression pins
-from the original brief; **[ADD]** are new coverage the owner has now
+Write each test below. Rows marked ****MUST**** are the regression pins
+from the original brief; ****ADD**** are new coverage the owner has now
 asked for. Filenames are load-bearing; test-function names are
 suggestions.
 
@@ -244,60 +244,60 @@ suggestions.
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_patch_then_get_returns_draft_title_without_publish` | After `PATCH /pages/{id}/ {"title":"Draft"}` the next `GET` returns `title=="Draft"`; `live` unchanged. Pins Bug #1. |
-| [MUST] | `test_etag_from_patch_matches_subsequent_get` | `PATCH` response `ETag` == next `GET` `ETag`. Pins Bug #1 ETag. |
-| [MUST] | `test_type_filter_status_codes` | `?type=bogus_string` → 400; `?type=unknown_app.UnknownModel` → 404; `?type=wagtailcore.page` → 200. |
-| [ADD] | `test_list_filters_by_parent_and_live` | `?parent={blog_index.pk}` returns only children; `?live=false` returns only drafts. |
-| [ADD] | `test_list_pagination_limit_offset` | `limit=1`, `offset=1` returns 1 item at offset 1; `total` always reflects unpaginated count. |
-| [ADD] | `test_list_content_type_downcasts_to_specific` | Response entries for blog posts carry `content_type=="phoxtail_blog.blogpostpage"`, not `"wagtailcore.page"`. |
-| [ADD] | `test_get_404_for_missing_page` | `GET /pages/999999/` → 404, envelope shape `{detail: ...}`. |
-| [ADD] | `test_patch_requires_if_match` | `PATCH` without `If-Match` → 428. |
-| [ADD] | `test_patch_stale_if_match` | `PATCH` with stale ETag → 412. |
-| [ADD] | `test_patch_403_for_user_without_edit_perm` | A user with no page perms → 403. |
-| [ADD] | `test_patch_accepts_common_and_contributed_fields_together` | `PATCH` with `{"title":"X","intro":"Y"}` on a `BlogPostPage` lands both in the draft revision. |
-| [ADD] | `test_publish_goes_live_and_updates_url` | Draft → `POST /publish/` → `live=true`, `url` non-null, new `ETag`. |
-| [ADD] | `test_publish_409_when_no_revision_yet` | Bootstrapped page with no `save_revision()` → 409. |
-| [ADD] | `test_unpublish_returns_200_and_drops_live` | `POST /unpublish/` → `live=false`. |
-| [ADD] | `test_get_page_url_is_null_for_never_published` | Fresh draft has `url=None`. |
+| **MUST** | `test_patch_then_get_returns_draft_title_without_publish` | After `PATCH /pages/{id}/ {"title":"Draft"}` the next `GET` returns `title=="Draft"`; `live` unchanged. Pins Bug #1. |
+| **MUST** | `test_etag_from_patch_matches_subsequent_get` | `PATCH` response `ETag` == next `GET` `ETag`. Pins Bug #1 ETag. |
+| **MUST** | `test_type_filter_status_codes` | `?type=bogus_string` → 400; `?type=unknown_app.UnknownModel` → 404; `?type=wagtailcore.page` → 200. |
+| **ADD** | `test_list_filters_by_parent_and_live` | `?parent={blog_index.pk}` returns only children; `?live=false` returns only drafts. |
+| **ADD** | `test_list_pagination_limit_offset` | `limit=1`, `offset=1` returns 1 item at offset 1; `total` always reflects unpaginated count. |
+| **ADD** | `test_list_content_type_downcasts_to_specific` | Response entries for blog posts carry `content_type=="phoxtail_blog.blogpostpage"`, not `"wagtailcore.page"`. |
+| **ADD** | `test_get_404_for_missing_page` | `GET /pages/999999/` → 404, envelope shape `{detail: ...}`. |
+| **ADD** | `test_patch_requires_if_match` | `PATCH` without `If-Match` → 428. |
+| **ADD** | `test_patch_stale_if_match` | `PATCH` with stale ETag → 412. |
+| **ADD** | `test_patch_403_for_user_without_edit_perm` | A user with no page perms → 403. |
+| **ADD** | `test_patch_accepts_common_and_contributed_fields_together` | `PATCH` with `{"title":"X","intro":"Y"}` on a `BlogPostPage` lands both in the draft revision. |
+| **ADD** | `test_publish_goes_live_and_updates_url` | Draft → `POST /publish/` → `live=true`, `url` non-null, new `ETag`. |
+| **ADD** | `test_publish_409_when_no_revision_yet` | Bootstrapped page with no `save_revision()` → 409. |
+| **ADD** | `test_unpublish_returns_200_and_drops_live` | `POST /unpublish/` → `live=false`. |
+| **ADD** | `test_get_page_url_is_null_for_never_published` | Fresh draft has `url=None`. |
 
 ### 4.2 `phoxtail/api/content/v1/tests/test_body.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_put_body_then_get_body_returns_new_value_without_publish` | `PUT` then `GET` round-trips without publish; pins Bug #1 body variant. |
-| [ADD] | `test_body_etag_equals_page_etag` | `GET /pages/{id}/body/` ETag == `GET /pages/{id}/` ETag. |
-| [ADD] | `test_put_body_requires_if_match_and_412_on_stale` | 428 missing, 412 stale. |
-| [ADD] | `test_put_body_round_trips_stream_format` | `[{"type":"navbar","value":{"variant":<real_id>}}]` → GET returns equivalent list (with server-assigned `id` UUIDs). |
-| [ADD] | `test_put_body_400_on_unknown_field` | Payload `{"notbody": ...}` → 400 (Pydantic). |
-| [ADD] | `test_put_body_403_for_user_without_edit_perm` | 403 when user lacks edit perm. |
+| **MUST** | `test_put_body_then_get_body_returns_new_value_without_publish` | `PUT` then `GET` round-trips without publish; pins Bug #1 body variant. |
+| **ADD** | `test_body_etag_equals_page_etag` | `GET /pages/{id}/body/` ETag == `GET /pages/{id}/` ETag. |
+| **ADD** | `test_put_body_requires_if_match_and_412_on_stale` | 428 missing, 412 stale. |
+| **ADD** | `test_put_body_round_trips_stream_format` | `[{"type":"navbar","value":{"variant":<real_id>}}]` → GET returns equivalent list (with server-assigned `id` UUIDs). |
+| **ADD** | `test_put_body_400_on_unknown_field` | Payload `{"notbody": ...}` → 400 (Pydantic). |
+| **ADD** | `test_put_body_403_for_user_without_edit_perm` | 403 when user lacks edit perm. |
 
 ### 4.3 `phoxtail/api/content/v1/tests/test_contrib.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_patch_with_only_contributed_field_reaches_apply_patch` | Unit: `PagePatch(intro="x").model_dump(exclude_unset=True)` contains `"intro"`. End-to-end: `PATCH` on `blog_post` with `{"intro":"x"}` produces a revision whose `intro` is `"x"`. Pins drift #10. |
-| [MUST] | `test_duplicate_contribution_raises` | Two contributions with same `content_type` → `RuntimeError` from `collect_page_schemas()`. Use `reset_cache()` between setups. |
-| [ADD] | `test_contribution_must_return_correct_type` | Factory returning a non-`PageSchemaContribution` → `TypeError`. |
-| [ADD] | `test_reset_cache_allows_rebuild` | After `reset_cache()`, a second call re-walks the registry (verify by mutating a fake contributor). |
-| [ADD] | `test_get_contribution_for_page_specific_subclass` | Pass a generic `Page` row that happens to be a `BlogPostPage` → returns blog post contribution, not the base. |
-| [ADD] | `test_apply_patch_ignores_unknown_keys` | `apply_contributed_patch(page, {"nonsense": 1})` is a no-op, no exception. |
+| **MUST** | `test_patch_with_only_contributed_field_reaches_apply_patch` | Unit: `PagePatch(intro="x").model_dump(exclude_unset=True)` contains `"intro"`. End-to-end: `PATCH` on `blog_post` with `{"intro":"x"}` produces a revision whose `intro` is `"x"`. Pins drift #10. |
+| **MUST** | `test_duplicate_contribution_raises` | Two contributions with same `content_type` → `RuntimeError` from `collect_page_schemas()`. Use `reset_cache()` between setups. |
+| **ADD** | `test_contribution_must_return_correct_type` | Factory returning a non-`PageSchemaContribution` → `TypeError`. |
+| **ADD** | `test_reset_cache_allows_rebuild` | After `reset_cache()`, a second call re-walks the registry (verify by mutating a fake contributor). |
+| **ADD** | `test_get_contribution_for_page_specific_subclass` | Pass a generic `Page` row that happens to be a `BlogPostPage` → returns blog post contribution, not the base. |
+| **ADD** | `test_apply_patch_ignores_unknown_keys` | `apply_contributed_patch(page, {"nonsense": 1})` is a no-op, no exception. |
 
 ### 4.4 `phoxtail/api/content/v1/tests/test_page_types.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_page_types_endpoint_lists_installed_contributions` | `GET /api/content/v1/page-types/` → `types` contains `phoxtail_cms.sitepage` and, because blog is in `INSTALLED_APPS` for tests, `phoxtail_blog.blogpostpage` and `phoxtail_blog.blogindexpage`. |
-| [ADD] | `test_page_types_includes_fk_lookups_for_blog_post` | `types["phoxtail_blog.blogpostpage"].fk_lookups["author"] == "phoxtail_blog_list_authors"`. |
-| [ADD] | `test_page_types_writable_fields_match_contribution` | Spot-check `intro`, `read_mins`, `body`. |
+| **ADD** | `test_page_types_endpoint_lists_installed_contributions` | `GET /api/content/v1/page-types/` → `types` contains `phoxtail_cms.sitepage` and, because blog is in `INSTALLED_APPS` for tests, `phoxtail_blog.blogpostpage` and `phoxtail_blog.blogindexpage`. |
+| **ADD** | `test_page_types_includes_fk_lookups_for_blog_post` | `types["phoxtail_blog.blogpostpage"].fk_lookups["author"] == "phoxtail_blog_list_authors"`. |
+| **ADD** | `test_page_types_writable_fields_match_contribution` | Spot-check `intro`, `read_mins`, `body`. |
 
 ### 4.5 `phoxtail/api/content/v1/tests/test_media.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_list_images_empty` | Zero images → `{items: [], total: 0}`. |
-| [ADD] | `test_list_images_search_filter` | Two real `Image` rows with titles `"alpha"`, `"beta"`; `?search=alp` → only alpha. |
-| [ADD] | `test_list_images_pagination` | `limit=1 offset=1` behavior. |
-| [ADD] | `test_list_documents_smoke` | Same for `wagtail.documents` model. |
+| **ADD** | `test_list_images_empty` | Zero images → `{items: [], total: 0}`. |
+| **ADD** | `test_list_images_search_filter` | Two real `Image` rows with titles `"alpha"`, `"beta"`; `?search=alp` → only alpha. |
+| **ADD** | `test_list_images_pagination` | `limit=1 offset=1` behavior. |
+| **ADD** | `test_list_documents_smoke` | Same for `wagtail.documents` model. |
 
 ### 4.6 `phoxtail/api/tests/test_api_mount.py`
 
@@ -310,43 +310,43 @@ hand-built fakes instead.
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_collect_contributed_routers_rejects_core_short_labels` | Build a fake `PhoxtailAppConfig` subclass with `label="phoxtail_pages"` and a dummy router; assert `RuntimeError`. |
-| [MUST] | `test_collect_contributed_routers_rejects_duplicate_short_labels` | Two fake configs with label `phoxtail_foo` each → `RuntimeError`. |
-| [MUST] | `test_mount_contributed_routers_is_idempotent` | Snapshot `api._routers` length, call `mount_contributed_routers()` twice, assert length unchanged. |
-| [ADD] | `test_short_label_strips_phoxtail_prefix` | Config with `label="phoxtail_booking_reservations"` mounts at `/booking_reservations/v1/`. |
-| [ADD] | `test_short_label_verbatim_for_non_phoxtail` | Config with `label="foo"` mounts at `/foo/v1/`. |
-| [ADD] | `test_ready_mount_invoked_once_on_startup` | After full Django setup, `phoxtail.api._contributed_mounted is True`. |
+| **MUST** | `test_collect_contributed_routers_rejects_core_short_labels` | Build a fake `PhoxtailAppConfig` subclass with `label="phoxtail_pages"` and a dummy router; assert `RuntimeError`. |
+| **MUST** | `test_collect_contributed_routers_rejects_duplicate_short_labels` | Two fake configs with label `phoxtail_foo` each → `RuntimeError`. |
+| **MUST** | `test_mount_contributed_routers_is_idempotent` | Snapshot `api._routers` length, call `mount_contributed_routers()` twice, assert length unchanged. |
+| **ADD** | `test_short_label_strips_phoxtail_prefix` | Config with `label="phoxtail_booking_reservations"` mounts at `/booking_reservations/v1/`. |
+| **ADD** | `test_short_label_verbatim_for_non_phoxtail` | Config with `label="foo"` mounts at `/foo/v1/`. |
+| **ADD** | `test_ready_mount_invoked_once_on_startup` | After full Django setup, `phoxtail.api._contributed_mounted is True`. |
 
 ### 4.7 `phoxtail/blog/api/v1/tests/test_page_schemas.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_tags_set_replaces_tag_set` | `BlogPostPage` starts with tags `{"a","b"}`; `PATCH {"tags":["c"]}` + publish → `page.tags.names() == ["c"]` (sorted), no `TypeError`. |
-| [ADD] | `test_tags_empty_list_clears` | `PATCH {"tags": []}` removes all tags. |
-| [ADD] | `test_patch_author_by_id_resolves_to_fk` | `PATCH {"author": <blog_author.pk>}` → `page.author == blog_author` after `save_revision` + publish. |
-| [ADD] | `test_patch_author_unknown_id_returns_400` | Unknown author id → 400 with `detail` mentioning the id. |
-| [ADD] | `test_patch_preview_image_sets_fk_id` | `PATCH {"preview_image": <image.pk>}` round-trips via `preview_image_id`. |
-| [ADD] | `test_patch_read_mins_and_hide_dates` | Scalars land on the revision. |
-| [ADD] | `test_serialize_blog_post_shape` | Round-trip the whole `_serialize_blog_post` dict from `GET /pages/{id}/`: intro, read_mins, author, preview_image, tags (sorted), hide_dates, overrides, body. |
-| [ADD] | `test_serialize_blog_index_shape` | `posts_per_page`, `body` present on `BlogIndexPage` response. |
+| **MUST** | `test_tags_set_replaces_tag_set` | `BlogPostPage` starts with tags `{"a","b"}`; `PATCH {"tags":["c"]}` + publish → `page.tags.names() == ["c"]` (sorted), no `TypeError`. |
+| **ADD** | `test_tags_empty_list_clears` | `PATCH {"tags": []}` removes all tags. |
+| **ADD** | `test_patch_author_by_id_resolves_to_fk` | `PATCH {"author": <blog_author.pk>}` → `page.author == blog_author` after `save_revision` + publish. |
+| **ADD** | `test_patch_author_unknown_id_returns_400` | Unknown author id → 400 with `detail` mentioning the id. |
+| **ADD** | `test_patch_preview_image_sets_fk_id` | `PATCH {"preview_image": <image.pk>}` round-trips via `preview_image_id`. |
+| **ADD** | `test_patch_read_mins_and_hide_dates` | Scalars land on the revision. |
+| **ADD** | `test_serialize_blog_post_shape` | Round-trip the whole `_serialize_blog_post` dict from `GET /pages/{id}/`: intro, read_mins, author, preview_image, tags (sorted), hide_dates, overrides, body. |
+| **ADD** | `test_serialize_blog_index_shape` | `posts_per_page`, `body` present on `BlogIndexPage` response. |
 
 ### 4.8 `phoxtail/blog/api/v1/tests/test_authors.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_list_authors_empty` | Zero authors → `{items: [], total: 0}`. |
-| [ADD] | `test_list_authors_ordered_by_username` | Three authors with predictable usernames; ordering matches `user__username`. |
-| [ADD] | `test_list_authors_search_autocomplete_smoke` | Insert authors, call `?search=<prefix>`; assert the search backend is the in-memory database backend and the match surfaces. |
-| [ADD] | `test_list_authors_pagination` | `limit=1 offset=1` behavior. |
-| [ADD] | `test_list_authors_title_is_author_str` | `item.title == str(author)` (full name or username fallback). |
+| **ADD** | `test_list_authors_empty` | Zero authors → `{items: [], total: 0}`. |
+| **ADD** | `test_list_authors_ordered_by_username` | Three authors with predictable usernames; ordering matches `user__username`. |
+| **ADD** | `test_list_authors_search_autocomplete_smoke` | Insert authors, call `?search=<prefix>`; assert the search backend is the in-memory database backend and the match surfaces. |
+| **ADD** | `test_list_authors_pagination` | `limit=1 offset=1` behavior. |
+| **ADD** | `test_list_authors_title_is_author_str` | `item.title == str(author)` (full name or username fallback). |
 
 ### 4.9 `phoxtail/cms/api/v1/tests/test_site_page_contrib.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_site_page_contribution_writable_fields_has_body_only` | `contribute_site_page().writable_fields == {"body": ...}`. |
-| [ADD] | `test_site_page_apply_patch_is_noop_for_scalars` | `_apply_site_page_patch(page, {"title": "X"})` does not mutate `title` (common patch handles that). |
-| [ADD] | `test_site_page_get_detail_includes_body` | `GET /pages/{site_page.pk}/` response dict carries `body` as a list. |
+| **ADD** | `test_site_page_contribution_writable_fields_has_body_only` | `contribute_site_page().writable_fields == {"body": ...}`. |
+| **ADD** | `test_site_page_apply_patch_is_noop_for_scalars` | `_apply_site_page_patch(page, {"title": "X"})` does not mutate `title` (common patch handles that). |
+| **ADD** | `test_site_page_get_detail_includes_body` | `GET /pages/{site_page.pk}/` response dict carries `body` as a list. |
 
 ### 4.10 `phoxtail/blog/mcp/tests/test_blog_mcp_gate.py`
 
@@ -357,9 +357,9 @@ from `sys.modules`, monkeypatch
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_blog_mcp_submodules_not_imported_when_blog_absent` | With `get_project_apps()` returning `("phoxtail.cms",)`, re-import `phoxtail.blog.mcp`; `"phoxtail.blog.mcp.authors" not in sys.modules`. Flip to include `"phoxtail.blog"`; re-import; assert present. |
-| [ADD] | `test_gate_reads_get_project_apps_not_django_apps` | Monkeypatch `django.apps.apps.is_installed` to raise; re-import `phoxtail.blog.mcp` under the "blog present" gate; import must still succeed. (Proves the host-side gate is not secretly touching Django.) |
-| [ADD] | `test_tool_list_authors_registered_after_gate_opens` | After a re-import with blog present, `phoxtail_blog_list_authors` appears on the shared `mcp_server` tool list; after a re-import without blog and a FastMCP server reset, it does not. (If FastMCP doesn't support unregistration, document the limitation and collapse this into the first row.) |
+| **MUST** | `test_blog_mcp_submodules_not_imported_when_blog_absent` | With `get_project_apps()` returning `("phoxtail.cms",)`, re-import `phoxtail.blog.mcp`; `"phoxtail.blog.mcp.authors" not in sys.modules`. Flip to include `"phoxtail.blog"`; re-import; assert present. |
+| **ADD** | `test_gate_reads_get_project_apps_not_django_apps` | Monkeypatch `django.apps.apps.is_installed` to raise; re-import `phoxtail.blog.mcp` under the "blog present" gate; import must still succeed. (Proves the host-side gate is not secretly touching Django.) |
+| **ADD** | `test_tool_list_authors_registered_after_gate_opens` | After a re-import with blog present, `phoxtail_blog_list_authors` appears on the shared `mcp_server` tool list; after a re-import without blog and a FastMCP server reset, it does not. (If FastMCP doesn't support unregistration, document the limitation and collapse this into the first row.) |
 
 ### 4.11 `phoxtail/mcp/pages/tests/test_pages_mcp.py`
 
@@ -378,30 +378,30 @@ for speed; reserve the live-server path for §4.12 if at all.
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_error_envelope_covers_404_409_500` | Stub responses at 404/409/500; each tool returns a JSON string parseable into `{"error": <label>, "status": <int>, "detail": <str>}`; **no exception raised**. Pins Bug #5. |
-| [ADD] | `test_error_envelope_422_falls_back_to_http_error_label` | 422 → label `"http_error"`, `status == 422`. |
-| [ADD] | `test_error_envelope_detail_from_body_when_json` | Response body `{"detail":"bad"}` surfaces in envelope. |
-| [ADD] | `test_error_envelope_detail_fallback_when_not_json` | Plaintext body → falls back to the hint string. |
-| [ADD] | `test_get_page_attaches_etag_as__etag` | 200 with `ETag: W/"abc"` → returned JSON has `_etag == 'W/"abc"'`. |
-| [ADD] | `test_update_page_sends_if_match_header` | `update_page(id, etag="W/\"x\"", fields={...})` sends `If-Match: W/"x"`. |
-| [ADD] | `test_replace_body_wraps_body_payload` | `replace_body(id, etag, [blocks])` PUTs `{"body": [blocks]}`, not `[blocks]` directly. |
-| [ADD] | `test_bind_prefix_keeps_full_path` | `_http.url("/api/streams/v1/x/")` returns `"{base}/api/streams/v1/x/"` — no double prefix. (Regression against the old `API_PREFIX` constant.) |
+| **MUST** | `test_error_envelope_covers_404_409_500` | Stub responses at 404/409/500; each tool returns a JSON string parseable into `{"error": <label>, "status": <int>, "detail": <str>}`; **no exception raised**. Pins Bug #5. |
+| **ADD** | `test_error_envelope_422_falls_back_to_http_error_label` | 422 → label `"http_error"`, `status == 422`. |
+| **ADD** | `test_error_envelope_detail_from_body_when_json` | Response body `{"detail":"bad"}` surfaces in envelope. |
+| **ADD** | `test_error_envelope_detail_fallback_when_not_json` | Plaintext body → falls back to the hint string. |
+| **ADD** | `test_get_page_attaches_etag_as__etag` | 200 with `ETag: W/"abc"` → returned JSON has `_etag == 'W/"abc"'`. |
+| **ADD** | `test_update_page_sends_if_match_header` | `update_page(id, etag="W/\"x\"", fields={...})` sends `If-Match: W/"x"`. |
+| **ADD** | `test_replace_body_wraps_body_payload` | `replace_body(id, etag, [blocks])` PUTs `{"body": [blocks]}`, not `[blocks]` directly. |
+| **ADD** | `test_bind_prefix_keeps_full_path` | `_http.url("/api/streams/v1/x/")` returns `"{base}/api/streams/v1/x/"` — no double prefix. (Regression against the old `API_PREFIX` constant.) |
 
 ### 4.12 `phoxtail/mcp/pages/tests/test_page_types.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [MUST] | `test_page_types_resource_omits_blog_when_absent` | With `get_project_apps()` patched to return no blog, the `phoxtail://page-types` resource payload contains `phoxtail_cms.sitepage` but not `phoxtail_blog.*`. Pins Bug #3 symmetry. Note: the resource fetches `/api/content/v1/page-types/` — symmetry means the *server* registry must also not carry blog. In the test environment blog IS installed, so you'll need to either (a) stub the HTTP response, or (b) monkeypatch `collect_page_schemas` at the source to drop blog entries. Use (a). |
-| [ADD] | `test_page_types_resource_includes_blog_when_present` | Symmetric positive case. |
-| [ADD] | `test_page_types_error_envelope_on_500` | Stubbed 500 → envelope, not exception. |
+| **MUST** | `test_page_types_resource_omits_blog_when_absent` | With `get_project_apps()` patched to return no blog, the `phoxtail://page-types` resource payload contains `phoxtail_cms.sitepage` but not `phoxtail_blog.*`. Pins Bug #3 symmetry. Note: the resource fetches `/api/content/v1/page-types/` — symmetry means the *server* registry must also not carry blog. In the test environment blog IS installed, so you'll need to either (a) stub the HTTP response, or (b) monkeypatch `collect_page_schemas` at the source to drop blog entries. Use (a). |
+| **ADD** | `test_page_types_resource_includes_blog_when_present` | Symmetric positive case. |
+| **ADD** | `test_page_types_error_envelope_on_500` | Stubbed 500 → envelope, not exception. |
 
 ### 4.13 `phoxtail/mcp/pages/tests/test_media_mcp.py`
 
 | Kind | Test | Asserts |
 |---|---|---|
-| [ADD] | `test_list_images_forwards_search_and_limit` | Query string built correctly. |
-| [ADD] | `test_list_documents_forwards_search_and_limit` | Same. |
-| [ADD] | `test_media_tools_return_envelope_on_non_2xx` | 500 → envelope. |
+| **ADD** | `test_list_images_forwards_search_and_limit` | Query string built correctly. |
+| **ADD** | `test_list_documents_forwards_search_and_limit` | Same. |
+| **ADD** | `test_media_tools_return_envelope_on_non_2xx` | 500 → envelope. |
 
 ---
 
@@ -451,12 +451,12 @@ so each landing is valuable on its own:
 2. **Conftest + fixtures.** §2.3 fixtures plus one trivial smoke test
    (`GET /api/content/v1/page-types/` returns 200) so you know the API
    is reachable through auth.
-3. **The 12 [MUST] rows.** Land these as one commit; they pin every
+3. **The 12 **MUST** rows.** Land these as one commit; they pin every
    ✅/🧪 in `pages-domain-review.md`.
-4. **[ADD] coverage**, file by file, in the order of §4. Each file is
+4. ****ADD** coverage**, file by file, in the order of §4. Each file is
    an independently mergeable commit.
 5. Review-doc flips (§6) only after the suite is green.
 
 If the budget runs out partway through §4, stop at a file boundary
 and leave a TODO comment at the top of the next untouched test file
-listing the [ADD] rows you didn't get to — don't half-write them.
+listing the **ADD** rows you didn't get to — don't half-write them.

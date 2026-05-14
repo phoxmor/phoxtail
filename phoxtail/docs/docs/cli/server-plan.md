@@ -144,10 +144,10 @@ Runs after DNS is pointed at the server. Deliberately a separate command because
 
 | Command | Purpose | Status |
 |---|---|---|
-| `phoxtail server list` | List servers in the Hetzner project with IP and status | [ ] |
-| `phoxtail server update <ip>` | `git pull` + `docker compose up --build` on server | [ ] |
-| `phoxtail server destroy <id>` | Delete server via Hetzner API (requires confirmation) | [ ] |
-| `phoxtail server ssh <ip>` | Open interactive SSH session | [ ] |
+| `phoxtail server list` | List servers in the Hetzner project with IP and status | ☐ |
+| `phoxtail server update <ip>` | `git pull` + `docker compose up --build` on server | ☐ |
+| `phoxtail server destroy <id>` | Delete server via Hetzner API (requires confirmation) | ☐ |
+| `phoxtail server ssh <ip>` | Open interactive SSH session | ☐ |
 
 ---
 

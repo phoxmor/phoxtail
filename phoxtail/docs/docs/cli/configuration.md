@@ -1,6 +1,6 @@
 # Configuration Reference
 
-This page documents the configuration files used by Phoxtail projects. Use the [CLI](cli.md) to generate these files automatically, or use these templates as a reference for manual configuration.
+This page documents the configuration files used by Phoxtail projects. Use the [CLI](overview.md) to generate these files automatically, or use these templates as a reference for manual configuration.
 
 ## Environment Variables
 
