@@ -79,7 +79,7 @@
             <!-- Content -->
             {% block content %}{% endblock %}
         </main>
-        {% include "phoxtail_cms/phoxtail_bar.html" %}
+        {% if not phoxtail_screenshot_mode %}{% include "phoxtail_cms/phoxtail_bar.html" %}{% endif %}
         {% block extra_js %}{% endblock %}
     </body>
 </html>

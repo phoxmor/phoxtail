@@ -63,6 +63,7 @@ def _register_core_tools() -> None:
     import phoxtail.mcp.studio.collections  # noqa: F401
     import phoxtail.mcp.studio.context  # noqa: F401
     import phoxtail.mcp.studio.prompts  # noqa: F401
+    import phoxtail.mcp.studio.render  # noqa: F401
     import phoxtail.mcp.studio.resources  # noqa: F401
     import phoxtail.mcp.studio.sessions  # noqa: F401
     import phoxtail.mcp.studio.shared_blocks  # noqa: F401

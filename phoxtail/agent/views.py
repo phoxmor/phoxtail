@@ -133,6 +133,28 @@ def model_picker_panel(request):
     )
 
 
+def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpResponse:
+    """Render the full page HTML so Playwright can screenshot a specific block.
+
+    Auth is via ``?token=<bearer_token>`` — Playwright cannot set request
+    headers during navigation, so we accept the token as a query param here.
+    The token is validated with the same logic used by the Ninja API auth layer.
+    """
+    from phoxtail.agent.permissions import agent_permission_policy
+    from phoxtail.tokens.auth import authenticate
+
+    raw_token = request.GET.get("token", "")
+    user = authenticate(raw_token)
+    if user is None or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
+        return HttpResponse(status=403)
+
+    request.user = user
+    draft = resolve_page_for_read(page_id)
+    return render(
+        request, "phoxtail_cms/pages/page.html", {"page": draft, "self": draft, "phoxtail_screenshot_mode": True}
+    )
+
+
 @agent_permission_required("access_chatbot")
 def render_block_fragment(request, page_id: int, block_uuid: str) -> HttpResponse:
     """Render a single block as an HTML fragment for HTMX outerHTML swap."""

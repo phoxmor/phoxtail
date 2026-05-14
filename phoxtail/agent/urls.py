@@ -9,6 +9,11 @@ urlpatterns = [
     path("media-picker/", views.media_picker, name="media_picker"),
     path("model-picker/", views.model_picker_panel, name="model_picker_panel"),
     path(
+        "screenshot/<int:page_id>/<str:block_uuid>/",
+        views.render_page_for_screenshot,
+        name="render_page_for_screenshot",
+    ),
+    path(
         "htmx-partials/blocks/<int:page_id>/<str:block_uuid>/render/",
         views.render_block_fragment,
         name="render_block_fragment",
