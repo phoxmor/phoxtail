@@ -150,6 +150,19 @@ def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpRe
 
     request.user = user
     draft = resolve_page_for_read(page_id)
+
+    # The screenshot URL is always on localhost, but the page may belong to a
+    # non-default site hostname. Shared block lookups use request.site to find
+    # their content, so we must set it to the page's actual site — otherwise
+    # shared blocks (navbar, footer) render empty.
+    from wagtail.models import Site
+
+    page_site = (
+        Site.objects.filter(root_page__in=draft.get_ancestors(inclusive=True)).order_by("-root_page__depth").first()
+    )
+    if page_site:
+        request.site = page_site
+
     return render(
         request, "phoxtail_cms/pages/page.html", {"page": draft, "self": draft, "phoxtail_screenshot_mode": True}
     )

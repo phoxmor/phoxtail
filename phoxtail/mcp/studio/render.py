@@ -42,6 +42,7 @@ def _resolve_save_path(block_uuid: str, viewport: str) -> Path | None:
         "Pass the same identifiers from the block chip: page_id and block_uuid. "
         "viewport: 'desktop' (default, 1440px), 'tablet' (768px), 'mobile' (390px), "
         "or 'all' to get a side-by-side contact sheet of all three viewports. "
+        "theme: 'light' (default) or 'dark' to render in the given color scheme. "
         "The block is rendered in real page context (real surrounding blocks, "
         "real CSS, real fonts). "
         "Screenshots are saved to .phoxtail/vision/ in the project root and also "
@@ -52,6 +53,7 @@ async def render_block(
     page_id: int,
     block_uuid: str,
     viewport: str = "desktop",
+    theme: str = "light",
 ) -> Any:
     try:
         from playwright.async_api import async_playwright
@@ -75,11 +77,12 @@ async def render_block(
         return json.dumps({"error": f"Unknown viewport '{viewport}'. Use: desktop, tablet, mobile, all"})
 
     captures: list[bytes] = []
+    color_scheme = "dark" if theme == "dark" else "light"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         for vp_name in viewports_to_capture:
-            ctx = await browser.new_context(viewport=_VIEWPORTS[vp_name])
+            ctx = await browser.new_context(viewport=_VIEWPORTS[vp_name], color_scheme=color_scheme)
             page = await ctx.new_page()
             resp = await page.goto(screenshot_url)
             if resp and resp.status == 403:
@@ -116,7 +119,7 @@ async def render_block(
         except ImportError:
             image_bytes = captures[0]
 
-    save_path = _resolve_save_path(block_uuid, viewport)
+    save_path = _resolve_save_path(block_uuid, f"{viewport}-{theme}")
     if save_path:
         save_path.write_bytes(image_bytes)
 

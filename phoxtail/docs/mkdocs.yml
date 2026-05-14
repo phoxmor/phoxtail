@@ -85,6 +85,7 @@ nav:
       - Shared Blocks Refactor: internal/shared-blocks-refactor-plan.md
       - Body Validation Gap: internal/body-validation-gap.md
       - MCP Session Editing: internal/mcp-session-editing.md
+      - Block Variant Scenarios: internal/block-variant-scenarios.md
 
 theme:
   name: material
