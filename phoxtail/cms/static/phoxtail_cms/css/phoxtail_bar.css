@@ -378,6 +378,7 @@
     cursor: pointer;
 }
 .phoxtail-bar-actions-item:hover { background-color: rgb(0 0 0 / 0.05); }
+button.phoxtail-bar-actions-item { background: none; border: none; font: inherit; width: 100%; text-align: left; }
 .phoxtail-bar-actions-item-ext {
     width: 0.75rem;
     height: 0.75rem;

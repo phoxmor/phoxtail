@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/media_picker.css' %}">
 
 <script type="application/json" id="phoxtail-bar-manifest">
-{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}}
+{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}, "view_draft_url": "{{ admin_home }}pages/{{ page.id }}/view_draft/"}
 </script>
 
 <div id="phoxtail-bar">
@@ -53,6 +53,31 @@
             </button>
         </div>
         <div class="phoxtail-bar-panel-body">
+            <button type="button"
+                    id="phoxtail-bar-publish-btn"
+                    class="phoxtail-bar-actions-item"
+                    role="menuitem"
+                    title="Publish (P)">
+                {% icon "cloud_upload" class="phoxtail-bar-row-icon" %}
+                <div class="phoxtail-bar-row-info">
+                    <span class="phoxtail-bar-row-type">Publish</span>
+                    <span class="phoxtail-bar-row-meta">Make this page live</span>
+                </div>
+            </button>
+            {% if page.live %}
+            <button type="button"
+                    id="phoxtail-bar-unpublish-btn"
+                    class="phoxtail-bar-actions-item"
+                    role="menuitem"
+                    title="Unpublish (U)">
+                {% icon "cloud_off" class="phoxtail-bar-row-icon" %}
+                <div class="phoxtail-bar-row-info">
+                    <span class="phoxtail-bar-row-type">Unpublish</span>
+                    <span class="phoxtail-bar-row-meta">Take this page offline</span>
+                </div>
+            </button>
+            {% endif %}
+            <div class="phoxtail-bar-sep-line"></div>
             <a href="{{ admin_home }}pages/{{ page.id }}/edit/"
                class="phoxtail-bar-actions-item"
                target="_blank"

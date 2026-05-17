@@ -25,6 +25,7 @@ import importlib
 
 from django.conf import settings
 from ninja import NinjaAPI
+from ninja.security import SessionAuth
 
 from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.api.design.v1 import router as design_v1_router
@@ -48,10 +49,10 @@ api = NinjaAPI(
     urls_namespace="phoxtail_api",
     docs_url="/docs/" if _docs_enabled else None,
     openapi_url="/openapi.json" if _docs_enabled else None,
-    # Default-deny: every endpoint requires a valid AccessToken unless it
-    # explicitly opts out with ``auth=None``. Routes can still override this
-    # per-endpoint, but the safe posture is enforced by default.
-    auth=PhoxtailTokenAuth(),
+    # Default-deny: every endpoint requires authentication unless it explicitly
+    # opts out with ``auth=None``. Token auth is tried first (CLI, MCP); session
+    # auth is the fallback for browser clients (e.g. the phoxtail bar).
+    auth=[PhoxtailTokenAuth(), SessionAuth()],
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])

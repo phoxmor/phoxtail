@@ -27,6 +27,8 @@
     var menuBtn = document.getElementById('phoxtail-bar-actions-btn');
     var menuPanel = document.getElementById('phoxtail-bar-actions-panel');
     var menuClose = document.getElementById('phoxtail-bar-actions-close');
+    var publishBtn = document.getElementById('phoxtail-bar-publish-btn');
+    var unpublishBtn = document.getElementById('phoxtail-bar-unpublish-btn');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
@@ -335,6 +337,45 @@
         });
     }
 
+    function _pageAction(action) {
+        var pageId = manifest.id;
+        fetch('/api/content/v1/pages/' + pageId + '/', {
+            headers: { 'Accept': 'application/json' },
+        }).then(function (res) {
+            if (!res.ok) { return Promise.reject('GET failed: ' + res.status); }
+            var etag = res.headers.get('ETag');
+            return fetch('/api/content/v1/pages/' + pageId + '/' + action + '/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': _getCsrfToken(),
+                    'If-Match': etag || '',
+                },
+            });
+        }).then(function (res) {
+            if (!res.ok) {
+                return res.json().then(function (data) {
+                    alert((data && data.detail) ? data.detail : action + ' failed (' + res.status + ').');
+                }).catch(function () {
+                    alert(action + ' failed (' + res.status + ').');
+                });
+            }
+            if (action === 'unpublish' && manifest.view_draft_url) {
+                window.location.href = manifest.view_draft_url;
+            } else {
+                window.location.reload();
+            }
+        }).catch(function (err) {
+            alert('Error: ' + err);
+        });
+    }
+
+    if (publishBtn) {
+        publishBtn.addEventListener('click', function () { _pageAction('publish'); });
+    }
+    if (unpublishBtn) {
+        unpublishBtn.addEventListener('click', function () { _pageAction('unpublish'); });
+    }
+
     if (chatbotBtn && chatbotDrawer) {
         chatbotBtn.addEventListener('click', function () {
             chat.isOpen() ? chat.close() : chat.open();
@@ -473,6 +514,14 @@
         if (e.key === 'n' || e.key === 'N') {
             if (!chat.isOpen()) chat.open();
             _newConversation();
+        }
+        if ((e.key === 'p' || e.key === 'P') && menu && menu.isOpen() && publishBtn) {
+            menu.close();
+            _pageAction('publish');
+        }
+        if ((e.key === 'u' || e.key === 'U') && menu && menu.isOpen() && unpublishBtn) {
+            menu.close();
+            _pageAction('unpublish');
         }
     });
 
