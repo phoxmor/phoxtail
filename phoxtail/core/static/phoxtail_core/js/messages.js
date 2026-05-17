@@ -2,8 +2,7 @@
  * Toast message system
  *
  * Handles dismiss, auto-hide, and HTMX-driven toast messages.
- * Requires a <template id="toast-template"> element on the page
- * with [data-toast-icon] spans for each message type.
+ * Requires a <template id="toast-template"> element on the page.
  */
 
 function dismissMessage(button) {
@@ -78,17 +77,8 @@ document.body.addEventListener('showToast', function(event) {
     toast.id = 'message-toast-' + Date.now();
     toast.classList.add('auth-toast--' + type);
 
-    // Show only the matching icon, remove the rest
-    var icons = clone.querySelectorAll('[data-toast-icon]');
-    icons.forEach(function(icon) {
-        if (icon.getAttribute('data-toast-icon') === type) {
-            icon.style.display = '';
-        } else {
-            icon.remove();
-        }
-    });
-
-    clone.querySelector('[data-toast-label]').textContent = type.toUpperCase();
+    var labelKey = 'label' + type.charAt(0).toUpperCase() + type.slice(1);
+    clone.querySelector('[data-toast-label]').textContent = template.dataset[labelKey] || type;
     clone.querySelector('[data-toast-text]').textContent = message;
 
     wrapper.innerHTML = '';

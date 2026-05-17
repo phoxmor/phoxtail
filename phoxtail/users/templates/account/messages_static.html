@@ -1,22 +1,18 @@
 {# account/messages_static.html — Messages infrastructure (CSS, JS, toast template). #}
 {# Include once per page, outside #messages-container-wrapper, alongside modal media. #}
-{% load static phoxtail_design_tags %}
+{% load static phoxtail_design_tags i18n %}
 <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/messages.css' %}">
 <script src="{% static 'phoxtail_core/js/messages.js' %}" defer></script>
-<template id="toast-template">
+<template id="toast-template"
+          data-label-error="{% trans 'Error' %}"
+          data-label-success="{% trans 'Success' %}"
+          data-label-warning="{% trans 'Warning' %}"
+          data-label-info="{% trans 'Info' %}">
     <div class="auth-toast auth-toast--hidden">
-        <div class="auth-toast-icon">
-            <span data-toast-icon="error" style="display:none">{% icon "danger" %}</span>
-            <span data-toast-icon="success" style="display:none">{% icon "check" %}</span>
-            <span data-toast-icon="warning" style="display:none">{% icon "danger" %}</span>
-            <span data-toast-icon="info" style="display:none">{% icon "info_cicle" %}</span>
-        </div>
         <div class="auth-toast-body">
             <span class="auth-toast-label" data-toast-label></span>
             <p class="auth-toast-text" data-toast-text></p>
         </div>
-        <div>
-            <button onclick="dismissMessage(this)" class="auth-toast-dismiss">{% icon "close" %}</button>
-        </div>
+        <button onclick="dismissMessage(this)" class="auth-toast-dismiss">{% icon "close" %}</button>
     </div>
 </template>
