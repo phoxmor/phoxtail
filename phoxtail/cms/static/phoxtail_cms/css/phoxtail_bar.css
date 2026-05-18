@@ -140,26 +140,6 @@
 .phoxtail-bar-btn-icon { width: 0.9375rem; height: 0.9375rem; }
 
 /* ── Count badge ── */
-.phoxtail-bar-count-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.1875rem;
-    border-radius: 100px;
-    background-color: rgb(var(--color-primary-500, 99 102 241));
-    color: white;
-    font-size: 0.5625rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    pointer-events: none;
-    border: 1.5px solid white;
-    font-family: inherit;
-}
 
 /* ── Panel — hidden by default; .phoxtail-bar-panel--open reveals it ── */
 .phoxtail-bar-panel {
@@ -378,6 +358,11 @@
     cursor: pointer;
 }
 .phoxtail-bar-actions-item:hover { background-color: rgb(0 0 0 / 0.05); }
+.phoxtail-bar-actions-item.phoxtail-bar-actions-item--active {
+    background-color: rgb(var(--color-primary-50, 238 242 255));
+    outline: 1px solid rgb(var(--color-primary-200, 199 210 254));
+    outline-offset: -1px;
+}
 button.phoxtail-bar-actions-item { background: none; border: none; font: inherit; width: 100%; text-align: left; }
 .phoxtail-bar-actions-item-ext {
     width: 0.75rem;
@@ -518,8 +503,7 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: rgb(var(--color-primary-300, 165 180 252));
     }
-    .phoxtail-bar-count-badge { border-color: rgb(var(--color-surface-950, 12 12 16)); }
-    .phoxtail-bar-panel {
+.phoxtail-bar-panel {
         background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
         border-color: rgb(255 255 255 / 0.08);
         box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
@@ -556,6 +540,10 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     }
     .phoxtail-bar-actions-item { color: rgb(var(--color-surface-100, 244 244 245)); }
     .phoxtail-bar-actions-item:hover { background-color: rgb(255 255 255 / 0.06); }
+    .phoxtail-bar-actions-item.phoxtail-bar-actions-item--active {
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
+        outline-color: rgb(var(--color-primary-700, 67 56 202));
+    }
     .phoxtail-bar-actions-item-ext { color: rgb(var(--color-surface-600, 82 82 91)); }
 
     .phoxtail-bar-highlight-corner--tl,

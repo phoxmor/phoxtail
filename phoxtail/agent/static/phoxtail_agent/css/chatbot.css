@@ -355,6 +355,9 @@
     margin-top: 0.125rem;
     border-top: 1px solid rgb(0 0 0 / 0.06);
 }
+@media (min-width: 400px) {
+    .phoxtail-chatbot-chips { grid-template-columns: 1fr 1fr 1fr; }
+}
 .phoxtail-chatbot-chip {
     display: flex;
     align-items: center;

@@ -54,6 +54,10 @@
                     getModelRows().forEach(function (r) { r.classList.remove('phoxtail-bar-block-row--active'); });
                     _resetModelSearch();
                 }
+                if (panel === menuPanel) {
+                    _activeMenuIdx = -1;
+                    getMenuItems().forEach(function (r) { r.classList.remove('phoxtail-bar-actions-item--active'); });
+                }
             }
         };
     }
@@ -412,6 +416,14 @@
         }
         if (e.altKey || e.ctrlKey || e.metaKey) return;
 
+        // Enter to activate the focused actions menu item
+        if (e.key === 'Enter' && menu && menu.isOpen() && _activeMenuIdx !== -1) {
+            e.preventDefault();
+            var mitems = getMenuItems();
+            var mitem = mitems[_activeMenuIdx];
+            if (mitem) mitem.click();
+            return;
+        }
         // Enter to add active block — check before textarea guard since block rows have focus
         if (e.key === 'Enter' && blocks && blocks.isOpen() && _activeBlockIdx !== -1) {
             e.preventDefault();
@@ -454,6 +466,13 @@
         var tag = document.activeElement && document.activeElement.tagName;
         var isEditable = document.activeElement && document.activeElement.isContentEditable;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || isEditable) return;
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && menu && menu.isOpen()) {
+            e.preventDefault();
+            if (!getMenuItems().length) return;
+            var dir = e.key === 'ArrowDown' ? 1 : -1;
+            activateMenuItemAtIndex(_activeMenuIdx === -1 ? (dir === 1 ? 0 : getMenuItems().length - 1) : _activeMenuIdx + dir);
+            return;
+        }
         if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && blocks && blocks.isOpen()) {
             e.preventDefault();
             if (!getBlockRows().length) return;
@@ -550,7 +569,7 @@
                 ? payload.block_type + ' · ' + payload.variant_identifier
                 : payload.block_type;
         }
-        return payload.page_type || 'page';
+        return payload.page_title || payload.page_type || 'page';
     }
 
     function _chipAriaLabel(payload) {
@@ -694,6 +713,7 @@
         if (row.dataset.phoxtailBarCopy === 'page') {
             return {
                 page_id: manifest.id,
+                page_title: manifest.title,
                 page_type: manifest.type,
                 slug: manifest.slug,
                 locale: manifest.locale,
@@ -1365,6 +1385,7 @@
     document.addEventListener('click', function (e) {
         if (!_hlTarget) return;
         if (bar.contains(e.target)) return;
+        if (chatbotDrawer && chatbotDrawer.contains(e.target)) return;
         if (_hlTarget.contains(e.target)) return;
         dismissHighlight();
     });
@@ -1372,10 +1393,29 @@
     // ── Scroll-to-block + highlight ──────────────────────────────────────────
 
     var _activeBlockIdx = -1;
+    var _activeMenuIdx = -1;
+
+    function getMenuItems() {
+        if (!menuPanel) return [];
+        return Array.prototype.slice.call(menuPanel.querySelectorAll('.phoxtail-bar-actions-item'));
+    }
+
+    function activateMenuItemAtIndex(idx) {
+        var items = getMenuItems();
+        if (!items.length) return;
+        var n = items.length;
+        idx = ((idx % n) + n) % n;
+        _activeMenuIdx = idx;
+        items.forEach(function (r) { r.classList.remove('phoxtail-bar-actions-item--active'); });
+        items[idx].classList.add('phoxtail-bar-actions-item--active');
+        items[idx].scrollIntoView({ block: 'nearest' });
+    }
 
     function getBlockRows() {
         if (!blocksPanel) return [];
-        return Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-bar-block-row[data-phoxtail-bar-uuid]'));
+        var page = Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-bar-page-row[data-phoxtail-bar-copy]'));
+        var blocks = Array.prototype.slice.call(blocksPanel.querySelectorAll('.phoxtail-bar-block-row[data-phoxtail-bar-uuid]'));
+        return page.concat(blocks);
     }
 
     function activateBlockAtIndex(idx) {
@@ -1386,15 +1426,17 @@
         _activeBlockIdx = idx;
 
         var row = rows[idx];
-        var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailBarUuid);
-        if (!target) return;
-
         rows.forEach(function (r) { r.classList.remove('phoxtail-bar-block-row--active'); });
         row.classList.add('phoxtail-bar-block-row--active');
         row.scrollIntoView({ block: 'nearest' });
 
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        highlightBlock(target);
+        if (row.dataset.phoxtailBarUuid) {
+            var target = document.getElementById('phoxtail-block-' + row.dataset.phoxtailBarUuid);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                highlightBlock(target);
+            }
+        }
     }
 
     if (blocksPanel) {

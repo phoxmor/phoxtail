@@ -192,8 +192,8 @@
                 <div class="phoxtail-bar-page-row" data-phoxtail-bar-copy="page" draggable="true">
                     {% icon "web" class="phoxtail-bar-row-icon" %}
                     <div class="phoxtail-bar-row-info">
-                        <span class="phoxtail-bar-row-type">{{ page.content_type.model }}</span>
-                        <span class="phoxtail-bar-row-meta">#{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
+                        <span class="phoxtail-bar-row-type">{{ page.title|truncatechars:28 }}</span>
+                        <span class="phoxtail-bar-row-meta">{{ page.content_type.model }} · #{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
                     </div>
                     <button type="button" class="phoxtail-bar-copy-btn" title="Copy page context">
                         {% icon "content_copy" class="phoxtail-bar-btn-icon" %}
@@ -245,7 +245,6 @@
                         title="Blocks (B)"
                         aria-expanded="false">
                     {% icon "layers" class="phoxtail-bar-btn-icon" %}
-                    <span class="phoxtail-bar-count-badge">{{ page.body|length }}</span>
                 </button>
                 {% endif %}
                 <button type="button"
