@@ -134,6 +134,11 @@ def validate_project_name(name: str) -> str | None:
     return None
 
 
+def get_mcp_extra_modules() -> list[str]:
+    """Return extra MCP module paths declared in ``[mcp] extra_modules``."""
+    return list(load_config().get("mcp", {}).get("extra_modules", []))
+
+
 def get_clusters() -> dict[str, dict]:
     """Return the raw cluster definitions from config.
 

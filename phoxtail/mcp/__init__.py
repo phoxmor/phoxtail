@@ -71,19 +71,32 @@ def _register_core_tools() -> None:
 
 
 def _register_contributed_tools() -> None:
-    """Import every module in the ``phoxtail.mcp_modules`` entry-point group.
+    """Import every module in the ``phoxtail.mcp_modules`` entry-point group,
+    then any project-local modules declared under ``[mcp] extra_modules`` in
+    ``phoxtail.toml``.
 
     Called after ``_register_core_tools`` so that core tool names are
-    registered first. Any installed package (bundled or third-party) can
-    contribute MCP tools by declaring entry points in its pyproject.toml::
+    registered first. Library apps contribute via pyproject.toml entry points::
 
         [project.entry-points."phoxtail.mcp_modules"]
         my_app = "my_package.mcp"
 
-    No Django runtime is required — discovery uses importlib.metadata.
+    Project-local apps (plain directories, no pyproject.toml) use
+    ``phoxtail.toml`` instead::
+
+        [mcp]
+        extra_modules = ["my_project_app.mcp"]
+
+    No Django runtime is required — both discovery paths read only from
+    importlib.metadata and TOML files.
     """
     for ep in entry_points(group="phoxtail.mcp_modules"):
         importlib.import_module(ep.value)
+
+    from phoxtail.cli.utils.config import get_mcp_extra_modules
+
+    for dotted in get_mcp_extra_modules():
+        importlib.import_module(dotted)
 
 
 def _register_tools() -> None:
