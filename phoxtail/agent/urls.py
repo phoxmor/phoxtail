@@ -14,6 +14,11 @@ urlpatterns = [
         name="render_page_for_screenshot",
     ),
     path(
+        "screenshot/<int:page_id>/",
+        views.render_page_for_viewport_screenshot,
+        name="render_page_for_viewport_screenshot",
+    ),
+    path(
         "htmx-partials/blocks/<int:page_id>/<str:block_uuid>/render/",
         views.render_block_fragment,
         name="render_block_fragment",

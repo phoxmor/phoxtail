@@ -133,28 +133,14 @@ def model_picker_panel(request):
     )
 
 
-def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpResponse:
-    """Render the full page HTML so Playwright can screenshot a specific block.
+def _apply_page_site(request, draft) -> None:
+    """Override all site state on the request to match the page's actual site.
 
-    Auth is via ``?token=<bearer_token>`` — Playwright cannot set request
-    headers during navigation, so we accept the token as a query param here.
-    The token is validated with the same logic used by the Ninja API auth layer.
+    Screenshot endpoints are always served from localhost, so SiteMiddleware sets
+    request.site / request._wagtail_site to the default site. This must be
+    corrected before rendering so that SiteSetting (palette, fonts, branding) and
+    shared-block lookups (navbar, footer) resolve to the correct per-site values.
     """
-    from phoxtail.agent.permissions import agent_permission_policy
-    from phoxtail.tokens.auth import authenticate
-
-    raw_token = request.GET.get("token", "")
-    user = authenticate(raw_token)
-    if user is None or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
-        return HttpResponse(status=403)
-
-    request.user = user
-    draft = resolve_page_for_read(page_id)
-
-    # The screenshot URL is always on localhost, but the page may belong to a
-    # non-default site hostname. Shared block lookups use request.site to find
-    # their content, so we must set it to the page's actual site — otherwise
-    # shared blocks (navbar, footer) render empty.
     from wagtail.models import Site
 
     page_site = (
@@ -162,6 +148,59 @@ def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpRe
     )
     if page_site:
         request.site = page_site
+        request._wagtail_site = page_site
+        from phoxtail.cms.models import SiteSetting
+
+        cache_attr = SiteSetting.get_cache_attr_name()
+        if hasattr(request, cache_attr):
+            delattr(request, cache_attr)
+
+
+def _authenticate_screenshot_request(request):
+    """Validate ?token= and return the user, or None on failure."""
+    from phoxtail.agent.permissions import agent_permission_policy
+    from phoxtail.tokens.auth import authenticate
+
+    user = authenticate(request.GET.get("token", ""))
+    if user is None or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
+        return None
+    return user
+
+
+def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpResponse:
+    """Render the full page HTML so Playwright can screenshot a specific block.
+
+    Auth is via ``?token=<bearer_token>`` — Playwright cannot set request
+    headers during navigation, so we accept the token as a query param here.
+    The token is validated with the same logic used by the Ninja API auth layer.
+    """
+    user = _authenticate_screenshot_request(request)
+    if user is None:
+        return HttpResponse(status=403)
+
+    request.user = user
+    draft = resolve_page_for_read(page_id)
+    _apply_page_site(request, draft)
+
+    return render(
+        request, "phoxtail_cms/pages/page.html", {"page": draft, "self": draft, "phoxtail_screenshot_mode": True}
+    )
+
+
+def render_page_for_viewport_screenshot(request, page_id: int) -> HttpResponse:
+    """Render the full page HTML so Playwright can take a viewport screenshot.
+
+    Auth is via ``?token=<bearer_token>``. Identical auth and site-correction
+    logic to render_page_for_screenshot but without the block_uuid constraint,
+    intended for full-page viewport captures across breakpoints.
+    """
+    user = _authenticate_screenshot_request(request)
+    if user is None:
+        return HttpResponse(status=403)
+
+    request.user = user
+    draft = resolve_page_for_read(page_id)
+    _apply_page_site(request, draft)
 
     return render(
         request, "phoxtail_cms/pages/page.html", {"page": draft, "self": draft, "phoxtail_screenshot_mode": True}

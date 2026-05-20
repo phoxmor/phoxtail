@@ -1,4 +1,4 @@
-"""MCP tool for rendering a page block as a screenshot via Playwright."""
+"""MCP tools for rendering pages and blocks as screenshots via Playwright."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import api_base_url
 
 _VIEWPORTS: dict[str, dict] = {
-    "desktop": {"width": 1440, "height": 900},
+    "desktop": {"width": 1440, "height": 810},
     "tablet": {"width": 768, "height": 1024},
     "mobile": {"width": 390, "height": 844},
 }
@@ -20,9 +20,8 @@ _VIEWPORTS: dict[str, dict] = {
 _VISION_DIR = ".phoxtail/vision"
 
 
-def _resolve_save_path(block_uuid: str, viewport: str) -> Path | None:
-    """Return .phoxtail/vision/<block_uuid>-<viewport>.png if a project root is found."""
-
+def _resolve_save_path(stem: str, viewport: str) -> Path | None:
+    """Return .phoxtail/vision/<stem>-<viewport>.png if a project root is found."""
     from phoxtail.cli.utils.config import find_config_file
 
     config = find_config_file()
@@ -30,7 +29,7 @@ def _resolve_save_path(block_uuid: str, viewport: str) -> Path | None:
         return None
     vision_dir = config.parent / _VISION_DIR
     vision_dir.mkdir(parents=True, exist_ok=True)
-    return vision_dir / f"{block_uuid}-{viewport}.png"
+    return vision_dir / f"{stem}-{viewport}.png"
 
 
 @mcp_server.tool(
@@ -120,6 +119,67 @@ async def render_block(
             image_bytes = captures[0]
 
     save_path = _resolve_save_path(block_uuid, f"{viewport}-{theme}")
+    if save_path:
+        save_path.write_bytes(image_bytes)
+
+    return MCPImage(data=image_bytes, format="png")
+
+
+@mcp_server.tool(
+    name="phoxtail_studio_screenshot_page",
+    description=(
+        "Take a viewport screenshot of a full page and return it as an image. "
+        "Use this to capture what a page looks like at a given breakpoint — "
+        "desktop (1440px), tablet (768px), or mobile (390px). "
+        "Unlike phoxtail_studio_render_block this captures the entire viewport, "
+        "not a single block element. "
+        "theme: 'light' (default) or 'dark'. "
+        "The page is rendered with its real site context (correct palette, fonts, "
+        "shared blocks). "
+        "Screenshots are saved to .phoxtail/vision/page-<page_id>-<viewport>-<theme>.png "
+        "and also returned inline."
+    ),
+)
+async def screenshot_page(
+    page_id: int,
+    viewport: str = "desktop",
+    theme: str = "light",
+) -> Any:
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        return json.dumps(
+            {"error": "Playwright is not installed. Run: uv add playwright && playwright install chromium"}
+        )
+
+    if viewport not in _VIEWPORTS:
+        return json.dumps({"error": f"Unknown viewport '{viewport}'. Use: desktop, tablet, mobile"})
+
+    from phoxtail.cli.utils.credentials import resolve_token
+
+    token = resolve_token(api_base_url())
+    if not token:
+        return json.dumps({"error": "No bearer token found. Run: phoxtail auth login"})
+
+    base = api_base_url().rstrip("/")
+    screenshot_url = f"{base}/phoxtail-agent/screenshot/{page_id}/?token={token}"
+    color_scheme = "dark" if theme == "dark" else "light"
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        ctx = await browser.new_context(viewport=_VIEWPORTS[viewport], color_scheme=color_scheme)
+        page = await ctx.new_page()
+        resp = await page.goto(screenshot_url)
+        if resp and resp.status == 403:
+            await browser.close()
+            return json.dumps({"error": "Access denied. Check that the token has chatbot access."})
+        await page.wait_for_load_state("load")
+        await page.evaluate("document.fonts.ready")
+        image_bytes = await page.screenshot()
+        await ctx.close()
+        await browser.close()
+
+    save_path = _resolve_save_path(f"page-{page_id}", f"{viewport}-{theme}")
     if save_path:
         save_path.write_bytes(image_bytes)
 
