@@ -24,6 +24,7 @@ Expected layout (directory or zip)::
 
 Usage::
 
+    phoxtail studio load                         # reads from .phoxtail/studio-dump/
     phoxtail studio load --path ./studio-dump
     phoxtail studio load --path ./studio-dump.zip
     phoxtail studio load --path ./studio-dump --only=collections
@@ -45,6 +46,14 @@ import yaml
 from rich.console import Console
 
 from phoxtail.cli.studio import client
+from phoxtail.cli.utils.config import find_config_file
+
+
+def _default_dump_path() -> Path:
+    config = find_config_file()
+    root = config.parent if config else Path.cwd()
+    return root / ".phoxtail" / "studio-dump"
+
 
 console = Console()
 
@@ -58,14 +67,13 @@ class LoadScope(StrEnum):
 
 def load(
     path: Annotated[
-        Path,
+        Path | None,
         typer.Option(
             "--path",
-            help="Path to the dump directory or zip file.",
-            exists=True,
+            help="Path to the dump directory or zip file. Defaults to .phoxtail/studio-dump/ in the project root.",
             show_default=False,
         ),
-    ],
+    ] = None,
     only: Annotated[
         LoadScope,
         typer.Option(
@@ -100,7 +108,7 @@ def load(
 
     # Unzip to a temp dir if a zip was supplied; clean up afterwards.
     tmp_dir: Path | None = None
-    data_root = path.resolve()
+    data_root = (path or _default_dump_path()).resolve()
 
     if zipfile.is_zipfile(data_root):
         tmp_dir = Path(tempfile.mkdtemp())

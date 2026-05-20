@@ -26,9 +26,9 @@ Dumped layout::
 
 Usage::
 
-    phoxtail studio dump                        # writes to ./studio-dump/
+    phoxtail studio dump                        # writes to .phoxtail/studio-dump/
     phoxtail studio dump --out ./my-dump
-    phoxtail studio dump --zip                  # creates studio-dump.zip
+    phoxtail studio dump --zip                  # creates .phoxtail/studio-dump.zip
     phoxtail studio dump --zip --out ./data
     phoxtail studio dump --only=collections
     phoxtail studio dump --only=blocks
@@ -50,6 +50,14 @@ import yaml
 from rich.console import Console
 
 from phoxtail.cli.studio import client
+from phoxtail.cli.utils.config import find_config_file
+
+
+def _default_dump_path() -> Path:
+    config = find_config_file()
+    root = config.parent if config else Path.cwd()
+    return root / ".phoxtail" / "studio-dump"
+
 
 console = Console()
 
@@ -65,13 +73,13 @@ class DumpScope(StrEnum):
 
 def dump(
     out: Annotated[
-        Path,
+        Path | None,
         typer.Option(
             "--out",
-            help="Output directory (or zip base name when --zip is set).",
-            show_default=True,
+            help="Output directory (or zip base name when --zip is set). Defaults to .phoxtail/studio-dump/.",
+            show_default=False,
         ),
-    ] = Path("studio-dump"),
+    ] = None,
     zip_output: Annotated[
         bool,
         typer.Option(
@@ -104,7 +112,7 @@ def dump(
     if peer:
         client.set_peer(peer)
 
-    out = out.resolve()
+    out = (out or _default_dump_path()).resolve()
     out.mkdir(parents=True, exist_ok=True)
 
     if only in (DumpScope.all, DumpScope.collections):
