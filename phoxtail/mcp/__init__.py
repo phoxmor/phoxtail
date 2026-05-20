@@ -15,6 +15,7 @@ Usage::
 from __future__ import annotations
 
 import importlib
+import sys
 from importlib.metadata import entry_points
 
 from mcp.server.fastmcp import FastMCP
@@ -93,9 +94,17 @@ def _register_contributed_tools() -> None:
     for ep in entry_points(group="phoxtail.mcp_modules"):
         importlib.import_module(ep.value)
 
-    from phoxtail.cli.utils.config import get_mcp_extra_modules
+    from phoxtail.cli.utils.config import find_config_file, get_mcp_extra_modules
 
-    for dotted in get_mcp_extra_modules():
+    extra = get_mcp_extra_modules()
+    if extra:
+        config_file = find_config_file()
+        if config_file is not None:
+            project_root = str(config_file.parent)
+            if project_root not in sys.path:
+                sys.path.insert(0, project_root)
+
+    for dotted in extra:
         importlib.import_module(dotted)
 
 
