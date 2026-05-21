@@ -55,7 +55,7 @@ def site_setting_fonts_get(site_id: int, font_id: int) -> str:
         "Use phoxtail_font_roles_list to find role_id values. "
         "Each role can only be assigned once per site — adding a duplicate role "
         "returns a conflict error. "
-        "sort_order controls display ordering (lower = first). "
+        "sort_order controls display ordering (lower = first); omit to auto-append at the end. "
         "Returns the created assignment including its `_etag`."
     ),
 )
@@ -63,16 +63,15 @@ def site_setting_fonts_add(
     site_id: int,
     font_family_id: int,
     role_id: int,
-    sort_order: int = 0,
+    sort_order: int | None = None,
 ) -> str:
+    body: dict = {"font_family_id": font_family_id, "role_id": role_id}
+    if sort_order is not None:
+        body["sort_order"] = sort_order
     resp = request(
         "POST",
         f"/site-settings/{site_id}/fonts/",
-        json_body={
-            "font_family_id": font_family_id,
-            "role_id": role_id,
-            "sort_order": sort_order,
-        },
+        json_body=body,
     )
     env = error_envelope(resp)
     if env is not None:

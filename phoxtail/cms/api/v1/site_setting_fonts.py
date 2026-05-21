@@ -11,6 +11,7 @@ Endpoints:
 from __future__ import annotations
 
 from django.db import IntegrityError
+from django.db.models import Max
 from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
@@ -49,7 +50,7 @@ class SiteSettingFontList(Schema):
 class SiteSettingFontCreate(Schema):
     font_family_id: int
     role_id: int
-    sort_order: int = 0
+    sort_order: int | None = None
 
 
 class SiteSettingFontPatch(Schema):
@@ -107,12 +108,18 @@ def create_site_font(
     except FontRole.DoesNotExist:
         raise HttpError(400, f"FontRole {payload.role_id} not found.")
 
+    if payload.sort_order is None:
+        agg = SiteSettingFont.objects.filter(config=setting).aggregate(max=Max("sort_order"))
+        sort_order = (agg["max"] or 0) + 1
+    else:
+        sort_order = payload.sort_order
+
     try:
         sf = SiteSettingFont.objects.create(
             config=setting,
             font_family_id=payload.font_family_id,
             role_id=payload.role_id,
-            sort_order=payload.sort_order,
+            sort_order=sort_order,
         )
     except IntegrityError:
         raise HttpError(

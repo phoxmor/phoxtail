@@ -11,6 +11,7 @@ Endpoints:
 from __future__ import annotations
 
 from django.db import IntegrityError
+from django.db.models import Max
 from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
@@ -49,7 +50,7 @@ class SiteSettingPaletteList(Schema):
 class SiteSettingPaletteCreate(Schema):
     palette_id: int
     role_id: int
-    sort_order: int = 0
+    sort_order: int | None = None
 
 
 class SiteSettingPalettePatch(Schema):
@@ -107,12 +108,18 @@ def create_site_palette(
     except PaletteRole.DoesNotExist:
         raise HttpError(400, f"PaletteRole {payload.role_id} not found.")
 
+    if payload.sort_order is None:
+        agg = SiteSettingPalette.objects.filter(config=setting).aggregate(max=Max("sort_order"))
+        sort_order = (agg["max"] or 0) + 1
+    else:
+        sort_order = payload.sort_order
+
     try:
         sp = SiteSettingPalette.objects.create(
             config=setting,
             palette_id=payload.palette_id,
             role_id=payload.role_id,
-            sort_order=payload.sort_order,
+            sort_order=sort_order,
         )
     except IntegrityError:
         raise HttpError(
