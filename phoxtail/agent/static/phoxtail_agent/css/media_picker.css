@@ -497,6 +497,33 @@
 .phoxtail-media-picker-lightbox-add-btn .phoxtail-bar-btn-icon,
 .phoxtail-media-picker-lightbox-close-btn .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
 
+/* ── Load more button ── */
+.phoxtail-media-picker-load-more {
+    grid-column: 1 / -1; /* span all columns when inside the image/video grid */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem auto 0;
+    padding: 0.3125rem 0.875rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: none;
+    color: rgb(var(--color-surface-500, 113 113 122));
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.phoxtail-media-picker-load-more:hover {
+    background-color: rgb(0 0 0 / 0.04);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-media-picker-load-more.htmx-request {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
     .phoxtail-media-picker-drawer {
@@ -509,6 +536,11 @@
     }
     .phoxtail-media-picker-tab { color: rgb(var(--color-surface-500, 113 113 122)); }
     .phoxtail-media-picker-tab:hover {
+        background-color: rgb(255 255 255 / 0.05);
+        color: white;
+    }
+    .phoxtail-media-picker-load-more { color: rgb(var(--color-surface-500, 113 113 122)); }
+    .phoxtail-media-picker-load-more:hover {
         background-color: rgb(255 255 255 / 0.05);
         color: white;
     }

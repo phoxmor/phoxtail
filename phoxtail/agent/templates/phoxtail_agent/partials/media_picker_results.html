@@ -1,8 +1,10 @@
 {% load phoxtail_design_tags wagtailimages_tags %}
-{% if not results %}
+
+{% if offset == 0 and not results %}
 <div class="phoxtail-media-picker-empty">No {{ tab }} found{% if query %} for "{{ query }}"{% endif %}.</div>
+
 {% elif tab == "images" %}
-<div class="phoxtail-media-picker-grid">
+{% if offset == 0 %}<div class="phoxtail-media-picker-grid">{% endif %}
     {% for item in results %}
     {% image item fill-160x120 as thumb %}
     {% image item max-800x600 as lbx_img %}
@@ -29,9 +31,20 @@
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
     </div>
     {% endfor %}
-</div>
+    {% if has_more %}
+    <button type="button"
+            class="phoxtail-media-picker-load-more"
+            hx-get="{% url 'phoxtail_agent:media_picker' %}"
+            hx-vals='{"tab": "{{ tab }}", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}}'
+            hx-target="this"
+            hx-swap="outerHTML">
+        Load more
+    </button>
+    {% endif %}
+{% if offset == 0 %}</div>{% endif %}
+
 {% elif tab == "videos" %}
-<div class="phoxtail-media-picker-grid">
+{% if offset == 0 %}<div class="phoxtail-media-picker-grid">{% endif %}
     {% for item in results %}
     <div class="phoxtail-media-picker-thumb phoxtail-media-picker-thumb--video"
          draggable="true"
@@ -57,9 +70,20 @@
         <div class="phoxtail-media-picker-thumb-title">{{ item.title|truncatechars:28 }}</div>
     </div>
     {% endfor %}
-</div>
+    {% if has_more %}
+    <button type="button"
+            class="phoxtail-media-picker-load-more"
+            hx-get="{% url 'phoxtail_agent:media_picker' %}"
+            hx-vals='{"tab": "{{ tab }}", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}}'
+            hx-target="this"
+            hx-swap="outerHTML">
+        Load more
+    </button>
+    {% endif %}
+{% if offset == 0 %}</div>{% endif %}
+
 {% elif tab == "audio" %}
-<div class="phoxtail-media-picker-rows">
+{% if offset == 0 %}<div class="phoxtail-media-picker-rows">{% endif %}
     {% for item in results %}
     <div class="phoxtail-media-picker-doc-row phoxtail-media-picker-audio-row"
          draggable="true"
@@ -84,9 +108,20 @@
         </button>
     </div>
     {% endfor %}
-</div>
+    {% if has_more %}
+    <button type="button"
+            class="phoxtail-media-picker-load-more"
+            hx-get="{% url 'phoxtail_agent:media_picker' %}"
+            hx-vals='{"tab": "{{ tab }}", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}}'
+            hx-target="this"
+            hx-swap="outerHTML">
+        Load more
+    </button>
+    {% endif %}
+{% if offset == 0 %}</div>{% endif %}
+
 {% elif tab == "documents" %}
-<div class="phoxtail-media-picker-rows">
+{% if offset == 0 %}<div class="phoxtail-media-picker-rows">{% endif %}
     {% for item in results %}
     <div class="phoxtail-media-picker-doc-row"
          draggable="true"
@@ -111,5 +146,16 @@
         </button>
     </div>
     {% endfor %}
-</div>
+    {% if has_more %}
+    <button type="button"
+            class="phoxtail-media-picker-load-more"
+            hx-get="{% url 'phoxtail_agent:media_picker' %}"
+            hx-vals='{"tab": "{{ tab }}", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}}'
+            hx-target="this"
+            hx-swap="outerHTML">
+        Load more
+    </button>
+    {% endif %}
+{% if offset == 0 %}</div>{% endif %}
+
 {% endif %}

@@ -31,21 +31,25 @@ def chat_history(request):
     return render(request, template, {"conversations": qs, "query": query})
 
 
+_MEDIA_PICKER_PAGE_SIZE = 15
+
+
 @agent_permission_required("access_chatbot")
 def media_picker(request):
     tab = request.GET.get("tab", "images")
     query = request.GET.get("q", "").strip()
+    offset = max(0, int(request.GET.get("offset", 0) or 0))
     s = get_search_backend()
     results = []
+
+    fetch = _MEDIA_PICKER_PAGE_SIZE + 1  # one extra to detect has_more
 
     if tab == "images":
         Image = get_image_model()
         qs = Image.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
         if query:
-            qs = s.autocomplete(query, qs)[:40]
-        else:
-            qs = qs[:40]
-        results = list(qs)
+            qs = s.autocomplete(query, qs)
+        results = list(qs[offset : offset + fetch])
     elif tab == "videos":
         try:
             from wagtailmedia.models import get_media_model
@@ -58,10 +62,8 @@ def media_picker(request):
                 .order_by("-created_at")
             )
             if query:
-                qs = s.autocomplete(query, qs)[:40]
-            else:
-                qs = qs[:40]
-            results = list(qs)
+                qs = s.autocomplete(query, qs)
+            results = list(qs[offset : offset + fetch])
         except ImportError:
             results = []
     elif tab == "audio":
@@ -76,24 +78,31 @@ def media_picker(request):
                 .order_by("-created_at")
             )
             if query:
-                qs = s.autocomplete(query, qs)[:40]
-            else:
-                qs = qs[:40]
-            results = list(qs)
+                qs = s.autocomplete(query, qs)
+            results = list(qs[offset : offset + fetch])
         except ImportError:
             results = []
     elif tab == "documents":
         Document = get_document_model()
         qs = Document.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
         if query:
-            qs = s.autocomplete(query, qs)[:40]
-        else:
-            qs = qs[:40]
-        results = list(qs)
+            qs = s.autocomplete(query, qs)
+        results = list(qs[offset : offset + fetch])
 
-    ctx = {"tab": tab, "query": query, "results": results}
+    has_more = len(results) > _MEDIA_PICKER_PAGE_SIZE
+    if has_more:
+        results = results[:_MEDIA_PICKER_PAGE_SIZE]
 
-    if request.htmx and request.htmx.target == "phoxtail-media-picker-results":
+    ctx = {
+        "tab": tab,
+        "query": query,
+        "results": results,
+        "offset": offset,
+        "has_more": has_more,
+        "next_offset": offset + _MEDIA_PICKER_PAGE_SIZE,
+    }
+
+    if request.htmx and (request.htmx.target == "phoxtail-media-picker-results" or offset > 0):
         return render(request, "phoxtail_agent/partials/media_picker_results.html", ctx)
 
     return render(request, "phoxtail_agent/media_picker.html", ctx)
