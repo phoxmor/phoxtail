@@ -1,0 +1,21 @@
+{% if not is_search %}
+<li class="phoxtail-media-picker-collection-item{% if not collection_id %} phoxtail-media-picker-collection-item--selected{% endif %}"
+    data-collection-id=""
+    role="option">
+    All collections
+</li>
+{% endif %}
+{% for col in collections %}
+<li class="phoxtail-media-picker-collection-item{% if collection_id == col.pk|stringformat:'s' %} phoxtail-media-picker-collection-item--selected{% endif %}"
+    data-collection-id="{{ col.pk }}"
+    {% if not is_search %}style="--col-depth: {{ col.depth|add:'-2' }}"{% endif %}
+    role="option">
+    {{ col.name }}
+</li>
+{% empty %}
+{% if is_search %}
+<li class="phoxtail-media-picker-collection-item phoxtail-media-picker-collection-item--empty">
+    No collections match
+</li>
+{% endif %}
+{% endfor %}

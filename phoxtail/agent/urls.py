@@ -7,6 +7,7 @@ app_name = "phoxtail_agent"
 urlpatterns = [
     path("chat-history/", views.chat_history, name="chat_history"),
     path("media-picker/", views.media_picker, name="media_picker"),
+    path("collection-picker/", views.collection_picker, name="collection_picker"),
     path("model-picker/", views.model_picker_panel, name="model_picker_panel"),
     path(
         "screenshot/<int:page_id>/<str:block_uuid>/",

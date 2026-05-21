@@ -17,7 +17,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'images' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "images"}'
-                    hx-include="#phoxtail-media-picker-search"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "image" class="phoxtail-bar-btn-icon" %}
@@ -27,7 +27,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'videos' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "videos"}'
-                    hx-include="#phoxtail-media-picker-search"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "videocam" class="phoxtail-bar-btn-icon" %}
@@ -37,7 +37,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'audio' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "audio"}'
-                    hx-include="#phoxtail-media-picker-search"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "music_note" class="phoxtail-bar-btn-icon" %}
@@ -47,12 +47,49 @@
                     class="phoxtail-media-picker-tab {% if tab == 'documents' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "documents"}'
-                    hx-include="#phoxtail-media-picker-search"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "draft" class="phoxtail-bar-btn-icon" %}
                 Documents
             </button>
+        </div>
+
+        <div class="phoxtail-media-picker-collection-wrap" id="phoxtail-media-picker-collection-wrap">
+            <input type="hidden"
+                   id="phoxtail-media-picker-collection-id"
+                   name="collection_id"
+                   value="{{ collection_id }}">
+            <button type="button"
+                    class="phoxtail-media-picker-collection-btn{% if collection_id %} phoxtail-media-picker-collection-btn--active{% endif %}"
+                    id="phoxtail-media-picker-collection-btn"
+                    aria-haspopup="listbox"
+                    aria-expanded="false">
+                {% icon "folder_open" class="phoxtail-bar-btn-icon phoxtail-media-picker-collection-folder-icon" %}
+                <span id="phoxtail-media-picker-collection-label">{{ selected_collection_name|default:"All collections" }}</span>
+                {% icon "chevron_down" class="phoxtail-bar-btn-icon phoxtail-media-picker-collection-chevron" %}
+            </button>
+            <div class="phoxtail-media-picker-collection-panel"
+                 id="phoxtail-media-picker-collection-panel"
+                 aria-hidden="true">
+                <div class="phoxtail-media-picker-collection-search-wrap">
+                    {% icon "search" class="phoxtail-bar-btn-icon phoxtail-media-picker-collection-search-icon" %}
+                    <input type="text"
+                           id="phoxtail-media-picker-collection-search"
+                           name="q"
+                           class="phoxtail-media-picker-collection-search-input"
+                           placeholder="Filter collections…"
+                           autocomplete="off"
+                           hx-get="{% url 'phoxtail_agent:collection_picker' %}"
+                           hx-trigger="input changed delay:250ms, search"
+                           hx-target="#phoxtail-media-picker-collection-list"
+                           hx-include="this, #phoxtail-media-picker-collection-id"
+                           hx-swap="innerHTML">
+                </div>
+                <ul class="phoxtail-media-picker-collection-list" id="phoxtail-media-picker-collection-list" role="listbox">
+                    {% include "phoxtail_agent/partials/collection_picker_list.html" with is_search=False %}
+                </ul>
+            </div>
         </div>
 
         <div class="phoxtail-bar-search-wrap">
@@ -76,6 +113,7 @@
                    class="phoxtail-bar-search-input"
                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
                    hx-vals='{"tab": "{{ tab }}"}'
+                   hx-include="#phoxtail-media-picker-collection-id"
                    hx-target="#phoxtail-media-picker-results"
                    hx-trigger="input changed delay:300ms"
                    hx-swap="innerHTML">
@@ -191,6 +229,83 @@
             }
         });
     });
+
+    /* ── Collection filter panel ── */
+    var colWrap   = document.getElementById('phoxtail-media-picker-collection-wrap');
+    var colBtn    = document.getElementById('phoxtail-media-picker-collection-btn');
+    var colPanel  = document.getElementById('phoxtail-media-picker-collection-panel');
+    var colLabel  = document.getElementById('phoxtail-media-picker-collection-label');
+    var colSearch = document.getElementById('phoxtail-media-picker-collection-search');
+    var colIdInput = document.getElementById('phoxtail-media-picker-collection-id');
+    var _colPanelOpen = false;
+
+    function openColPanel() {
+        if (!colPanel || !colBtn) return;
+        _colPanelOpen = true;
+        colPanel.removeAttribute('aria-hidden');
+        colBtn.setAttribute('aria-expanded', 'true');
+        colBtn.classList.add('phoxtail-media-picker-collection-btn--open');
+        if (colSearch) {
+            var hadValue = colSearch.value.length > 0;
+            colSearch.value = '';
+            colSearch.focus();
+            if (hadValue) {
+                colSearch.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+    }
+
+    function closeColPanel() {
+        if (!colPanel || !colBtn) return;
+        _colPanelOpen = false;
+        colPanel.setAttribute('aria-hidden', 'true');
+        colBtn.setAttribute('aria-expanded', 'false');
+        colBtn.classList.remove('phoxtail-media-picker-collection-btn--open');
+    }
+
+    if (colBtn) {
+        colBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (_colPanelOpen) { closeColPanel(); } else { openColPanel(); }
+        });
+    }
+    if (colPanel) {
+        colPanel.addEventListener('click', function (e) {
+            var item = e.target.closest('.phoxtail-media-picker-collection-item');
+            if (!item) return;
+            e.stopPropagation();
+            var colId   = item.getAttribute('data-collection-id') || '';
+            var colName = colId ? item.textContent.trim() : 'All collections';
+
+            if (colIdInput) colIdInput.value = colId;
+            if (colLabel)  colLabel.textContent = colName;
+            if (colBtn)    colBtn.classList.toggle('phoxtail-media-picker-collection-btn--active', !!colId);
+            colPanel.querySelectorAll('.phoxtail-media-picker-collection-item').forEach(function (it) {
+                it.classList.toggle('phoxtail-media-picker-collection-item--selected', it === item);
+            });
+            closeColPanel();
+
+            var currentTab = 'images';
+            var activeTabBtn = document.querySelector('.phoxtail-media-picker-tab--active');
+            if (activeTabBtn) {
+                var vals = JSON.parse(activeTabBtn.getAttribute('hx-vals') || '{}');
+                if (vals.tab) currentTab = vals.tab;
+            }
+            var searchVal = (input && input.value) || '';
+            if (typeof htmx !== 'undefined') {
+                htmx.ajax('GET', '{% url "phoxtail_agent:media_picker" %}', {
+                    target: '#phoxtail-media-picker-results',
+                    swap: 'innerHTML',
+                    values: { tab: currentTab, q: searchVal, collection_id: colId }
+                });
+            }
+        });
+    }
+    document.addEventListener('mousedown', function (e) {
+        if (!_colPanelOpen) return;
+        if (colWrap && colWrap.contains(e.target)) return;
+        closeColPanel();
+    }, true);
 
     /* Close on mousedown outside drawer — but NOT when clicking inside the chatbot */
     setTimeout(function () {
@@ -443,5 +558,6 @@
             openLightbox(thumb);
         });
     }
+
 })();
 </script>

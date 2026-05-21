@@ -39,6 +39,9 @@ def media_picker(request):
     tab = request.GET.get("tab", "images")
     query = request.GET.get("q", "").strip()
     offset = max(0, int(request.GET.get("offset", 0) or 0))
+    collection_id = request.GET.get("collection_id", "").strip()
+    if collection_id and not collection_id.isdigit():
+        collection_id = ""
     s = get_search_backend()
     results = []
 
@@ -46,7 +49,9 @@ def media_picker(request):
 
     if tab == "images":
         Image = get_image_model()
-        qs = Image.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
+        qs = Image.objects.all().select_related("collection").prefetch_related("tags", "renditions").order_by("-created_at")
+        if collection_id:
+            qs = qs.filter(collection_id=collection_id)
         if query:
             qs = s.autocomplete(query, qs)
         results = list(qs[offset : offset + fetch])
@@ -61,6 +66,8 @@ def media_picker(request):
                 .prefetch_related("tags")
                 .order_by("-created_at")
             )
+            if collection_id:
+                qs = qs.filter(collection_id=collection_id)
             if query:
                 qs = s.autocomplete(query, qs)
             results = list(qs[offset : offset + fetch])
@@ -77,6 +84,8 @@ def media_picker(request):
                 .prefetch_related("tags")
                 .order_by("-created_at")
             )
+            if collection_id:
+                qs = qs.filter(collection_id=collection_id)
             if query:
                 qs = s.autocomplete(query, qs)
             results = list(qs[offset : offset + fetch])
@@ -85,6 +94,8 @@ def media_picker(request):
     elif tab == "documents":
         Document = get_document_model()
         qs = Document.objects.all().select_related("collection").prefetch_related("tags").order_by("-created_at")
+        if collection_id:
+            qs = qs.filter(collection_id=collection_id)
         if query:
             qs = s.autocomplete(query, qs)
         results = list(qs[offset : offset + fetch])
@@ -100,12 +111,52 @@ def media_picker(request):
         "offset": offset,
         "has_more": has_more,
         "next_offset": offset + _MEDIA_PICKER_PAGE_SIZE,
+        "collection_id": collection_id,
     }
 
     if request.htmx and (request.htmx.target == "phoxtail-media-picker-results" or offset > 0):
         return render(request, "phoxtail_agent/partials/media_picker_results.html", ctx)
 
+    from wagtail.models import Collection
+
+    collections = list(Collection.objects.filter(depth__gt=1).order_by("path"))
+    selected_collection_name = ""
+    if collection_id:
+        for c in collections:
+            if str(c.pk) == collection_id:
+                selected_collection_name = c.name
+                break
+        else:
+            collection_id = ""
+            ctx["collection_id"] = ""
+
+    ctx["collections"] = collections
+    ctx["selected_collection_name"] = selected_collection_name
     return render(request, "phoxtail_agent/media_picker.html", ctx)
+
+
+@agent_permission_required("access_chatbot")
+def collection_picker(request):
+    from wagtail.models import Collection
+
+    q = request.GET.get("q", "").strip()
+    collection_id = request.GET.get("collection_id", "").strip()
+    if collection_id and not collection_id.isdigit():
+        collection_id = ""
+
+    qs = Collection.objects.filter(depth__gt=1)
+    if q:
+        qs = qs.filter(name__icontains=q).order_by("name")
+        is_search = True
+    else:
+        qs = qs.order_by("path")
+        is_search = False
+
+    return render(
+        request,
+        "phoxtail_agent/partials/collection_picker_list.html",
+        {"collections": list(qs), "collection_id": collection_id, "is_search": is_search},
+    )
 
 
 @agent_permission_required("access_chatbot")
