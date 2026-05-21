@@ -19,8 +19,10 @@ from phoxtail.mcp.content.pages import _write_error_envelope
     name="phoxtail_pages_list_images",
     description=(
         "Search images in the media library by title. "
-        "Returns a list of "
-        "{id, title, width, height, description, tags, focal_point, file_url, collection_id}. "
+        "Returns {items: [{id, title, width, height, description, tags, focal_point, "
+        "file_url, collection_id}, ...], total: N}. "
+        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
+        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id "
         "(use phoxtail_collections_list to browse collections). "
         "To view an image visually, call `phoxtail_images_view(image_id)` — "
@@ -29,8 +31,13 @@ from phoxtail.mcp.content.pages import _write_error_envelope
         "field expects an Image FK."
     ),
 )
-def list_images(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
-    params: dict = {"limit": limit}
+def list_images(
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    collection: int | None = None,
+) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search is not None:
         params["search"] = search
     if collection is not None:
@@ -190,16 +197,24 @@ def delete_image(image_id: int) -> str:
 @mcp_server.tool(
     name="phoxtail_pages_list_documents",
     description=(
-        "Search documents in the media library by title. Returns a list of "
-        "{id, title, tags, file_size, filename, file_extension, file_url, collection_id}. "
+        "Search documents in the media library by title. "
+        "Returns {items: [{id, title, tags, file_size, filename, file_extension, "
+        "file_url, collection_id}, ...], total: N}. "
+        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
+        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id "
         "(use phoxtail_collections_list to browse collections). "
         "The integer `id` is the value to pass wherever a block or page field "
         "expects a Document FK."
     ),
 )
-def list_documents(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
-    params: dict = {"limit": limit}
+def list_documents(
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    collection: int | None = None,
+) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search is not None:
         params["search"] = search
     if collection is not None:
@@ -338,13 +353,21 @@ def delete_document(document_id: int) -> str:
     name="phoxtail_videos_list",
     description=(
         "Search videos in the media library by title. "
-        "Returns a list of {id, title, duration, width, height, tags, file_url, thumbnail_url, collection_id}. "
+        "Returns {items: [{id, title, duration, width, height, tags, file_url, "
+        "thumbnail_url, collection_id}, ...], total: N}. "
+        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
+        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id. "
         "The integer `id` is the value to pass wherever a block or page field expects a Video FK."
     ),
 )
-def list_videos(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
-    params: dict = {"limit": limit}
+def list_videos(
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    collection: int | None = None,
+) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search is not None:
         params["search"] = search
     if collection is not None:
@@ -497,13 +520,20 @@ def delete_video(video_id: int) -> str:
     name="phoxtail_audio_list",
     description=(
         "Search audio files in the media library by title. "
-        "Returns a list of {id, title, duration, tags, file_url, collection_id}. "
+        "Returns {items: [{id, title, duration, tags, file_url, collection_id}, ...], total: N}. "
+        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
+        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id. "
         "The integer `id` is the value to pass wherever a block or page field expects an Audio FK."
     ),
 )
-def list_audio(search: str | None = None, limit: int = 50, collection: int | None = None) -> str:
-    params: dict = {"limit": limit}
+def list_audio(
+    search: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    collection: int | None = None,
+) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search is not None:
         params["search"] = search
     if collection is not None:
