@@ -49,7 +49,12 @@ def media_picker(request):
 
     if tab == "images":
         Image = get_image_model()
-        qs = Image.objects.all().select_related("collection").prefetch_related("tags", "renditions").order_by("-created_at")
+        qs = (
+            Image.objects.all()
+            .select_related("collection")
+            .prefetch_related("tags", "renditions")
+            .order_by("-created_at")
+        )
         if collection_id:
             qs = qs.filter(collection_id=collection_id)
         if query:
