@@ -1,3 +1,26 @@
+/* ── Viewport-bottom reservation ─────────────────────────────────────────── */
+/* Fallback used on first paint before ResizeObserver fires */
+:root { --phoxtail-bar-offset: 2.125rem; }
+
+/* Push the page tail up so content doesn't scroll under the dock */
+body.phoxtail-bar-active {
+    padding-bottom: calc(var(--phoxtail-bar-offset) + 1.25rem + 0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Ensure #anchor jumps land above the dock */
+html.phoxtail-bar-active {
+    scroll-padding-bottom: calc(var(--phoxtail-bar-offset) + 1.25rem + 1rem);
+}
+
+@media print {
+    #phoxtail-bar,
+    #phoxtail-chatbot-drawer { display: none !important; }
+    body.phoxtail-bar-active  { padding-bottom: 0 !important; }
+    html.phoxtail-bar-active  { scroll-padding-bottom: 0 !important; }
+}
+
+/* ── ── */
+
 #phoxtail-bar {
     position: fixed;
     bottom: 1.25rem;

@@ -4,6 +4,20 @@
 
     var manifest = JSON.parse(manifestEl.textContent);
     var bar = document.getElementById('phoxtail-bar');
+
+    // Mark html + body so CSS can reserve space; ResizeObserver keeps the
+    // custom property in sync with the dock's live height.
+    document.documentElement.classList.add('phoxtail-bar-active');
+    document.body.classList.add('phoxtail-bar-active');
+    var _dock = bar && bar.querySelector('.phoxtail-bar-dock');
+    if (_dock) {
+        new ResizeObserver(function (entries) {
+            document.documentElement.style.setProperty(
+                '--phoxtail-bar-offset', entries[0].contentRect.height + 'px'
+            );
+        }).observe(_dock);
+    }
+
     var blocksBtn = document.getElementById('phoxtail-bar-blocks-btn');
     var blocksPanel = document.getElementById('phoxtail-bar-blocks-panel');
     var blocksPanelClose = document.getElementById('phoxtail-bar-panel-close');
