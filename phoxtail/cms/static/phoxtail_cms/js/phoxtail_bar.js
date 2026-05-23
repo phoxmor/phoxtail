@@ -43,6 +43,8 @@
     var menuClose = document.getElementById('phoxtail-bar-actions-close');
     var publishBtn = document.getElementById('phoxtail-bar-publish-btn');
     var unpublishBtn = document.getElementById('phoxtail-bar-unpublish-btn');
+    var editBtn = document.getElementById('phoxtail-bar-edit-btn');
+    var adminBtn = document.getElementById('phoxtail-bar-admin-btn');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
@@ -525,6 +527,10 @@
         if ((e.key === 'a' || e.key === 'A') && menu) {
             menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
         }
+        if ((e.key === 'd' || e.key === 'D') && menu && menu.isOpen() && adminBtn) {
+            menu.close();
+            window.open(adminBtn.href, adminBtn.target || '_self');
+        }
         if ((e.key === 'i' || e.key === 'I') && modelPicker) {
             var iChatWasOpen = chat.isOpen();
             var _openModelPicker = function () {
@@ -547,6 +553,10 @@
         if (e.key === 'n' || e.key === 'N') {
             if (!chat.isOpen()) chat.open();
             _newConversation();
+        }
+        if ((e.key === 'e' || e.key === 'E') && menu && menu.isOpen() && editBtn) {
+            menu.close();
+            window.open(editBtn.href, editBtn.target || '_self');
         }
         if ((e.key === 'p' || e.key === 'P') && menu && menu.isOpen() && publishBtn) {
             menu.close();
