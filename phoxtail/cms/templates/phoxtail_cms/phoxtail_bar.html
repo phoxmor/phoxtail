@@ -177,7 +177,6 @@
             </div>
             <div class="phoxtail-bar-panel-body" id="phoxtail-model-picker-body"></div>
         </div>
-        {% if page.body %}
         <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
@@ -229,7 +228,6 @@
                 {% endfor %}
             </div>
         </div>
-        {% endif %}
         <textarea
             id="phoxtail-chatbot-input"
             class="phoxtail-chatbot-input"
@@ -238,7 +236,6 @@
             aria-label="Message"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
             <div class="phoxtail-chatbot-compose-actions-left">
-                {% if page.body %}
                 <button type="button"
                         id="phoxtail-bar-blocks-btn"
                         class="phoxtail-chatbot-compose-action-btn"
@@ -246,7 +243,6 @@
                         aria-expanded="false">
                     {% icon "layers" class="phoxtail-bar-btn-icon" %}
                 </button>
-                {% endif %}
                 <button type="button"
                         id="phoxtail-chatbot-media-btn"
                         class="phoxtail-chatbot-compose-action-btn"
