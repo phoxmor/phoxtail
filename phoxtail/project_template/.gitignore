@@ -34,6 +34,7 @@ nginx.conf
 Dockerfile
 docker-compose.yaml
 docker-compose.*.yaml
+.dockerignore
 
 # --------------------
 # Backups and Certbot
@@ -53,3 +54,5 @@ CLAUDE.md
 GEMINI.md
 .claude
 .gemini
+.agents
+.antigravitycli
