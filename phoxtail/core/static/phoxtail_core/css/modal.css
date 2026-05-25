@@ -55,7 +55,7 @@
 
 #base-modal.closing,
 #base-modal-level-1.closing {
-    animation: fadeOut 0.3s ease-out;
+    animation: fadeOut 0.3s ease-out forwards;
 }
 
 /* Content animation types */

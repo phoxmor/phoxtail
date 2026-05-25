@@ -159,14 +159,19 @@
     border-left: 1px solid rgb(0 0 0 / 0.07);
     box-shadow: -8px 0 48px rgba(0, 0, 0, 0.1), inset 0.5px 0 0 rgb(255 255 255 / 0.6);
     transform: translateX(100%);
-    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    visibility: hidden;
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 280ms;
     pointer-events: none;
     font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
 }
 #phoxtail-chatbot-drawer * { box-sizing: border-box; }
 #phoxtail-chatbot-drawer.phoxtail-chatbot-drawer--open {
     transform: translateX(0);
+    visibility: visible;
     pointer-events: auto;
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0s linear 0s;
 }
 
 /* Floating topbar — spans full width, history on left, close on right */
