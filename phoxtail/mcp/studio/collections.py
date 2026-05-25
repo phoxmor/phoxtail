@@ -99,17 +99,22 @@ def create_collection(
         "for optimistic concurrency control — if the collection has been "
         "modified since you read it, the update will fail with a conflict "
         "error. Omitted fields are left untouched. "
+        "identifier must be unique (lowercase_with_underscores); a 409 is "
+        "returned if it clashes with an existing collection. "
         "On success, returns the updated collection with a new ETag."
     ),
 )
 def update_collection(
     collection_id: int,
     etag: str,
+    identifier: str | None = None,
     name: str | None = None,
     description: str | None = None,
     template: str | None = None,
 ) -> str:
     body: dict[str, Any] = {}
+    if identifier is not None:
+        body["identifier"] = identifier
     if name is not None:
         body["name"] = name
     if description is not None:
@@ -123,6 +128,13 @@ def update_collection(
         json_body=body,
         headers={"If-Match": etag},
     )
+    if resp.status_code == 409:
+        return json.dumps(
+            {
+                "error": "conflict",
+                "detail": resp.json().get("detail", "A collection with this identifier or name already exists."),
+            }
+        )
     if resp.status_code == 412:
         return json.dumps(
             {

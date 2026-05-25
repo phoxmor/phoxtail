@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
@@ -54,7 +53,7 @@ def get_collection_by_id(request: HttpRequest, response: HttpResponse, collectio
 
 @router.patch(
     "/{collection_id}/",
-    response={200: Collection, 400: Error, 404: Error, 412: Error, 428: Error},
+    response={200: Collection, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a VariantCollection by numeric ID",
 )
 def update_collection_by_id(
@@ -79,7 +78,13 @@ def update_collection_by_id(
             "ETag mismatch: the collection has changed since you last read it. Re-fetch and retry.",
         )
 
+    if payload.identifier is not None:
+        if VariantCollection.objects.filter(identifier=payload.identifier).exclude(pk=c.pk).exists():
+            raise HttpError(409, f"A collection with identifier '{payload.identifier}' already exists.")
+        c.identifier = payload.identifier
     if payload.name is not None:
+        if VariantCollection.objects.filter(name=payload.name).exclude(pk=c.pk).exists():
+            raise HttpError(409, f"A collection with name '{payload.name}' already exists.")
         c.name = payload.name
     if payload.description is not None:
         c.description = payload.description

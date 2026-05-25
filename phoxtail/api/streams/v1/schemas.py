@@ -131,6 +131,7 @@ class CollectionUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
+    identifier: str | None = None
     name: str | None = None
     description: str | None = None
     template: str | None = None
