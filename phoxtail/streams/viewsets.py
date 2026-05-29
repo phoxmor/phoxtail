@@ -6,11 +6,28 @@ from wagtail.snippets.views.snippets import SnippetViewSet
 from .admin.panels import CodeEditorPanel
 from .models import (
     Block,
+    BlockCategory,
     BlockVariant,
     SharedBlock,
     VariantCollection,
 )
 from .views import BlockVariantChooserViewSet
+
+
+class BlockCategoryViewSet(SnippetViewSet):
+    model = BlockCategory
+    icon = "tag"
+    menu_label = _("Block Categories")
+    menu_name = _("Block Categories")
+    menu_order = 50
+    list_display = ["name", "slug"]
+    search_fields = ["name", "slug", "description"]
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+        FieldPanel("description"),
+    ]
 
 
 class BlockViewSet(SnippetViewSet):
@@ -34,6 +51,7 @@ class BlockViewSet(SnippetViewSet):
                     FieldPanel("group"),
                     FieldPanel("is_shared"),
                     FieldPanel("page_types"),
+                    FieldPanel("categories"),
                 ],
                 heading=_("Details"),
             ),

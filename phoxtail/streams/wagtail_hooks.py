@@ -7,6 +7,7 @@ from wagtail.admin.viewsets.model import ModelViewSetGroup
 from .permissions import StreamsAdminPermission
 from .views import SharedBlockChooserViewSet
 from .viewsets import (
+    BlockCategoryViewSet,
     BlockVariantViewSet,
     BlockViewSet,
     SharedBlockViewSet,
@@ -32,6 +33,7 @@ class StreamsViewSetGroup(ModelViewSetGroup):
     show_in_menu = True
     menu_order = 200
     items = (
+        BlockCategoryViewSet,
         BlockViewSet,
         SharedBlockViewSet,
         BlockVariantViewSet,

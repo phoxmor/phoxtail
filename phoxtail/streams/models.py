@@ -5,11 +5,12 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
+from wagtail.admin.panels import FieldPanel
 from wagtail.fields import StreamField
 from wagtail.models import Orderable
 from wagtail.search import index
 
-from phoxtail.core.mixins import TimestampMixin
+from phoxtail.core.mixins import AdminURLMixin, TimestampMixin, UUIDMixin
 from phoxtail.streams.blocks.schema import (
     AudioChooserSchemaBlock,
     BlockQuoteSchemaBlock,
@@ -43,6 +44,30 @@ from phoxtail.streams.blocks.schema import (
 )
 from phoxtail.streams.fields import SharedBlockStreamField
 from phoxtail.streams.utils import _page_content_type_choices
+
+
+class BlockCategory(UUIDMixin, TimestampMixin, AdminURLMixin, Orderable, index.Indexed):
+    name = models.CharField(max_length=100, verbose_name=_("Name"))
+    slug = models.SlugField(max_length=100, unique=True, verbose_name=_("Slug"))
+    description = models.TextField(blank=True, verbose_name=_("Description"))
+
+    panels = [
+        FieldPanel("name"),
+        FieldPanel("slug"),
+        FieldPanel("description"),
+    ]
+
+    search_fields = [
+        index.AutocompleteField("name"),
+        index.SearchField("description"),
+    ]
+
+    class Meta(Orderable.Meta):
+        verbose_name = _("Block Category")
+        verbose_name_plural = _("Block Categories")
+
+    def __str__(self):
+        return self.name
 
 
 class Block(index.Indexed, Orderable, ClusterableModel):
@@ -86,6 +111,13 @@ class Block(index.Indexed, Orderable, ClusterableModel):
         verbose_name=_("Page Types"),
         limit_choices_to=_page_content_type_choices,
         help_text=_("Restrict this block to specific page types. Leave empty to make it available on all pages."),
+    )
+    categories = models.ManyToManyField(
+        "phoxtail_streams.BlockCategory",
+        blank=True,
+        related_name="blocks",
+        verbose_name=_("Categories"),
+        help_text=_("Broad purpose groupings (e.g. Marketing, Ecommerce). Keep the vocabulary small and governed."),
     )
     schema = StreamField(
         [
@@ -189,6 +221,7 @@ class VariantCollection(index.Indexed, ClusterableModel):
         index.SearchField("name"),
         index.SearchField("identifier"),
         index.SearchField("description"),
+        index.FilterField("id"),
     ]
 
     class Meta:

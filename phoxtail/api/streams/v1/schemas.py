@@ -208,6 +208,35 @@ class BlockUpdate(Schema):
 
 
 # ---------------------------------------------------------------------------
+# Block Categories
+# ---------------------------------------------------------------------------
+
+
+class BlockCategoryItem(Schema):
+    id: int
+    name: str
+    slug: str
+    description: str
+
+
+class BlockCategoryList(Schema):
+    items: list[BlockCategoryItem]
+    total: int
+
+
+class BlockCategoryCreate(Schema):
+    name: str
+    slug: str
+    description: str = ""
+
+
+class BlockCategoryUpdate(Schema):
+    name: str | None = None
+    slug: str | None = None
+    description: str | None = None
+
+
+# ---------------------------------------------------------------------------
 # Context (agent briefing)
 # ---------------------------------------------------------------------------
 

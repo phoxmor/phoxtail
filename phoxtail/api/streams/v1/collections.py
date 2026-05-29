@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router

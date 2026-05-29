@@ -17,6 +17,7 @@ from ninja.errors import HttpError
 
 from phoxtail.streams.models import (
     Block,
+    BlockCategory,
     BlockVariant,
     SharedBlock,
     VariantCollection,
@@ -295,6 +296,35 @@ def shared_block_etag(sb: SharedBlock) -> str:
         sb.updated_at.isoformat(),
     ):
         h.update(part.encode("utf-8"))
+        h.update(b"\x00")
+    return f'W/"{h.hexdigest()[:16]}"'
+
+
+# ---------------------------------------------------------------------------
+# BlockCategory resolution and serialization
+# ---------------------------------------------------------------------------
+
+
+def resolve_block_category_by_pk(pk: int) -> BlockCategory:
+    try:
+        return BlockCategory.objects.get(pk=pk)
+    except BlockCategory.DoesNotExist as exc:
+        raise HttpError(404, f"BlockCategory {pk} not found.") from exc
+
+
+def block_category_detail(c: BlockCategory) -> dict:
+    return {
+        "id": c.id,
+        "name": c.name,
+        "slug": c.slug,
+        "description": c.description,
+    }
+
+
+def block_category_etag(c: BlockCategory) -> str:
+    h = hashlib.sha256()
+    for field in (c.name, c.slug, c.description):
+        h.update(field.encode("utf-8"))
         h.update(b"\x00")
     return f'W/"{h.hexdigest()[:16]}"'
 
