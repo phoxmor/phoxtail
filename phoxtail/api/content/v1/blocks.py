@@ -266,7 +266,7 @@ def add_block(
     etag = page_etag(page)
     response["ETag"] = etag
     response.status_code = 201
-    return {"block": saved_block, "_etag": etag}
+    return 201, {"block": saved_block, "_etag": etag}
 
 
 # ---------------------------------------------------------------------------
