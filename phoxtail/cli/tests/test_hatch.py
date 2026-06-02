@@ -96,11 +96,11 @@ class TestCopyTemplate:
     def test_injects_optional_apps_into_settings(self, tmp_path):
         target = tmp_path / "myproject"
         target.mkdir()
-        _copy_template("myproject", target, optional_apps=["phoxtail.blog"])
+        _copy_template("myproject", target, optional_apps=["phoxtail.dashboard"])
 
         settings = (target / "src" / "settings" / "base.py").read_text()
         assert APPS_MARKER.strip() not in settings
-        assert '"phoxtail.blog",' in settings
+        assert '"phoxtail.dashboard",' in settings
 
     def test_removes_apps_marker_when_no_optional_apps(self, tmp_path):
         target = tmp_path / "myproject"
@@ -109,7 +109,7 @@ class TestCopyTemplate:
 
         settings = (target / "src" / "settings" / "base.py").read_text()
         assert APPS_MARKER.strip() not in settings
-        assert "phoxtail.blog" not in settings
+        assert "phoxtail.dashboard" not in settings
 
     def test_booking_writes_umbrella_dotted_name_only(self, tmp_path):
         """Hatch writes the umbrella app name. depends_on expansion happens
@@ -141,7 +141,7 @@ class TestCopyTemplate:
     def test_no_booking_removes_all_booking_apps(self, tmp_path):
         target = tmp_path / "myproject"
         target.mkdir()
-        _copy_template("myproject", target, optional_apps=["phoxtail.blog"])
+        _copy_template("myproject", target, optional_apps=["phoxtail.dashboard"])
 
         settings = (target / "src" / "settings" / "base.py").read_text()
         assert "phoxtail.booking" not in settings

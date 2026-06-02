@@ -53,6 +53,7 @@ nav:
               - Single Select Search: engine/streams/single-select-search-widget.md
 
   - Patterns:
+      - What Makes a Phoxtail App: patterns/phoxtail-app-manifesto.md
       - Testing: patterns/testing.md
       - Personal Access Tokens: patterns/personal-access-tokens.md
       - CLI Authentication: patterns/cli-authentication.md
@@ -61,6 +62,7 @@ nav:
       - App Contribution:
           - Contribution Model: patterns/app-contribution-model.md
           - Page Schema Contributions: patterns/page-schema-contributions.md
+          - Library App Extraction: patterns/library-app-extraction.md
       - Service Layer:
           - Overview: patterns/service-layer-overview.md
           - Users: patterns/service-layer-users.md

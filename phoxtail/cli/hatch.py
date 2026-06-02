@@ -35,7 +35,6 @@ CONDITIONAL_FILES: dict[str, callable] = {
 
 # Optional phoxtail apps available during hatching.
 OPTIONAL_APPS = [
-    {"name": "Blog", "value": "phoxtail.blog"},
     {"name": "Dashboard", "value": "phoxtail.dashboard"},
     {"name": "Booking", "value": "phoxtail.booking"},
 ]

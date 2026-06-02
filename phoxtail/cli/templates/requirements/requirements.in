@@ -38,6 +38,7 @@ httpx
 # Phoxtail runtime deps (auto-resolved when installed as a package; explicit here for bind-mount dev)
 mcp
 pydantic-ai>=1.89
+questionary
 typer
 
 # Development

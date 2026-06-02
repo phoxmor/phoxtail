@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "phoxtail": {
-      "command": "phoxtail",
-      "args": ["mcp", "serve"]
+      "command": "docker",
+      "args": ["compose", "exec", "-T", "web", "python", "-m", "phoxtail", "mcp", "serve"]
     }
   }
 }

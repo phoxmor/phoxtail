@@ -50,9 +50,6 @@ engine = [
     "sorl-thumbnail>=12.10",
     "fonttools[woff]>=4.43",
 ]
-blog = [
-    "phoxtail[engine]",
-]
 dashboard = [
     "phoxtail[engine]",
 ]
@@ -80,7 +77,7 @@ dev = [
     "ruff>=0.4.0",
     "freezegun>=1.2",
     "ipython>=8.0",
-    "phoxtail[engine,blog,booking,dashboard,docs,chatbot]",
+    "phoxtail[engine,booking,dashboard,docs,chatbot]",
 ]
 
 [project.urls]
@@ -89,9 +86,6 @@ Repository = "https://github.com/phoxmor/phoxtail"
 
 [project.scripts]
 phoxtail = "phoxtail.__main__:app"
-
-[project.entry-points."phoxtail.mcp_modules"]
-blog = "phoxtail.blog.mcp"
 
 [tool.setuptools.packages.find]
 include = ["phoxtail*"]
@@ -109,7 +103,6 @@ exclude = [
 "phoxtail.agent" = ["templates/**/*", "static/**/*"]
 "phoxtail.tokens" = ["templates/**/*", "static/**/*"]
 "phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
-"phoxtail.blog" = ["templates/**/*", "management/data/**/*"]
 "phoxtail.dashboard" = ["templates/**/*", "static/**/*"]
 "phoxtail.booking.core" = ["templates/**/*", "static/**/*"]
 "phoxtail.booking.events" = ["templates/**/*", "static/**/*", "management/data/**/*"]
