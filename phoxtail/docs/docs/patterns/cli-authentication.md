@@ -65,21 +65,12 @@ If `api_url` does not reflect the actual published port, everything downstream b
 
 ## The resolver
 
-`phoxtail/cli/utils/credentials.py` implements the shared resolution logic. The precedence is:
-
-1. **`PHOXTAIL_API_TOKEN` environment variable** — always wins. Set this in CI, containers, or any environment where you don't want the file to interfere.
-2. **`~/.phoxtail/credentials`** — keyed by the host derived from the current project's API URL.
-3. **`None`** — if neither source has a token, no `Authorization` header is sent. The API returns `401` and the CLI or MCP client surfaces a helpful message.
-
-The environment variable always wins so that CI pipelines and container deployments can inject a token without touching the credentials file. A whitespace-only env value is treated as unset and falls through to the file.
+`phoxtail/cli/utils/credentials.py` implements the shared resolution logic. The resolver reads `~/.phoxtail/credentials` keyed by the host derived from the current project's API URL, and returns `None` when no entry exists — no `Authorization` header is sent and the API returns `401`.
 
 ```python
 # phoxtail/cli/utils/credentials.py
 
 def resolve_token(base_url: str) -> str | None:
-    env_value = os.environ.get(ENV_VAR)
-    if env_value and env_value.strip():
-        return env_value.strip()
     data = _read_file()
     entry = data.get(host_for_url(base_url))
     if isinstance(entry, dict):
@@ -133,7 +124,7 @@ The CLI client prints a recovery message when it receives a `401` from the API:
 
 ```
 Error: Authentication credentials were not provided.
-Run phoxtail auth login to store an API token, or set $PHOXTAIL_API_TOKEN.
+Run phoxtail auth login to store an API token.
 ```
 
 The MCP client does not print this message — it is expected to surface the HTTP error to the agent.
@@ -174,20 +165,18 @@ Show the current credential state.
 
 ```
 $ phoxtail auth status
-$PHOXTAIL_API_TOKEN is not set.
 Stored in /home/alice/.phoxtail/credentials:
   localhost: phxt_Xf9d…wOo3
   staging.example.com: phxt_Kb7m…r5Qp
 Current project host: localhost
 ```
 
-If `$PHOXTAIL_API_TOKEN` is set, it is shown as the active credential with a note that it overrides the file. Token values are masked: the first 8 characters and the last 4 are shown, the rest are replaced with `…`.
+Token values are masked: the first 8 characters and the last 4 are shown, the rest are replaced with `…`.
 
 The "Current project host" line is always printed, even when no tokens are stored yet — that is exactly when the user needs to know which host key the next `phoxtail auth login` will write under:
 
 ```
 $ phoxtail auth status
-$PHOXTAIL_API_TOKEN is not set.
 No tokens stored in /home/alice/.phoxtail/credentials.
 Current project host: localhost:8080
 ```
@@ -200,7 +189,7 @@ Remove the stored token for a host.
 phoxtail auth logout [--host <host>]
 ```
 
-This removes the entry from `~/.phoxtail/credentials`. If the env var is set, it is not affected — unset it manually.
+This removes the entry from `~/.phoxtail/credentials`.
 
 ```
 $ phoxtail auth logout
@@ -208,6 +197,8 @@ Removed token for localhost.
 ```
 
 ---
+
+
 
 ## Tutorial: setting up and testing credentials end-to-end
 
@@ -264,16 +255,9 @@ phoxtail mcp serve
 
 The MCP server resolves the token using the same resolver. Any MCP tool call (e.g. `phoxtail_list_blocks`) attaches the bearer header before reaching the API.
 
-### Step 6 — CI/container override
+### Step 6 — Using credentials inside a container
 
-Set the environment variable instead of using the credentials file:
-
-```bash
-export PHOXTAIL_API_TOKEN=phxt_ci_token_here
-phoxtail studio list blocks
-```
-
-The env var always wins over the file.
+The credentials file at `~/.phoxtail/credentials` is mounted read-only into the container at `/home/app/.phoxtail`. Run `phoxtail auth login --host <host>` on the host machine before starting the container, and the token is available to any CLI or MCP tool call inside it without further configuration.
 
 ### Step 7 — revoke or rotate
 
@@ -293,7 +277,7 @@ phoxtail auth login                      # store new token
 | File | Role |
 |---|---|
 | `phoxtail/cli/utils/config.py` | `get_api_base_url()` — single source of truth for the project's API URL; read by the three callers below so they cannot drift |
-| `phoxtail/cli/utils/credentials.py` | Shared resolver — env var, file read/write, host key derivation |
+| `phoxtail/cli/utils/credentials.py` | Shared resolver — file read/write, host key derivation |
 | `phoxtail/cli/auth.py` | `phoxtail auth login/status/logout` command group |
 | `phoxtail/cli/studio/client.py` | Studio CLI HTTP client — bearer injection on every request |
 | `phoxtail/mcp/_http.py` | MCP HTTP client — same bearer injection pattern |
@@ -307,9 +291,9 @@ phoxtail auth login                      # store new token
 
 | Test file | What it covers |
 |---|---|
-| `phoxtail/cli/tests/test_credentials.py` | Resolver precedence, file read/write, host key derivation, file permissions, malformed file handling |
-| `phoxtail/cli/tests/test_http_auth_injection.py` | Bearer injection in the Studio CLI client — env token, explicit header preserved, no header when token absent |
-| `phoxtail/cli/tests/test_auth.py` | `phoxtail auth status` — empty state, stored hosts, env override flag |
+| `phoxtail/cli/tests/test_credentials.py` | File read/write, host key derivation, file permissions, malformed file handling |
+| `phoxtail/cli/tests/test_http_auth_injection.py` | Bearer injection in the Studio CLI client — explicit header preserved, no header when token absent |
+| `phoxtail/cli/tests/test_auth.py` | `phoxtail auth status` — empty state, stored hosts |
 | `phoxtail/cli/tests/test_config.py` (`TestApiBaseUrl`) | Shared `get_api_base_url()` — fallback when no `[studio]` section, `api_url` read-through, trailing-slash strip, empty-string fallback |
 
 !!! note "MCP bearer injection"

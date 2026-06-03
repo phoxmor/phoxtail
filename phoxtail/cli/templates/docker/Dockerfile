@@ -6,6 +6,9 @@ EXPOSE {{ port }}
 ENV PYTHONUNBUFFERED=1 \
     PORT={{ port }}
 
+RUN mkdir -p /home/app && chown 1000:1000 /home/app
+ENV HOME=/home/app
+
 # Install System Dependencies
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
     build-essential \

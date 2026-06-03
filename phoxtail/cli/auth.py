@@ -10,7 +10,6 @@ managing the key by hand.
 from __future__ import annotations
 
 import getpass
-import os
 
 import httpx
 import typer
@@ -89,15 +88,7 @@ def login(
 
 @app.command("status")
 def status() -> None:
-    """Show configured credentials (env var and stored hosts)."""
-    env_value = os.environ.get(credentials.ENV_VAR, "")
-    if env_value:
-        console.print(
-            f"[green]${credentials.ENV_VAR}[/green] is set ({_mask(env_value.strip())}) — this overrides the file."
-        )
-    else:
-        console.print(f"[dim]${credentials.ENV_VAR} is not set.[/dim]")
-
+    """Show stored credentials and the current project host."""
     hosts = credentials.list_hosts()
     if not hosts:
         console.print(f"No tokens stored in [bold]{credentials.CREDENTIALS_FILE}[/bold].")

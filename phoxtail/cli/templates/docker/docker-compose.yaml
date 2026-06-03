@@ -10,6 +10,7 @@ services:
       - .:/app
 {% if phoxtail_source is defined %}
       - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
+      - ${HOME}/.phoxtail:/home/app/.phoxtail:ro
     environment:
       - PYTHONPATH=/opt/phoxtail
 {% endif %}

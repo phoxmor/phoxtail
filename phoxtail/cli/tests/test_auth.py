@@ -17,7 +17,6 @@ runner = CliRunner()
 def isolated_home(tmp_path, monkeypatch):
     """Route ~/.phoxtail at a temp HOME and reload credentials."""
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("PHOXTAIL_API_TOKEN", raising=False)
     from phoxtail.cli.utils import credentials as mod
 
     importlib.reload(mod)
@@ -62,14 +61,3 @@ def test_status_lists_stored_hosts_and_current(isolated_home, tmp_path):
     assert result.exit_code == 0
     assert "localhost:8080" in result.stdout
     assert "Current project host:" in result.stdout
-
-
-def test_status_flags_env_override(isolated_home, tmp_path, monkeypatch):
-    _write_toml(tmp_path / "phoxtail.toml", "http://localhost")
-    monkeypatch.setenv("PHOXTAIL_API_TOKEN", "phxt_envtoken1234567")
-
-    result = runner.invoke(auth.app, ["status"])
-
-    assert result.exit_code == 0
-    assert "PHOXTAIL_API_TOKEN" in result.stdout
-    assert "overrides" in result.stdout

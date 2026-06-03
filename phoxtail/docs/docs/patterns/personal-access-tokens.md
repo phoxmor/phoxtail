@@ -266,7 +266,6 @@ See [CLI Authentication](cli-authentication.md) for the full client-side picture
 Summary:
 
 - Tokens are stored in `~/.phoxtail/credentials` (TOML, `chmod 600`), keyed by host.
-- `$PHOXTAIL_API_TOKEN` overrides the file — use this in CI and containers.
 - Both `phoxtail/cli/studio/client.py` and `phoxtail/mcp/_http.py` call `resolve_token()` before every request and attach the result as `Authorization: Bearer …` automatically.
 
 ### Future: OAuth2 for external agents

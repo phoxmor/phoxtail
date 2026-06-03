@@ -186,7 +186,7 @@ No token exchange, no OAuth. The chatbot endpoint uses `django_auth` (Ninja's se
 
 Note: the Phoxtail API defaults to `PhoxtailTokenAuth` (Bearer token). The `phoxtail.agent` router overrides this with `django_auth` specifically so that browser fetch calls work without a separate token. Browser POSTs from the same origin carry the session cookie automatically.
 
-When the tool executor calls MCP tool functions, it uses the shared `PHOXTAIL_API_TOKEN` env var via `resolve_token()` in `_http.py`. All chatbot users therefore operate as the token owner (typically superuser). Per-user token threading is the next step after the current MVP; service-layer extraction (tools call ORM directly) is the target.
+When the tool executor calls MCP tool functions, it uses the mounted `~/.phoxtail/credentials` file via `resolve_token()` in `_http.py`. All chatbot users therefore operate as the token owner (typically superuser). Per-user token threading is the next step after the current MVP; service-layer extraction (tools call ORM directly) is the target.
 
 ---
 
@@ -261,13 +261,13 @@ The full stack is implemented and verified working end-to-end. Browser → desig
 
 ### Auth: current state and path forward
 
-**Current (MVP):** The chat endpoint uses `django_auth` (session cookie), gated to `is_superuser`. The MCP tool loopback calls (`_http.py`) read the shared `PHOXTAIL_API_TOKEN` env var via `resolve_token()`. This means all chatbot sessions operate as that token's owner regardless of the calling user.
+**Current (MVP):** The chat endpoint uses `django_auth` (session cookie), gated to `is_superuser`. The MCP tool loopback calls (`_http.py`) read the mounted `~/.phoxtail/credentials` file via `resolve_token()`. This means all chatbot sessions operate as that token's owner regardless of the calling user.
 
 **Auth alternatives:**
 
 | Option | Description | Effort |
 |---|---|---|
-| A (current) | Shared `PHOXTAIL_API_TOKEN` in `.env` | Done; requires superuser gate on view |
+| A (current) | Shared token from mounted `~/.phoxtail/credentials` | Done; requires superuser gate on view |
 | B (next step) | Per-user token minted at turn start, threaded through `_http.py`'s `auth_token` param | Medium |
 | C (target) | Service-layer extraction: tools call Django ORM directly, no HTTP loopback, `request.user` is the auth context | Large refactor; documented as target architecture |
 
@@ -284,5 +284,5 @@ The full stack is implemented and verified working end-to-end. Browser → desig
 | 5 | Chat endpoint shape | Single `POST /api/agent/v1/chat/stream/` with nullable `conversation_uuid` in body. Creates a new conversation when omitted; continues existing one when provided. Target shape (`POST /conversations/` + `POST /conversations/{uuid}/messages/`) is deferred post-MVP. |
 | 6 | Gemini schema compatibility | PydanticAI's `GoogleModel` handles schema normalization internally. No `_strip_unsupported()` function needed. |
 | 7 | Tool result message format | PydanticAI handles tool result formatting for each provider internally. No manual role mapping or `FunctionResponse` construction needed. |
-| 8 | Auth in loopback calls | Chat endpoint uses `django_auth` (session), gated to `is_superuser`. MCP loopback calls use shared `PHOXTAIL_API_TOKEN` env var. Per-user token threading is the next step; service layer is the destination. |
+| 8 | Auth in loopback calls | Chat endpoint uses `django_auth` (session), gated to `is_superuser`. MCP loopback calls use the mounted `~/.phoxtail/credentials` file via `resolve_token()`. Per-user token threading is the next step; service layer is the destination. |
 | 9 | Background event loop | A single persistent daemon-thread event loop is created once and reused across all requests. PydanticAI/GoogleModel's `httpx` client is bound to the loop that created it — recreating per request raises "Event loop is closed". |

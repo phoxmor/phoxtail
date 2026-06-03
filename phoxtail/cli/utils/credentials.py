@@ -1,11 +1,9 @@
 """Credential storage for Phoxtail API access tokens.
 
 A single resolver is shared by the CLI (``phoxtail/cli/studio/client.py``)
-and the MCP server (``phoxtail/mcp/_http.py``). The precedence is:
-
-1. ``PHOXTAIL_API_TOKEN`` environment variable.
-2. ``~/.phoxtail/credentials`` TOML file, keyed by host.
-3. ``None`` — the caller decides how to surface "unauthenticated".
+and the MCP server (``phoxtail/mcp/_http.py``). The resolver reads
+``~/.phoxtail/credentials`` keyed by host and returns ``None`` when no
+entry exists — the caller decides how to surface "unauthenticated".
 
 The file format mirrors the convention documented in
 ``docs/docs/patterns/personal-access-tokens.md``::
@@ -30,7 +28,6 @@ from urllib.parse import urlparse
 
 CREDENTIALS_DIR = Path.home() / ".phoxtail"
 CREDENTIALS_FILE = CREDENTIALS_DIR / "credentials"
-ENV_VAR = "PHOXTAIL_API_TOKEN"
 
 
 def host_for_url(base_url: str) -> str:
@@ -78,14 +75,7 @@ def _write_file(data: dict) -> None:
 
 
 def resolve_token(base_url: str) -> str | None:
-    """Return the bearer token to use for requests against *base_url*.
-
-    Environment variable wins so CI, containers, and ad-hoc overrides
-    never get shadowed by a stale file entry.
-    """
-    env_value = os.environ.get(ENV_VAR)
-    if env_value and env_value.strip():
-        return env_value.strip()
+    """Return the bearer token stored for *base_url*'s host, or ``None``."""
     data = _read_file()
     entry = data.get(host_for_url(base_url))
     if isinstance(entry, dict):

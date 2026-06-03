@@ -17,7 +17,6 @@ def creds(tmp_path, monkeypatch):
     ``Path.home()``, so we reload it under the patched HOME.
     """
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.delenv("PHOXTAIL_API_TOKEN", raising=False)
     from phoxtail.cli.utils import credentials as mod
 
     importlib.reload(mod)
@@ -32,12 +31,6 @@ def test_host_for_url_variants(creds):
     assert creds.host_for_url("https://studio.example.com/") == "studio.example.com"
     assert creds.host_for_url("studio.example.com") == "studio.example.com"
     assert creds.host_for_url("") == "localhost"
-
-
-def test_resolve_prefers_env_over_file(creds, monkeypatch):
-    creds.save_token("localhost", "phxt_fromfile")
-    monkeypatch.setenv("PHOXTAIL_API_TOKEN", "phxt_fromenv")
-    assert creds.resolve_token("http://localhost") == "phxt_fromenv"
 
 
 def test_resolve_from_file(creds):
@@ -69,12 +62,6 @@ def test_file_permissions_are_tight(creds):
     assert mode == 0o600
     dir_mode = stat.S_IMODE(os.stat(creds.CREDENTIALS_DIR).st_mode)
     assert dir_mode == 0o700
-
-
-def test_empty_env_falls_through_to_file(creds, monkeypatch):
-    creds.save_token("localhost", "phxt_filetoken")
-    monkeypatch.setenv("PHOXTAIL_API_TOKEN", "   ")
-    assert creds.resolve_token("http://localhost") == "phxt_filetoken"
 
 
 def test_malformed_file_is_ignored(creds):

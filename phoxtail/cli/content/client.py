@@ -76,9 +76,7 @@ def _raise_for_error(response: httpx.Response) -> None:
         detail = response.text or f"HTTP {response.status_code}"
     console.print(f"[red]Error:[/red] {detail}")
     if response.status_code == 401:
-        console.print(
-            "Run [bold]phoxtail auth login[/bold] to store an API token, or set [bold]$PHOXTAIL_API_TOKEN[/bold]."
-        )
+        console.print("Run [bold]phoxtail auth login[/bold] to store an API token.")
     raise typer.Exit(code=EXIT_GENERAL_FAILURE)
 
 
