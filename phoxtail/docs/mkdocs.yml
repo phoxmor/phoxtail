@@ -88,6 +88,7 @@ nav:
       - Body Validation Gap: internal/body-validation-gap.md
       - MCP Session Editing: internal/mcp-session-editing.md
       - Block Variant Scenarios: internal/block-variant-scenarios.md
+      - Local Swarm Architecture: internal/local-swarm-architecture.md
 
 theme:
   name: material
