@@ -94,17 +94,6 @@ def get_api_base_url() -> str:
     return url.rstrip("/")
 
 
-def any_app_requires_celery() -> bool:
-    """Return True if any registered phoxtail app declares requires_celery."""
-    from phoxtail.core.wiring import find_phoxtail_config
-
-    for app in get_project_apps():
-        config = find_phoxtail_config(app)
-        if config is not None and config.requires_celery:
-            return True
-    return False
-
-
 def validate_project_name(name: str) -> str | None:
     """Validate a project name for use across Django, Celery, and Docker.
 

@@ -12,4 +12,3 @@ class AppAConfig(PhoxtailAppConfig):
         "APP_A_SETTING": "a-default",
         "SHARED_SETTING": "from-a",
     }
-    requires_celery = True

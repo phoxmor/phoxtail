@@ -17,9 +17,6 @@ services:
 {% endif %}
     depends_on:
       - db
-{% if requires_celery %}
-      - redis
-{% endif %}
 
   db:
     image: postgres:{{ postgres_version }}
@@ -34,47 +31,6 @@ services:
       - postgres_data:{{ pg_data_path }}
       - ./db-backups:/db-backups
 
-{% if requires_celery %}
-  redis:
-    image: redis:7-alpine
-    restart: always
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-
-  celery-worker:
-    build:
-      target: {{ environment }}
-    image: {{ image_name }}
-    pull_policy: build
-    restart: always
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
-    volumes:
-      - .:/app
-    env_file:
-      - ./.env
-    command: celery -A src worker --loglevel=info
-    depends_on:
-      - db
-      - redis
-
-  celery-beat:
-    build:
-      target: {{ environment }}
-    image: {{ image_name }}
-    pull_policy: build
-    restart: always
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
-    volumes:
-      - .:/app
-    env_file:
-      - ./.env
-    command: celery -A src beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    depends_on:
-      - db
-      - redis
-
-{% endif %}
 {% if environment == "development" %}
   docs:
     build:
@@ -121,9 +77,6 @@ services:
 {% endif %}
 volumes:
   postgres_data:
-{% if requires_celery %}
-  redis_data:
-{% endif %}
 {% if environment == "production" %}
   certbot_conf:
   certbot_www:

@@ -74,7 +74,6 @@ def wire_apps(settings_globals: dict) -> None:
     extra_context_processors: list[str] = []
     extra_middleware: list[str] = []
     default_settings: dict = {}
-    celery_enabled = False
 
     for app in settings_globals["INSTALLED_APPS"]:
         config = find_phoxtail_config(app)
@@ -84,8 +83,6 @@ def wire_apps(settings_globals: dict) -> None:
         extra_middleware.extend(config.middleware)
         for key, value in dict(config.default_settings).items():
             default_settings.setdefault(key, value)
-        if config.requires_celery:
-            celery_enabled = True
 
     if extra_context_processors and settings_globals.get("TEMPLATES"):
         cps = settings_globals["TEMPLATES"][0]["OPTIONS"].setdefault("context_processors", [])
@@ -100,10 +97,6 @@ def wire_apps(settings_globals: dict) -> None:
 
     for key, value in default_settings.items():
         settings_globals.setdefault(key, value)
-
-    settings_globals.setdefault("PHOXTAIL_CELERY_ENABLED", celery_enabled)
-    if celery_enabled:
-        settings_globals.setdefault("CELERY_TIMEZONE", settings_globals.get("TIME_ZONE", "UTC"))
 
 
 def collect_url_patterns():

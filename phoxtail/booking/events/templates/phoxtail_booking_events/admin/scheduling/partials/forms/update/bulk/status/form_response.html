@@ -1,8 +1,0 @@
-{% if messages %}
-    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
-{% endif %}
-{# Update the schedule with updated event statuses #}
-<div hx-swap-oob="innerHTML:#schedule-container">{% include 'phoxtail_booking_events/admin/scheduling/partials/schedule.html' %}</div>
-{# Close both modals - level 1 and base #}
-<div hx-swap-oob="delete:#base-modal-level-1"></div>
-<div hx-swap-oob="delete:#base-modal"></div>

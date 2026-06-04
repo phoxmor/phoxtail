@@ -197,9 +197,23 @@ A standalone package is only installed when a project explicitly depends on it. 
 
 ---
 
-## Step 8: Remove the hard-coded reference in the library
+## Step 8: Remove all library-owned references to the app
 
-If the library's CLI `hatch.py` (or any equivalent scaffolding command) lists the app as a built-in option, remove it. The library should not know about packages it does not ship. The extracted package can document its own install instructions.
+Two categories of references need to go.
+
+**Scaffolding references** — Remove the app's entry from `OPTIONAL_APPS` in `hatch.py`. The library should not know about packages it does not ship. Also remove any `CONDITIONAL_FILES` entries that gate scaffold files on the app's `requires_celery` or similar flags — the conditional file (e.g. `src/celery.py`) should move into the extracted package's own documentation or scaffolding.
+
+**Infrastructure stubs in core** — Some apps accumulate files and config in the library that only exist because the app needed them. For booking specifically:
+
+- `celery>=5.3` and `django-celery-beat` in `[engine]` extra in `pyproject.toml` → remove; they travel with the package
+- `any_app_requires_celery()` in `cli/utils/config.py` → remove
+- `{% if requires_celery %}` service blocks (redis, celery-worker, celery-beat, redis_data volume) in the docker-compose template → remove
+- `_get_app_info()` and `requires_celery` key in `hatch.py` → remove
+- `requires_celery` branch and `PHOXTAIL_CELERY_ENABLED` in `core/wiring.py` → remove
+
+Remove the associated test coverage at the same time: `test_any_app_requires_celery_*` in `test_config.py`, `test_requirements_in_*celery*` in `test_hatch.py`, and `test_*celery*` / `test_no_celery*` in `test_templates.py`.
+
+General principle: **if it exists in the library only because this app was once in the library, it leaves when the app does.** Leaving stubs behind is not backwards compatibility — it is dead code and a maintenance liability.
 
 ---
 
@@ -237,6 +251,9 @@ INSTALLED_APPS = [
 - [ ] Django Ninja API surface added or confirmed existing
 - [ ] MCP tools added or confirmed existing
 - [ ] MCP `__init__.py` imports tool modules directly — no `get_project_apps()` gate
-- [ ] Hard-coded library reference removed from `hatch.py` or equivalent
+- [ ] App entry removed from `OPTIONAL_APPS` in `hatch.py`
+- [ ] `CONDITIONAL_FILES` entries for the app removed from `hatch.py`
+- [ ] App-specific infrastructure stubs removed from phoxtail core (deps, CLI utils, compose template, wiring flags)
+- [ ] Associated tests for removed infrastructure deleted
 - [ ] Package made importable in each project (bind mount, git URL, or PyPI)
 - [ ] `"phoxtail_<app>"` added to `INSTALLED_APPS` in each project's settings

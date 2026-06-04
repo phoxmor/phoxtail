@@ -102,24 +102,6 @@ class TestWireApps:
         wire_apps(settings)
         assert settings["SHARED_SETTING"] == "from-a"
 
-    def test_celery_enabled_true_when_any_app_requires(self):
-        settings = _base_settings()
-        settings["INSTALLED_APPS"] = [APP_A]
-        wire_apps(settings)
-        assert settings["PHOXTAIL_CELERY_ENABLED"] is True
-
-    def test_celery_enabled_true_transitively_via_dependency(self):
-        settings = _base_settings()
-        settings["INSTALLED_APPS"] = [APP_B]
-        wire_apps(settings)
-        assert settings["PHOXTAIL_CELERY_ENABLED"] is True
-
-    def test_celery_enabled_false_with_no_requires_apps(self):
-        settings = _base_settings()
-        settings["INSTALLED_APPS"] = [APP_PLAIN]
-        wire_apps(settings)
-        assert settings["PHOXTAIL_CELERY_ENABLED"] is False
-
     def test_plain_appconfigs_skipped_silently(self):
         settings = _base_settings()
         settings["INSTALLED_APPS"] = [APP_PLAIN]

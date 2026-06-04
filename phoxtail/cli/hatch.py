@@ -15,7 +15,6 @@ from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.env import read_env_value
 from phoxtail.cli.utils.templates import render_template
-from phoxtail.core.wiring import find_phoxtail_config
 
 console = Console()
 
@@ -27,42 +26,10 @@ APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
 DIR_SENTINEL = "__project_name__"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 
-# Files that are only copied into a hatched project when a predicate holds.
-# The predicate receives the list of selected optional-app dotted names.
-CONDITIONAL_FILES: dict[str, callable] = {
-    "src/celery.py": lambda apps: any(_get_app_info(app)["requires_celery"] for app in apps),
-}
-
 # Optional phoxtail apps available during hatching.
 OPTIONAL_APPS = [
     {"name": "Dashboard", "value": "phoxtail.dashboard"},
-    {"name": "Booking", "value": "phoxtail.booking"},
 ]
-
-
-def _get_app_info(dotted_app: str) -> dict:
-    """Read celery + requirements metadata from an optional app's PhoxtailAppConfig.
-
-    Apps that don't ship a PhoxtailAppConfig (e.g. plain-AppConfig apps like
-    blog) return empty defaults.
-    """
-    config = find_phoxtail_config(dotted_app)
-    if config is None:
-        return {"requires_celery": False, "requirements": []}
-    return {
-        "requires_celery": config.requires_celery,
-        "requirements": list(config.requirements),
-    }
-
-
-def _collect_extra_requirements(selected_apps: list[str]) -> list[str]:
-    """Collect deduplicated extra requirements from selected optional apps."""
-    extras: list[str] = []
-    for app in selected_apps:
-        for req in _get_app_info(app)["requirements"]:
-            if req not in extras:
-                extras.append(req)
-    return extras
 
 
 # Wizard step definitions: (key, label)
@@ -150,7 +117,7 @@ def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str]
 
     *optional_apps* is a list of dotted app names to inject into
     INSTALLED_APPS (replacing the ``APPS_MARKER`` line). Per-app
-    integration (context processors, URL mounts, celery settings,
+    integration (context processors, URL mounts, default settings,
     dependencies) is handled at runtime by ``phoxtail.core.wiring`` via
     each app's ``PhoxtailAppConfig``.
 
@@ -170,17 +137,12 @@ def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str]
     else:
         apps_replacement = ""
 
-    # Evaluate which conditional files should be skipped for this project.
-    skipped_rel_paths = {rel for rel, predicate in CONDITIONAL_FILES.items() if not predicate(selected)}
-
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
         if src_path.is_dir():
             continue
 
         rel_path = src_path.relative_to(TEMPLATE_DIR)
-        if rel_path.as_posix() in skipped_rel_paths:
-            continue
 
         # Rename sentinel path components (e.g. __project_name__/) to the
         # concrete project name — both for directories and file names.
@@ -572,14 +534,7 @@ def hatch(
                 content = content.replace("apps = []", f"apps = {apps_toml}")
                 toml_path.write_text(content, encoding="utf-8")
 
-            # Generate requirements.in from template, then append any
-            # extra requirements contributed by selected optional apps
-            # (e.g. booking brings in celery + django-celery-beat).
             requirements_in = render_template("requirements/requirements.in", {})
-            extras = _collect_extra_requirements(selected_apps)
-            if extras:
-                suffix = "\n# Optional phoxtail apps\n" + "\n".join(extras) + "\n"
-                requirements_in = requirements_in.rstrip("\n") + "\n" + suffix
             (target_dir / "requirements.in").write_text(requirements_in, encoding="utf-8")
             file_count += 1
 

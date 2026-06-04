@@ -6,7 +6,6 @@ from phoxtail.cli.utils.config import (
     DEFAULT_API_BASE_URL,
     _deep_merge,
     _topological_sort,
-    any_app_requires_celery,
     docker_image_slug,
     get_api_base_url,
     get_cluster_names,
@@ -51,22 +50,12 @@ class TestProjectApps:
         # SAMPLE_TOML in conftest has no apps key → falls back to DEFAULTS
         assert get_project_apps() == []
 
-    def test_any_app_requires_celery_false_by_default(self):
-        assert any_app_requires_celery() is False
-
-    def test_any_app_requires_celery_true_for_booking(self, tmp_path, monkeypatch):
-        toml = tmp_path / "phoxtail.toml"
-        toml.write_text('[project]\nname = "test"\napps = ["phoxtail.booking"]\n')
-        monkeypatch.chdir(tmp_path)
-        load_config.cache_clear()
-        assert any_app_requires_celery() is True
-
     def test_get_project_apps_returns_list(self, tmp_path, monkeypatch):
         toml = tmp_path / "phoxtail.toml"
-        toml.write_text('[project]\nname = "test"\napps = ["phoxtail.blog", "phoxtail.booking"]\n')
+        toml.write_text('[project]\nname = "test"\napps = ["phoxtail.dashboard", "phoxtail_booking"]\n')
         monkeypatch.chdir(tmp_path)
         load_config.cache_clear()
-        assert get_project_apps() == ["phoxtail.blog", "phoxtail.booking"]
+        assert get_project_apps() == ["phoxtail.dashboard", "phoxtail_booking"]
 
 
 class TestApiBaseUrl:

@@ -34,8 +34,6 @@ class PhoxtailAppConfig(AppConfig):
     context_processors: list[str] = []
     middleware: list[str] = []
     default_settings: dict = {}
-    requires_celery: bool = False
-    requirements: list[str] = []
 
     # API + pages-domain contribution hooks. All optional.
     #

@@ -1,8 +1,0 @@
-{# Full widget response for select/clear actions on target_event #}
-{% include 'phoxtail_core/forms/widgets/htmx/single_select_search/input.html' %}
-{# OOB update: sync hidden form placeholder with current state #}
-<div hx-swap-oob="innerHTML:#move-reservation-form-placeholder">
-    <input type="hidden"
-           name="target_event"
-           value="{{ target_event_value|default:'' }}">
-</div>
