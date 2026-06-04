@@ -1,25 +1,3 @@
-# Framework
-Django
-wagtail
-
-# Django extensions
-django-environ
-django-allauth
-django-htmx
-django-countries[pyuca]
-django-phonenumber-field[phonenumbers]
-django-filter
-django-timezone-field
-sorl-thumbnail
-babel
-
-# API framework
-django-ninja
-
-# Wagtail extensions
-wagtailmedia
-wagtail-color-panel
-
 # Database
 psycopg[binary]
 
@@ -29,17 +7,10 @@ redis
 # Production server
 gunicorn
 
-# Utilities
+# Project utilities
+django-environ
 python-dateutil
-pyyaml
-jinja2
-httpx
-
-# Phoxtail runtime deps (auto-resolved when installed as a package; explicit here for bind-mount dev)
-mcp
-pydantic-ai>=1.89
-questionary
-typer
+babel
 
 # Development
 django-browser-reload

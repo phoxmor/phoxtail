@@ -37,6 +37,11 @@ docker-compose.*.yaml
 .dockerignore
 
 # --------------------
+# Local wheels (private packages not yet on PyPI)
+# --------------------
+wheels/
+
+# --------------------
 # Backups and Certbot
 # --------------------
 db-backups/

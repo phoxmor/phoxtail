@@ -8,12 +8,7 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - .:/app
-{% if phoxtail_source is defined %}
-      - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
       - ${HOME}/.phoxtail:/home/app/.phoxtail:ro
-    environment:
-      - PYTHONPATH=/opt/phoxtail
-{% endif %}
     env_file:
       - ./.env
 {% if environment == "development" %}
@@ -56,11 +51,6 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - .:/app
-{% if phoxtail_source is defined %}
-      - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
-    environment:
-      - PYTHONPATH=/opt/phoxtail
-{% endif %}
     env_file:
       - ./.env
     command: celery -A src worker --loglevel=info
@@ -77,11 +67,6 @@ services:
     user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     volumes:
       - .:/app
-{% if phoxtail_source is defined %}
-      - {{ phoxtail_source }}:/opt/phoxtail/phoxtail:ro
-    environment:
-      - PYTHONPATH=/opt/phoxtail
-{% endif %}
     env_file:
       - ./.env
     command: celery -A src beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler

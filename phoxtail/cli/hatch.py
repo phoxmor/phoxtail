@@ -556,6 +556,7 @@ def hatch(
         target_dir.mkdir(parents=True, exist_ok=True)
         (target_dir / "db-backups").mkdir(exist_ok=True)
         (target_dir / "media").mkdir(exist_ok=True)
+        (target_dir / "wheels").mkdir(exist_ok=True)
 
         # Copy template files with placeholder replacement
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):

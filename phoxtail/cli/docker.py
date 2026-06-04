@@ -110,17 +110,6 @@ def _get_postgres_data_path(version: str) -> str:
     return "/var/lib/postgresql" if int(version) >= 18 else "/var/lib/postgresql/data"
 
 
-def _get_phoxtail_source() -> str:
-    """Get the absolute path to the local phoxtail package directory.
-
-    Used to mount the local (unpublished) library apps into Docker
-    containers during development.
-    """
-    import phoxtail
-
-    return str(Path(phoxtail.__file__).resolve().parent)
-
-
 @create_app.command("dockerfile")
 def dockerfile(
     python_version: str | None = typer.Option(
@@ -367,10 +356,6 @@ def compose(
             "pg_data_path": _get_postgres_data_path(postgres_version),
             "requires_celery": any_app_requires_celery(),
         }
-        # Mount the local phoxtail source into every container that runs
-        # Django code — phoxtail is not yet on PyPI, so containers cannot
-        # `pip install phoxtail`. Remove this once phoxtail is published.
-        context["phoxtail_source"] = _get_phoxtail_source()
 
         content = render_template("docker/docker-compose.yaml", context)
         output.write_text(content)

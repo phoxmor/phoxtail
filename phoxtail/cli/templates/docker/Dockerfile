@@ -22,6 +22,11 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
     ffmpeg \
  && rm -rf /var/lib/apt/lists/*
 
+# Install private packages from local wheels (remove once published to PyPI)
+COPY wheels/ /tmp/wheels/
+RUN WHEEL=$(ls /tmp/wheels/phoxtail-*.whl) && pip install "${WHEEL}[dev]" && \
+    find /tmp/wheels -name '*.whl' ! -name 'phoxtail-*' -exec pip install {} +
+
 # Install Python Dependencies
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
