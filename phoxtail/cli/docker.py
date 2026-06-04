@@ -2,15 +2,17 @@
 
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import questionary
 import typer
+import yaml
+from jinja2 import Environment
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 from phoxtail.cli.utils.config import (
-    any_app_requires_celery,
     docker_image_slug,
     get_project_name,
 )
@@ -258,6 +260,38 @@ def dockerignore(
         raise typer.Exit(1)
 
 
+def _scan_wheel_fragments(context: dict) -> dict:
+    """Scan wheels/ for app compose fragments and return merged services+volumes.
+
+    Convention: any non-phoxtail wheel containing
+    ``{top_package}/compose/service.yaml.j2`` contributes a fragment.
+    Fragments are rendered with the same Jinja2 context as the base template
+    and must declare only ``services:`` and/or ``volumes:`` keys.
+    """
+    wheels_dir = Path("wheels")
+    merged: dict = {"services": {}, "volumes": {}}
+
+    if not wheels_dir.exists():
+        return merged
+
+    jinja_env = Environment()
+
+    for wheel_path in sorted(wheels_dir.glob("*.whl")):
+        if wheel_path.name.startswith("phoxtail-"):
+            continue
+
+        with zipfile.ZipFile(wheel_path) as zf:
+            candidates = [name for name in zf.namelist() if name.endswith("/compose/service.yaml.j2")]
+            for fragment_name in candidates:
+                template_str = zf.read(fragment_name).decode("utf-8")
+                rendered = jinja_env.from_string(template_str).render(**context)
+                fragment = yaml.safe_load(rendered) or {}
+                merged["services"].update(fragment.get("services", {}))
+                merged["volumes"].update(fragment.get("volumes", {}))
+
+    return merged
+
+
 @create_app.command("compose")
 def compose(
     environment: str | None = typer.Argument(
@@ -354,12 +388,19 @@ def compose(
             "image_name": f"{IMAGE_PREFIX}/{project_name}:latest",
             "postgres_version": postgres_version,
             "pg_data_path": _get_postgres_data_path(postgres_version),
-            "requires_celery": any_app_requires_celery(),
         }
 
-        content = render_template("docker/docker-compose.yaml", context)
+        base = yaml.safe_load(render_template("docker/docker-compose.yaml", context))
+        fragments = _scan_wheel_fragments(context)
+        if fragments["services"]:
+            base.setdefault("services", {}).update(fragments["services"])
+        if fragments["volumes"]:
+            base.setdefault("volumes", {}).update(fragments["volumes"])
+        content = yaml.dump(base, default_flow_style=False, sort_keys=False, allow_unicode=True)
         output.write_text(content)
         console.print(f"\n[green]✓[/green] Docker Compose file created: [bold]{output}[/bold]")
+        if fragments["services"]:
+            console.print(f"[dim]App fragments merged:[/dim] {', '.join(fragments['services'].keys())}")
         console.print(f"[dim]Image:[/dim] {IMAGE_PREFIX}/{project_name}:latest")
         console.print(f"[dim]PostgreSQL version:[/dim] {postgres_version}")
         console.print(f"[dim]Environment:[/dim] {env_lower}")

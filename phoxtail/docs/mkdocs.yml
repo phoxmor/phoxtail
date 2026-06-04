@@ -62,6 +62,7 @@ nav:
       - App Contribution:
           - Contribution Model: patterns/app-contribution-model.md
           - Page Schema Contributions: patterns/page-schema-contributions.md
+          - Infrastructure Contributions: patterns/infrastructure-contributions.md
           - Library App Extraction: patterns/library-app-extraction.md
       - Service Layer:
           - Overview: patterns/service-layer-overview.md
