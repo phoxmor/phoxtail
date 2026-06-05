@@ -8,7 +8,7 @@ Every design decision below follows from this.
 
 ## The database is the source of truth
 
-Historically, ground-state variants have shipped as files under `streams/management/data/blocks/<block>/variants/<collection>/<variant>/{template.html,style.css,script.js}` and have been seeded into the database during project hatch. Under Phoxtail Studio, **those files are demoted to one-time seed fixtures**. After the first `populate_streams`, the database is the only place that holds the live state of a variant.
+Historically, default variants have shipped as files under `streams/management/data/blocks/<block>/variants/<collection>/<variant>/{template.html,style.css,script.js}` and have been seeded into the database during project hatch. Under Phoxtail Studio, **those files are demoted to one-time seed fixtures**. After the first `populate_streams`, the database is the only place that holds the live state of a variant.
 
 This matters because the [sync protocol](sync.md) exchanges rows, not files. If two projects both ran `populate_streams` from the same fixture and then diverged independently, the fixture is no longer a meaningful reference point — it is only a common ancestor. The row is the working copy, the registry entry is the canonical version, and the seed file is a historical curiosity.
 

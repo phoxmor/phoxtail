@@ -4,7 +4,7 @@
 
 ## Context
 
-The Studio was built before a major refactor that moved all presentation (HTML/CSS/JS) out of the `Block` model and into `BlockVariant`. Previously, Block carried a "default" appearance directly, creating a dual source of truth. Now **all** appearance lives in variants, and every block is expected to have a default variant (the ground state).
+The Studio was built before a major refactor that moved all presentation (HTML/CSS/JS) out of the `Block` model and into `BlockVariant`. Previously, Block carried a "default" appearance directly, creating a dual source of truth. Now **all** appearance lives in variants, and every block is expected to have a default variant.
 
 The original Studio split its UI into two workflows — "Create" (generate a new variant from a block's default variant) and "Edit" (refine an existing variant). This distinction was enforced at the form level via `WORKFLOW_CHOICES` and the `_requires_variant` field on `BlockSystemPrompt`, which filtered which prompts appeared in each workflow.
 
@@ -46,7 +46,7 @@ The combination of prompt + variant + collection communicates intent:
 
 | Scenario | System Prompt | Variant | Collection |
 |----------|--------------|---------|------------|
-| Generate from ground state | Variant Generator | default variant | changed to target collection |
+| Generate from default | Variant Generator | default variant | changed to target collection |
 | Refine existing variant | Variant Refiner | the variant to refine | kept (auto-populated) |
 | Cross-collection redesign | Variant Generator | any variant | changed to different collection |
 | Audit a variant (future) | Variant Auditor | the variant to audit | kept |
@@ -308,9 +308,9 @@ def _studio_form_state_context(form):
 
 **File:** `streams/management/data/prompts/variant_generator.md`
 
-The `variant_generator` currently references the ground state via `{{ block.default_variant.html }}`, `{{ block.default_variant.css }}`, `{{ block.default_variant.javascript }}` (lines 121-137). Update to use `{{ variant.html }}`, `{{ variant.css }}`, `{{ variant.javascript }}`.
+The `variant_generator` currently references the default variant via `{{ block.default_variant.html }}`, `{{ block.default_variant.css }}`, `{{ block.default_variant.javascript }}` (lines 121-137). Update to use `{{ variant.html }}`, `{{ variant.css }}`, `{{ variant.javascript }}`.
 
-The "Ground State (Reference Implementation)" section becomes:
+The "Default Variant (Reference Implementation)" section becomes:
 
 ```django
 {% if variant %}

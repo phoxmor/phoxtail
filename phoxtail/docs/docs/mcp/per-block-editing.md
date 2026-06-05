@@ -138,7 +138,7 @@ This behaviour is intentional. The design bar is superuser-only, so editors unde
 
 #### The `block` variable invariant
 
-Block templates in this project (e.g. `header_section/variants/ground_state/default/template.html`) reference `{{ block.value.field_name }}`, not `{{ value.field_name }}`. The variable named `block` must be a `BoundBlock` in the template context when `{% include_block %}` runs.
+Block templates in this project (e.g. `header_section/variants/general_unsorted/default/template.html`) reference `{{ block.value.field_name }}`, not `{{ value.field_name }}`. The variable named `block` must be a `BoundBlock` in the template context when `{% include_block %}` runs.
 
 `BlockVariantStructBlock.render(value, context)` calls `StructBlock.get_context(value, parent_context=dict(context))` and the resulting `template_context` includes everything from `parent_context`. If the for-loop variable is named `block`, it flows through as `parent_context["block"]` and is accessible in the compiled variant template. If you rename the loop variable (e.g. to `bound_block`), `{{ block.value.xxx }}` in block templates evaluates to empty string and nothing renders.
 

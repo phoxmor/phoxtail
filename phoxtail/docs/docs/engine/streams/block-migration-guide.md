@@ -36,7 +36,7 @@ streams/management/commands/data/blocks/<block-identifier>/
 ├── block.yaml                                  # Block metadata (required)
 ├── schema.json                                 # Schema definition (required)
 └── variants/
-    └── <collection-identifier>/                # e.g. ground_state
+    └── <collection-identifier>/                # e.g. general_unsorted
         └── <variant-identifier>/               # e.g. default
             ├── variant.yaml                    # Variant metadata (required)
             ├── description.md                  # Variant description (required)
@@ -576,7 +576,7 @@ Before considering a migration complete:
 
 - [ ] `block.yaml` created with correct identifier
 - [ ] `schema.json` matches all fields from legacy block
-- [ ] `variant.yaml` created with `is_default: true` for the ground state default
+- [ ] `variant.yaml` created with `is_default: true` for the default variant
 - [ ] `description.md` created (required — variant is skipped without it)
 - [ ] `template.html` renders all fields correctly
 - [ ] `styles.css` includes necessary styles (if any)

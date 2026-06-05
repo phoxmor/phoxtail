@@ -38,7 +38,7 @@ A variant's local database primary key is not stable across projects and cannot 
 For example:
 
 ```
-phoxtail/ground-state/header-section/centered-dark
+phoxtail/general-unsorted/header-section/centered-dark
 mystudio/editorial/blog-post-header/prose-wide
 local/hero/my-experiment
 ```
@@ -71,7 +71,7 @@ This means a small agency can run its own registry for internal use without any 
 ### Pull
 
 ```
-phoxtail studio pull variant phoxtail/ground-state/header-section/centered-dark
+phoxtail studio pull variant phoxtail/general-unsorted/header-section/centered-dark
 ```
 
 The client asks the remote for the current version of the identified variant. The remote returns the row (html, css, javascript, metadata, version, parent version). The client writes it to the local database.
@@ -90,7 +90,7 @@ The client sends a local variant to a remote under a specified target identity. 
 ### Sync
 
 ```
-phoxtail studio sync collection phoxtail/ground-state --with origin
+phoxtail studio sync collection phoxtail/general-unsorted --with origin
 ```
 
 Bidirectional reconciliation for a whole collection. For each variant in the collection, the tool pulls updates if the remote is ahead and (optionally, with `--push`) pushes updates if the local is ahead. Variants that have diverged are reported and skipped.
@@ -100,7 +100,7 @@ Sync is most useful for maintaining a local mirror of a canonical collection.
 ### Fork
 
 ```
-phoxtail studio fork variant phoxtail/ground-state/header-section/centered-dark \
+phoxtail studio fork variant phoxtail/general-unsorted/header-section/centered-dark \
   --as local/hero/my-take
 ```
 

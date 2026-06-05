@@ -48,12 +48,12 @@ For a variant, the output includes the block, collection, description, and the c
 Diff a variant against another source.
 
 ```
-phoxtail studio diff variant <identifier> --against ground-state
+phoxtail studio diff variant <identifier> --against default
 phoxtail studio diff variant <identifier> --against <remote>:<identifier>
 phoxtail studio diff variant <identifier> --against session:<session-id>
 ```
 
-The three diff targets are the variant's own ground state, a remote variant (Phase 5+), or an active editing session (Phase 3+).
+The three diff targets are the block's default variant, a remote variant (Phase 5+), or an active editing session (Phase 3+).
 
 ## Context command
 

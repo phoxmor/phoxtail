@@ -8,7 +8,7 @@ This tutorial walks through a complete variant editing session using Claude Code
 - The project running via Docker (`phoxtail docker up`)
 - A [Claude Code](https://claude.ai/code) subscription (Pro, Max, or Team)
 - Claude Code installed (`npm install -g @anthropic-ai/claude-code`)
-- At least one variant in the database (the `populate_streams` management command seeds the ground-state collection on first run)
+- At least one variant in the database (the `populate_streams` management command seeds the General (Unsorted) collection on first run)
 
 ## Step 1: Register the MCP server
 
@@ -64,9 +64,9 @@ Claude calls `phoxtail_list_variants` and shows you a summary of every variant â
 
 | identifier | block | collection | default |
 |---|---|---|---|
-| centered | header_section | ground-state | yes |
-| centered-dark | header_section | ground-state | no |
-| simple | blog_post_header | ground-state | yes |
+| centered | header_section | general-unsorted | yes |
+| centered-dark | header_section | general-unsorted | no |
+| simple | blog_post_header | general-unsorted | yes |
 
 You can narrow the scope:
 
@@ -191,7 +191,7 @@ You are not limited to editing existing variants. To create one from scratch:
 
 ```
 Create a new variant called "bold-dark" for the header_section block
-in the ground-state collection. Start with a dark background, white
+in the general-unsorted collection. Start with a dark background, white
 text, and bold typography. Use the design context from the collection.
 ```
 
@@ -223,7 +223,7 @@ The identifier exists in multiple block/collection pairs. Be more specific:
 
 ```
 Show me the "centered" variant for the header_section block
-in the ground-state collection.
+in the general-unsorted collection.
 ```
 
 **"ETag mismatch" on save**

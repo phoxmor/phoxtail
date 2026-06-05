@@ -467,8 +467,8 @@ Only once Phase 4 is green on a freshly-hatched project.
    - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/dock.html` — replace `{% is_feature_enabled 'activate_dashboard' as is_dashboard_enabled %}` with `{% app_installed 'phoxtail.dashboard' as is_dashboard_enabled %}`.
    - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/drawer.html` — same.
    - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/sidebar.html` — same.
-   - `phoxtail/streams/management/data/blocks/navbar/variants/ground_state/default/template.html` — same (2 occurrences).
-   - `phoxtail/streams/management/data/blocks/navbar/variants/ground_state/default_transparent/template.html` — same (2 occurrences).
+   - `phoxtail/streams/management/data/blocks/navbar/variants/general_unsorted/default/template.html` — same (2 occurrences).
+   - `phoxtail/streams/management/data/blocks/navbar/variants/general_unsorted/default_transparent/template.html` — same (2 occurrences).
 3. Note: **the dashboard templates that check `activate_dashboard` are inside the dashboard app itself**. If the dashboard app is installed, the check is trivially true. Consider whether these checks are actually needed at all — they may be vestigial from before dashboard became optional. Decide case-by-case: inside dashboard's own templates, probably drop the check entirely. Inside `phoxtail.streams` navbar templates (which need to work whether dashboard is installed or not), keep the check.
 4. `phoxtail/users/adapters.py` — replace `settings.FEATURE_ALLOW_SIGNUP` with `settings.PHOXTAIL_ALLOW_SIGNUP`.
 
@@ -515,8 +515,8 @@ The current tag has two distinct jobs buried inside one API:
 - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/dock.html` line 2
 - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/drawer.html` line 66
 - `phoxtail/dashboard/templates/phoxtail_dashboard/navigation/sidebar.html` line 26
-- `phoxtail/streams/management/data/blocks/navbar/variants/ground_state/default/template.html` lines 151, 359
-- `phoxtail/streams/management/data/blocks/navbar/variants/ground_state/default_transparent/template.html` lines 160, 372
+- `phoxtail/streams/management/data/blocks/navbar/variants/general_unsorted/default/template.html` lines 151, 359
+- `phoxtail/streams/management/data/blocks/navbar/variants/general_unsorted/default_transparent/template.html` lines 160, 372
 
 **Inside-dashboard checks are vestigial**: dock/drawer/sidebar are shipped *by* the dashboard app. If they render, dashboard is installed. Drop the check entirely in those three files.
 

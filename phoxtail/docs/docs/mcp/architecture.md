@@ -246,7 +246,7 @@ The pattern is proven. `studio/` is the reference implementation.
 
 With the MCP server structured as a project-wide surface, the following workflows become possible in a single agent conversation:
 
-- "List all variants in the hero block and show me the one from the ground-state collection" — `phoxtail_studio_list_variants` + `phoxtail_studio_get_variant`
+- "List all variants in the hero block and show me the one from the general-unsorted collection" — `phoxtail_studio_list_variants` + `phoxtail_studio_get_variant`
 - "Get the full context for editing this variant, then update its CSS" — `phoxtail_studio_get_context` + `phoxtail_studio_update_variant`
 - "Show me the palettes available in this project" — `phoxtail_design_list_palettes`
 - "Find the homepage of My Awesome Site and translate it to German" — `phoxtail_pages_list_sites` + `phoxtail_pages_find_page` + `phoxtail_pages_translate_page`

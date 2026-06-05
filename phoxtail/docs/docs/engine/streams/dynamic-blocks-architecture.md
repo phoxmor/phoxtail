@@ -61,7 +61,7 @@ class Block(models.Model):
 - **schema**: StreamField using meta-blocks to define the block's structure
 
 **Properties:**
-- **default_variant**: Returns the BlockVariant marked as default for this block (the ground state)
+- **default_variant**: Returns the BlockVariant marked as default for this block
 
 ### 2. VariantCollection Model (`streams/models.py`)
 
@@ -104,7 +104,7 @@ The `VariantCollection.template` field uses Django Template Language (DTL) to do
 {# In VariantCollection.template field #}
 ## Color Strategy
 
-The ground state uses semantic CSS variables derived from the site's global palettes.
+Default variants use semantic CSS variables derived from the site's global palettes.
 
 **Naming Convention**: `--color-{role}-{shade}` (e.g., `--color-surface-800`, `--color-primary-600`)
 
@@ -115,7 +115,7 @@ Available semantic roles:
 
 ## Typography Strategy
 
-The ground state uses semantic font variables for family and weight.
+Default variants use semantic font variables for family and weight.
 
 **Variable Patterns**:
 - Family: `--font-{role}` (e.g., `--font-heading`)
@@ -159,12 +159,12 @@ class BlockVariant(models.Model):
         ]
 ```
 
-**Purpose:** Stores all presentation code for blocks. Each block has exactly one default variant (its ground state) that serves as the fallback when no variant is explicitly selected.
+**Purpose:** Stores all presentation code for blocks. Each block has exactly one default variant that serves as the fallback when no variant is explicitly selected.
 
 **Key Fields:**
 - **identifier**: Unique identifier within the block+collection combination
 - **description**: Explains why this variant exists and what makes it different (required for AI context and team communication)
-- **is_default**: Boolean flag. Only one variant per block can be default (enforced by partial unique constraint). The default variant is the block's "ground state" — its most natural rendering.
+- **is_default**: Boolean flag. Only one variant per block can be default (enforced by partial unique constraint). The default variant is the block's most natural rendering.
 - **html/css/javascript**: Split template fields for separation of concerns
 - **preview_image**: Optional screenshot of the rendered variant
 
@@ -485,7 +485,7 @@ def render(self, value, context=None):
    ├─ identifier: "simple_hero"
    └─ schema: [Define structure using meta-blocks]
 
-2. Admin creates default variant (ground state):
+2. Admin creates default variant:
    ├─ block: Simple Hero
    ├─ collection: Ground State
    ├─ is_default: True
@@ -665,14 +665,14 @@ The `populate_streams` management command provides a file-based approach to seed
 ```
 streams/management/commands/data/
 ├── collections/                          # Variant collections
-│   ├── ground_state.md                   # Ground State collection (default variants)
+│   ├── general_unsorted.md               # General (Unsorted) collection (default variants)
 │   └── *.md                              # YAML frontmatter + markdown body
 └── blocks/                               # Block definitions
     └── <block-identifier>/               # One directory per block
         ├── block.yaml                    # Metadata (required)
         ├── schema.json                   # Schema definition (required)
         └── variants/                     # Block variants
-            ├── ground_state/             # Ground State collection
+            ├── general_unsorted/         # General (Unsorted) collection
             │   └── default/              # Default variant (is_default: true)
             │       ├── variant.yaml      # Includes is_default: true
             │       ├── description.md    # Design rationale
@@ -762,7 +762,7 @@ icon: title
 ```yaml
 name: Centered Dark
 identifier: centered_dark
-is_default: false  # Optional, defaults to false. Set true for ground state variants.
+is_default: false  # Optional, defaults to false. Set true for the default variant.
 ```
 
 Note: The `collection` is derived from the folder path, not specified in the YAML.
@@ -802,17 +802,13 @@ python manage.py populate_streams --only=variants
 
 ---
 
-## Ground State & Ground State Collection
+## General (Unsorted) Collection
 
-In physics, the *ground state* is the lowest energy configuration of a system — not the absence of form, but the most natural, stable state that emerges from the constraints of the problem. A rectangular door at human height with a handle at hip level is not minimal for minimalism's sake; it is the shape that human anatomy, gravity, and material properties naturally converge on. It is the form that requires no justification.
-
-Each block's default variant — its ground state — follows this principle. It is the most stable, useful, and self-evident rendering of the block's structure. Not the most decorative, not the most minimal, but the most *natural*: the form that would emerge if you asked "what is this block at its most essential?" The ground state demonstrates the block's capabilities through the simplest means that still feels complete. It is the baseline from which all creative departures begin.
-
-The **Ground State** collection (`identifier: ground_state`) houses these default variants. It is not a design system in the traditional sense — it is the set of canonical forms that blocks assume when no other design context is applied.
+The **General (Unsorted)** collection (`identifier: general_unsorted`) is the default catch-all collection for block variants that are not sorted into a specialised design system (Material Design, HIG, Carbon, etc.). It houses each block's canonical default variant — the most self-evident rendering of the block's structure, serving as the baseline from which design-system variants depart.
 
 **Implementation:**
 - Each block has exactly one default variant (`is_default=True`), enforced by a partial unique constraint
-- Default variants are typically placed in the Ground State collection with identifier `default`
+- Default variants are typically placed in the General (Unsorted) collection with identifier `default`
 - The `Block.default_variant` property provides convenient access
 - The `get_default_variant()` cache function ensures efficient lookups during rendering
 - When no variant is explicitly selected by a content editor, the default variant is used automatically
@@ -944,7 +940,7 @@ CSS:
 **Key Features Demonstrated:**
 - **Block is purely structural**: Only name, identifier, description, and schema
 - **All presentation in variants**: HTML, CSS, JavaScript live in BlockVariant
-- **Default variant as ground state**: The most natural rendering of the block
+- **Default variant**: The most natural rendering of the block
 
 ### Step 2: Block Available Immediately
 

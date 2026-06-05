@@ -14,7 +14,7 @@ from phoxtail.mcp.studio._http import get_json, request
     description=(
         "List all variant collections in the project. "
         "A collection groups variants under a shared design system "
-        "(e.g. 'ground-state', 'material-design')."
+        "(e.g. 'general-unsorted', 'material-design-3')."
     ),
 )
 def list_collections(search: str | None = None) -> str:

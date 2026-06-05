@@ -8,7 +8,7 @@ Each Phoxtail project is a self-contained design environment: it has its own Blo
 
 A concrete scenario:
 
-> Project A is a client website built on Phoxtail. Project B is a central archive — `phoxtail.com` — maintained by a digital agency. Project A runs `phoxtail studio pull header-section --collection ground-state`. Project B returns the current authoritative version of that variant. Project A updates its local copy, renders it in a preview page, commits to its own history, and continues.
+> Project A is a client website built on Phoxtail. Project B is a central archive — `phoxtail.com` — maintained by a digital agency. Project A runs `phoxtail studio pull header-section --collection general-unsorted`. Project B returns the current authoritative version of that variant. Project A updates its local copy, renders it in a preview page, commits to its own history, and continues.
 
 The same verbs work peer-to-peer. Any two Phoxtail projects can exchange variants directly, with or without a central registry. The central registry is a convenience and a product layer, not a protocol requirement.
 

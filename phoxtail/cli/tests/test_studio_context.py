@@ -19,8 +19,8 @@ CONTEXT_RESPONSE = {
         "field_schema": '{"fields": []}',
     },
     "collection": {
-        "identifier": "ground-state",
-        "name": "Ground State",
+        "identifier": "general-unsorted",
+        "name": "General (Unsorted)",
         "description": "Minimal design system.",
         "design_guidelines": "## Core Principles\n\nStructure dictates form.",
     },

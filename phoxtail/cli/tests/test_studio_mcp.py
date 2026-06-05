@@ -59,7 +59,7 @@ SAMPLE_VARIANT_SUMMARY = {
     "description": "A centered hero section.",
     "is_default": True,
     "block": {"id": 1, "identifier": "header_section", "name": "Header Section"},
-    "collection": {"id": 1, "identifier": "ground-state", "name": "Ground State"},
+    "collection": {"id": 1, "identifier": "general-unsorted", "name": "General (Unsorted)"},
 }
 
 SAMPLE_VARIANT_DETAIL = {
@@ -177,10 +177,10 @@ class TestListVariants:
     def test_passes_filters(self, httpx_mock: HTTPXMock):
         payload = {"variants": [], "total": 0}
         httpx_mock.add_response(json=payload)
-        list_variants(block="hero", collection="ground-state")
+        list_variants(block="hero", collection="general-unsorted")
         req = httpx_mock.get_request()
         assert "block=hero" in str(req.url)
-        assert "collection=ground-state" in str(req.url)
+        assert "collection=general-unsorted" in str(req.url)
 
     def test_passes_search(self, httpx_mock: HTTPXMock):
         payload = {"variants": [], "total": 0}
@@ -229,15 +229,15 @@ class TestGetCollection:
     def test_returns_collection_detail(self, httpx_mock: HTTPXMock):
         payload = {
             "id": 1,
-            "identifier": "ground-state",
-            "name": "Ground State",
+            "identifier": "general-unsorted",
+            "name": "General (Unsorted)",
             "description": "Minimal design system.",
             "template": "## Core Principles\n\nStructure dictates form.",
             "variant_count": 3,
         }
         httpx_mock.add_response(url=url("/api/streams/v1/collections/1/"), json=payload)
         result = json.loads(get_collection(1))
-        assert result["identifier"] == "ground-state"
+        assert result["identifier"] == "general-unsorted"
         assert result["template"] == "## Core Principles\n\nStructure dictates form."
 
 
@@ -264,8 +264,8 @@ class TestGetContext:
             "field_schema": '{"fields": []}',
         },
         "collection": {
-            "identifier": "ground-state",
-            "name": "Ground State",
+            "identifier": "general-unsorted",
+            "name": "General (Unsorted)",
             "description": "Minimal design system.",
             "design_guidelines": "## Core Principles\n\nStructure dictates form.",
         },

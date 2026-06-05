@@ -378,7 +378,7 @@ Create the data files under
 block.yaml          # name, identifier, icon, group, page_types
 schema.json         # [] for context-reader, or field definitions
 variants/
-  ground_state/
+  general_unsorted/
     default/
       variant.yaml
       template.html  # never use {% include %} — inline all HTML and SVGs

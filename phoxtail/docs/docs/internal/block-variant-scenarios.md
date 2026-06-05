@@ -92,7 +92,7 @@ Do not expose `scenarios` as a public API surface. They are an authoring tool fo
 
 Scenarios live in the Django admin / Wagtail panel on the `BlockVariant` inline — same place as `variant_identifier`, `is_default`, and `sort_order`. Long-term they could get a structured panel editor instead of raw JSON.
 
-For ground-state data, the management command that seeds block variants (`phoxtail/streams/management/commands/`) can include `scenarios` in the fixture JSON alongside the variant identifier.
+For default variant data, the management command that seeds block variants (`phoxtail/streams/management/commands/`) can include `scenarios` in the fixture JSON alongside the variant identifier.
 
 ## Concrete example: navbar mobile sidebar
 
