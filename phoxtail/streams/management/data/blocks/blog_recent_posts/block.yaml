@@ -1,5 +1,0 @@
-name: Recent Blog Posts
-identifier: blog_recent_posts
-description: Displays the most recent published blog posts from a chosen Blog Index page. Configurable post count. Available on all page types.
-icon: view-apps
-group: Blog
