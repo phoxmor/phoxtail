@@ -28,6 +28,7 @@ from pathlib import Path
 import yaml
 from django.apps import apps
 from django.core.management.base import BaseCommand
+from django.db import IntegrityError, transaction
 
 from phoxtail.streams.models import (
     Block,
@@ -390,18 +391,33 @@ class Command(BaseCommand):
                     # Read is_default flag
                     is_default = metadata.get("is_default", False)
 
-                    # Create the variant
-                    variant = BlockVariant.objects.create(
-                        block=block,
-                        collection=collection,
-                        name=name,
-                        identifier=identifier,
-                        description=description,
-                        is_default=is_default,
-                        html=html,
-                        css=css,
-                        javascript=javascript,
-                    )
+                    try:
+                        with transaction.atomic():
+                            # Clear any existing default for this block before
+                            # inserting — prevents the partial unique index from
+                            # firing when the DB has a stale default row.
+                            if is_default:
+                                BlockVariant.objects.filter(block=block, is_default=True).update(is_default=False)
+                            variant = BlockVariant.objects.create(
+                                block=block,
+                                collection=collection,
+                                name=name,
+                                identifier=identifier,
+                                description=description,
+                                is_default=is_default,
+                                html=html,
+                                css=css,
+                                javascript=javascript,
+                            )
+                    except IntegrityError:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"  Skipping {identifier}: integrity error "
+                                f"(likely concurrent run or stale default)"
+                            )
+                        )
+                        skipped_count += 1
+                        continue
 
                     self.stdout.write(
                         self.style.SUCCESS(
