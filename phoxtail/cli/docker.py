@@ -264,7 +264,7 @@ def _scan_wheel_fragments(context: dict) -> dict:
     """Scan wheels/ for app compose fragments and return merged services+volumes.
 
     Convention: any non-phoxtail wheel containing
-    ``{top_package}/compose/service.yaml.j2`` contributes a fragment.
+    ``{top_package}/deploy/compose.yaml.j2`` contributes a fragment.
     Fragments are rendered with the same Jinja2 context as the base template
     and must declare only ``services:`` and/or ``volumes:`` keys.
     """
@@ -281,7 +281,7 @@ def _scan_wheel_fragments(context: dict) -> dict:
             continue
 
         with zipfile.ZipFile(wheel_path) as zf:
-            candidates = [name for name in zf.namelist() if name.endswith("/compose/service.yaml.j2")]
+            candidates = [name for name in zf.namelist() if name.endswith("/deploy/compose.yaml.j2")]
             for fragment_name in candidates:
                 template_str = zf.read(fragment_name).decode("utf-8")
                 rendered = jinja_env.from_string(template_str).render(**context)

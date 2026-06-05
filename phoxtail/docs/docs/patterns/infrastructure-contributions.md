@@ -28,7 +28,7 @@ This mirrors the pattern used for API routers and MCP tools:
 |---|---|---|
 | API router | `PhoxtailAppConfig.api_version_router` | Django backend |
 | MCP tools | `phoxtail.mcp_modules` entry point | Host (no Django) |
-| Compose services | `compose/service.yaml.j2` convention | Host CLI (`wheels/` scan) |
+| Compose services | `deploy/compose.yaml.j2` convention | Host CLI (`wheels/` scan) |
 
 ---
 
@@ -38,13 +38,13 @@ An app contributes a compose fragment by placing a Jinja2 template at
 this path inside its package:
 
 ```
-{top_package}/compose/service.yaml.j2
+{top_package}/deploy/compose.yaml.j2
 ```
 
 For `phoxtail-booking`:
 
 ```
-phoxtail_booking/compose/service.yaml.j2
+phoxtail_booking/deploy/compose.yaml.j2
 ```
 
 `phoxtail docker create compose` opens every non-phoxtail wheel in the
@@ -92,7 +92,7 @@ services, producing a broken compose file. Keep fragments self-contained.
 and beat scheduler. Its fragment:
 
 ```yaml
-# phoxtail_booking/compose/service.yaml.j2
+# phoxtail_booking/deploy/compose.yaml.j2
 
 services:
   redis:
@@ -151,7 +151,7 @@ The fragment file must be included in the wheel's package data:
 
 ```toml
 [tool.setuptools.package-data]
-"phoxtail_booking" = ["compose/**/*"]
+"phoxtail_booking" = ["deploy/**/*"]
 ```
 
 Without this declaration the file is excluded from the wheel and the
@@ -231,5 +231,5 @@ and read its contents by path convention.
 
 This is why convention replaces entry points here. The trade-off is
 explicit opt-in (entry points) vs. simplicity (path convention). Given
-that the fragment path is the only thing inside `compose/`, the
+that the fragment path is the only thing inside `deploy/`, the
 convention is unambiguous and the simplicity is worth it.
