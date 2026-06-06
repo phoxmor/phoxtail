@@ -1,4 +1,32 @@
-# Base stage with common dependencies
+# ── Build stage ───────────────────────────────────────────────────────────
+# Installs all Python packages. Has git and openssh so uv can fetch private
+# repos over SSH. These tools never reach the runtime image.
+FROM python:{{ python_version }}-slim-bookworm AS builder
+
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+
+RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libjpeg62-turbo-dev \
+    zlib1g-dev \
+    libwebp-dev \
+    git \
+    openssh-client \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:0.11.19 /uv /usr/local/bin/uv
+
+WORKDIR /app
+COPY pyproject.toml uv.lock github_known_hosts ./
+RUN --mount=type=ssh \
+    mkdir -p /root/.ssh && \
+    cp github_known_hosts /root/.ssh/known_hosts && \
+    uv sync --frozen
+
+# ── Runtime base ──────────────────────────────────────────────────────────
+# Clean image. No git, no openssh, no compiler. Only what the app needs
+# to actually run. Packages are copied in from the build stage above.
 FROM python:{{ python_version }}-slim-bookworm AS base
 
 EXPOSE {{ port }}
@@ -9,27 +37,18 @@ ENV PYTHONUNBUFFERED=1 \
 RUN mkdir -p /home/app && chown 1000:1000 /home/app
 ENV HOME=/home/app
 
-# Install System Dependencies
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    libjpeg62-turbo-dev \
-    zlib1g-dev \
-    libwebp-dev \
+    libpq5 \
+    libjpeg62-turbo \
+    zlib1g \
+    libwebp7 \
     gettext \
-    graphviz \
-    libgraphviz-dev \
     ffmpeg \
  && rm -rf /var/lib/apt/lists/*
 
-# Install private packages from local wheels (remove once published to PyPI)
-COPY wheels/ /tmp/wheels/
-RUN WHEEL=$(ls /tmp/wheels/phoxtail-*.whl) && pip install "${WHEEL}[dev]" && \
-    find /tmp/wheels -name '*.whl' ! -name 'phoxtail-*' -exec pip install {} +
-
-# Install Python Dependencies
-COPY requirements.txt /
-RUN pip install -r /requirements.txt
+COPY --from=builder /usr/local/lib/python{{ python_version }}/site-packages/ \
+                    /usr/local/lib/python{{ python_version }}/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 WORKDIR /app
 

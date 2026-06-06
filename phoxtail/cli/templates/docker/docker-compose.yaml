@@ -2,6 +2,8 @@ services:
   web:
     build:
       target: {{ environment }}
+      ssh:
+        - default
     image: {{ image_name }}
     pull_policy: build
     restart: always
@@ -35,6 +37,8 @@ services:
   docs:
     build:
       target: {{ environment }}
+      ssh:
+        - default
     image: {{ image_name }}
     pull_policy: build
     profiles: ["docs"]

@@ -1,14 +1,13 @@
 """Docker-related commands: lifecycle and file generation."""
 
+import os
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
 
 import questionary
 import typer
 import yaml
-from jinja2 import Environment
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
@@ -16,7 +15,7 @@ from phoxtail.cli.utils.config import (
     docker_image_slug,
     get_project_name,
 )
-from phoxtail.cli.utils.docker import docker_env
+from phoxtail.cli.utils.docker import collect_package_compose_fragments, docker_env
 from phoxtail.cli.utils.templates import render_template
 
 app = typer.Typer()
@@ -34,7 +33,7 @@ console = Console()
 )
 def up(
     ctx: typer.Context,
-    detach: bool = typer.Option(True, "--detach/--no-detach", "-d", help="Run in background"),
+    detach: bool = typer.Option(False, "--detach", "-d", help="Run in background (detached)"),
     build: bool = typer.Option(False, "--build", "-b", help="Build images before starting"),
 ) -> None:
     """Start Docker services.
@@ -43,17 +42,28 @@ def up(
 
     Examples:
         phoxtail docker up
-        phoxtail docker up --no-detach
+        phoxtail docker up --detach
         phoxtail docker up --build
         phoxtail docker up --scale web=2
     """
+    env = docker_env()
+
+    if build:
+        # Build first with explicit SSH socket so the build works regardless
+        # of the SSH agent implementation (e.g. GNOME Keyring).
+        build_cmd = ["docker", "compose", "build"]
+        ssh_sock = os.environ.get("SSH_AUTH_SOCK")
+        if ssh_sock:
+            build_cmd += ["--ssh", f"default={ssh_sock}"]
+        rc = subprocess.call(build_cmd, env=env)
+        if rc != 0:
+            sys.exit(rc)
+
     cmd = ["docker", "compose", "up"]
     if detach:
         cmd.append("-d")
-    if build:
-        cmd.append("--build")
     cmd.extend(ctx.args)
-    sys.exit(subprocess.call(cmd, env=docker_env()))
+    sys.exit(subprocess.call(cmd, env=env))
 
 
 @app.command(
@@ -203,6 +213,11 @@ def dockerfile(
         console.print(f"[dim]Port:[/dim] {port}")
         console.print(f"[dim]Gunicorn workers:[/dim] {gunicorn_workers}")
 
+        known_hosts_path = output.parent / "github_known_hosts"
+        if not known_hosts_path.exists() or force:
+            known_hosts_path.write_text(render_template("docker/github_known_hosts", {}))
+            console.print(f"[green]✓[/green] github_known_hosts created: [bold]{known_hosts_path}[/bold]")
+
         # A Dockerfile without a matching .dockerignore is always wrong in
         # this project layout (runtime state dirs like certbot/, media/,
         # static/, db-backups/ live alongside code), so emit it here too.
@@ -258,38 +273,6 @@ def dockerignore(
     except Exception as e:
         console.print(f"[red]Error creating .dockerignore:[/red] {e}")
         raise typer.Exit(1)
-
-
-def _scan_wheel_fragments(context: dict) -> dict:
-    """Scan wheels/ for app compose fragments and return merged services+volumes.
-
-    Convention: any non-phoxtail wheel containing
-    ``{top_package}/deploy/compose.yaml.j2`` contributes a fragment.
-    Fragments are rendered with the same Jinja2 context as the base template
-    and must declare only ``services:`` and/or ``volumes:`` keys.
-    """
-    wheels_dir = Path("wheels")
-    merged: dict = {"services": {}, "volumes": {}}
-
-    if not wheels_dir.exists():
-        return merged
-
-    jinja_env = Environment()
-
-    for wheel_path in sorted(wheels_dir.glob("*.whl")):
-        if wheel_path.name.startswith("phoxtail-"):
-            continue
-
-        with zipfile.ZipFile(wheel_path) as zf:
-            candidates = [name for name in zf.namelist() if name.endswith("/deploy/compose.yaml.j2")]
-            for fragment_name in candidates:
-                template_str = zf.read(fragment_name).decode("utf-8")
-                rendered = jinja_env.from_string(template_str).render(**context)
-                fragment = yaml.safe_load(rendered) or {}
-                merged["services"].update(fragment.get("services", {}))
-                merged["volumes"].update(fragment.get("volumes", {}))
-
-    return merged
 
 
 @create_app.command("compose")
@@ -391,7 +374,7 @@ def compose(
         }
 
         base = yaml.safe_load(render_template("docker/docker-compose.yaml", context))
-        fragments = _scan_wheel_fragments(context)
+        fragments = collect_package_compose_fragments(context)
         if fragments["services"]:
             base.setdefault("services", {}).update(fragments["services"])
         if fragments["volumes"]:

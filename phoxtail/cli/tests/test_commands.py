@@ -20,17 +20,17 @@ runner = CliRunner()
 
 class TestDockerUp:
     @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
-    def test_default_runs_detached(self, mock_call):
+    def test_default_runs_foreground(self, mock_call):
         runner.invoke(docker_app, ["up"])
         cmd = mock_call.call_args[0][0]
-        assert cmd == ["docker", "compose", "up", "-d"]
+        assert cmd == ["docker", "compose", "up"]
 
     @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
-    def test_no_detach(self, mock_call):
-        runner.invoke(docker_app, ["up", "--no-detach"])
+    def test_detach_flag(self, mock_call):
+        runner.invoke(docker_app, ["up", "--detach"])
         cmd = mock_call.call_args[0][0]
         assert "docker" in cmd
-        assert "-d" not in cmd
+        assert "-d" in cmd
 
     @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_build_flag(self, mock_call):
