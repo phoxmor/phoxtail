@@ -412,8 +412,7 @@ class Command(BaseCommand):
                     except IntegrityError:
                         self.stdout.write(
                             self.style.WARNING(
-                                f"  Skipping {identifier}: integrity error "
-                                f"(likely concurrent run or stale default)"
+                                f"  Skipping {identifier}: integrity error (likely concurrent run or stale default)"
                             )
                         )
                         skipped_count += 1
