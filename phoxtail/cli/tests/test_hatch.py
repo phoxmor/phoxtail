@@ -272,7 +272,7 @@ class TestHatchCommand:
         assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
         # Cleanup + launch (always foreground)
         assert calls[10] == ["docker", "compose", "down"]
-        assert calls[-1][-4:] == ["docker", "up", "--build", "--no-detach"]
+        assert calls[-1][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")

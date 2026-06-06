@@ -14,12 +14,13 @@ from rich.prompt import Confirm
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.env import read_env_value
-from phoxtail.cli.utils.templates import render_template
 
 console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
 APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
+# Stable sentinel that survives hatch — phoxtail install inserts above this line.
+INSTALL_MARKER = "    # phoxtail:apps\n"
 # Sentinel used in template directory and file names that should be renamed
 # to the user's project name at scaffold time (e.g. the user app directory
 # and its Django template namespace).
@@ -133,9 +134,9 @@ def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str]
     selected = optional_apps or []
 
     if selected:
-        apps_replacement = "".join(f'    "{app}",\n' for app in selected)
+        apps_replacement = "".join(f'    "{app}",\n' for app in selected) + INSTALL_MARKER
     else:
-        apps_replacement = ""
+        apps_replacement = INSTALL_MARKER
 
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
@@ -406,7 +407,7 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
     )
     console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
-        args = ["docker", "up", "--build", "--no-detach"]
+        args = ["docker", "up", "--build"]
         if _run_step(target_dir, args):
             steps["docker_up"] = "done"
             prev_failed = False
@@ -518,11 +519,10 @@ def hatch(
         target_dir.mkdir(parents=True, exist_ok=True)
         (target_dir / "db-backups").mkdir(exist_ok=True)
         (target_dir / "media").mkdir(exist_ok=True)
-        (target_dir / "wheels").mkdir(exist_ok=True)
 
         # Copy template files with placeholder replacement
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
-            file_count = _copy_template(project_name, target_dir, selected_apps)
+            _copy_template(project_name, target_dir, selected_apps)
 
             # Write the selected optional apps into phoxtail.toml so that
             # subsequent CLI commands (e.g. docker create compose) can
@@ -534,32 +534,23 @@ def hatch(
                 content = content.replace("apps = []", f"apps = {apps_toml}")
                 toml_path.write_text(content, encoding="utf-8")
 
-            requirements_in = render_template("requirements/requirements.in", {})
-            (target_dir / "requirements.in").write_text(requirements_in, encoding="utf-8")
-            file_count += 1
-
-            # Compile requirements.in → requirements.txt (quiet — no user interaction)
-            compiled = subprocess.run(
-                [sys.executable, "-m", "phoxtail", "requirements", "compile"],
+            # Resolve and lock all dependencies (public from PyPI + phoxtail from git)
+            locked = subprocess.run(
+                ["uv", "lock"],
                 cwd=target_dir,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
             )
-            if compiled.returncode != 0:
-                shutil.copy2(
-                    target_dir / "requirements.in",
-                    target_dir / "requirements.txt",
-                )
 
         # Summary
-        req_note = (
+        lock_note = (
             ""
-            if compiled.returncode == 0
-            else ("\n[yellow]⚠[/yellow] requirements not compiled — run [cyan]phoxtail requirements compile[/cyan]")
+            if locked.returncode == 0
+            else (
+                "\n[yellow]⚠[/yellow] uv lock failed — run [cyan]uv lock[/cyan] in the project directory once SSH is available"  # noqa: E501
+            )
         )
         console.print(
             Panel(
-                f"[green]Project '{project_name}' created[/green] at [bold]{target_dir}[/bold]" + req_note,
+                f"[green]Project '{project_name}' created[/green] at [bold]{target_dir}[/bold]" + lock_note,
                 border_style="green",
                 expand=False,
             )
