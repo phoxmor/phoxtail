@@ -11,6 +11,7 @@ from phoxtail.cli import (
     docker,
     env,
     hatch,
+    install,
     lint,
     manage,
     mcp,
@@ -78,6 +79,7 @@ app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args
 app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
 app.command()(hatch.hatch)
+app.command()(install.install)
 
 
 @app.command()
