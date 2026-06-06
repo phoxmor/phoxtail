@@ -5,8 +5,7 @@ and the MCP server (``phoxtail/mcp/_http.py``). The resolver reads
 ``~/.phoxtail/credentials`` keyed by host and returns ``None`` when no
 entry exists — the caller decides how to surface "unauthenticated".
 
-The file format mirrors the convention documented in
-``docs/docs/patterns/personal-access-tokens.md``::
+File format::
 
     ["localhost"]
     token = "phxt_..."

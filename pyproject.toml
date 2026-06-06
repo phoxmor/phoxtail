@@ -34,9 +34,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-docs = [
-    "zensical>=0.0.28",
-]
 engine = [
     "django>=4.2",
     "wagtail>=6.0",
@@ -69,7 +66,7 @@ dev = [
     "ruff>=0.4.0",
     "freezegun>=1.2",
     "ipython>=8.0",
-    "phoxtail[engine,dashboard,docs,chatbot]",
+    "phoxtail[engine,dashboard,chatbot]",
 ]
 
 [project.urls]
@@ -86,7 +83,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"phoxtail" = ["project_template/**/*", "project_template/**/.*", "docs/**/*"]
+"phoxtail" = ["project_template/**/*", "project_template/**/.*"]
 "phoxtail.cli" = ["templates/**/*"]
 "phoxtail.users" = ["templates/**/*", "static/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]

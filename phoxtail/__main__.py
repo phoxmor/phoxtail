@@ -9,7 +9,6 @@ from phoxtail.cli import (
     content,
     db,
     docker,
-    docs,
     env,
     hatch,
     lint,
@@ -34,7 +33,7 @@ app = typer.Typer(
 console = Console()
 
 # Commands that don't require a phoxtail project.
-NO_PROJECT_COMMANDS = {"version", "hatch", "docs", "server", "mcp", "auth"}
+NO_PROJECT_COMMANDS = {"version", "hatch", "server", "mcp", "auth"}
 
 
 @app.callback(invoke_without_command=True)
@@ -79,7 +78,6 @@ app.command(context_settings={"allow_extra_args": True, "allow_interspersed_args
 app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
 app.command()(hatch.hatch)
-app.add_typer(docs.app, name="docs", help="Serve the Phoxtail documentation")
 
 
 @app.command()

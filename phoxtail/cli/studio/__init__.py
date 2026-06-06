@@ -4,8 +4,6 @@ block variants across Phoxtail projects.
 This package is the entry point for every ``phoxtail studio <verb>``
 command. Each verb lives in its own module; this file is a thin registrar
 that mirrors the structure of ``phoxtail.cli.server``.
-
-See ``phoxtail/docs/docs/studio/`` for the full design and roadmap.
 """
 
 from __future__ import annotations
