@@ -213,11 +213,6 @@ def dockerfile(
         console.print(f"[dim]Port:[/dim] {port}")
         console.print(f"[dim]Gunicorn workers:[/dim] {gunicorn_workers}")
 
-        known_hosts_path = output.parent / "github_known_hosts"
-        if not known_hosts_path.exists() or force:
-            known_hosts_path.write_text(render_template("docker/github_known_hosts", {}))
-            console.print(f"[green]✓[/green] github_known_hosts created: [bold]{known_hosts_path}[/bold]")
-
         # A Dockerfile without a matching .dockerignore is always wrong in
         # this project layout (runtime state dirs like certbot/, media/,
         # static/, db-backups/ live alongside code), so emit it here too.

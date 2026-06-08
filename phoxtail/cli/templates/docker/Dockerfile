@@ -18,10 +18,10 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
 COPY --from=ghcr.io/astral-sh/uv:0.11.19 /uv /usr/local/bin/uv
 
 WORKDIR /app
-COPY pyproject.toml uv.lock github_known_hosts ./
+COPY pyproject.toml uv.lock ./
 RUN --mount=type=ssh \
     mkdir -p /root/.ssh && \
-    cp github_known_hosts /root/.ssh/known_hosts && \
+    echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > /root/.ssh/known_hosts && \
     uv sync --frozen
 
 # ── Runtime base ──────────────────────────────────────────────────────────
