@@ -257,3 +257,23 @@ def create_variant(
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
     return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_studio_delete_variant",
+    description=(
+        "Permanently delete a block variant by its numeric ID. "
+        "WARNING: page StreamField bodies reference variants by integer ID — "
+        "deleting a live variant will silently break those pages. "
+        "This action cannot be undone. "
+        "Pass the integer `variant_id` from phoxtail_studio_list_variants."
+    ),
+)
+def delete_variant(variant_id: int) -> str:
+    resp = request("DELETE", f"/variants/{variant_id}/")
+    if resp.status_code == 404:
+        return json.dumps({"error": "not_found", "detail": f"Variant {variant_id} not found."})
+    if resp.status_code == 409:
+        return json.dumps({"error": "conflict", "detail": resp.json().get("detail", "Variant cannot be deleted.")})
+    resp.raise_for_status()
+    return json.dumps({"deleted": True, "variant_id": variant_id})

@@ -37,23 +37,23 @@ from phoxtail.streams.models import (
 )
 
 
-def _get_data_dirs() -> list[Path]:
+def _get_data_dirs() -> list[tuple[str, Path]]:
     """Discover management/data/ directories from all installed apps.
 
-    Any Django app that ships a ``management/data/`` directory is
-    automatically included.  The streams app's own directory is
-    always listed first so its prompts/collections exist before
-    other apps try to reference them in their blocks or variants.
+    Returns ``(app_label, path)`` pairs.  The streams app's own directory is
+    always listed first so its collections exist before other apps reference
+    them in blocks or variants.
     """
+    streams_app = apps.get_app_config("phoxtail_streams")
     streams_dir = Path(__file__).resolve().parent.parent / "data"
-    dirs: list[Path] = []
+    dirs: list[tuple[str, Path]] = []
     if streams_dir.is_dir():
-        dirs.append(streams_dir)
+        dirs.append((streams_app.label, streams_dir))
 
     for app_config in apps.get_app_configs():
         data_dir = Path(app_config.path) / "management" / "data"
         if data_dir.is_dir() and data_dir != streams_dir:
-            dirs.append(data_dir)
+            dirs.append((app_config.label, data_dir))
 
     return dirs
 
@@ -147,13 +147,14 @@ class Command(BaseCommand):
             self.import_variants()
 
         self.stdout.write(self.style.SUCCESS("Stream entities populated successfully!"))
+        self.report_source_app()
 
     def import_collections(self):
         """Import collections from data/collections/*.md files."""
         self.stdout.write(self.style.SUCCESS("Importing collections..."))
 
         md_files = []
-        for data_dir in _get_data_dirs():
+        for _app_label, data_dir in _get_data_dirs():
             collections_dir = data_dir / "collections"
             if collections_dir.exists():
                 md_files.extend(collections_dir.glob("*.md"))
@@ -197,11 +198,11 @@ class Command(BaseCommand):
         """Import blocks from data/blocks/<identifier>/ directories."""
         self.stdout.write(self.style.SUCCESS("Importing blocks..."))
 
-        block_dirs = []
-        for data_dir in _get_data_dirs():
+        block_dirs: list[tuple[str, Path]] = []
+        for app_label, data_dir in _get_data_dirs():
             blocks_dir = data_dir / "blocks"
             if blocks_dir.exists():
-                block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
+                block_dirs.extend((app_label, d) for d in blocks_dir.iterdir() if d.is_dir())
 
         if not block_dirs:
             self.stdout.write(self.style.WARNING("No block directories found in any app"))
@@ -209,8 +210,9 @@ class Command(BaseCommand):
 
         created_count = 0
         skipped_count = 0
+        patched_count = 0
 
-        for block_dir in block_dirs:
+        for app_label, block_dir in block_dirs:
             # Load metadata from block.yaml
             metadata_file = block_dir / "block.yaml"
             if not metadata_file.exists():
@@ -225,8 +227,16 @@ class Command(BaseCommand):
 
             identifier = metadata.get("identifier", block_dir.name)
 
-            if Block.objects.filter(identifier=identifier).exists():
-                self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
+            existing = Block.objects.filter(identifier=identifier).first()
+            if existing is not None:
+                # Backfill source_app when the block already exists but wasn't stamped yet.
+                if not existing.source_app:
+                    existing.source_app = app_label
+                    existing.save(update_fields=["source_app"])
+                    self.stdout.write(self.style.WARNING(f"  {identifier}: stamped source_app={app_label}"))
+                    patched_count += 1
+                else:
+                    self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
                 skipped_count += 1
                 continue
 
@@ -262,6 +272,7 @@ class Command(BaseCommand):
                 icon=metadata.get("icon", ""),
                 group=metadata.get("group", ""),
                 is_shared=metadata.get("is_shared", False),
+                source_app=app_label,
                 schema=schema,
             )
 
@@ -271,8 +282,8 @@ class Command(BaseCommand):
 
                 for app_model in page_types_config:
                     try:
-                        app_label, model_name = app_model.rsplit(".", 1)
-                        ct = ContentType.objects.get(app_label=app_label, model=model_name.lower())
+                        app_label_pt, model_name = app_model.rsplit(".", 1)
+                        ct = ContentType.objects.get(app_label=app_label_pt, model=model_name.lower())
                         block.page_types.add(ct)
                     except (ValueError, ContentType.DoesNotExist) as e:
                         self.stdout.write(self.style.WARNING(f"  Could not add page_type '{app_model}': {e}"))
@@ -280,7 +291,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"  Created block: {block.name} ({block.identifier})"))
             created_count += 1
 
-        self.stdout.write(self.style.SUCCESS(f"Blocks: {created_count} created, {skipped_count} skipped"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Blocks: {created_count} created, {patched_count} stamped, {skipped_count} skipped")
+        )
 
     def import_variants(self):
         """
@@ -295,8 +308,8 @@ class Command(BaseCommand):
         """
         self.stdout.write(self.style.SUCCESS("Importing variants..."))
 
-        block_dirs = []
-        for data_dir in _get_data_dirs():
+        block_dirs: list[Path] = []
+        for _app_label, data_dir in _get_data_dirs():
             blocks_dir = data_dir / "blocks"
             if blocks_dir.exists():
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
@@ -426,3 +439,23 @@ class Command(BaseCommand):
                     created_count += 1
 
         self.stdout.write(self.style.SUCCESS(f"Variants: {created_count} created, {skipped_count} skipped"))
+
+    def report_source_app(self):
+        """Print a summary of all blocks grouped by source_app.
+
+        Blocks with no source_app were created manually (via admin or API)
+        and could not be auto-attributed to an app.
+        """
+        self.stdout.write(self.style.SUCCESS("\n--- source_app report ---"))
+        from collections import defaultdict
+
+        groups: dict[str, list[str]] = defaultdict(list)
+        for block in Block.objects.order_by("source_app", "identifier"):
+            groups[block.source_app or ""].append(block.identifier)
+
+        for app_label, identifiers in sorted(groups.items(), key=lambda x: (x[0] == "", x[0])):
+            label = app_label if app_label else "(no source_app — manually created)"
+            style = self.style.SUCCESS if app_label else self.style.WARNING
+            self.stdout.write(style(f"  {label} ({len(identifiers)}):"))
+            for identifier in identifiers:
+                self.stdout.write(f"    {identifier}")

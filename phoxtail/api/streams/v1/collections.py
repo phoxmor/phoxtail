@@ -135,6 +135,17 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
     return 201, collection_detail(c, 0)
 
 
+@router.delete(
+    "/{collection_id}/",
+    response={204: None, 404: Error},
+    summary="Delete a VariantCollection by numeric ID",
+)
+def delete_collection(request: HttpRequest, collection_id: int):
+    c = resolve_collection_by_pk(collection_id)
+    c.delete()
+    return 204, None
+
+
 def _format_validation_error(exc: ValidationError) -> str:
     if hasattr(exc, "message_dict"):
         return "; ".join(

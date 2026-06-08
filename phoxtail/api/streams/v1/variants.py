@@ -202,3 +202,14 @@ def update_variant_by_id(
 
     response["ETag"] = variant_etag(v)
     return variant_detail(v)
+
+
+@router.delete(
+    "/{variant_id}/",
+    response={204: None, 404: Error},
+    summary="Delete a BlockVariant by numeric ID",
+)
+def delete_variant(request: HttpRequest, variant_id: int):
+    v = resolve_variant_by_pk(variant_id)
+    v.delete()
+    return 204, None

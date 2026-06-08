@@ -156,6 +156,11 @@ def get_json(path: str, **params: Any) -> dict[str, Any]:
     return request("GET", path, params=params).json()
 
 
+def list_page_type_app_labels() -> set[str]:
+    data = get_json("/page-types/")
+    return set(data.get("app_labels", []))
+
+
 def list_variants(
     block: str | None = None,
     collection: str | None = None,

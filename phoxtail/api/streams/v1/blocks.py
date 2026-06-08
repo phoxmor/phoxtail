@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
@@ -149,17 +149,29 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
         detail = _format_validation_error(exc)
         raise HttpError(400, detail)
 
-    try:
-        b.save()
-    except IntegrityError:
-        raise HttpError(409, "A block with this identifier or name already exists.")
+    with transaction.atomic():
+        try:
+            b.save()
+        except IntegrityError:
+            raise HttpError(409, "A block with this identifier or name already exists.")
 
-    if payload.page_types:
-        b.page_types.set(resolve_page_types(payload.page_types))
+        if payload.page_types:
+            b.page_types.set(resolve_page_types(payload.page_types))
 
     b = resolve_block_by_pk(b.pk)
     response["ETag"] = block_etag(b)
     return 201, block_detail(b)
+
+
+@router.delete(
+    "/{block_id}/",
+    response={204: None, 404: Error},
+    summary="Delete a Block by numeric ID",
+)
+def delete_block(request: HttpRequest, block_id: int):
+    b = resolve_block_by_pk(block_id)
+    b.delete()
+    return 204, None
 
 
 def _format_validation_error(exc: ValidationError) -> str:

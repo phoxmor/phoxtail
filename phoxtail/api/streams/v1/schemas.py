@@ -150,6 +150,7 @@ class BlockSummary(Schema):
     group: str
     icon: str
     is_shared: bool
+    source_app: str
     variant_count: int
 
 

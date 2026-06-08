@@ -121,6 +121,7 @@ def block_summary(b: Block, variant_count: int) -> dict:
         "group": b.group,
         "icon": b.icon,
         "is_shared": b.is_shared,
+        "source_app": b.source_app,
         "variant_count": variant_count,
     }
 

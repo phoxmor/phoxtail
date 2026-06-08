@@ -194,6 +194,8 @@ def _write_block(blocks_dir: Path, detail: dict) -> None:
         metadata["group"] = detail["group"]
     if detail.get("is_shared"):
         metadata["is_shared"] = detail["is_shared"]
+    if detail.get("source_app"):
+        metadata["source_app"] = detail["source_app"]
     if detail.get("page_types"):
         metadata["page_types"] = detail["page_types"]
     sort_order = detail.get("sort_order", 0)

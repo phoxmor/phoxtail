@@ -104,6 +104,16 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "In page editors, only the variant chooser will be shown."
         ),
     )
+    source_app = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text=_(
+            "Django app label that owns this block (e.g. 'phoxtail_blog'). "
+            "Set automatically by populate_streams. Blank means no app dependency — "
+            "the block is available in any project."
+        ),
+    )
     page_types = models.ManyToManyField(
         "contenttypes.ContentType",
         blank=True,

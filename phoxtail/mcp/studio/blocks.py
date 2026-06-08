@@ -193,3 +193,20 @@ def update_block(
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
     return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_studio_delete_block",
+    description=(
+        "Permanently delete a block by its numeric ID. "
+        "WARNING: this also deletes all variants belonging to the block. "
+        "This action cannot be undone. "
+        "Pass the integer `block_id` from phoxtail_studio_list_blocks."
+    ),
+)
+def delete_block(block_id: int) -> str:
+    resp = request("DELETE", f"/blocks/{block_id}/")
+    if resp.status_code == 404:
+        return json.dumps({"error": "not_found", "detail": f"Block {block_id} not found."})
+    resp.raise_for_status()
+    return json.dumps({"deleted": True, "block_id": block_id})

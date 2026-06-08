@@ -168,3 +168,20 @@ def update_collection(
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
     return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
+    name="phoxtail_studio_delete_collection",
+    description=(
+        "Permanently delete a variant collection by its numeric ID. "
+        "WARNING: this also deletes all variants belonging to the collection. "
+        "This action cannot be undone. "
+        "Pass the integer `collection_id` from phoxtail_studio_list_collections."
+    ),
+)
+def delete_collection(collection_id: int) -> str:
+    resp = request("DELETE", f"/collections/{collection_id}/")
+    if resp.status_code == 404:
+        return json.dumps({"error": "not_found", "detail": f"Collection {collection_id} not found."})
+    resp.raise_for_status()
+    return json.dumps({"deleted": True, "collection_id": collection_id})
