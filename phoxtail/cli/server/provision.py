@@ -1,11 +1,13 @@
 """server provision — interactively provision a new server on Hetzner Cloud."""
 
 import os
+import re
 import time
 
 import questionary
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 
 from phoxtail.cli.server.providers.base import (
@@ -241,11 +243,22 @@ def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:
     ).ask()
 
 
+_SERVER_NAME_RE = re.compile(r"^[a-z0-9]([a-z0-9.\-]*[a-z0-9])?$")
+
+
 def _ask_server_name(default: str) -> str | None:
+    def _validate(v: str) -> bool | str:
+        v = v.strip()
+        if not v:
+            return "Server name cannot be empty."
+        if not _SERVER_NAME_RE.match(v):
+            return "Name must contain only lowercase letters, digits, hyphens, and dots (no underscores)."
+        return True
+
     return questionary.text(
         "Server name:",
         default=default,
-        validate=lambda v: True if v.strip() else "Server name cannot be empty.",
+        validate=_validate,
     ).ask()
 
 
@@ -275,12 +288,13 @@ def _resolve_token(token: str | None) -> str | None:
 
 
 def _default_server_name() -> str:
-    """Return the project name from phoxtail.toml if available, else empty string."""
+    """Return a hostname-safe default from phoxtail.toml project name, or empty string."""
     try:
         from phoxtail.cli.utils.config import find_config_file, load_config
 
         if find_config_file():
-            return load_config().get("project", {}).get("name", "")
+            name = load_config().get("project", {}).get("name", "")
+            return name.replace("_", "-").lower()
     except Exception:
         pass
     return ""
@@ -329,7 +343,7 @@ def provision(
             locations = provider.list_locations()
             ssh_keys = provider.list_ssh_keys()
     except HetznerError as e:
-        console.print(f"[red]Error:[/red] {e}")
+        console.print(f"[red]Error:[/red] {escape(str(e))}")
         raise typer.Exit(1)
     except Exception as e:
         console.print(f"[red]Connection error:[/red] {e}")
@@ -362,7 +376,7 @@ def provision(
                     location=location.name,
                 )
         except HetznerError as e:
-            console.print(f"[red]Error:[/red] {e}")
+            console.print(f"[red]Error:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
         arch_types = [st for st in all_types if st.architecture == architecture]
@@ -383,7 +397,7 @@ def provision(
                     architecture=architecture,
                 )
         except HetznerError as e:
-            console.print(f"[red]Error:[/red] {e}")
+            console.print(f"[red]Error:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
         image = _ask_image(images)
@@ -484,7 +498,7 @@ def provision(
             with console.status("[bold cyan]Creating server...[/bold cyan]"):
                 server = provider.create_server(spec)
         except HetznerError as e:
-            console.print(f"[red]Error creating server:[/red] {e}")
+            console.print(f"[red]Error creating server:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
         # --- Wait for Hetzner action (server OS installed and running) ---
