@@ -61,7 +61,8 @@ CMD set -xe; \
 
 # Production Stage
 FROM base AS production
-COPY . .
+COPY --chown=1000:1000 . .
+RUN mkdir -p /app/static /app/media && chown 1000:1000 /app/static /app/media
 CMD set -xe; \
     python manage.py collectstatic --no-input && \
     python manage.py migrate --noinput && \

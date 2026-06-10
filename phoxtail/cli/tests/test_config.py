@@ -6,7 +6,6 @@ from phoxtail.cli.utils.config import (
     DEFAULT_API_BASE_URL,
     _deep_merge,
     _topological_sort,
-    docker_image_slug,
     get_api_base_url,
     get_cluster_names,
     get_clusters,
@@ -14,6 +13,7 @@ from phoxtail.cli.utils.config import (
     get_project_name,
     load_config,
     resolve_cluster_order,
+    slugify,
     validate_project_name,
 )
 
@@ -193,21 +193,21 @@ class TestValidateProjectName:
         assert validate_project_name("xyzzy_unique_name") is None
 
 
-class TestDockerImageSlug:
+class TestSlugify:
     def test_replaces_underscores_with_hyphens(self):
-        assert docker_image_slug("my_project") == "my-project"
+        assert slugify("my_project") == "my-project"
 
     def test_lowercases(self):
-        assert docker_image_slug("MyProject") == "myproject"
+        assert slugify("MyProject") == "myproject"
 
     def test_mixed_case_and_underscores(self):
-        assert docker_image_slug("My_Project") == "my-project"
+        assert slugify("My_Project") == "my-project"
 
     def test_no_underscores_passthrough(self):
-        assert docker_image_slug("myproject") == "myproject"
+        assert slugify("myproject") == "myproject"
 
     def test_multiple_underscores(self):
-        assert docker_image_slug("my_great_project") == "my-great-project"
+        assert slugify("my_great_project") == "my-great-project"
 
 
 class TestTopologicalSort:

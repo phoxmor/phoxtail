@@ -59,8 +59,8 @@ def get_project_name() -> str:
     return load_config()["project"]["name"]
 
 
-def docker_image_slug(name: str) -> str:
-    """Convert a validated project name (Python identifier) to a Docker image slug.
+def slugify(name: str) -> str:
+    """Convert a validated project name (Python identifier) to a URL/filesystem-safe slug.
 
     Replaces underscores with hyphens and lowercases — the only transformation
     needed because validate_project_name already guarantees ASCII identifiers.
@@ -121,6 +121,15 @@ def validate_project_name(name: str) -> str | None:
         pass
 
     return None
+
+
+def get_docker_registry() -> str | None:
+    """Return the Docker registry prefix from ``[docker] registry`` in phoxtail.toml.
+
+    Returns None if not configured — callers should prompt the user to add it.
+    Example value: ``ghcr.io/myorg``
+    """
+    return (load_config().get("docker") or {}).get("registry") or None
 
 
 def get_mcp_extra_modules() -> list[str]:

@@ -2,5 +2,8 @@
 name = "{{ phoxtail_project_name }}"
 apps = []
 
+[docker]
+# registry = "ghcr.io/<org_name>"
+
 [studio]
 api_url = "http://localhost"

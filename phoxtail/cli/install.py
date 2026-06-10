@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from phoxtail.cli.hatch import INSTALL_MARKER
-from phoxtail.cli.utils.config import docker_image_slug, get_project_name
+from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.docker import collect_package_compose_fragments
 from phoxtail.cli.utils.templates import render_template
 
@@ -209,7 +209,7 @@ def _insert_installed_app(settings_path: Path, app_label: str) -> bool:
 def _regenerate_compose(project_name: str, postgres_version: str, environment: str) -> None:
     context = {
         "environment": environment,
-        "image_name": f"{docker_image_slug(project_name)}/{docker_image_slug(project_name)}:latest",
+        "image_name": f"{slugify(project_name)}/{slugify(project_name)}:latest",
         "postgres_version": postgres_version,
         "pg_data_path": "/var/lib/postgresql" if int(postgres_version) >= 18 else "/var/lib/postgresql/data",
     }

@@ -514,6 +514,18 @@ def hatch(
                 console.print(f"  [green]Enabled:[/green] {names}")
                 console.print()
 
+        docker_registry: str | None = None
+        if not no_wizard and environment == "production":
+            raw = questionary.text(
+                "Docker registry for production images (e.g. ghcr.io/myorg):",
+                instruction="Leave blank to configure later in phoxtail.toml",
+            ).ask()
+            if raw is None:
+                console.print("[dim]Cancelled.[/dim]")
+                raise typer.Exit(0)
+            docker_registry = raw.strip() or None
+            console.print()
+
         # Create project directory and pre-create directories that Docker
         # would otherwise auto-create as root when bind-mounting volumes.
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -524,15 +536,19 @@ def hatch(
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             _copy_template(project_name, target_dir, selected_apps)
 
-            # Write the selected optional apps into phoxtail.toml so that
-            # subsequent CLI commands (e.g. docker create compose) can
-            # introspect each app's PhoxtailAppConfig without re-asking.
+            # Patch phoxtail.toml: inject selected apps and registry (if given).
+            toml_path = target_dir / "phoxtail.toml"
+            toml_content = toml_path.read_text(encoding="utf-8")
             if selected_apps:
-                toml_path = target_dir / "phoxtail.toml"
                 apps_toml = "[" + ", ".join(f'"{a}"' for a in selected_apps) + "]"
-                content = toml_path.read_text(encoding="utf-8")
-                content = content.replace("apps = []", f"apps = {apps_toml}")
-                toml_path.write_text(content, encoding="utf-8")
+                toml_content = toml_content.replace("apps = []", f"apps = {apps_toml}")
+            if docker_registry:
+                toml_content = toml_content.replace(
+                    '# registry = "ghcr.io/<org_name>"',
+                    f'registry = "{docker_registry}"',
+                )
+            if selected_apps or docker_registry:
+                toml_path.write_text(toml_content, encoding="utf-8")
 
             # Resolve and lock all dependencies (public from PyPI + phoxtail from git)
             locked = subprocess.run(

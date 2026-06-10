@@ -12,8 +12,9 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 from phoxtail.cli.utils.config import (
-    docker_image_slug,
+    get_docker_registry,
     get_project_name,
+    slugify,
 )
 from phoxtail.cli.utils.docker import collect_package_compose_fragments, docker_env
 from phoxtail.cli.utils.templates import render_template
@@ -106,11 +107,199 @@ def restart(ctx: typer.Context) -> None:
     sys.exit(subprocess.call(cmd, env=docker_env()))
 
 
+def _git_sha() -> str | None:
+    result = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def _build_image(base: str, sha: str) -> int:
+    """Build production image tagged as <base>:latest and <base>:<sha>."""
+    cmd = ["docker", "build", "--target", "production"]
+    ssh_sock = os.environ.get("SSH_AUTH_SOCK")
+    if ssh_sock:
+        cmd += ["--ssh", f"default={ssh_sock}"]
+    cmd += ["-t", f"{base}:latest", "-t", f"{base}:{sha}", "."]
+    return subprocess.call(cmd)
+
+
+def _push_image(base: str, sha: str) -> int:
+    """Push <base>:latest and <base>:<sha> to the registry."""
+    rc = subprocess.call(["docker", "push", f"{base}:latest"])
+    if rc != 0:
+        return rc
+    return subprocess.call(["docker", "push", f"{base}:{sha}"])
+
+
+def _registry_and_sha() -> tuple[str, str] | None:
+    """Resolve the image base and git SHA; prints errors and returns None on failure."""
+    docker_registry = get_docker_registry()
+    if not docker_registry:
+        console.print(
+            "[red]Error:[/red] [bold]\\[docker] registry[/bold] is not set in phoxtail.toml.\n"
+            "  Add it:\n\n"
+            "  [dim]\\[docker]\n"
+            '  registry = "ghcr.io/<org_name>"[/dim]'
+        )
+        return None
+    sha = _git_sha()
+    if sha is None:
+        console.print("[red]Error:[/red] Could not read git SHA — is this a git repository?")
+        return None
+    base = f"{docker_registry}/{slugify(get_project_name())}"
+    return base, sha
+
+
+@app.command("login")
+def login_cmd(
+    username: str | None = typer.Option(None, "--username", "-u", help="Registry username"),
+    token: str | None = typer.Option(
+        None,
+        "--token",
+        help="Registry token / PAT (omit to be prompted; use PHOXTAIL_REGISTRY_TOKEN in CI)",
+        envvar="PHOXTAIL_REGISTRY_TOKEN",
+    ),
+) -> None:
+    """Authenticate to the project's configured Docker registry.
+
+    Reads the registry host from phoxtail.toml and runs docker login.
+    Prompts interactively for any credentials not supplied as flags.
+    In CI, set PHOXTAIL_REGISTRY_TOKEN to avoid the interactive prompt.
+
+    For GHCR, use your GitHub username and a PAT with write:packages scope.
+
+    Examples:
+        phoxtail docker login
+        phoxtail docker login --username alice
+        phoxtail docker login --username alice --token ghp_...
+    """
+    docker_registry = get_docker_registry()
+    if not docker_registry:
+        console.print(
+            "[red]Error:[/red] [bold]\\[docker] registry[/bold] is not set in phoxtail.toml.\n"
+            "  Add it:\n\n"
+            "  [dim]\\[docker]\n"
+            '  registry = "ghcr.io/<org_name>"[/dim]'
+        )
+        raise typer.Exit(1)
+
+    host = docker_registry.split("/")[0]
+    console.print(f"\nLogging in to [bold]{host}[/bold]")
+
+    if username is None:
+        username = questionary.text("Username:").ask()
+        if username is None:
+            console.print("\n[dim]Cancelled.[/dim]")
+            raise typer.Exit(0)
+    if token is None:
+        token = questionary.password("Token:").ask()
+        if token is None:
+            console.print("\n[dim]Cancelled.[/dim]")
+            raise typer.Exit(0)
+
+    username = username.strip()
+    token = token.strip()
+
+    if not username:
+        console.print("[red]Error:[/red] Username cannot be empty")
+        raise typer.Exit(1)
+    if not token:
+        console.print("[red]Error:[/red] Token cannot be empty")
+        raise typer.Exit(1)
+
+    try:
+        with console.status("Authenticating…", spinner="dots"):
+            result = subprocess.run(
+                ["docker", "login", host, "-u", username, "--password-stdin"],
+                input=token,
+                text=True,
+                capture_output=True,
+                timeout=30,
+            )
+    except subprocess.TimeoutExpired:
+        console.print(f"[red]Error:[/red] timed out connecting to [bold]{host}[/bold]")
+        raise typer.Exit(1)
+
+    if result.returncode == 0:
+        console.print(f"[green]✓[/green] Logged in to [bold]{host}[/bold]")
+    else:
+        detail = "\n".join(line for line in (result.stderr.strip(), result.stdout.strip()) if line)
+        console.print(f"[red]Error:[/red] docker login failed\n{detail}")
+        raise typer.Exit(result.returncode)
+
+
+@app.command("build")
+def build_cmd() -> None:
+    """Build the production Docker image, tagged as :latest and :<git-sha>.
+
+    Uses SSH agent forwarding so private git dependencies can be cloned
+    during the build.
+
+    Examples:
+        phoxtail docker build
+    """
+    result = _registry_and_sha()
+    if result is None:
+        raise typer.Exit(1)
+    base, sha = result
+    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha})")
+    rc = _build_image(base, sha)
+    if rc != 0:
+        raise typer.Exit(rc)
+    console.print(f"  [green]✓[/green] Built: {base}:latest, {base}:{sha}")
+
+
+@app.command("push")
+def push_cmd() -> None:
+    """Push the production image (:latest and :<git-sha>) to the configured registry.
+
+    Assumes the image has already been built locally (run ``phoxtail docker build`` first).
+
+    Examples:
+        phoxtail docker push
+    """
+    result = _registry_and_sha()
+    if result is None:
+        raise typer.Exit(1)
+    base, sha = result
+    console.print(f"\n  [bold cyan]→[/bold cyan] Pushing [bold]{base}:latest[/bold] and [bold]{base}:{sha}[/bold]")
+    rc = _push_image(base, sha)
+    if rc != 0:
+        raise typer.Exit(rc)
+    console.print(f"  [green]✓[/green] Pushed: {base}:latest, {base}:{sha}")
+
+
+@app.command("release")
+def release_cmd() -> None:
+    """Build and push the production image in one step (build + push).
+
+    Equivalent to running ``phoxtail docker build`` followed by ``phoxtail docker push``.
+
+    Examples:
+        phoxtail docker release
+    """
+    result = _registry_and_sha()
+    if result is None:
+        raise typer.Exit(1)
+    base, sha = result
+
+    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha})")
+    rc = _build_image(base, sha)
+    if rc != 0:
+        raise typer.Exit(rc)
+    console.print("  [green]✓[/green] Built")
+
+    console.print("\n  [bold cyan]→[/bold cyan] Pushing")
+    rc = _push_image(base, sha)
+    if rc != 0:
+        raise typer.Exit(rc)
+    console.print(f"  [green]✓[/green] Released: {base}:latest, {base}:{sha}")
+
+
 # Valid versions for selection
 PYTHON_VERSIONS = ["3.11", "3.12", "3.13"]
 POSTGRES_VERSIONS = ["15", "16", "17", "18"]
 
-IMAGE_PREFIX = docker_image_slug(get_project_name())
+IMAGE_PREFIX = slugify(get_project_name())
 
 
 def _get_postgres_data_path(version: str) -> str:
@@ -299,6 +488,11 @@ def compose(
         "-f",
         help="Overwrite existing file without prompting",
     ),
+    registry: bool = typer.Option(
+        False,
+        "--registry",
+        help="Registry-pull mode: no build block, named static/media volumes. Requires production.",
+    ),
 ) -> None:
     """Create a Docker Compose configuration file for development or production.
 
@@ -338,10 +532,10 @@ def compose(
         console.print("\n[bold]Docker Configuration:[/bold]")
         project_name = Prompt.ask(
             "Project name for Docker image",
-            default=docker_image_slug(get_project_name()),
+            default=slugify(get_project_name()),
         )
 
-    project_name = docker_image_slug(project_name.strip())
+    project_name = slugify(project_name.strip())
 
     if postgres_version is None:
         postgres_version = questionary.select(
@@ -360,13 +554,39 @@ def compose(
         )
         raise typer.Exit(1)
 
+    if registry and env_lower != "production":
+        console.print("[red]Error:[/red] --registry requires production environment.")
+        raise typer.Exit(1)
+
+    if registry:
+        docker_registry = get_docker_registry()
+        if not docker_registry:
+            console.print(
+                "[red]Error:[/red] [bold]\\[docker] registry[/bold] is not set in phoxtail.toml.\n"
+                "  Add it before using --registry:\n\n"
+                '  [dim]\\[docker]\\nregistry = "ghcr.io/yourorg"[/dim]'
+            )
+            raise typer.Exit(1)
+        image_name = f"{docker_registry}/{project_name}:latest"
+    else:
+        image_name = f"{IMAGE_PREFIX}/{project_name}:latest"
+
     try:
         context = {
             "environment": env_lower,
-            "image_name": f"{IMAGE_PREFIX}/{project_name}:latest",
+            "image_name": image_name,
             "postgres_version": postgres_version,
             "pg_data_path": _get_postgres_data_path(postgres_version),
+            "registry_mode": registry,
         }
+
+        if Path(".venv").exists():
+            with console.status("[dim]Syncing .venv before scanning fragments…[/dim]"):
+                sync = subprocess.run(["uv", "sync"], capture_output=True, text=True)
+            if sync.returncode != 0:
+                console.print(
+                    f"[yellow]Warning:[/yellow] uv sync failed — fragments may be stale\n{sync.stderr.strip()}"
+                )
 
         base = yaml.safe_load(render_template("docker/docker-compose.yaml", context))
         fragments = collect_package_compose_fragments(context)
@@ -379,9 +599,11 @@ def compose(
         console.print(f"\n[green]✓[/green] Docker Compose file created: [bold]{output}[/bold]")
         if fragments["services"]:
             console.print(f"[dim]App fragments merged:[/dim] {', '.join(fragments['services'].keys())}")
-        console.print(f"[dim]Image:[/dim] {IMAGE_PREFIX}/{project_name}:latest")
+        console.print(f"[dim]Image:[/dim] {image_name}")
         console.print(f"[dim]PostgreSQL version:[/dim] {postgres_version}")
         console.print(f"[dim]Environment:[/dim] {env_lower}")
+        if registry:
+            console.print("[dim]Mode:[/dim] registry-pull (no local build)")
 
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")

@@ -1,16 +1,26 @@
 services:
   web:
+{% if not registry_mode %}
     build:
       target: {{ environment }}
       ssh:
         - default
+{% endif %}
     image: {{ image_name }}
-    pull_policy: build
+    pull_policy: {% if registry_mode %}always{% else %}build{% endif %}
+
     restart: always
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    user: {% if registry_mode %}"1000:1000"{% else %}"${HOST_UID:-1000}:${HOST_GID:-1000}"{% endif %}
+
     volumes:
+{% if not registry_mode %}
       - .:/app
+{% endif %}
       - ${HOME}/.phoxtail:/home/app/.phoxtail:ro
+{% if registry_mode %}
+      - static_files:/app/static
+      - media_files:/app/media
+{% endif %}
     env_file:
       - ./.env
 {% if environment == "development" %}
@@ -55,8 +65,13 @@ services:
     restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+{% if registry_mode %}
+      - static_files:/usr/share/nginx/html/static:ro
+      - media_files:/usr/share/nginx/html/media:ro
+{% else %}
       - ./static:/usr/share/nginx/html/static
       - ./media:/usr/share/nginx/html/media
+{% endif %}
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     ports:
@@ -73,8 +88,13 @@ services:
     volumes:
       - certbot_conf:/etc/letsencrypt
       - certbot_www:/var/www/certbot
+{% if registry_mode %}
+      - static_files:/usr/share/nginx/html/static:ro
+      - media_files:/usr/share/nginx/html/media:ro
+{% else %}
       - ./static:/usr/share/nginx/html/static
       - ./media:/usr/share/nginx/html/media
+{% endif %}
     depends_on:
       - nginx
 
@@ -84,4 +104,8 @@ volumes:
 {% if environment == "production" %}
   certbot_conf:
   certbot_www:
+{% if registry_mode %}
+  static_files:
+  media_files:
+{% endif %}
 {% endif %}
