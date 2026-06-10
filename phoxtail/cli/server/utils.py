@@ -2,6 +2,7 @@
 
 import subprocess
 import time
+from pathlib import Path
 
 from phoxtail.cli.server.providers.base import SSHKey
 from phoxtail.cli.utils.templates import render_template
@@ -56,7 +57,6 @@ _SSH_MUX = [
 ]
 
 CLOUD_INIT_SENTINEL = "/var/lib/cloud/instance/boot-finished"
-PROJECT_DIR = "~/project"
 
 
 def _wait_for_ssh(
@@ -123,6 +123,30 @@ def wait_for_cloud_init(
     ).returncode
 
     return rc == 0
+
+
+_SCP_OPTS = [
+    "-o",
+    "StrictHostKeyChecking=accept-new",
+    "-o",
+    "ControlMaster=auto",
+    "-o",
+    "ControlPath=/tmp/phoxtail-ssh-%r@%h",
+    "-o",
+    "ControlPersist=300",
+]
+
+
+def scp_to(user: str, ip: str, local: Path, remote: str) -> bool:
+    """Copy a local file to the server. Returns True on success."""
+    return (
+        subprocess.run(
+            ["scp", *_SCP_OPTS, str(local), f"{user}@{ip}:{remote}"],
+            capture_output=True,
+            text=True,
+        ).returncode
+        == 0
+    )
 
 
 def ssh_run(

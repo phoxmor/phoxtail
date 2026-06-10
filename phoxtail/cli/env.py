@@ -79,7 +79,7 @@ def _prompt_development_env(output_file: Path) -> None:
     console.print(f"\n[green]✓[/green] Environment file created: [bold]{output_file}[/bold]")
 
 
-def _prompt_production_env(output_file: Path) -> None:
+def _prompt_production_env(output_file: Path, server_ip: str | None = None) -> None:
     """Create a production .env file with interactive prompts."""
     console.print("\n[bold cyan]Creating Production Environment File[/bold cyan]\n")
 
@@ -104,6 +104,10 @@ def _prompt_production_env(output_file: Path) -> None:
     else:
         allowed_hosts = domain
         csrf_origins = f"https://{domain}"
+
+    if server_ip:
+        allowed_hosts = f"{allowed_hosts},{server_ip}"
+        csrf_origins = f"{csrf_origins},http://{server_ip}"
 
     context.update(
         {
@@ -165,6 +169,14 @@ def create(
         "-f",
         help="Overwrite existing file without prompting",
     ),
+    server_ip: str | None = typer.Option(
+        None,
+        "--server-ip",
+        help=(
+            "Server IP to add to ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS"
+            " for HTTP access while DNS is not yet configured."
+        ),
+    ),
 ) -> None:
     """Create an environment configuration file with interactive prompts.
 
@@ -175,6 +187,7 @@ def create(
         phoxtail env create
         phoxtail env create development
         phoxtail env create production -o .env
+        phoxtail env create production --server-ip 1.2.3.4
     """
     if environment is None:
         environment = questionary.select(
@@ -203,7 +216,7 @@ def create(
         if env_lower == "development":
             _prompt_development_env(output)
         else:
-            _prompt_production_env(output)
+            _prompt_production_env(output, server_ip=server_ip)
     except KeyboardInterrupt:
         console.print("\n[dim]Cancelled.[/dim]")
         raise typer.Exit(0)
