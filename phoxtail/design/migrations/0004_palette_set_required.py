@@ -9,7 +9,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("phoxtail_design", "0003_assign_default_palette_set"),
+        ("phoxtail_design", "0002_palette_set"),
     ]
 
     operations = [
