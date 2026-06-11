@@ -213,6 +213,7 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["configure"],
         pause=prev_failed,
     )
+
     def _redraw(detail: str = "") -> None:
         """Clear and redraw the progress panel, updating the current step detail."""
         if detail:
