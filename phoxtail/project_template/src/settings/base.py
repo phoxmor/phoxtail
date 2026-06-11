@@ -25,7 +25,8 @@ INSTALLED_APPS = [
     "phoxtail.cms",
     "phoxtail.agent",
     "phoxtail.tokens",
-    # {{ phoxtail_optional_apps }}
+    "phoxtail.dashboard",
+    # phoxtail:apps
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
     "wagtail.embeds",

@@ -7,7 +7,7 @@ from typer.testing import CliRunner
 
 from phoxtail.__main__ import app
 from phoxtail.cli.hatch import (
-    APPS_MARKER,
+    INSTALL_MARKER,
     PLACEHOLDER,
     TEMPLATE_DIR,
     _copy_template,
@@ -67,23 +67,22 @@ class TestCopyTemplate:
         # all SitePage subclasses to phoxtail_cms/pages/page.html by default.
         assert not (target / "myproject" / "templates").exists()
 
-    def test_injects_optional_apps_into_settings(self, tmp_path):
-        target = tmp_path / "myproject"
-        target.mkdir()
-        _copy_template("myproject", target, optional_apps=["phoxtail.dashboard"])
-
-        settings = (target / "src" / "settings" / "base.py").read_text()
-        assert APPS_MARKER.strip() not in settings
-        assert '"phoxtail.dashboard",' in settings
-
-    def test_removes_apps_marker_when_no_optional_apps(self, tmp_path):
+    def test_dashboard_always_in_settings(self, tmp_path):
         target = tmp_path / "myproject"
         target.mkdir()
         _copy_template("myproject", target)
 
         settings = (target / "src" / "settings" / "base.py").read_text()
-        assert APPS_MARKER.strip() not in settings
-        assert "phoxtail.dashboard" not in settings
+        assert '"phoxtail.dashboard",' in settings
+
+    def test_install_marker_present_in_settings(self, tmp_path):
+        target = tmp_path / "myproject"
+        target.mkdir()
+        _copy_template("myproject", target)
+
+        settings = (target / "src" / "settings" / "base.py").read_text()
+        assert INSTALL_MARKER.strip() in settings
+        assert "{{ phoxtail_optional_apps }}" not in settings
 
     def test_toml_has_empty_apps_by_default(self, tmp_path):
         target = tmp_path / "acme"
@@ -230,59 +229,48 @@ class TestHatchCommand:
     def test_wizard_runs_all_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + 4 config + migrate(y) + stream_engine(y)
-        # + bootstrap_site(y) + superuser(y) + launch(y) = 10 y's
-        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
+        # Accept wizard + configure + database + superuser + launch
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
         assert result.exit_code == 0
-        # 1 compile + 3 config (no nginx in dev) + 1 migrate + 2 populate
-        # + 1 bootstrap_site + 2 superuser (createsuperuser + verify_email)
-        # + 1 docker-compose-down + 1 launch = 12
-        assert mock_run.call_count == 12
+        # 1 uv lock + 3 config (no nginx in dev) + 1 migrate
+        # + 2 superuser (createsuperuser + verify_email) + 1 compose-down + 1 launch = 9
+        assert mock_run.call_count == 9
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
     def test_wizard_calls_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + superuser(y) + launch(y)
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
-        # calls[0] is requirements compile
-        assert calls[0][-2:] == ["requirements", "compile"]
+        # calls[0] is uv lock
+        assert calls[0] == ["uv", "lock"]
         # Config wizard steps (no nginx in development)
         assert calls[1][-3:] == ["env", "create", "development"]
         assert calls[2][-3:] == ["docker", "create", "dockerfile"]
         assert calls[3][-4:] == ["docker", "create", "compose", "development"]
         # Migrate
         assert calls[4][-2:] == ["manage", "migrate"]
-        # Stream Engine: populate_design then populate_streams
-        assert calls[5][-2:] == ["manage", "populate_design"]
-        assert calls[6][-2:] == ["manage", "populate_streams"]
-        # Bootstrap site
-        assert calls[7][-4:] == ["manage", "bootstrap_site", "--app-label", "myproject"]
         # Superuser: createsuperuser + verify_email
-        assert calls[8][-2:] == ["manage", "createsuperuser"]
-        assert calls[9][-3:] == ["manage", "verify_email", "--all-superusers"]
-        # Cleanup + launch (always foreground)
-        assert calls[10] == ["docker", "compose", "down"]
-        assert calls[-1][-3:] == ["docker", "up", "--build"]
+        assert calls[5][-2:] == ["manage", "createsuperuser"]
+        assert calls[6][-3:] == ["manage", "verify_email", "--all-superusers"]
+        # Cleanup + launch
+        assert calls[7] == ["docker", "compose", "down"]
+        assert calls[8][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
     def test_wizard_production_uses_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "production"
 
-        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\n")
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert calls[1][-3:] == ["env", "create", "production"]
@@ -295,10 +283,9 @@ class TestHatchCommand:
         """verify_email --all-superusers is called after createsuperuser succeeds."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip configure, skip populate, accept superuser, skip launch
+        # Accept wizard, skip configure, skip database, accept superuser, skip launch
         runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
@@ -309,7 +296,6 @@ class TestHatchCommand:
     def test_wizard_superuser_failure_skips_verify_email(self, mock_q, mock_run, tmp_path, monkeypatch):
         """verify_email is NOT called when createsuperuser fails."""
         monkeypatch.chdir(tmp_path)
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
         # migrate succeeds, createsuperuser fails
@@ -327,9 +313,8 @@ class TestHatchCommand:
 
         mock_run.side_effect = side_effect
 
-        # Accept wizard, skip first 4 config steps, accept migrate,
-        # skip stream_engine, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\ny\nn\ny\nn\n")
+        # Accept wizard, skip configure, skip database, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert not any("verify_email" in c for c in calls)
@@ -339,14 +324,13 @@ class TestHatchCommand:
     def test_wizard_skip_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard prompt, then skip all 8 steps
-        skip_all = "y\n" + "n\n" * 8
+        # Accept wizard prompt, then skip all 4 steps
+        skip_all = "y\n" + "n\n" * 4
         result = runner.invoke(app, ["hatch", "myproject"], input=skip_all)
         assert result.exit_code == 0
-        # Only the requirements compile call (no wizard steps)
+        # Only the uv lock call (no wizard steps)
         assert mock_run.call_count == 1
 
     @patch("phoxtail.cli.hatch.subprocess.run")
@@ -354,11 +338,10 @@ class TestHatchCommand:
     def test_done_panel_omits_completed_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all steps + superuser(y) + launch(y) + detach(y)
-        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\ny\ny\ny\ny\ny\n")
+        # Accept wizard + all 4 steps
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
         assert result.exit_code == 0
         # All steps completed — should show "is ready!" and no next-steps panel
         assert "is ready!" in result.output
@@ -369,7 +352,6 @@ class TestHatchCommand:
     def test_wizard_declined(self, mock_q, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
         # Decline the wizard prompt
         result = runner.invoke(app, ["hatch", "myproject"], input="n\n")
         assert result.exit_code == 0
@@ -392,68 +374,3 @@ class TestHatchCommand:
         req_txt = (tmp_path / "myproject" / "requirements.txt").read_text()
         assert "Django" in req_txt
         assert "gunicorn" in req_txt
-
-    @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_runs_design_before_streams(self, mock_q, mock_run, tmp_path, monkeypatch):
-        """populate_design runs before populate_streams within the populate step."""
-        monkeypatch.chdir(tmp_path)
-        mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
-        mock_q.select.return_value.ask.return_value = "development"
-
-        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
-
-        calls = [c.args[0] for c in mock_run.call_args_list]
-        design_idx = next(i for i, c in enumerate(calls) if "populate_design" in c)
-        streams_idx = next(i for i, c in enumerate(calls) if "populate_streams" in c)
-        assert design_idx < streams_idx
-
-    @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_skips_streams_on_design_failure(self, mock_q, mock_run, tmp_path, monkeypatch):
-        """If populate_design fails, populate_streams is not attempted."""
-        monkeypatch.chdir(tmp_path)
-        mock_q.checkbox.return_value.ask.return_value = []
-        mock_q.select.return_value.ask.return_value = "development"
-
-        def side_effect(args, **kwargs):
-            from unittest.mock import MagicMock
-
-            result = MagicMock()
-            cmd = args if isinstance(args, list) else [args]
-            if "populate_design" in cmd:
-                result.returncode = 1
-            else:
-                result.returncode = 0
-                result.stderr = ""
-            return result
-
-        mock_run.side_effect = side_effect
-
-        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
-
-        calls = [c.args[0] for c in mock_run.call_args_list]
-        assert any("populate_design" in c for c in calls)
-        assert not any("populate_streams" in c for c in calls)
-
-    @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_populate_step_runs_all_db_operations(self, mock_q, mock_run, tmp_path, monkeypatch):
-        """Accepting the populate step runs migrate, populate_design, populate_streams,
-        and bootstrap_site as a single unit."""
-        monkeypatch.chdir(tmp_path)
-        mock_run.return_value.returncode = 0
-        mock_q.checkbox.return_value.ask.return_value = []
-        mock_q.select.return_value.ask.return_value = "development"
-
-        # Accept wizard, skip configure, accept populate, skip superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
-
-        calls = [c.args[0] for c in mock_run.call_args_list]
-        assert any("migrate" in c for c in calls)
-        assert any("populate_design" in c for c in calls)
-        assert any("populate_streams" in c for c in calls)
-        assert any("bootstrap_site" in c for c in calls)

@@ -17,7 +17,6 @@ from phoxtail.cli.utils.docker import docker_env
 console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
-APPS_MARKER = "    # {{ phoxtail_optional_apps }}\n"
 # Stable sentinel that survives hatch — phoxtail install inserts above this line.
 INSTALL_MARKER = "    # phoxtail:apps\n"
 # Sentinel used in template directory and file names that should be renamed
@@ -25,12 +24,6 @@ INSTALL_MARKER = "    # phoxtail:apps\n"
 # and its Django template namespace).
 DIR_SENTINEL = "__project_name__"
 TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
-
-# Optional phoxtail apps available during hatching.
-OPTIONAL_APPS = [
-    {"name": "Dashboard", "value": "phoxtail.dashboard"},
-]
-
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
@@ -109,17 +102,11 @@ def _clear_and_show_progress(
     console.print()
 
 
-def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str] | None = None) -> int:
+def _copy_template(project_name: str, target_dir: Path) -> int:
     """Copy project_template into target_dir, replacing placeholders.
 
     Uses str.replace() for substitution — NOT Jinja2 — because scaffold
     files contain Django template syntax that must be left untouched.
-
-    *optional_apps* is a list of dotted app names to inject into
-    INSTALLED_APPS (replacing the ``APPS_MARKER`` line). Per-app
-    integration (context processors, URL mounts, default settings,
-    dependencies) is handled at runtime by ``phoxtail.core.wiring`` via
-    each app's ``PhoxtailAppConfig``.
 
     Returns the number of files copied.
     """
@@ -130,13 +117,6 @@ def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str]
             "install of the full repository."
         )
 
-    selected = optional_apps or []
-
-    if selected:
-        apps_replacement = "".join(f'    "{app}",\n' for app in selected) + INSTALL_MARKER
-    else:
-        apps_replacement = INSTALL_MARKER
-
     file_count = 0
     for src_path in sorted(TEMPLATE_DIR.rglob("*")):
         if src_path.is_dir():
@@ -144,19 +124,14 @@ def _copy_template(project_name: str, target_dir: Path, optional_apps: list[str]
 
         rel_path = src_path.relative_to(TEMPLATE_DIR)
 
-        # Rename sentinel path components (e.g. __project_name__/) to the
-        # concrete project name — both for directories and file names.
         rel_parts = tuple(project_name if part == DIR_SENTINEL else part for part in rel_path.parts)
         dest_path = target_dir.joinpath(*rel_parts)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Try text replacement; fall back to binary copy for non-text files
         try:
             content = src_path.read_text(encoding="utf-8")
             if PLACEHOLDER in content:
                 content = content.replace(PLACEHOLDER, project_name)
-            if APPS_MARKER in content:
-                content = content.replace(APPS_MARKER, apps_replacement)
             dest_path.write_text(content, encoding="utf-8")
         except UnicodeDecodeError:
             shutil.copy2(src_path, dest_path)
@@ -426,8 +401,6 @@ def hatch(
     try:
         console.print()
 
-        # Ask for environment and optional apps before scaffolding so they are
-        # baked into the generated settings — no fragile post-processing needed.
         environment: str | None = None
         if not no_wizard:
             environment = questionary.select(
@@ -438,27 +411,6 @@ def hatch(
                 console.print("[dim]Cancelled.[/dim]")
                 raise typer.Exit(0)
             console.print()
-
-        selected_apps: list[str] = []
-        if not no_wizard and OPTIONAL_APPS:
-            choices = [
-                questionary.Choice(
-                    title=app["name"],
-                    value=app["value"],
-                )
-                for app in OPTIONAL_APPS
-            ]
-            selected_apps = (
-                questionary.checkbox(
-                    "Select optional apps to enable:",
-                    choices=choices,
-                ).ask()
-                or []
-            )
-            if selected_apps:
-                names = ", ".join(a["name"] for a in OPTIONAL_APPS if a["value"] in selected_apps)
-                console.print(f"  [green]Enabled:[/green] {names}")
-                console.print()
 
         docker_registry: str | None = None
         if not no_wizard and environment == "production":
@@ -478,22 +430,16 @@ def hatch(
         (target_dir / "db-backups").mkdir(exist_ok=True)
         (target_dir / "media").mkdir(exist_ok=True)
 
-        # Copy template files with placeholder replacement
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
-            _copy_template(project_name, target_dir, selected_apps)
+            _copy_template(project_name, target_dir)
 
-            # Patch phoxtail.toml: inject selected apps and registry (if given).
-            toml_path = target_dir / "phoxtail.toml"
-            toml_content = toml_path.read_text(encoding="utf-8")
-            if selected_apps:
-                apps_toml = "[" + ", ".join(f'"{a}"' for a in selected_apps) + "]"
-                toml_content = toml_content.replace("apps = []", f"apps = {apps_toml}")
             if docker_registry:
+                toml_path = target_dir / "phoxtail.toml"
+                toml_content = toml_path.read_text(encoding="utf-8")
                 toml_content = toml_content.replace(
                     '# registry = "ghcr.io/<org_name>"',
                     f'registry = "{docker_registry}"',
                 )
-            if selected_apps or docker_registry:
                 toml_path.write_text(toml_content, encoding="utf-8")
 
             # Resolve and lock all dependencies (public from PyPI + phoxtail from git)
