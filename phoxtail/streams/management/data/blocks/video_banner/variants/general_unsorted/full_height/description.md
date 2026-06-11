@@ -1,1 +1,0 @@
-A full-screen height version of the video banner.

@@ -1,1 +1,0 @@
-Ground state variant for Map. A full-width embedded map that accepts any iframe embed code (e.g. Google Maps) and renders it at the same height as the image and video banner blocks.

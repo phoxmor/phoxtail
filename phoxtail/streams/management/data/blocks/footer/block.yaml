@@ -1,5 +1,0 @@
-name: Footer
-identifier: footer
-description: Site-wide footer with branding, link sections, social media, bottom links, and copyright. Shared across all pages of a site.
-icon: page-footer
-is_shared: true

@@ -1,1 +1,0 @@
-Ground state variant for Image Banner. A full-width image background with carousel slides, text overlays with parallax effects, and call-to-action buttons. The most natural, self-evident rendering of the image banner structure.

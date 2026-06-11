@@ -1,1 +1,0 @@
-Ground state variant for Header Section. A versatile header with title, subtitle, image, and call-to-action buttons arranged in a responsive two-column grid layout. The most natural, self-evident rendering of the header section structure.

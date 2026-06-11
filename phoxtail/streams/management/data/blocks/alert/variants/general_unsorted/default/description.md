@@ -1,1 +1,0 @@
-Ground state variant for Alert. A contained, modern alert with a left accent border, status icon, optional title, and message body. Uses semantic design tokens for the danger/destructive role and bespoke palette-aware colours for info, success, and warning states.

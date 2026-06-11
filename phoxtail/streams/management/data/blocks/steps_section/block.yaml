@@ -1,4 +1,0 @@
-name: Steps Section
-identifier: steps_section
-description: A repeating list of steps, each displaying a prominent animated step number in place of an image. Ideal for how-it-works flows, process guides, and numbered tutorials. Each step mirrors the header_section layout with supertitle, title, subtitle, and optional CTA buttons.
-icon: list-ol
