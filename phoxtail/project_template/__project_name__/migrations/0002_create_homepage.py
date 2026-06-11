@@ -796,7 +796,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ("{{ phoxtail_project_name }}", "0001_initial"),
         ("phoxtail_streams", "0001_initial"),
-        ("wagtailcore", "0097_embed"),
     ]
 
     operations = [
