@@ -112,26 +112,35 @@ def _git_sha() -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def _build_image(base: str, sha: str) -> int:
-    """Build production image tagged as <base>:latest and <base>:<sha>."""
+def _build_image(base: str, sha: str | None) -> int:
+    """Build production image tagged as <base>:latest (and <base>:<sha> when available)."""
     cmd = ["docker", "build", "--target", "production"]
     ssh_sock = os.environ.get("SSH_AUTH_SOCK")
     if ssh_sock:
         cmd += ["--ssh", f"default={ssh_sock}"]
-    cmd += ["-t", f"{base}:latest", "-t", f"{base}:{sha}", "."]
+    cmd += ["-t", f"{base}:latest"]
+    if sha:
+        cmd += ["-t", f"{base}:{sha}"]
+    cmd += ["."]
     return subprocess.call(cmd)
 
 
-def _push_image(base: str, sha: str) -> int:
-    """Push <base>:latest and <base>:<sha> to the registry."""
+def _push_image(base: str, sha: str | None) -> int:
+    """Push <base>:latest (and <base>:<sha> when available) to the registry."""
     rc = subprocess.call(["docker", "push", f"{base}:latest"])
     if rc != 0:
         return rc
-    return subprocess.call(["docker", "push", f"{base}:{sha}"])
+    if sha:
+        return subprocess.call(["docker", "push", f"{base}:{sha}"])
+    return 0
 
 
-def _registry_and_sha() -> tuple[str, str] | None:
-    """Resolve the image base and git SHA; prints errors and returns None on failure."""
+def _registry_and_sha() -> tuple[str, str | None] | None:
+    """Resolve the image base and git SHA; prints errors and returns None on hard failure.
+
+    SHA may be None when there are no commits yet — callers should warn and continue
+    with :latest only.
+    """
     docker_registry = get_docker_registry()
     if not docker_registry:
         console.print(
@@ -143,8 +152,10 @@ def _registry_and_sha() -> tuple[str, str] | None:
         return None
     sha = _git_sha()
     if sha is None:
-        console.print("[red]Error:[/red] Could not read git SHA — is this a git repository?")
-        return None
+        console.print(
+            "[yellow]Warning:[/yellow] No git SHA available — building/pushing [bold]:latest[/bold] only.\n"
+            "  Commit your changes to enable SHA-tagged images."
+        )
     base = f"{docker_registry}/{slugify(get_project_name())}"
     return base, sha
 
@@ -241,11 +252,13 @@ def build_cmd() -> None:
     if result is None:
         raise typer.Exit(1)
     base, sha = result
-    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha})")
+    sha_label = sha or "no git SHA"
+    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
     rc = _build_image(base, sha)
     if rc != 0:
         raise typer.Exit(rc)
-    console.print(f"  [green]✓[/green] Built: {base}:latest, {base}:{sha}")
+    tags = f"{base}:latest" + (f", {base}:{sha}" if sha else "")
+    console.print(f"  [green]✓[/green] Built: {tags}")
 
 
 @app.command("push")
@@ -261,11 +274,13 @@ def push_cmd() -> None:
     if result is None:
         raise typer.Exit(1)
     base, sha = result
-    console.print(f"\n  [bold cyan]→[/bold cyan] Pushing [bold]{base}:latest[/bold] and [bold]{base}:{sha}[/bold]")
+    tags_label = f"[bold]{base}:latest[/bold]" + (f" and [bold]{base}:{sha}[/bold]" if sha else "")
+    console.print(f"\n  [bold cyan]→[/bold cyan] Pushing {tags_label}")
     rc = _push_image(base, sha)
     if rc != 0:
         raise typer.Exit(rc)
-    console.print(f"  [green]✓[/green] Pushed: {base}:latest, {base}:{sha}")
+    tags = f"{base}:latest" + (f", {base}:{sha}" if sha else "")
+    console.print(f"  [green]✓[/green] Pushed: {tags}")
 
 
 @app.command("release")
@@ -282,7 +297,8 @@ def release_cmd() -> None:
         raise typer.Exit(1)
     base, sha = result
 
-    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha})")
+    sha_label = sha or "no git SHA"
+    console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
     rc = _build_image(base, sha)
     if rc != 0:
         raise typer.Exit(rc)
@@ -292,7 +308,8 @@ def release_cmd() -> None:
     rc = _push_image(base, sha)
     if rc != 0:
         raise typer.Exit(rc)
-    console.print(f"  [green]✓[/green] Released: {base}:latest, {base}:{sha}")
+    tags = f"{base}:latest" + (f", {base}:{sha}" if sha else "")
+    console.print(f"  [green]✓[/green] Released: {tags}")
 
 
 # Valid versions for selection
