@@ -34,8 +34,8 @@ OPTIONAL_APPS = [
 
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
-    ("configure", "Configure"),
-    ("setup_db", "Populate"),
+    ("configure", "Config"),
+    ("setup_db", "Database"),
     ("superuser", "Access"),
     ("docker_up", "Launch"),
 ]
@@ -213,16 +213,6 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["configure"],
         pause=prev_failed,
     )
-    console.print(
-        f"  Generate [bold]{environment}[/bold] configuration files"
-        + (
-            " (.env, Dockerfile, docker-compose.yaml, nginx.conf)"
-            if environment == "production"
-            else " (.env, Dockerfile, docker-compose.yaml)"
-        )
-        + "\n"
-    )
-
     def _redraw(detail: str = "") -> None:
         """Clear and redraw the progress panel, updating the current step detail."""
         if detail:
@@ -281,9 +271,7 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
     # Clear sub-step detail so the panel is clean when the next step renders.
     details.pop("configure", None)
 
-    # --- Step: Create Database ---
-    # Runs two operations in sequence: migrate → populate_design.
-    # They share one user-facing prompt.
+    # --- Step: Database ---
     _clear_and_show_progress(
         project_name,
         steps,
@@ -293,12 +281,9 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["setup_db"],
         pause=prev_failed,
     )
-    console.print("  Run migrations and seed design tokens\n")
 
-    def _redraw_db(detail: str = "") -> None:
-        """Clear and redraw the progress panel for the database step."""
-        if detail:
-            details["setup_db"] = detail
+    if Confirm.ask("  Set up the database?", default=True):
+        details["setup_db"] = "initializing…"
         _clear_and_show_progress(
             project_name,
             steps,
@@ -307,9 +292,6 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
             environment=environment,
             current_index=step_idx["setup_db"],
         )
-
-    if Confirm.ask("  Set up the database?", default=True):
-        _redraw_db("running migrations…")
         migrate_ok = _run_step(target_dir, ["manage", "migrate"])
 
         if not migrate_ok:
@@ -317,16 +299,8 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
             details["setup_db"] = "migrate failed"
             prev_failed = True
         else:
-            _redraw_db("populating design tokens…")
-            design_ok = _run_step(target_dir, ["manage", "populate_design"])
-
-            if not design_ok:
-                steps["setup_db"] = "failed"
-                details["setup_db"] = "populate_design failed"
-                prev_failed = True
-            else:
-                steps["setup_db"] = "done"
-                prev_failed = False
+            steps["setup_db"] = "done"
+            prev_failed = False
     else:
         steps["setup_db"] = "skipped"
         prev_failed = False
@@ -344,8 +318,7 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["superuser"],
         pause=prev_failed,
     )
-    console.print("  Create an admin superuser account\n")
-    if Confirm.ask("  Run [cyan]phoxtail manage createsuperuser[/cyan]?", default=True):
+    if Confirm.ask("  Create an admin account?", default=True):
         console.print()
         if _run_step(target_dir, ["manage", "createsuperuser"]):
             # Verify the superuser's email in allauth automatically
@@ -378,7 +351,6 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["docker_up"],
         pause=prev_failed,
     )
-    console.print("  Build images and start the application\n")
     if Confirm.ask("  Launch the app?", default=True):
         args = ["docker", "up", "--build"]
         if _run_step(target_dir, args):
@@ -578,8 +550,8 @@ def hatch(
         _check("configure", configure_cmd, "generate project configuration files")
         _check(
             "setup_db",
-            ("phoxtail manage migrate && phoxtail manage populate_design"),
-            "set up the database (migrate and seed design tokens)",
+            "phoxtail manage migrate",
+            "initialize the database",
         )
         _check(
             "superuser",
