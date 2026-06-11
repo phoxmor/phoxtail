@@ -13,7 +13,6 @@ from rich.prompt import Confirm
 
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
-from phoxtail.cli.utils.env import read_env_value
 
 console = Console()
 
@@ -283,9 +282,8 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
     details.pop("configure", None)
 
     # --- Step: Create Database ---
-    # Runs four operations in sequence: migrate → populate_design →
-    # populate_streams → bootstrap_site. They are non-negotiable as a unit —
-    # each depends on the previous — so they share one user-facing prompt.
+    # Runs two operations in sequence: migrate → populate_design.
+    # They share one user-facing prompt.
     _clear_and_show_progress(
         project_name,
         steps,
@@ -295,7 +293,7 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
         current_index=step_idx["setup_db"],
         pause=prev_failed,
     )
-    console.print("  Run migrations, seed design tokens, populate blocks, and bootstrap the site\n")
+    console.print("  Run migrations and seed design tokens\n")
 
     def _redraw_db(detail: str = "") -> None:
         """Clear and redraw the progress panel for the database step."""
@@ -327,33 +325,8 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
                 details["setup_db"] = "populate_design failed"
                 prev_failed = True
             else:
-                _redraw_db("populating stream blocks…")
-                streams_ok = _run_step(target_dir, ["manage", "populate_streams"])
-
-                if not streams_ok:
-                    steps["setup_db"] = "failed"
-                    details["setup_db"] = "populate_streams failed"
-                    prev_failed = True
-                else:
-                    _redraw_db("bootstrapping site…")
-                    bootstrap_args = [
-                        "manage",
-                        "bootstrap_site",
-                        "--app-label",
-                        project_name,
-                    ]
-                    site_name = read_env_value("SITE_NAME", target_dir / ".env")
-                    if site_name:
-                        bootstrap_args += ["--site-name", site_name]
-                    site_ok = _run_step(target_dir, bootstrap_args)
-
-                    if site_ok:
-                        steps["setup_db"] = "done"
-                        prev_failed = False
-                    else:
-                        steps["setup_db"] = "failed"
-                        details["setup_db"] = "bootstrap_site failed"
-                        prev_failed = True
+                steps["setup_db"] = "done"
+                prev_failed = False
     else:
         steps["setup_db"] = "skipped"
         prev_failed = False
@@ -605,13 +578,8 @@ def hatch(
         _check("configure", configure_cmd, "generate project configuration files")
         _check(
             "setup_db",
-            (
-                "phoxtail manage migrate"
-                " && phoxtail manage populate_design"
-                " && phoxtail manage populate_streams"
-                f" && phoxtail manage bootstrap_site --app-label {project_name}"
-            ),
-            "set up the database (migrate, seed tokens/blocks, bootstrap site)",
+            ("phoxtail manage migrate && phoxtail manage populate_design"),
+            "set up the database (migrate and seed design tokens)",
         )
         _check(
             "superuser",
