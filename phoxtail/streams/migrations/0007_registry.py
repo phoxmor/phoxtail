@@ -26,7 +26,4 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
             },
         ),
-        migrations.DeleteModel(
-            name='StreamsAdminPermission',
-        ),
     ]
