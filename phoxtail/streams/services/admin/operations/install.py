@@ -31,13 +31,13 @@ class RegistryServiceAdminInstall:
     def authorize(self):
         pass
 
-    def validate(self, variant_slug: str):
+    def validate(self, variant_id: int):
         pass
 
-    def perform(self, registry, variant_slug: str) -> InstallResult:
+    def perform(self, registry, variant_id: int) -> InstallResult:
         from phoxtail.streams.models import Block, BlockVariant, VariantCollection
 
-        url = f"{registry.base_url}/api/registry/v1/catalog/variants/{variant_slug}/"
+        url = f"{registry.base_url}/api/registry/v1/catalog/variants/{variant_id}/"
         response = httpx.get(
             url,
             headers={"Authorization": f"Bearer {registry.token}"},
@@ -47,7 +47,7 @@ class RegistryServiceAdminInstall:
         if not response.is_success:
             from django.core.exceptions import ValidationError
 
-            raise ValidationError(f"Registry returned {response.status_code} for variant '{variant_slug}'.")
+            raise ValidationError(f"Registry returned {response.status_code} for variant '{variant_id}'.")
 
         install = response.json().get("install") or {}
         collection_data = install.get("collection") or {}
@@ -96,8 +96,8 @@ class RegistryServiceAdminInstall:
 
         return InstallResult(variant=variant, created=created, skipped_page_types=skipped_page_types)
 
-    def execute(self, variant_slug: str) -> InstallResult:
+    def execute(self, variant_id: int) -> InstallResult:
         registry = self.service.registry
         self.authorize()
-        self.validate(variant_slug=variant_slug)
-        return self.perform(registry=registry, variant_slug=variant_slug)
+        self.validate(variant_id=variant_id)
+        return self.perform(registry=registry, variant_id=variant_id)
