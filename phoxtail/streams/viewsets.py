@@ -16,7 +16,7 @@ from .views import BlockVariantChooserViewSet
 
 class BlockCategoryViewSet(SnippetViewSet):
     model = BlockCategory
-    icon = "tag"
+    icon = "category-search"
     menu_label = _("Block Categories")
     menu_name = _("Block Categories")
     menu_order = 50
@@ -122,7 +122,7 @@ class BlockVariantViewSet(SnippetViewSet):
 
 class VariantCollectionViewSet(SnippetViewSet):
     model = VariantCollection
-    icon = "graph-5"
+    icon = "graph-6"
     menu_label = _("Collections")
     menu_name = _("Collections")
     menu_order = 400
