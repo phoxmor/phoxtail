@@ -22,6 +22,7 @@ from phoxtail.cli import (
     ssl,
     studio,
     test,
+    upgrade,
 )
 from phoxtail.cli.utils.config import find_config_file
 
@@ -80,6 +81,7 @@ app.add_typer(test.app, name="test", help="Run the test suite")
 app.add_typer(lint.app, name="lint", help="Run linting and formatting")
 app.command()(hatch.hatch)
 app.command()(install.install)
+app.command()(upgrade.upgrade)
 
 
 @app.command()
