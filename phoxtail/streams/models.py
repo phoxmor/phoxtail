@@ -444,3 +444,9 @@ class Registry(TimestampMixin, models.Model):
 
     def get_admin_url(self):
         return reverse("phoxtail_streams:registries:index")
+
+    @property
+    def service(self):
+        from phoxtail.streams.services import RegistryService
+
+        return RegistryService(self)
