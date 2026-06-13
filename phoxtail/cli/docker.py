@@ -514,7 +514,7 @@ def compose(
     """Create a Docker Compose configuration file for development or production.
 
     Generates a docker-compose.yaml file with all required services:
-    - Development: web, db (PostgreSQL), docs
+    - Development: web, db (PostgreSQL)
     - Production: web, db (PostgreSQL), nginx, certbot
 
     Examples:

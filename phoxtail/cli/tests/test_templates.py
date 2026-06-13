@@ -81,11 +81,6 @@ class TestComposeTemplate:
         }
         return render_template("docker/docker-compose.yaml", context)
 
-    def test_dev_has_docs_service(self):
-        result = self._render("development")
-        assert "docs" in result
-        assert "mkdocs" in result
-
     def test_dev_does_not_have_nginx(self):
         result = self._render("development")
         assert "nginx:" not in result
@@ -120,11 +115,6 @@ class TestComposeTemplate:
         result = self._render("development")
         assert "certbot_conf" not in result
         assert "certbot_www" not in result
-
-    def test_prod_does_not_have_docs(self):
-        result = self._render("production")
-        assert "docs:" not in result
-        assert "mkdocs" not in result
 
     def test_prod_mounts_phoxtail(self):
         # Until phoxtail is published to PyPI, containers need the local

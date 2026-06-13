@@ -43,23 +43,7 @@ services:
       - postgres_data:{{ pg_data_path }}
       - ./db-backups:/db-backups
 
-{% if environment == "development" %}
-  docs:
-    build:
-      target: {{ environment }}
-      ssh:
-        - default
-    image: {{ image_name }}
-    pull_policy: build
-    profiles: ["docs"]
-    working_dir: /app/docs
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    command: sh -c "mkdocs serve --dev-addr 0.0.0.0:8000"
-
-{% elif environment == "production" %}
+{% if environment == "production" %}
   nginx:
     image: nginx:latest
     restart: always
