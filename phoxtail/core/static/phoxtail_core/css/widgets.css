@@ -432,19 +432,41 @@ textarea.fw-input {
 /* ── Search Widget — Shared (single select search + multi select chips) ── */
 
 .fw-search-wrap {
-    position: relative;
+    /* token definitions — light (self-contained so widget works outside .fw-sss-input) */
+    --md-sys-color-surface-container-low: var(--color-surface-100);
+    --md-sys-color-outline-variant: var(--color-surface-200);
+    --md-sys-color-on-surface: var(--color-surface-900);
+    --md-sys-color-on-surface-variant: var(--color-surface-600);
+    --md-sys-color-primary: var(--color-primary-600);
+
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgb(var(--md-sys-color-surface-container-low));
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    border-radius: 9999px !important;
+    padding: 0 1.25rem;
+    height: 38px;
+    line-height: 1.5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.fw-search-wrap:focus-within {
+    border-color: rgb(var(--md-sys-color-primary)) !important;
+    box-shadow: 0 0 0 3px rgb(var(--md-sys-color-primary) / 0.15) !important;
 }
 
 .fw-search-icon-wrap {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    pointer-events: none;
     display: flex !important;
     align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    pointer-events: none;
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: auto !important;
     background: none !important;
     border: none !important;
     padding: 0 !important;
@@ -457,109 +479,87 @@ textarea.fw-input {
     display: block !important;
     width: 1.25rem !important;
     height: 1.25rem !important;
-    color: rgb(var(--color-surface-400));
+    color: inherit !important;
     background: none !important;
     border: none !important;
     padding: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    transition: color 150ms;
-}
-
-.fw-search-wrap:focus-within .fw-search-icon {
-    color: rgb(var(--color-primary-500));
 }
 
 .fw-search-input {
-    width: 100% !important;
-    padding: 0.75rem 1rem 0.75rem 2.5rem !important;
-    border: 1px solid rgb(var(--color-surface-300)) !important;
-    border-radius: 0.75rem !important;
-    background-color: rgb(var(--color-surface-50)) !important;
-    color: rgb(var(--color-surface-700)) !important;
-    font-size: 0.875rem !important;
-    font-weight: 500;
-    outline: none;
-    transition: border-color 300ms, box-shadow 300ms;
-    box-sizing: border-box;
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 0.9375rem !important;
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+    font-family: inherit !important;
+    padding: 0 !important;
+    height: auto !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: none !important;
 }
 
 .fw-search-input::placeholder {
-    color: rgb(var(--color-surface-400));
+    color: rgb(var(--md-sys-color-on-surface-variant));
     font-weight: 400;
 }
 
-.fw-search-input:hover {
-    border-color: rgb(var(--color-primary-400));
-}
-
+.fw-search-input:hover,
 .fw-search-input:focus {
-    border-color: rgb(var(--color-primary-500)) !important;
-    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.2) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 
 .fw-search-dropdown {
     position: absolute;
-    z-index: 50;
+    z-index: 100;
     left: 0;
     right: 0;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
+    min-width: 14rem;
     max-height: 15rem;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    background-color: rgb(var(--color-surface-50));
-    border: 1px solid rgb(var(--color-surface-200));
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    background: rgb(var(--md-sys-color-surface-container-low));
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--md-sys-color-outline-variant)) transparent;
 }
 
 .fw-search-divider {
-    margin: 0 0.75rem;
-    border-top: 1px solid rgb(var(--color-surface-200));
+    margin: 0;
+    border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
 }
 
 .fw-search-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     width: 100%;
-    padding: 0.625rem 0.75rem;
+    padding: 0.5rem 1rem;
     text-align: left;
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-700));
+    font-size: 0.9375rem;
+    color: rgb(var(--md-sys-color-on-surface));
     background: none;
     border: none;
     cursor: pointer;
-    transition: background-color 150ms;
+    transition: background 0.1s;
+    white-space: nowrap;
 }
 
 .fw-search-item:hover {
-    background-color: rgb(var(--color-primary-50));
+    background: rgb(var(--md-sys-color-on-surface) / 0.06);
 }
 
 .fw-search-item-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: 0.125rem;
-    color: rgb(var(--color-surface-600));
-    background-color: rgb(var(--color-surface-100));
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 50%;
-    transition: background-color 150ms;
-}
-
-.fw-search-item-icon svg {
-    width: 0.625rem;
-    height: 0.625rem;
-}
-
-.fw-search-item:hover .fw-search-item-icon {
-    background-color: rgb(var(--color-surface-200));
+    display: none;
 }
 
 .fw-search-item-text {
@@ -567,13 +567,12 @@ textarea.fw-input {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
 }
 
 .fw-search-empty {
-    padding: 0.75rem;
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-500));
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+    color: rgb(var(--md-sys-color-on-surface-variant));
     font-style: italic;
     text-align: center;
 }
@@ -582,58 +581,189 @@ textarea.fw-input {
 
 .fw-sss-input {
     position: relative;
+    /* token definitions — light; cascade to trigger, panel, results */
+    --md-sys-color-surface-container-low: var(--color-surface-100);
+    --md-sys-color-outline-variant: var(--color-surface-200);
+    --md-sys-color-on-surface: var(--color-surface-900);
+    --md-sys-color-on-surface-variant: var(--color-surface-600);
+    --md-sys-color-primary: var(--color-primary-600);
+    --fw-sss-panel-bg: var(--color-surface-100);
 }
 
-.fw-sss-selected-wrap {
-    position: relative;
+@media (prefers-color-scheme: dark) {
+    .fw-sss-input,
+    .fw-search-wrap {
+        --md-sys-color-surface-container-low: var(--color-surface-800);
+        --md-sys-color-outline-variant: var(--color-surface-700);
+        --md-sys-color-on-surface: var(--color-surface-100);
+        --md-sys-color-on-surface-variant: var(--color-surface-400);
+        --md-sys-color-primary: var(--color-primary-400);
+        --fw-sss-panel-bg: var(--color-surface-950, 8 8 8);
+    }
 }
 
-.fw-sss-clear-btn {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    display: inline-flex;
+/* Trigger pill button */
+.fw-sss-trigger {
+    display: flex !important;
     align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    padding: 0;
-    margin: 0;
-    min-width: 0;
-    min-height: 0;
-    box-sizing: border-box;
-    border-radius: 50%;
-    background-color: rgb(var(--color-surface-100));
-    color: rgb(var(--color-surface-600));
-    border: 1px solid rgb(var(--color-surface-300));
-    cursor: pointer;
-    transition: background-color 150ms;
-}
-
-.fw-sss-clear-btn svg {
-    width: 0.625rem;
-    height: 0.625rem;
-}
-
-.fw-sss-clear-btn:hover {
-    background-color: rgb(var(--color-surface-200));
-}
-
-.fw-sss-selected-display {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 0.75rem;
-    background-color: rgb(var(--color-surface-50));
-    color: rgb(var(--color-surface-700));
-    font-size: 0.875rem;
+    gap: 0.5rem;
+    padding: 0 1rem 0 1.25rem;
+    height: 38px;
+    border-radius: 9999px !important;
+    border: 1px solid rgb(var(--md-sys-color-outline-variant)) !important;
+    background: rgb(var(--md-sys-color-surface-container-low)) !important;
+    color: rgb(var(--md-sys-color-on-surface-variant)) !important;
+    font-size: 0.9375rem !important;
     font-weight: 500;
+    font-family: inherit !important;
+    line-height: 1.5;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.fw-sss-trigger:hover {
+    border-color: rgb(var(--md-sys-color-on-surface) / 0.2) !important;
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+}
+
+.fw-sss-trigger[aria-expanded="true"] {
+    border-color: rgb(var(--md-sys-color-primary)) !important;
+    box-shadow: 0 0 0 3px rgb(var(--md-sys-color-primary) / 0.15) !important;
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+}
+
+.fw-sss-trigger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.fw-sss-trigger-label {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    box-sizing: border-box;
+    text-align: left;
+}
+
+/* Chevron icon — rotates when panel is open */
+.fw-sss-chevron {
+    width: 1rem !important;
+    height: 1rem !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease;
+    display: block !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.fw-sss-trigger[aria-expanded="true"] .fw-sss-chevron {
+    transform: rotate(180deg);
+}
+
+/* Clear button (replaces chevron when an item is selected) */
+.fw-sss-trigger-clear {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    cursor: pointer;
+    color: inherit;
+    transition: color 0.15s;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    line-height: 0;
+}
+
+.fw-sss-trigger-clear svg {
+    width: 1rem;
+    height: 1rem;
+    display: block;
+}
+
+.fw-sss-trigger-clear:hover {
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+    background: none !important;
+}
+
+/* Panel (the dropdown) */
+.fw-sss-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 100;
+    min-width: 14rem;
+    max-width: 22rem;
+    background: rgb(var(--fw-sss-panel-bg));
+    border: 1px solid rgb(var(--md-sys-color-outline-variant));
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+    overflow: hidden;
+}
+
+/* Search bar inside panel */
+.fw-sss-panel-search {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0 0.875rem;
+    border-bottom: 1px solid rgb(var(--md-sys-color-outline-variant));
+}
+
+.fw-sss-panel-search-icon {
+    width: 1rem !important;
+    height: 1rem !important;
+    flex-shrink: 0;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    display: block !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.fw-sss-panel-input {
+    flex: 1 !important;
+    border: none !important;
+    outline: none !important;
+    background: transparent !important;
+    font-size: 0.875rem !important;
+    font-family: inherit !important;
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    height: auto !important;
+    width: auto !important;
+}
+
+.fw-sss-panel-input::placeholder {
+    color: rgb(var(--md-sys-color-on-surface-variant));
+}
+
+.fw-sss-panel-input:hover,
+.fw-sss-panel-input:focus {
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Items list */
+.fw-sss-results {
+    padding: 0.375rem 0;
+    max-height: 14rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--md-sys-color-outline-variant)) transparent;
 }
 
 /* ── Multi Select Chips ── */
@@ -796,81 +926,7 @@ textarea.fw-input {
         background-color: rgb(var(--color-primary-600));
     }
 
-    /* Search — shared */
-    .fw-search-icon {
-        color: rgb(var(--color-surface-500));
-    }
-
-    .fw-search-wrap:focus-within .fw-search-icon {
-        color: rgb(var(--color-primary-400));
-    }
-
-    .fw-search-input {
-        border-color: rgb(var(--color-surface-600)) !important;
-        background-color: rgb(var(--color-surface-800)) !important;
-        color: rgb(var(--color-surface-300)) !important;
-    }
-
-    .fw-search-input::placeholder {
-        color: rgb(var(--color-surface-500));
-    }
-
-    .fw-search-input:hover {
-        border-color: rgb(var(--color-primary-500));
-    }
-
-    .fw-search-input:focus {
-        border-color: rgb(var(--color-primary-600)) !important;
-        box-shadow: 0 0 0 2px rgb(var(--color-primary-600) / 0.2) !important;
-    }
-
-    .fw-search-dropdown {
-        background-color: rgb(var(--color-surface-800));
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .fw-search-divider {
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .fw-search-item {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .fw-search-item:hover {
-        background-color: rgb(var(--color-primary-900) / 0.3);
-    }
-
-    .fw-search-item-icon {
-        color: rgb(var(--color-surface-300));
-        background-color: rgb(var(--color-surface-700));
-        border-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-search-item:hover .fw-search-item-icon {
-        background-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-search-empty {
-        color: rgb(var(--color-surface-400));
-    }
-
-    /* Single Select Search */
-    .fw-sss-clear-btn {
-        background-color: rgb(var(--color-surface-700));
-        color: rgb(var(--color-surface-300));
-        border-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-sss-clear-btn:hover {
-        background-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-sss-selected-display {
-        border-color: rgb(var(--color-surface-600));
-        background-color: rgb(var(--color-surface-800));
-        color: rgb(var(--color-surface-300));
-    }
+    /* Search — dark mode tokens are handled by .fw-sss-input media query above */
 
     /* Multi Select Chips */
     .fw-msc-chip {

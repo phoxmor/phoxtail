@@ -1,0 +1,59 @@
+{% if paginator_ctx and paginator_ctx.num_pages > 1 %}
+<nav class="rga-paginator-nav" aria-label="Pagination">
+        {% if paginator_ctx.has_prev %}
+            <button class="rga-page-btn rga-page-prev"
+                    hx-get="{{ paginator_ctx.prev_url }}"
+                    hx-target="{{ paginator_ctx.hx_target }}"
+                    hx-swap="innerHTML">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="rga-page-arrow" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+            </button>
+        {% else %}
+            <div class="rga-page-btn rga-page-prev rga-page-btn--disabled" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="rga-page-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous
+            </div>
+        {% endif %}
+
+        <div class="rga-page-numbers">
+            {% for entry in paginator_ctx.page_range %}
+                {% if entry.ellipsis %}
+                    <span class="rga-page-ellipsis">{{ entry.num }}</span>
+                {% elif entry.active %}
+                    <span class="rga-page-btn rga-page-btn--active">{{ entry.num }}</span>
+                {% else %}
+                    <button class="rga-page-btn"
+                            hx-get="{{ entry.url }}"
+                            hx-target="{{ paginator_ctx.hx_target }}"
+                            hx-swap="innerHTML">{{ entry.num }}</button>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="rga-page-mobile">Page {{ paginator_ctx.current_page }} of {{ paginator_ctx.num_pages }}</div>
+
+        {% if paginator_ctx.has_next %}
+            <button class="rga-page-btn rga-page-next"
+                    hx-get="{{ paginator_ctx.next_url }}"
+                    hx-target="{{ paginator_ctx.hx_target }}"
+                    hx-swap="innerHTML">
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="rga-page-arrow" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        {% else %}
+            <div class="rga-page-btn rga-page-next rga-page-btn--disabled" aria-hidden="true">
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="rga-page-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </div>
+        {% endif %}
+</nav>
+{% endif %}
+

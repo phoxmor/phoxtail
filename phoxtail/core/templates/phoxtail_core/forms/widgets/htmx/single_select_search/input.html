@@ -1,5 +1,5 @@
 {% load i18n phoxtail_design_tags %}
-{# Single select input: two mutually exclusive states - selected item display OR search bar #}
+{# Single select: pill trigger opens a panel with search bar + items inside #}
 {% with wid=widget_id|default:field.html_name %}
     <div id="{{ wid }}-input" class="fw-sss-input">
         {# Hidden input for form submission #}
@@ -10,48 +10,105 @@
                        value="{{ selected_item.pk }}">
             {% endif %}
         </div>
-        {% if selected_item and is_active != False %}
-            {# Selected state: display selected item with clear button in icon position #}
-            <div class="fw-sss-selected-wrap">
-                <button type="button"
-                        class="fw-sss-clear-btn"
-                        hx-get="{{ search_url }}"
-                        hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
-                        hx-vals='{"{{ wid }}_clear": "1"}'
-                        hx-target="#{{ wid }}-container"
-                        hx-swap="innerHTML">{% icon "close" %}</button>
-                <div class="fw-sss-selected-display">
+
+        {# Pill trigger — div so the clear button can nest inside without invalid HTML #}
+        <div class="fw-sss-trigger"
+             id="{{ wid }}-trigger"
+             role="button"
+             tabindex="{% if is_active == False %}-1{% else %}0{% endif %}"
+             aria-expanded="false"
+             aria-controls="{{ wid }}-panel"
+             aria-haspopup="listbox">
+            <span class="fw-sss-trigger-label">
+                {% if selected_item and is_active != False %}
                     {% if item_template %}
                         {% include item_template with item=selected_item %}
                     {% else %}
                         {{ selected_item }}
                     {% endif %}
-                </div>
-            </div>
-        {% else %}
-            {# Unselected state: search bar with dropdown #}
-            <div class="fw-search-wrap">
-                <div class="fw-search-icon-wrap">{% icon "search" class="fw-search-icon" %}</div>
+                {% else %}
+                    {{ trigger_placeholder|default:_("Select remote") }}
+                {% endif %}
+            </span>
+            {% if selected_item and is_active != False %}
+                <button type="button"
+                        class="fw-sss-trigger-clear"
+                        hx-get="{{ search_url }}"
+                        hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
+                        hx-vals='{"{{ wid }}_clear": "1"}'
+                        hx-target="#{{ wid }}-container"
+                        hx-swap="innerHTML"
+                        aria-label="{% trans "Clear selection" %}">
+                    {% icon "close" %}
+                </button>
+            {% else %}
+                {% icon "chevron_down" class="fw-sss-chevron" %}
+            {% endif %}
+        </div>
+
+        {# Dropdown panel — hidden by default, toggled by trigger #}
+        <div id="{{ wid }}-panel" class="fw-sss-panel fw-hidden" role="listbox">
+            <div class="fw-sss-panel-search">
+                {% icon "search" class="fw-sss-panel-search-icon" %}
                 <input type="text"
-                       name="{{ wid }}_search"
                        id="{{ wid }}-search-input"
+                       name="{{ wid }}_search"
                        value="{{ search_value|default:'' }}"
-                       placeholder="{{ search_placeholder|default:_("Search...") }}"
+                       placeholder="{{ search_placeholder|default:_("Search…") }}"
                        autocomplete="off"
                        {% if is_active == False %}disabled{% endif %}
-                       class="fw-search-input"
+                       class="fw-sss-panel-input"
                        hx-get="{{ search_url }}"
                        hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
                        hx-target="#{{ wid }}-results"
                        hx-swap="innerHTML"
-                       hx-trigger="input changed delay:300ms"
-                       onfocus="document.getElementById('{{ wid }}-dropdown').classList.remove('fw-hidden')"
-                       onblur="setTimeout(function(){document.getElementById('{{ wid }}-dropdown').classList.add('fw-hidden')}, 150)">
+                       hx-trigger="input changed delay:300ms">
             </div>
-            {# Results container - only this swaps during search #}
-            <div id="{{ wid }}-results">
-                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/results_content.html' with widget_id=wid show_dropdown=False %}
+            <div id="{{ wid }}-results" class="fw-sss-results">
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/results_content.html' with widget_id=wid %}
             </div>
-        {% endif %}
+        </div>
     </div>
+
+    <script>
+    (function () {
+        var trigger   = document.getElementById('{{ wid }}-trigger');
+        var panel     = document.getElementById('{{ wid }}-panel');
+        var searchIn  = document.getElementById('{{ wid }}-search-input');
+        var container = document.getElementById('{{ wid }}-input');
+        if (!trigger || !panel) return;
+
+        function open() {
+            panel.classList.remove('fw-hidden');
+            trigger.setAttribute('aria-expanded', 'true');
+            if (searchIn) setTimeout(function () { searchIn.focus(); }, 0);
+        }
+
+        function close() {
+            panel.classList.add('fw-hidden');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        trigger.addEventListener('click', function (e) {
+            /* Clear button fires its own HTMX action — don't toggle panel */
+            if (e.target.closest('.fw-sss-trigger-clear')) return;
+            trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
+        });
+
+        trigger.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
+            }
+        });
+
+        document.addEventListener('click', function (e) {
+            if (container && !container.contains(e.target)) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
+    })();
+    </script>
 {% endwith %}
