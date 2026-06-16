@@ -64,8 +64,11 @@
                                 <div class="tka-card__body">
                                     <div class="tka-card__content">
                                         <h4 class="tka-card__title">{{ t.name }}</h4>
-                                        <code class="tka-card__fingerprint">{{ t.prefix }}…{{ t.suffix }}</code>
                                         <div class="tka-card__meta">
+                                            <div class="tka-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/key.html' %}
+                                                <span class="tka-card__meta-value">{{ t.prefix }}…{{ t.suffix }}</span>
+                                            </div>
                                             {% if can_manage_all %}
                                                 <div class="tka-card__meta-row">
                                                     {% include 'phoxtail_core/svgs/user.html' %}

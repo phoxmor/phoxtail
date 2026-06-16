@@ -75,6 +75,10 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
         return f"{self.name} ({self.prefix}…{self.suffix})"
 
     @property
+    def token_fingerprint(self) -> str:
+        return f"{self.prefix}…{self.suffix}"
+
+    @property
     def is_active(self) -> bool:
         if self.revoked_at is not None:
             return False

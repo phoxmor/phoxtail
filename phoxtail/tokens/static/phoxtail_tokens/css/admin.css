@@ -694,17 +694,6 @@
     }
 }
 
-.tka-card__fingerprint {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.375rem;
-    background: rgb(var(--color-surface-100));
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.75rem;
-    color: rgb(var(--color-surface-700));
-    margin-bottom: 0.75rem;
-}
-
 .tka-card__meta {
     display: flex;
     flex-direction: column;
@@ -1370,11 +1359,6 @@
 
     .tka-card__title {
         color: rgb(var(--color-surface-100));
-    }
-
-    .tka-card__fingerprint {
-        background: rgb(var(--color-surface-700));
-        color: rgb(var(--color-surface-300));
     }
 
     .tka-card__meta-row {
