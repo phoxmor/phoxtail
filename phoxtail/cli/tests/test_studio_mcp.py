@@ -97,11 +97,25 @@ class TestMCPToolRegistration:
             "phoxtail_studio_create_block",
             "phoxtail_studio_create_collection",
             "phoxtail_studio_update_collection",
+            "phoxtail_studio_delete_collection",
+            "phoxtail_studio_delete_block",
+            "phoxtail_studio_delete_variant",
             "phoxtail_studio_list_shared_blocks",
             "phoxtail_studio_get_shared_block",
             "phoxtail_studio_create_shared_block",
             "phoxtail_studio_update_shared_block",
             "phoxtail_studio_delete_shared_block",
+            "phoxtail_studio_render_block",
+            "phoxtail_studio_screenshot_page",
+            # Block category tools
+            "phoxtail_studio_list_block_categories",
+            "phoxtail_studio_get_block_category",
+            "phoxtail_studio_create_block_category",
+            "phoxtail_studio_update_block_category",
+            "phoxtail_studio_delete_block_category",
+            "phoxtail_studio_set_block_categories",
+            "phoxtail_studio_add_block_category",
+            "phoxtail_studio_remove_block_category",
             # Session-based editing tools
             "phoxtail_studio_open_variant",
             "phoxtail_studio_commit_variant",
@@ -155,10 +169,69 @@ class TestMCPToolRegistration:
             "phoxtail_content_create_internal_link",
             "phoxtail_content_update_internal_link",
             "phoxtail_content_delete_internal_link",
+            "phoxtail_collections_list",
+            "phoxtail_collections_get",
+            "phoxtail_collections_create",
+            "phoxtail_collections_update",
+            "phoxtail_collections_delete",
+            "phoxtail_sites_list",
+            "phoxtail_sites_get",
+            "phoxtail_sites_create",
+            "phoxtail_sites_update",
+            "phoxtail_sites_delete",
         }
-        expected = studio_tools | pages_tools | content_tools
+        cms_tools = {
+            "phoxtail_site_settings_get",
+            "phoxtail_site_settings_update",
+            "phoxtail_site_settings_clear_image",
+            "phoxtail_site_setting_fonts_list",
+            "phoxtail_site_setting_fonts_get",
+            "phoxtail_site_setting_fonts_add",
+            "phoxtail_site_setting_fonts_update",
+            "phoxtail_site_setting_fonts_remove",
+            "phoxtail_site_setting_palettes_list",
+            "phoxtail_site_setting_palettes_get",
+            "phoxtail_site_setting_palettes_add",
+            "phoxtail_site_setting_palettes_update",
+            "phoxtail_site_setting_palettes_remove",
+        }
+        design_tools = {
+            "phoxtail_palettes_list",
+            "phoxtail_palettes_get",
+            "phoxtail_palettes_create",
+            "phoxtail_palettes_update",
+            "phoxtail_palettes_delete",
+            "phoxtail_palette_sets_list",
+            "phoxtail_palette_sets_get",
+            "phoxtail_palette_sets_create",
+            "phoxtail_palette_sets_update",
+            "phoxtail_palette_sets_delete",
+            "phoxtail_palette_roles_list",
+            "phoxtail_palette_roles_get",
+            "phoxtail_palette_roles_create",
+            "phoxtail_palette_roles_update",
+            "phoxtail_palette_roles_delete",
+            "phoxtail_font_families_list",
+            "phoxtail_font_families_get",
+            "phoxtail_font_families_create",
+            "phoxtail_font_families_update",
+            "phoxtail_font_families_delete",
+            "phoxtail_font_roles_list",
+            "phoxtail_font_roles_get",
+            "phoxtail_font_roles_create",
+            "phoxtail_font_roles_update",
+            "phoxtail_font_roles_delete",
+            "phoxtail_font_weights_list",
+            "phoxtail_font_weights_get",
+            "phoxtail_font_weights_upload",
+            "phoxtail_font_weights_create_from_url",
+            "phoxtail_font_weights_delete",
+        }
+        expected = studio_tools | pages_tools | content_tools | cms_tools | design_tools
         registered = set(mcp_server._tool_manager._tools.keys())
-        assert expected == registered
+        # Optional installed apps (e.g. phoxtail-blog) contribute extra tools
+        # via entry points; use subset check so those don't cause false failures.
+        assert expected <= registered
 
 
 # ---------------------------------------------------------------------------

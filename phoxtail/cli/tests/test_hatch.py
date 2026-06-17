@@ -109,27 +109,24 @@ class TestHatchCommand:
         assert result.exit_code == 0
         assert (tmp_path / "myproject" / "manage.py").exists()
         assert (tmp_path / "myproject" / "phoxtail.toml").exists()
-        assert (tmp_path / "myproject" / "requirements.in").exists()
+        assert (tmp_path / "myproject" / "pyproject.toml").exists()
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_generates_requirements_in(self, mock_run, tmp_path, monkeypatch):
+    def test_generates_pyproject_toml(self, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
-        content = (tmp_path / "myproject" / "requirements.in").read_text()
-        assert "Django" in content
-        assert "wagtail" in content
+        content = (tmp_path / "myproject" / "pyproject.toml").read_text()
         assert "django-environ" in content
         assert "gunicorn" in content
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_compiles_requirements(self, mock_run, tmp_path, monkeypatch):
+    def test_locks_dependencies(self, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
-        # Should have called requirements compile
         calls = [c.args[0] for c in mock_run.call_args_list]
-        assert any("requirements" in c and "compile" in c for c in calls)
+        assert any("uv" in c and "lock" in c for c in calls)
 
     def test_invalid_name_exits_with_error(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
@@ -365,12 +362,11 @@ class TestHatchCommand:
         assert "Template directory not found" in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_compile_failure_falls_back_to_copy(self, mock_run, tmp_path, monkeypatch):
+    def test_lock_failure_still_scaffolds(self, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 1
         result = runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
         assert result.exit_code == 0
-        # Fallback should copy requirements.in as requirements.txt
-        req_txt = (tmp_path / "myproject" / "requirements.txt").read_text()
-        assert "Django" in req_txt
-        assert "gunicorn" in req_txt
+        # Project is still fully scaffolded even if uv lock fails
+        assert (tmp_path / "myproject" / "pyproject.toml").exists()
+        assert (tmp_path / "myproject" / "manage.py").exists()

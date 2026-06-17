@@ -35,8 +35,9 @@ class TestDockerUp:
     @patch("phoxtail.cli.docker.subprocess.call", return_value=0)
     def test_build_flag(self, mock_call):
         runner.invoke(docker_app, ["up", "--build"])
-        cmd = mock_call.call_args[0][0]
-        assert "--build" in cmd
+        # --build triggers a separate `docker compose build` before `up`
+        calls = [c[0][0] for c in mock_call.call_args_list]
+        assert any("build" in c for c in calls)
 
 
 class TestDockerDown:

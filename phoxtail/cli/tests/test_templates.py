@@ -90,10 +90,9 @@ class TestComposeTemplate:
         result = self._render("development")
         assert '"80:80"' in result
 
-    def test_dev_mounts_phoxtail_source(self):
+    def test_dev_mounts_home_phoxtail(self):
         result = self._render("development")
-        assert "/opt/src/phoxtail:/opt/phoxtail/phoxtail:ro" in result
-        assert "PYTHONPATH=/opt/phoxtail" in result
+        assert "${HOME}/.phoxtail:/home/app/.phoxtail:ro" in result
 
     def test_prod_has_nginx_and_certbot(self):
         result = self._render("production")
@@ -116,12 +115,9 @@ class TestComposeTemplate:
         assert "certbot_conf" not in result
         assert "certbot_www" not in result
 
-    def test_prod_mounts_phoxtail(self):
-        # Until phoxtail is published to PyPI, containers need the local
-        # package mounted into every service that runs Django code.
+    def test_prod_mounts_home_phoxtail(self):
         result = self._render("production")
-        assert "/opt/src/phoxtail:/opt/phoxtail/phoxtail:ro" in result
-        assert "PYTHONPATH=/opt/phoxtail" in result
+        assert "${HOME}/.phoxtail:/home/app/.phoxtail:ro" in result
 
     def test_image_name_rendered(self):
         result = self._render("development")
