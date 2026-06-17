@@ -1,0 +1,33 @@
+{% load phoxtail_design_tags %}
+<div class="rga-center-overlay"
+     onclick="closeModal()"
+     data-modal-animation="fade"
+     data-animation-duration="300ms">
+    <div class="rga-center-modal" onclick="event.stopPropagation()">
+        <div class="rga-dialog__header">
+            <h2 class="rga-dialog__title">
+                {% icon "warning" %}
+                Disconnect this remote?
+            </h2>
+        </div>
+        <div class="rga-dialog__body">
+            <p>You are about to disconnect <strong>{{ remote.name }}</strong>.</p>
+            <p>The connection to <code>{{ remote.base_url }}</code> will be removed.
+               Locally installed variants are not affected.</p>
+        </div>
+        <div class="rga-dialog__footer">
+            <button class="rga-btn rga-btn--secondary"
+                    onclick="closeModal()"
+                    type="button">Cancel</button>
+            <form hx-post="{% url 'remotes:delete' remote.pk %}"
+                  hx-swap="none"
+                  style="display: inline-block; margin: 0;">
+                {% csrf_token %}
+                <button class="rga-btn rga-btn--danger" type="submit">
+                    {% icon "remove" %}
+                    <span>Disconnect</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

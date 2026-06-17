@@ -1,0 +1,63 @@
+{% load django_htmx phoxtail_design_tags %}
+<div class="rga-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="rga-drawer" onclick="event.stopPropagation()">
+        <div class="rga-drawer__scroll">
+            <div class="rga-drawer__header">
+                <div class="rga-drawer__title-row">
+                    <h2 class="rga-drawer__title">Edit Remote</h2>
+                    <button class="rga-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close"
+                            type="button">
+                        {% icon "close" %}
+                    </button>
+                </div>
+            </div>
+            <div class="rga-drawer__body">
+                <div class="rga-form-stack">
+                    <div id="edit-remote-form-body">
+                        <form id="edit-remote-form"
+                              hx-post="{% url 'remotes:edit' remote.pk %}"
+                              hx-target="#core-modal-placeholder-wrapper"
+                              hx-swap="none">
+                            {% csrf_token %}
+                            <div class="rga-form-stack">
+                                {% include "phoxtail_remotes/admin/remotes/partials/forms/edit/form_body.html" %}
+                            </div>
+                        </form>
+                    </div>
+                    <div id="rga-edit-delete-csrf" style="display:none;">{% csrf_token %}</div>
+                    <div class="rga-danger-section">
+                        <div class="rga-danger-section__header">
+                            <div>
+                                <h3 class="rga-danger-section__title">Disconnect Remote</h3>
+                                <p class="rga-danger-section__text">
+                                    Removes this connection. Installed variants are not affected.
+                                </p>
+                            </div>
+                        </div>
+                        <button class="rga-btn rga-btn--danger rga-btn--full"
+                                type="button"
+                                hx-post="{% url 'remotes:delete' remote.pk %}"
+                                hx-include="#rga-edit-delete-csrf"
+                                hx-swap="none"
+                                hx-confirm="Disconnect '{{ remote.name }}'? This cannot be undone.">
+                            <span>Disconnect</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="rga-drawer__footer">
+                <button class="rga-btn rga-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">Cancel</button>
+                <button class="rga-btn rga-btn--primary"
+                        type="submit"
+                        form="edit-remote-form">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

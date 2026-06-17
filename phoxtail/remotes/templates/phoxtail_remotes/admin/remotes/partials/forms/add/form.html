@@ -1,0 +1,47 @@
+{% load django_htmx phoxtail_design_tags %}
+<div class="rga-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="rga-drawer" onclick="event.stopPropagation()">
+        <div class="rga-drawer__scroll">
+            <div class="rga-drawer__header">
+                <div class="rga-drawer__title-row">
+                    <h2 class="rga-drawer__title">Connect Remote</h2>
+                    <button class="rga-close-btn"
+                            onclick="closeModal()"
+                            aria-label="Close"
+                            type="button">
+                        {% icon "close" %}
+                    </button>
+                </div>
+            </div>
+            <div id="add-remote-form-body" class="rga-drawer__body">
+                <form id="add-remote-form"
+                      hx-post="{% url 'remotes:add' %}"
+                      hx-target="#core-modal-placeholder-wrapper"
+                      hx-swap="none"
+                      hx-indicator="#add-remote-submit-btn">
+                    {% csrf_token %}
+                    <div class="rga-form-stack">
+                        {% include "phoxtail_core/forms/widgets/input.html" with field=form.name show_label=True show_help_text=True placeholder="e.g. Phoxtail Registry" %}
+                        {% include "phoxtail_core/forms/widgets/input.html" with field=form.base_url input_type="url" show_label=True show_help_text=True placeholder="https://registry.example.com" %}
+                        {% include "phoxtail_core/forms/widgets/password.html" with field=form.token show_label=True show_help_text=True placeholder="phxt_…" %}
+                    </div>
+                </form>
+            </div>
+            <div class="rga-drawer__footer">
+                <button class="rga-btn rga-btn--secondary"
+                        onclick="closeModal()"
+                        type="button">Cancel</button>
+                <button class="rga-btn rga-btn--primary"
+                        id="add-remote-submit-btn"
+                        type="submit"
+                        form="add-remote-form">
+                    <span class="rga-btn__idle">Connect</span>
+                    <span class="rga-btn__connecting"><span class="rga-btn-spinner"></span><span>Connecting…</span></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

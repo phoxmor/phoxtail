@@ -1,0 +1,67 @@
+{% url 'streams-sync:variant_detail' as variant_detail_url %}
+{% if error %}
+    <div class="ss-error-banner">{{ error }}</div>
+{% elif not items %}
+    <div class="ss-empty">
+        <h3 class="ss-empty__title">No variants found</h3>
+        <p class="ss-empty__text">{% if q %}Try a different search term.{% else %}This remote has no published block variants.{% endif %}</p>
+    </div>
+{% else %}
+    <div class="ss-card-grid">
+        {% for item in items %}
+            <div class="ss-card">
+                <div class="ss-card__preview">
+                    {% if item.preview_desktop_light_url or item.preview_desktop_dark_url %}
+                        <picture>
+                            {% if item.preview_desktop_dark_url %}
+                                <source srcset="{{ item.preview_desktop_dark_url }}" media="(prefers-color-scheme: dark)">
+                            {% endif %}
+                            {% if item.preview_desktop_light_url %}
+                                <img src="{{ item.preview_desktop_light_url }}"
+                                     class="ss-card__img"
+                                     alt="{{ item.title }}"
+                                     loading="lazy">
+                            {% else %}
+                                <img src="{{ item.preview_desktop_dark_url }}"
+                                     class="ss-card__img"
+                                     alt="{{ item.title }}"
+                                     loading="lazy">
+                            {% endif %}
+                        </picture>
+                    {% else %}
+                        <div class="ss-card__preview--empty">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="ss-placeholder-icon" aria-hidden="true">
+                                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="ss-card__body">
+                    <div class="ss-card__body-text">
+                        {% if item.block_name %}
+                            <span class="ss-card__block">{{ item.block_name }}</span>
+                        {% endif %}
+                        <h3 class="ss-card__title">{{ item.title }}</h3>
+                    </div>
+                    <span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge">{% if item.installed %}Installed{% endif %}</span>
+                </div>
+                <button class="ss-card__open-btn"
+                        type="button"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ variant_detail_url }}", "variant_id": "{{ item.id }}", "remote_id": "{{ remote_id }}"}'
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML"
+                        aria-label="View {{ item.title }}">
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% include "phoxtail_core/admin/partials/paginator.html" %}
+{% endif %}
+{% if request.htmx %}
+<span id="streams-results-count" class="ss-search-results-count" hx-swap-oob="true">
+    {% if total is not None %}
+        {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
+    {% endif %}
+</span>
+{% endif %}

@@ -1,0 +1,120 @@
+{% load phoxtail_design_tags %}
+<div class="ss-modal-overlay"
+     onclick="closeModal()"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="ss-drawer ss-drawer--wide" onclick="event.stopPropagation()">
+        <div class="ss-drawer__scroll">
+            {% if error %}
+                <div class="ss-drawer__header">
+                    <div class="ss-drawer__title-row">
+                        <h2 class="ss-drawer__title">Error</h2>
+                        <button class="ss-close-btn" onclick="closeModal()" aria-label="Close" type="button">
+                            {% icon "close" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="ss-drawer__body">
+                    <div class="ss-error-banner">{{ error }}</div>
+                </div>
+                <div class="ss-drawer__footer">
+                    <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
+                </div>
+            {% else %}
+                <div class="ss-drawer__header">
+                    <div class="ss-drawer__title-row">
+                        <div class="ss-drawer__title-group">
+                            {% if block.name %}
+                                <span class="ss-card__block">{{ block.name }}</span>
+                            {% endif %}
+                            <h2 class="ss-drawer__title">{{ item.title }}</h2>
+                        </div>
+                        <button class="ss-close-btn" onclick="closeModal()" aria-label="Close" type="button">
+                            {% icon "close" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="ss-drawer__body">
+                    <div class="ss-form-stack">
+                        {% if item.preview_desktop_light_url or item.preview_desktop_dark_url %}
+                            <div class="ss-variant-detail__preview">
+                                <picture>
+                                    {% if item.preview_desktop_dark_url %}
+                                        <source srcset="{{ item.preview_desktop_dark_url }}" media="(prefers-color-scheme: dark)">
+                                    {% endif %}
+                                    <img src="{{ item.preview_desktop_light_url|default:item.preview_desktop_dark_url }}"
+                                         alt="{{ item.title }}"
+                                         class="ss-variant-detail__img">
+                                </picture>
+                            </div>
+                        {% endif %}
+
+                        {% if item.tagline %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Tagline</span>
+                                <p class="ss-variant-detail__value">{{ item.tagline }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if item.intro %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Description</span>
+                                <p class="ss-variant-detail__value">{{ item.intro }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if collection.name %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Collection</span>
+                                <p class="ss-variant-detail__value">{{ collection.name }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if item.tags %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Tags</span>
+                                <div class="ss-card__tags">
+                                    {% for tag in item.tags %}
+                                        <span class="ss-tag">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if item.page_url %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Registry</span>
+                                <a href="{{ item.page_url }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="ss-variant-detail__link">
+                                    View on registry
+                                    {% icon "open_in_new" %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ss-drawer__footer">
+                    <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
+                    {% if installed %}
+                        <span id="sync-btn-{{ variant_id }}" class="ss-btn ss-btn--synced">Installed</span>
+                    {% else %}
+                        <form id="sync-btn-{{ variant_id }}"
+                              style="display: contents"
+                              hx-post="{% url 'streams-sync:sync' %}"
+                              hx-target="#sync-btn-{{ variant_id }}"
+                              hx-swap="outerHTML"
+                              hx-include="this">
+                            {% csrf_token %}
+                            <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                            <input type="hidden" name="variant_id" value="{{ variant_id }}">
+                            <input type="hidden" name="variant_identifier" value="{{ variant_identifier }}">
+                            <button type="submit" class="ss-btn ss-btn--primary">Install</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

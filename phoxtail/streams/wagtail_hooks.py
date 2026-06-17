@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from wagtail import hooks
 from wagtail.admin.viewsets.model import ModelViewSetGroup
 
+from .admin.sync.viewsets import StreamsSyncViewSet
 from .permissions import StreamsAdminPermission
 from .views import SharedBlockChooserViewSet
 from .viewsets import (
@@ -38,4 +39,5 @@ class StreamsViewSetGroup(ModelViewSetGroup):
         SharedBlockViewSet,
         BlockVariantViewSet,
         VariantCollectionViewSet,
+        StreamsSyncViewSet,
     )

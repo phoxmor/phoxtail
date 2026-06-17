@@ -1,0 +1,25 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if created %}
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder-wrapper"></div>
+    <div hx-swap-oob="innerHTML:#remotes-container">
+        {% include "phoxtail_remotes/admin/remotes/partials/remotes_list.html" with suppress_count_oob=True %}
+    </div>
+    {% include "phoxtail_remotes/admin/remotes/partials/_results_count_oob.html" %}
+{% else %}
+    <div hx-swap-oob="innerHTML:#add-remote-form-body">
+        <form id="add-remote-form"
+              hx-post="{% url 'remotes:add' %}"
+              hx-target="#core-modal-placeholder-wrapper"
+              hx-swap="none"
+              hx-indicator="#add-remote-submit-btn">
+            {% csrf_token %}
+            <div class="rga-form-stack">
+                {% include "phoxtail_core/forms/widgets/input.html" with field=form.name show_label=True show_help_text=True placeholder="e.g. Phoxtail Registry" %}
+                {% include "phoxtail_core/forms/widgets/input.html" with field=form.base_url input_type="url" show_label=True show_help_text=True placeholder="https://registry.example.com" %}
+                {% include "phoxtail_core/forms/widgets/password.html" with field=form.token show_label=True show_help_text=True placeholder="phxt_…" %}
+            </div>
+        </form>
+    </div>
+{% endif %}

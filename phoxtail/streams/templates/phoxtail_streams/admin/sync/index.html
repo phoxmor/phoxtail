@@ -1,0 +1,33 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailsettings_tags django_htmx %}
+{% block titletag %}Sync{% endblock %}
+{% block extra_css %}
+    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% django_htmx_script %}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+    <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_streams/admin/sync/admin.css' %}">
+    {% get_settings %}
+    <style>
+        :root {
+            {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
+        }
+        {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+    {% include "account/messages_static.html" %}
+    <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+    <div id="core-modal-placeholder-wrapper"></div>
+    <div class="ss-page">
+        <div class="ss-loading htmx-indicator">
+            <div class="ss-loading__spinner"></div>
+            <span class="ss-loading__text">Loading...</span>
+        </div>
+        <div id="sync-container" class="ss-container">
+            {% include "phoxtail_streams/admin/sync/partials/page.html" %}
+        </div>
+    </div>
+{% endblock %}

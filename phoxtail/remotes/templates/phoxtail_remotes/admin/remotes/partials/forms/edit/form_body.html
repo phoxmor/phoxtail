@@ -1,0 +1,5 @@
+{% include "phoxtail_core/forms/widgets/input.html" with field=form.name show_label=True show_help_text=True %}
+{% include "phoxtail_core/forms/widgets/input.html" with field=form.base_url input_type="url" show_label=True show_help_text=True %}
+{% with placeholder="Leave blank to keep current token: "|add:remote.token_fingerprint %}
+    {% include "phoxtail_core/forms/widgets/password.html" with field=form.token show_label=True show_help_text=True placeholder=placeholder %}
+{% endwith %}

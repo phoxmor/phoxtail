@@ -1,0 +1,107 @@
+{% load phoxtail_design_tags %}
+{% url 'streams-sync:remote_select' as remote_select_url %}
+
+<!-- Page Header -->
+<div class="ss-page-header">
+    <div class="ss-page-header__inner">
+        <div class="ss-page-header__title-section">
+            <h1 class="ss-page-header__title">
+                {% icon "sync" %}
+                Sync
+            </h1>
+        </div>
+        <div class="ss-page-header__controls">
+            {% if remotes %}
+                <div class="ss-search-form">
+                    <div class="ss-search-wrap">
+                        <div class="ss-search-icon-wrap">
+                            <div id="streams-search-icon">{% icon "search" %}</div>
+                            <button type="button"
+                                    id="streams-clear-search"
+                                    class="ss-search-clear ss-search-hidden"
+                                    aria-label="Clear search">
+                                {% icon "close" %}
+                            </button>
+                        </div>
+                        <input type="text"
+                               id="streams-search-input"
+                               name="q"
+                               value="{{ q|default:'' }}"
+                               placeholder="Search variants"
+                               class="ss-search-input"
+                               hx-get="{% url 'streams-sync:streams' %}"
+                               hx-target="#streams-results"
+                               hx-swap="innerHTML"
+                               hx-include="#remote-selected-value"
+                               hx-trigger="input changed delay:300ms">
+                        <span id="streams-results-count" class="ss-search-results-count">
+                            {% if total is not None %}
+                                {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div id="remote-container" class="ss-remote-select">
+                    {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/input.html' with field=remote_select_field widget_id="remote" selected_item=remote_select_field.selected_item available_items=remote_select_field.available_items search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" %}
+                </div>
+                <script>
+                    (function () {
+                        var input = document.getElementById('streams-search-input');
+                        var clearBtn = document.getElementById('streams-clear-search');
+                        var icon = document.getElementById('streams-search-icon');
+                        if (!input) return;
+                        if (input.value.trim().length > 0) {
+                            icon.classList.add('ss-search-hidden');
+                            clearBtn.classList.remove('ss-search-hidden');
+                        }
+                        clearBtn.addEventListener('click', function () {
+                            input.value = '';
+                            icon.classList.remove('ss-search-hidden');
+                            clearBtn.classList.add('ss-search-hidden');
+                            htmx.trigger(input, 'input');
+                        });
+                        input.addEventListener('input', function () {
+                            if (this.value.trim().length > 0) {
+                                icon.classList.add('ss-search-hidden');
+                                clearBtn.classList.remove('ss-search-hidden');
+                            } else {
+                                icon.classList.remove('ss-search-hidden');
+                                clearBtn.classList.add('ss-search-hidden');
+                            }
+                        });
+                    })();
+                </script>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Streams panel -->
+{% if remotes %}
+    <div class="ss-streams-panel">
+        <div id="streams-results"
+             {% if remote_select_field.selected_item %}
+             hx-get="{% url 'streams-sync:streams' %}?remote={{ remote_select_field.selected_item.pk }}"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             {% endif %}>
+            {% if remote_select_field.selected_item %}
+                <div class="ss-streams-loading">Loading…</div>
+            {% else %}
+                <div class="ss-empty">
+                    <h3 class="ss-empty__title">No remote selected</h3>
+                    <p class="ss-empty__text">Select a remote above to view its streams.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    {% url 'remotes:index' as remotes_settings_url %}
+    <div class="ss-empty ss-empty--page">
+        <div class="ss-empty__icon">{% icon "graph_5" %}</div>
+        <h3 class="ss-empty__title">No remotes connected</h3>
+        <p class="ss-empty__text">
+            Go to <a href="{{ remotes_settings_url }}">Settings → Remotes</a> to connect a remote project.
+        </p>
+    </div>
+{% endif %}

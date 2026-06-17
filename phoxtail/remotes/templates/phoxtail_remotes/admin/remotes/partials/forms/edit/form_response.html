@@ -1,0 +1,22 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if saved %}
+    <div hx-swap-oob="innerHTML:#core-modal-placeholder-wrapper"></div>
+    <div hx-swap-oob="innerHTML:#remotes-container">
+        {% include "phoxtail_remotes/admin/remotes/partials/remotes_list.html" with suppress_count_oob=True %}
+    </div>
+    {% include "phoxtail_remotes/admin/remotes/partials/_results_count_oob.html" %}
+{% else %}
+    <div hx-swap-oob="innerHTML:#edit-remote-form-body">
+        <form id="edit-remote-form"
+              hx-post="{% url 'remotes:edit' remote.pk %}"
+              hx-target="#core-modal-placeholder-wrapper"
+              hx-swap="none">
+            {% csrf_token %}
+            <div class="rga-form-stack">
+                {% include "phoxtail_remotes/admin/remotes/partials/forms/edit/form_body.html" %}
+            </div>
+        </form>
+    </div>
+{% endif %}

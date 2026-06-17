@@ -1,0 +1,109 @@
+{% extends "wagtailadmin/base.html" %}
+{% load static wagtailsettings_tags django_htmx phoxtail_design_tags %}
+{% block titletag %}Remotes{% endblock %}
+{% block extra_css %}
+    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% django_htmx_script %}
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
+    <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_remotes/admin/remotes/admin.css' %}">
+    {% get_settings %}
+    <style>
+        :root {
+            {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
+        }
+        {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+    {% url 'remotes:add_form' as add_form_url %}
+    {% include "account/messages_static.html" %}
+    <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+    <div id="core-modal-placeholder-wrapper"></div>
+    <div class="rga-page">
+        <div class="rga-loading htmx-indicator">
+            <div class="rga-loading__spinner"></div>
+            <span class="rga-loading__text">Loading...</span>
+        </div>
+        <div class="rga-container">
+            <!-- Page Header — lives outside the swap target so it is never destroyed by search -->
+            <div class="rga-page-header">
+                <div class="rga-page-header__inner">
+                    <div class="rga-page-header__title-section">
+                        <h1 class="rga-page-header__title">
+                            {% icon "graph_5" %}
+                            Remotes
+                        </h1>
+                    </div>
+                    <div class="rga-page-header__controls">
+                        <div class="rga-search-form">
+                            <div class="rga-search-wrap">
+                                <div class="rga-search-icon-wrap">
+                                    <div id="remotes-search-icon">{% icon "search" %}</div>
+                                    <button type="button"
+                                            id="remotes-clear-search"
+                                            class="rga-search-clear rga-search-hidden"
+                                            aria-label="Clear search">
+                                        {% icon "close" %}
+                                    </button>
+                                </div>
+                                <input type="text"
+                                       id="remotes-search-input"
+                                       name="q"
+                                       value="{{ q }}"
+                                       placeholder="Search remotes"
+                                       class="rga-search-input"
+                                       hx-get="{% url 'remotes:search' %}"
+                                       hx-target="#remotes-container"
+                                       hx-swap="innerHTML"
+                                       hx-trigger="input changed delay:300ms">
+                                <span id="remotes-results-count" class="rga-search-results-count">{% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}</span>
+                            </div>
+                        </div>
+                        <button type="button"
+                                class="rga-header-btn"
+                                hx-get="{% url 'phoxtail_core:modal' %}"
+                                hx-vals='{"content_url": "{{ add_form_url }}"}'
+                                hx-target="#core-modal-placeholder-wrapper"
+                                hx-swap="innerHTML">
+                            {% icon "automation" %}
+                            <span>Connect</span>
+                        </button>
+                        <script>
+                            (function () {
+                                var input = document.getElementById('remotes-search-input');
+                                var clearBtn = document.getElementById('remotes-clear-search');
+                                var icon = document.getElementById('remotes-search-icon');
+                                if (!input) return;
+                                if (input.value.trim().length > 0) {
+                                    icon.classList.add('rga-search-hidden');
+                                    clearBtn.classList.remove('rga-search-hidden');
+                                }
+                                clearBtn.addEventListener('click', function () {
+                                    input.value = '';
+                                    icon.classList.remove('rga-search-hidden');
+                                    clearBtn.classList.add('rga-search-hidden');
+                                    htmx.trigger(input, 'input');
+                                });
+                                input.addEventListener('input', function () {
+                                    if (this.value.trim().length > 0) {
+                                        icon.classList.add('rga-search-hidden');
+                                        clearBtn.classList.remove('rga-search-hidden');
+                                    } else {
+                                        icon.classList.remove('rga-search-hidden');
+                                        clearBtn.classList.add('rga-search-hidden');
+                                    }
+                                });
+                            })();
+                        </script>
+                    </div>
+                </div>
+            </div>
+            <div id="remotes-container">
+                {% include "phoxtail_remotes/admin/remotes/partials/remotes_list.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

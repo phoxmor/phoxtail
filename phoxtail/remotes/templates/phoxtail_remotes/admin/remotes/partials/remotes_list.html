@@ -1,0 +1,62 @@
+{% load phoxtail_design_tags %}
+<!-- Remotes Cards -->
+{% if remotes %}
+    <div class="rga-cards-section">
+        <div class="rga-cards-wrap">
+            <div class="rga-cards-inner">
+                <div class="rga-grid">
+                    {% for r in remotes %}
+                        {% url 'remotes:edit_form' r.pk as edit_url %}
+                        <div class="rga-remote-card">
+                            <div class="rga-remote-card__inner">
+                                <div class="rga-remote-card__body">
+                                    <div class="rga-remote-card__content">
+                                        <h4 class="rga-remote-card__title">{{ r.name }}</h4>
+                                        <div class="rga-remote-card__meta">
+                                            <div class="rga-remote-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/globe.html' %}
+                                                <span class="rga-remote-card__meta-value rga-remote-card__meta-value--truncate">{{ r.base_url }}</span>
+                                            </div>
+                                            <div class="rga-remote-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/calendar.html' %}
+                                                <span class="rga-remote-card__meta-value">Connected {{ r.created_at|date:"M j, Y" }}</span>
+                                            </div>
+                                            <div class="rga-remote-card__meta-row">
+                                                {% include 'phoxtail_core/svgs/key.html' %}
+                                                <span class="rga-remote-card__meta-value">{{ r.token_fingerprint }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="rga-remote-card__button"
+                                    type="button"
+                                    hx-get="{% url 'phoxtail_core:modal' %}"
+                                    hx-vals='{"content_url": "{{ edit_url }}"}'
+                                    hx-target="#core-modal-placeholder-wrapper"
+                                    hx-swap="innerHTML"
+                                    aria-label="Edit {{ r.name }}">
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% include "phoxtail_core/admin/partials/paginator.html" %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="rga-empty rga-empty--page">
+        <div class="rga-empty__icon">{% icon "graph_5" %}</div>
+        <h3 class="rga-empty__title">
+            {% if q %}No remotes match "{{ q }}"{% else %}No remotes connected{% endif %}
+        </h3>
+        <p class="rga-empty__text">
+            {% if q %}
+                Try a different search term.
+            {% else %}
+                Click <strong>Connect</strong> to add a remote Phoxtail project.
+            {% endif %}
+        </p>
+    </div>
+{% endif %}
+{% if request.htmx and not suppress_count_oob %}<span id="remotes-results-count" class="rga-search-results-count" hx-swap-oob="true">{% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}</span>{% endif %}

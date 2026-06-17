@@ -60,6 +60,11 @@ api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
 api.add_router("/design/v1/", design_v1_router, tags=["design/v1"])
 
 
+@api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
+def ping(request):
+    return {"ok": True}
+
+
 # Core router short labels — contributors cannot reuse these, or they
 # would shadow a core domain.
 _CORE_SHORT_LABELS = frozenset({"streams", "content", "design", "pages"})

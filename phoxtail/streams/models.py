@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
@@ -412,41 +411,3 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
                         )
                     }
                 )
-
-
-class Registry(TimestampMixin, models.Model):
-    """A remote Phoxtail instance that exposes a catalog of installable assets."""
-
-    name = models.CharField(
-        max_length=100,
-        help_text=_("Display label for this registry (e.g. 'Phoxtail Registry')."),
-    )
-    base_url = models.URLField(
-        help_text=_("Root URL of the registry, e.g. https://registry.phoxtail.com — no trailing slash."),
-    )
-    token = models.CharField(
-        max_length=200,
-        help_text=_("Read token issued by the registry. Never displayed after save."),
-    )
-
-    class Meta:
-        verbose_name = _("Registry")
-        verbose_name_plural = _("Registries")
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-    def clean(self):
-        super().clean()
-        if self.base_url:
-            self.base_url = self.base_url.rstrip("/")
-
-    def get_admin_url(self):
-        return reverse("phoxtail_streams:registries:index")
-
-    @property
-    def service(self):
-        from phoxtail.streams.services import RegistryService
-
-        return RegistryService(self)

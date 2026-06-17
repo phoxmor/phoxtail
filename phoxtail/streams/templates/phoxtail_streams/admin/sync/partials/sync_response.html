@@ -1,0 +1,22 @@
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}
+{% if success %}
+    <span id="sync-btn-{{ variant_id }}" class="ss-btn ss-btn--synced">Installed</span>
+    <span id="sync-badge-{{ variant_id }}"
+          class="ss-card__synced-badge"
+          hx-swap-oob="true">Installed</span>
+{% else %}
+    <form id="sync-btn-{{ variant_id }}"
+          style="display: contents"
+          hx-post="{% url 'streams-sync:sync' %}"
+          hx-target="#sync-btn-{{ variant_id }}"
+          hx-swap="outerHTML"
+          hx-include="this">
+        {% csrf_token %}
+        <input type="hidden" name="remote_id" value="{{ remote_id }}">
+        <input type="hidden" name="variant_id" value="{{ variant_id }}">
+        <input type="hidden" name="variant_identifier" value="{{ variant_identifier }}">
+        <button type="submit" class="ss-btn ss-btn--sync">Retry</button>
+    </form>
+{% endif %}
