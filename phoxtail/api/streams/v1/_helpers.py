@@ -69,6 +69,38 @@ def resolve_block(identifier: str) -> Block:
 # ---------------------------------------------------------------------------
 
 
+def build_variant_envelope(v: BlockVariant) -> dict:
+    """Build the cross-project sync envelope for a BlockVariant.
+
+    Used by ``GET /{id}/pull/`` and by ``StreamsSyncService.push()``.
+    Caller must ensure ``block__page_types`` is prefetched.
+    """
+    b = v.block
+    return {
+        "collection": {
+            "name": v.collection.name,
+            "identifier": v.collection.identifier,
+        },
+        "block": {
+            "name": b.name,
+            "identifier": b.identifier,
+            "is_shared": b.is_shared,
+            "source_app": b.source_app,
+            "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
+            "schema_json": b.schema.get_prep_value(),
+        },
+        "variant": {
+            "name": v.name,
+            "identifier": v.identifier,
+            "is_default": v.is_default,
+            "description": v.description,
+            "html": v.html,
+            "css": v.css,
+            "js": v.javascript,
+        },
+    }
+
+
 def variant_summary(v: BlockVariant) -> dict:
     return {
         "id": v.id,
@@ -80,6 +112,8 @@ def variant_summary(v: BlockVariant) -> dict:
             "id": v.block.id,
             "identifier": v.block.identifier,
             "name": v.block.name,
+            "source_app": v.block.source_app,
+            "page_types": [f"{ct.app_label}.{ct.model}" for ct in v.block.page_types.all()],
         },
         "collection": {
             "id": v.collection.id,

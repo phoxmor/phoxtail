@@ -49,6 +49,7 @@ class BlockViewSet(SnippetViewSet):
                     FieldPanel("description"),
                     FieldPanel("icon"),
                     FieldPanel("group"),
+                    FieldPanel("source_app"),
                     FieldPanel("is_shared"),
                     FieldPanel("page_types"),
                     FieldPanel("categories"),

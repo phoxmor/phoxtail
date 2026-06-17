@@ -828,6 +828,101 @@ textarea.fw-input {
     font-weight: 500;
 }
 
+/* ── Segmented Control ── */
+
+.fw-segmented-control {
+    position: relative !important;
+    display: inline-flex !important;
+    height: 38px !important;
+    width: 180px !important;
+    flex-shrink: 0 !important;
+    border-radius: 9999px !important;
+    border: 1px solid #dcdcdc !important;
+    background: #eaeaeb !important;
+    padding: 3px !important;
+    box-sizing: border-box !important;
+    user-select: none !important;
+}
+
+.fw-segmented-radio {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+}
+
+.fw-segmented-track {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.fw-segmented-slider {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 50% !important;
+    height: 100% !important;
+    border-radius: 9999px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1 !important;
+    box-sizing: border-box !important;
+}
+
+.fw-segmented-label {
+    flex: 1 1 0% !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #6c6c70 !important;
+    cursor: pointer !important;
+    z-index: 2 !important;
+    transition: color 0.15s ease !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    line-height: normal !important;
+}
+
+.fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-slider {
+    transform: translateX(0) !important;
+}
+
+.fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-slider {
+    transform: translateX(100%) !important;
+}
+
+.fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-label--remote {
+    color: #111111 !important;
+}
+
+.fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-label--local {
+    color: #111111 !important;
+}
+
 /* ── Dark Mode ── */
 
 @media (prefers-color-scheme: dark) {
@@ -945,5 +1040,29 @@ textarea.fw-input {
 
     .fw-msc-chip:hover .fw-msc-chip-icon {
         background-color: rgb(var(--color-surface-600));
+    }
+
+    /* Segmented Control */
+    .fw-segmented-control {
+        background: #141416 !important;
+        border-color: #2a2a2d !important;
+    }
+
+    .fw-segmented-slider {
+        background: #2a2a2d !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .fw-segmented-label {
+        color: #9a9a9f !important;
+    }
+
+    .fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-label--remote {
+        color: #ffffff !important;
+    }
+
+    .fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-label--local {
+        color: #ffffff !important;
     }
 }

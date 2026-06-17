@@ -9,3 +9,7 @@ class RemoteSelectForm(forms.Form):
         queryset=Remote.objects.all(),
         required=False,
     )
+
+
+class SyncModeForm(forms.Form):
+    sync_toggle = forms.BooleanField(required=False, label="")

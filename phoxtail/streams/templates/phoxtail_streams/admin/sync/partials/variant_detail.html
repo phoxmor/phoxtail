@@ -24,10 +24,7 @@
                 <div class="ss-drawer__header">
                     <div class="ss-drawer__title-row">
                         <div class="ss-drawer__title-group">
-                            {% if block.name %}
-                                <span class="ss-card__block">{{ block.name }}</span>
-                            {% endif %}
-                            <h2 class="ss-drawer__title">{{ item.title }}</h2>
+                            <h2 class="ss-drawer__title">Sync Variant</h2>
                         </div>
                         <button class="ss-close-btn" onclick="closeModal()" aria-label="Close" type="button">
                             {% icon "close" %}
@@ -36,30 +33,24 @@
                 </div>
                 <div class="ss-drawer__body">
                     <div class="ss-form-stack">
-                        {% if item.preview_desktop_light_url or item.preview_desktop_dark_url %}
-                            <div class="ss-variant-detail__preview">
-                                <picture>
-                                    {% if item.preview_desktop_dark_url %}
-                                        <source srcset="{{ item.preview_desktop_dark_url }}" media="(prefers-color-scheme: dark)">
-                                    {% endif %}
-                                    <img src="{{ item.preview_desktop_light_url|default:item.preview_desktop_dark_url }}"
-                                         alt="{{ item.title }}"
-                                         class="ss-variant-detail__img">
-                                </picture>
-                            </div>
-                        {% endif %}
-
-                        {% if item.tagline %}
+                        {% if block.name %}
                             <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Tagline</span>
-                                <p class="ss-variant-detail__value">{{ item.tagline }}</p>
+                                <span class="ss-variant-detail__label">Block</span>
+                                <p class="ss-variant-detail__value">{{ block.name }}</p>
                             </div>
                         {% endif %}
 
-                        {% if item.intro %}
+                        {% if item.title %}
+                            <div class="ss-variant-detail__field">
+                                <span class="ss-variant-detail__label">Variant</span>
+                                <p class="ss-variant-detail__value">{{ item.title }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if item.description %}
                             <div class="ss-variant-detail__field">
                                 <span class="ss-variant-detail__label">Description</span>
-                                <p class="ss-variant-detail__value">{{ item.intro }}</p>
+                                <p class="ss-variant-detail__value">{{ item.description }}</p>
                             </div>
                         {% endif %}
 
@@ -70,48 +61,58 @@
                             </div>
                         {% endif %}
 
-                        {% if item.tags %}
+                        {% if sync_state %}
                             <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Tags</span>
-                                <div class="ss-card__tags">
-                                    {% for tag in item.tags %}
-                                        <span class="ss-tag">{{ tag }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        {% if item.page_url %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Registry</span>
-                                <a href="{{ item.page_url }}"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="ss-variant-detail__link">
-                                    View on registry
-                                    {% icon "open_in_new" %}
-                                </a>
+                                <span class="ss-variant-detail__label">Sync Status</span>
+                                <p class="ss-variant-detail__value">
+                                    {% if sync_state == "not_local" %}Not installed locally
+                                    {% elif sync_state == "not_remote" %}Not on remote
+                                    {% elif sync_state == "in_sync" %}Up to date
+                                    {% elif sync_state == "differs" %}Out of sync
+                                    {% elif sync_state == "unknown" %}Unable to reach remote
+                                    {% endif %}
+                                </p>
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                <div class="ss-drawer__footer">
+                <div class="ss-drawer__footer" id="variant-sync-footer">
                     <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
-                    {% if installed %}
-                        <span id="sync-btn-{{ variant_id }}" class="ss-btn ss-btn--synced">Installed</span>
-                    {% else %}
-                        <form id="sync-btn-{{ variant_id }}"
-                              style="display: contents"
-                              hx-post="{% url 'streams-sync:sync' %}"
-                              hx-target="#sync-btn-{{ variant_id }}"
-                              hx-swap="outerHTML"
+
+                    {% if local_variant_id %}
+                        <form style="display: contents"
+                              hx-post="{% url 'streams-sync:push' %}"
+                              hx-swap="none"
                               hx-include="this">
                             {% csrf_token %}
                             <input type="hidden" name="remote_id" value="{{ remote_id }}">
-                            <input type="hidden" name="variant_id" value="{{ variant_id }}">
-                            <input type="hidden" name="variant_identifier" value="{{ variant_identifier }}">
-                            <button type="submit" class="ss-btn ss-btn--primary">Install</button>
+                            <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
+                            <input type="hidden" name="remote_variant_id" value="{{ remote_variant_id }}">
+                            <input type="hidden" name="mode" value="{{ mode }}">
+                            <button type="submit"
+                                    class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
+                                    {% if sync_state == 'in_sync' %}disabled{% endif %}>Push</button>
                         </form>
+                    {% else %}
+                        <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Push</button>
+                    {% endif %}
+
+                    {% if remote_variant_id %}
+                        <form style="display: contents"
+                              hx-post="{% url 'streams-sync:pull' %}"
+                              hx-swap="none"
+                              hx-include="this">
+                            {% csrf_token %}
+                            <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                            <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
+                            <input type="hidden" name="local_variant_id" value="{{ local_variant_id }}">
+                            <input type="hidden" name="mode" value="{{ mode }}">
+                            <button type="submit"
+                                    class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
+                                    {% if sync_state == 'in_sync' %}disabled{% endif %}>Pull</button>
+                        </form>
+                    {% else %}
+                        <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Pull</button>
                     {% endif %}
                 </div>
             {% endif %}

@@ -1,0 +1,35 @@
+<div class="fw-segmented-control">
+    <input type="radio"
+           name="{{ field.html_name }}"
+           id="{{ field.id_for_label }}_remote"
+           value=""
+           {% if not field.value %}checked{% endif %}
+           class="fw-segmented-radio fw-segmented-radio--remote"
+           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+           hx-vals='{"mode": "remote"}'
+           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+
+    <input type="radio"
+           name="{{ field.html_name }}"
+           id="{{ field.id_for_label }}_local"
+           value="on"
+           {% if field.value %}checked{% endif %}
+           class="fw-segmented-radio fw-segmented-radio--local"
+           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+           hx-vals='{"mode": "local"}'
+           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+
+    <div class="fw-segmented-track">
+        <label for="{{ field.id_for_label }}_remote" class="fw-segmented-label fw-segmented-label--remote">{{ label_off|default:"Off" }}</label>
+        <label for="{{ field.id_for_label }}_local" class="fw-segmented-label fw-segmented-label--local">{{ label_on|default:"On" }}</label>
+        <div class="fw-segmented-slider"></div>
+    </div>
+</div>

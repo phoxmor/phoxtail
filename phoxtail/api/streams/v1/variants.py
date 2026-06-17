@@ -16,6 +16,7 @@ from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.streams.v1._helpers import (
+    build_variant_envelope,
     etag_matches,
     resolve_variant_by_pk,
     variant_detail,
@@ -24,6 +25,8 @@ from phoxtail.api.streams.v1._helpers import (
 )
 from phoxtail.api.streams.v1.schemas import (
     Error,
+    PushPayload,
+    PushResponse,
     Variant,
     VariantCreate,
     VariantList,
@@ -32,6 +35,27 @@ from phoxtail.api.streams.v1.schemas import (
 from phoxtail.streams.models import Block, BlockVariant, VariantCollection
 
 router = Router()
+
+
+# Defined before /{variant_id}/ endpoints so Django's URL resolver matches
+# /push/ first — Ninja uses string-type path converters, so {variant_id}
+# would otherwise capture the literal "push" and return 405.
+@router.post(
+    "/push/",
+    response={200: PushResponse, 400: Error},
+    summary="Receive a pushed BlockVariant from a remote project",
+)
+def push_variant(request: HttpRequest, payload: PushPayload):
+    from django.core.exceptions import ValidationError
+
+    from phoxtail.streams.services.sync import apply_variant_envelope
+
+    envelope = payload.install.model_dump()
+    try:
+        result = apply_variant_envelope(envelope)
+    except ValidationError as exc:
+        return 400, Error(detail=" ".join(exc.messages))
+    return PushResponse(created=result.created, name=result.variant.name)
 
 
 @router.get(
@@ -45,7 +69,7 @@ def list_variants(
     collection: str | None = Query(None, description="Filter by collection identifier."),
     search: str | None = Query(None, description="Prefix search on variant name and identifier."),
 ):
-    qs = BlockVariant.objects.select_related("block", "collection").all()
+    qs = BlockVariant.objects.select_related("block", "collection").prefetch_related("block__page_types").all()
     if block:
         qs = qs.filter(block__identifier=block)
     if collection:
@@ -213,3 +237,28 @@ def delete_variant(request: HttpRequest, variant_id: int):
     v = resolve_variant_by_pk(variant_id)
     v.delete()
     return 204, None
+
+
+@router.get(
+    "/{variant_id}/pull/",
+    summary="Pull a BlockVariant install payload",
+)
+def pull_variant(request: HttpRequest, variant_id: int):
+    """Return the full install envelope for cross-project variant sync.
+
+    Consumed by StreamsSyncService.pull() on the pulling project.
+    """
+    try:
+        v = (
+            BlockVariant.objects.select_related("block", "collection")
+            .prefetch_related("block__page_types")
+            .get(pk=variant_id)
+        )
+    except BlockVariant.DoesNotExist:
+        raise HttpError(404, f"Variant {variant_id} not found.")
+
+    return {
+        "title": v.name,
+        "description": v.description,
+        "install": build_variant_envelope(v),
+    }

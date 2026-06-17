@@ -1,5 +1,6 @@
 {% load phoxtail_design_tags %}
 {% url 'streams-sync:remote_select' as remote_select_url %}
+{% url 'streams-sync:streams' as streams_url %}
 
 <!-- Page Header -->
 <div class="ss-page-header">
@@ -12,6 +13,7 @@
         </div>
         <div class="ss-page-header__controls">
             {% if remotes %}
+                {% include "phoxtail_core/forms/widgets/htmx/segmented_control.html" with field=mode_field label_off="Remote" label_on="Local" hx_get=streams_url hx_target="#streams-results" hx_swap="innerHTML" hx_include="#remote-selected-value" %}
                 <div class="ss-search-form">
                     <div class="ss-search-wrap">
                         <div class="ss-search-icon-wrap">
@@ -29,10 +31,11 @@
                                value="{{ q|default:'' }}"
                                placeholder="Search variants"
                                class="ss-search-input"
-                               hx-get="{% url 'streams-sync:streams' %}"
+                               hx-get="{{ streams_url }}"
                                hx-target="#streams-results"
                                hx-swap="innerHTML"
                                hx-include="#remote-selected-value"
+                               hx-vals='js:{mode: document.getElementById("{{ mode_field.id_for_label }}_local").checked ? "local" : "remote"}'
                                hx-trigger="input changed delay:300ms">
                         <span id="streams-results-count" class="ss-search-results-count">
                             {% if total is not None %}

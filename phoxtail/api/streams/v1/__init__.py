@@ -20,6 +20,7 @@ from phoxtail.api.streams.v1.shared_blocks import router as shared_blocks_router
 from phoxtail.api.streams.v1.variants import router as variants_router
 
 router = Router()
+
 router.add_router("/variants", variants_router)
 router.add_router("/collections", collections_router)
 router.add_router("/blocks", blocks_router)

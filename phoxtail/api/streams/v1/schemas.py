@@ -21,6 +21,8 @@ class BlockRef(Schema):
     id: int
     identifier: str
     name: str
+    source_app: str = ""
+    page_types: list[str] = []
 
 
 class CollectionRef(Schema):
@@ -351,6 +353,50 @@ class SharedBlockUpdate(Schema):
     """
 
     content: list[dict] | None = None
+
+
+# ---------------------------------------------------------------------------
+# Push (cross-project sync — receiving side)
+# ---------------------------------------------------------------------------
+
+
+class PushCollectionData(Schema):
+    name: str
+    identifier: str
+
+
+class PushBlockData(Schema):
+    name: str
+    identifier: str
+    is_shared: bool = False
+    source_app: str = ""
+    page_types: list[str] = []
+    schema_json: str | list = []
+
+
+class PushVariantData(Schema):
+    name: str
+    identifier: str
+    is_default: bool = False
+    description: str = ""
+    html: str = ""
+    css: str = ""
+    js: str = ""
+
+
+class PushInstallEnvelope(Schema):
+    collection: PushCollectionData
+    block: PushBlockData
+    variant: PushVariantData
+
+
+class PushPayload(Schema):
+    install: PushInstallEnvelope
+
+
+class PushResponse(Schema):
+    created: bool
+    name: str
 
 
 # ---------------------------------------------------------------------------
