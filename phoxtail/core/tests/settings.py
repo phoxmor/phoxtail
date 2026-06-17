@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "wagtail.sites",
     "wagtail.locales",
     "wagtail.users",
+    "wagtailmedia",
     "phoxtail.core",
     "phoxtail.media",
     "phoxtail.core.tests.testapp",
