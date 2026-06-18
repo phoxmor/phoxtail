@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "phoxtail.media",
     "phoxtail.design",
     "phoxtail.streams",
+    "phoxtail.remotes",
     "phoxtail.cms",
     "phoxtail.agent",
     "phoxtail.tokens",
