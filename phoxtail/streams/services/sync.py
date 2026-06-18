@@ -121,7 +121,11 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
             },
         )
 
-    return PullResult(variant=variant, created=created, skipped_page_types=skipped_page_types)
+    return PullResult(
+        variant=variant,
+        created=created,
+        skipped_page_types=skipped_page_types,
+    )
 
 
 class StreamsSyncService:
@@ -150,7 +154,16 @@ class StreamsSyncService:
 
         try:
             v = (
-                BlockVariant.objects.select_related("block", "collection")
+                BlockVariant.objects.select_related(
+                    "block",
+                    "collection",
+                    "preview_image_desktop",
+                    "preview_image_desktop_dark",
+                    "preview_image_tablet",
+                    "preview_image_tablet_dark",
+                    "preview_image_mobile",
+                    "preview_image_mobile_dark",
+                )
                 .prefetch_related("block__page_types")
                 .get(pk=variant_id)
             )

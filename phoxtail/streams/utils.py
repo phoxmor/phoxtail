@@ -1,3 +1,19 @@
+def _image_url(image) -> str | None:
+    """Return an absolute URL for the original image file, or None."""
+    if image is None:
+        return None
+    try:
+        url = image.file.url
+    except Exception:
+        return None
+    if url and url.startswith("/"):
+        from django.conf import settings
+
+        base = getattr(settings, "WAGTAILADMIN_BASE_URL", "").rstrip("/")
+        url = base + url
+    return url or None
+
+
 def _page_content_type_choices():
     """
     Callable for limit_choices_to — restricts page_types choices to

@@ -22,6 +22,7 @@ from phoxtail.streams.models import (
     SharedBlock,
     VariantCollection,
 )
+from phoxtail.streams.utils import _image_url
 
 # ---------------------------------------------------------------------------
 # Variant resolution
@@ -97,6 +98,12 @@ def build_variant_envelope(v: BlockVariant) -> dict:
             "html": v.html,
             "css": v.css,
             "js": v.javascript,
+            "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
+            "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
+            "preview_tablet_light_url": _image_url(v.preview_image_tablet) or "",
+            "preview_tablet_dark_url": _image_url(v.preview_image_tablet_dark) or "",
+            "preview_mobile_light_url": _image_url(v.preview_image_mobile) or "",
+            "preview_mobile_dark_url": _image_url(v.preview_image_mobile_dark) or "",
         },
     }
 
@@ -120,6 +127,12 @@ def variant_summary(v: BlockVariant) -> dict:
             "identifier": v.collection.identifier,
             "name": v.collection.name,
         },
+        "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
+        "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
+        "preview_tablet_light_url": _image_url(v.preview_image_tablet) or "",
+        "preview_tablet_dark_url": _image_url(v.preview_image_tablet_dark) or "",
+        "preview_mobile_light_url": _image_url(v.preview_image_mobile) or "",
+        "preview_mobile_dark_url": _image_url(v.preview_image_mobile_dark) or "",
     }
 
 
@@ -193,7 +206,7 @@ def variant_etag(v: BlockVariant) -> str:
     """Compute a weak ETag covering all mutable variant fields.
 
     Includes metadata (identifier, name, description, collection, is_default,
-    preview_image) as well as content (html, css, javascript) so that any
+    all six preview image FKs) as well as content (html, css, javascript) so that any
     update — not just content edits — invalidates a stale If-Match header.
     """
     h = hashlib.sha256()
@@ -203,7 +216,12 @@ def variant_etag(v: BlockVariant) -> str:
         v.description,
         str(v.collection_id),
         str(v.is_default),
-        str(v.preview_image_id or ""),
+        str(v.preview_image_desktop_id or ""),
+        str(v.preview_image_desktop_dark_id or ""),
+        str(v.preview_image_tablet_id or ""),
+        str(v.preview_image_tablet_dark_id or ""),
+        str(v.preview_image_mobile_id or ""),
+        str(v.preview_image_mobile_dark_id or ""),
         v.html,
         v.css,
         v.javascript,

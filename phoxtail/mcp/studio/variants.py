@@ -115,7 +115,11 @@ def diff_variant(
     description=(
         "Update any mutable field on a variant: identifier, name, description, "
         "collection_id (move to a different design system collection), "
-        "preview_image_id (set or clear the preview screenshot), "
+        "six preview image ID fields (preview_image_desktop_id, "
+        "preview_image_desktop_dark_id, preview_image_tablet_id, "
+        "preview_image_tablet_dark_id, preview_image_mobile_id, "
+        "preview_image_mobile_dark_id — pass the integer image ID to set, "
+        "or null/omit to leave unchanged), "
         "is_default (atomically demotes any existing default on the same block), "
         "and content fields html, css, javascript. "
         "Pass the `variant_id` and the ETag from a prior "
@@ -138,7 +142,12 @@ def update_variant(
     name: str | None = None,
     description: str | None = None,
     collection_id: int | None = None,
-    preview_image_id: int | None = None,
+    preview_image_desktop_id: int | None = None,
+    preview_image_desktop_dark_id: int | None = None,
+    preview_image_tablet_id: int | None = None,
+    preview_image_tablet_dark_id: int | None = None,
+    preview_image_mobile_id: int | None = None,
+    preview_image_mobile_dark_id: int | None = None,
     html: str | None = None,
     css: str | None = None,
     javascript: str | None = None,
@@ -153,8 +162,18 @@ def update_variant(
         body["description"] = description
     if collection_id is not None:
         body["collection_id"] = collection_id
-    if preview_image_id is not None:
-        body["preview_image_id"] = preview_image_id
+    if preview_image_desktop_id is not None:
+        body["preview_image_desktop_id"] = preview_image_desktop_id
+    if preview_image_desktop_dark_id is not None:
+        body["preview_image_desktop_dark_id"] = preview_image_desktop_dark_id
+    if preview_image_tablet_id is not None:
+        body["preview_image_tablet_id"] = preview_image_tablet_id
+    if preview_image_tablet_dark_id is not None:
+        body["preview_image_tablet_dark_id"] = preview_image_tablet_dark_id
+    if preview_image_mobile_id is not None:
+        body["preview_image_mobile_id"] = preview_image_mobile_id
+    if preview_image_mobile_dark_id is not None:
+        body["preview_image_mobile_dark_id"] = preview_image_mobile_dark_id
     if html is not None:
         body["html"] = html
     if css is not None:

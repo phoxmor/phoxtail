@@ -105,7 +105,6 @@ class BlockVariantViewSet(SnippetViewSet):
                     FieldPanel("identifier"),
                     FieldPanel("description"),
                     FieldPanel("is_default"),
-                    FieldPanel("preview_image"),
                 ],
                 heading=_("Details"),
             ),
@@ -116,6 +115,17 @@ class BlockVariantViewSet(SnippetViewSet):
                     CodeEditorPanel("javascript"),
                 ],
                 heading=_("Code"),
+            ),
+            ObjectList(
+                [
+                    FieldPanel("preview_image_desktop"),
+                    FieldPanel("preview_image_desktop_dark"),
+                    FieldPanel("preview_image_tablet"),
+                    FieldPanel("preview_image_tablet_dark"),
+                    FieldPanel("preview_image_mobile"),
+                    FieldPanel("preview_image_mobile_dark"),
+                ],
+                heading=_("Preview"),
             ),
         ]
     )

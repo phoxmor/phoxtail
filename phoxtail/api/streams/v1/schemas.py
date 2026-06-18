@@ -48,6 +48,12 @@ class VariantSummary(Schema):
     is_default: bool
     block: BlockRef
     collection: CollectionRef
+    preview_desktop_light_url: str = ""
+    preview_desktop_dark_url: str = ""
+    preview_tablet_light_url: str = ""
+    preview_tablet_dark_url: str = ""
+    preview_mobile_light_url: str = ""
+    preview_mobile_dark_url: str = ""
 
 
 class Variant(VariantSummary):
@@ -88,7 +94,12 @@ class VariantUpdate(Schema):
     name: str | None = None
     description: str | None = None
     collection_id: int | None = None
-    preview_image_id: int | None = None
+    preview_image_desktop_id: int | None = None
+    preview_image_desktop_dark_id: int | None = None
+    preview_image_tablet_id: int | None = None
+    preview_image_tablet_dark_id: int | None = None
+    preview_image_mobile_id: int | None = None
+    preview_image_mobile_dark_id: int | None = None
     html: str | None = None
     css: str | None = None
     javascript: str | None = None
@@ -382,6 +393,12 @@ class PushVariantData(Schema):
     html: str = ""
     css: str = ""
     js: str = ""
+    preview_desktop_light_url: str | None = None
+    preview_desktop_dark_url: str | None = None
+    preview_tablet_light_url: str | None = None
+    preview_tablet_dark_url: str | None = None
+    preview_mobile_light_url: str | None = None
+    preview_mobile_dark_url: str | None = None
 
 
 class PushInstallEnvelope(Schema):

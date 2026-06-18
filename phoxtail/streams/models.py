@@ -284,13 +284,53 @@ class BlockVariant(index.Indexed, models.Model):
         default="",
         help_text=_("JavaScript code for this variant."),
     )
-    preview_image = models.ForeignKey(
+    preview_image_desktop = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
         on_delete=models.SET_NULL,
         related_name="+",
         blank=True,
         null=True,
-        help_text=_("Optional preview screenshot of this variant."),
+        help_text=_("Desktop (light mode) preview screenshot."),
+    )
+    preview_image_desktop_dark = models.ForeignKey(
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Desktop (dark mode) preview screenshot."),
+    )
+    preview_image_tablet = models.ForeignKey(
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Tablet (light mode) preview screenshot."),
+    )
+    preview_image_tablet_dark = models.ForeignKey(
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Tablet (dark mode) preview screenshot."),
+    )
+    preview_image_mobile = models.ForeignKey(
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Mobile (light mode) preview screenshot."),
+    )
+    preview_image_mobile_dark = models.ForeignKey(
+        settings.WAGTAILIMAGES_IMAGE_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        blank=True,
+        null=True,
+        help_text=_("Mobile (dark mode) preview screenshot."),
     )
 
     search_fields = [

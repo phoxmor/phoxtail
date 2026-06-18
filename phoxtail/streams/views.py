@@ -59,9 +59,9 @@ class BlockVariantChooseView(ChooseView):
                 "preview",
                 label="Preview",
                 accessor=lambda obj: mark_safe(
-                    f'<img src="{obj.preview_image.file.url}" alt="Preview" '
+                    f'<img src="{obj.preview_image_desktop.file.url}" alt="Preview" '
                     f'style="max-width: 150px; height: auto; border-radius: 4px;" />'
-                    if obj.preview_image
+                    if obj.preview_image_desktop
                     else '<span style="color: #999;">No preview</span>'
                 ),
             )
@@ -111,9 +111,9 @@ class BlockVariantChooseResultsView(ChooseResultsView):
                 "preview",
                 label="Preview",
                 accessor=lambda obj: mark_safe(
-                    f'<img src="{obj.preview_image.file.url}" alt="Preview" '
+                    f'<img src="{obj.preview_image_desktop.file.url}" alt="Preview" '
                     f'style="max-width: 150px; height: auto; border-radius: 4px;" />'
-                    if obj.preview_image
+                    if obj.preview_image_desktop
                     else '<span style="color: #999;">No preview</span>'
                 ),
             )

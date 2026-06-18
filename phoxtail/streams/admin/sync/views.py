@@ -21,6 +21,7 @@ from phoxtail.remotes.models import Remote
 from phoxtail.remotes.permissions import remotes_permission_required
 from phoxtail.streams.models import BlockVariant
 from phoxtail.streams.services.sync import StreamsSyncService
+from phoxtail.streams.utils import _image_url
 
 from .forms import RemoteSelectForm, SyncModeForm
 
@@ -177,7 +178,12 @@ def admin_sync_streams(request):
 
     if mode == "local":
         # Browse local variants.
-        qs = BlockVariant.objects.select_related("block", "collection").all()
+        qs = BlockVariant.objects.select_related(
+            "block",
+            "collection",
+            "preview_image_desktop",
+            "preview_image_desktop_dark",
+        ).all()
         if q:
             qs = get_search_backend().autocomplete(q, qs)
         all_items = [
@@ -186,8 +192,8 @@ def admin_sync_streams(request):
                 "title": v.name,
                 "block_name": v.block.name,
                 "installed": False,
-                "preview_desktop_light_url": "",
-                "preview_desktop_dark_url": "",
+                "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
+                "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
             }
             for v in qs
         ]
@@ -259,8 +265,8 @@ def admin_sync_streams(request):
                 "title": v["name"],
                 "block_name": block["name"],
                 "installed": key in installed,
-                "preview_desktop_light_url": "",
-                "preview_desktop_dark_url": "",
+                "preview_desktop_light_url": v.get("preview_desktop_light_url") or "",
+                "preview_desktop_dark_url": v.get("preview_desktop_dark_url") or "",
             }
         )
 
@@ -395,7 +401,19 @@ def admin_sync_variant_detail(request):
 
     if mode == "local":
         # variant_id is a local BlockVariant PK.
-        v = get_object_or_404(BlockVariant.objects.select_related("block", "collection"), pk=variant_id)
+        v = get_object_or_404(
+            BlockVariant.objects.select_related(
+                "block",
+                "collection",
+                "preview_image_desktop",
+                "preview_image_desktop_dark",
+                "preview_image_tablet",
+                "preview_image_tablet_dark",
+                "preview_image_mobile",
+                "preview_image_mobile_dark",
+            ),
+            pk=variant_id,
+        )
         local_variant_id = v.pk
         remote_variant_id = None
         sync_state = "not_remote"
@@ -441,6 +459,14 @@ def admin_sync_variant_detail(request):
                 "remote_variant_id": remote_variant_id,
                 "local_variant_id": local_variant_id,
                 "mode": mode,
+                "preview_images": {
+                    "desktop_light": _image_url(v.preview_image_desktop),
+                    "desktop_dark": _image_url(v.preview_image_desktop_dark),
+                    "tablet_light": _image_url(v.preview_image_tablet),
+                    "tablet_dark": _image_url(v.preview_image_tablet_dark),
+                    "mobile_light": _image_url(v.preview_image_mobile),
+                    "mobile_dark": _image_url(v.preview_image_mobile_dark),
+                },
             },
         )
 
@@ -497,5 +523,13 @@ def admin_sync_variant_detail(request):
             "remote_variant_id": int(variant_id),
             "local_variant_id": local_variant_id,
             "mode": mode,
+            "preview_images": {
+                "desktop_light": variant_data.get("preview_desktop_light_url") or None,
+                "desktop_dark": variant_data.get("preview_desktop_dark_url") or None,
+                "tablet_light": variant_data.get("preview_tablet_light_url") or None,
+                "tablet_dark": variant_data.get("preview_tablet_dark_url") or None,
+                "mobile_light": variant_data.get("preview_mobile_light_url") or None,
+                "mobile_dark": variant_data.get("preview_mobile_dark_url") or None,
+            },
         },
     )

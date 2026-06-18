@@ -74,6 +74,56 @@
                                 </p>
                             </div>
                         {% endif %}
+
+                        {% if preview_images %}
+                            {% with dl=preview_images.desktop_light dd=preview_images.desktop_dark tl=preview_images.tablet_light td=preview_images.tablet_dark ml=preview_images.mobile_light md=preview_images.mobile_dark %}
+                                {% if dl or dd or tl or td or ml or md %}
+                                    <div class="ss-variant-detail__field ss-variant-detail__field--previews">
+                                        <span class="ss-variant-detail__label">Preview Images</span>
+                                        
+                                        <!-- Screen & Mode Switchers (above the images) -->
+                                        <div class="ss-preview-switcher-column">
+                                            <!-- Device Row -->
+                                            <div class="ss-preview-switcher-group ss-preview-switcher-group--devices">
+                                                {% if dl or dd %}<button type="button" class="ss-preview-switcher-btn" data-device="desktop">Desktop</button>{% endif %}
+                                                {% if tl or td %}<button type="button" class="ss-preview-switcher-btn" data-device="tablet">Tablet</button>{% endif %}
+                                                {% if ml or md %}<button type="button" class="ss-preview-switcher-btn" data-device="mobile">Mobile</button>{% endif %}
+                                            </div>
+                                            <!-- Theme Row -->
+                                            <div class="ss-preview-switcher-group ss-preview-switcher-group--themes">
+                                                <button type="button" class="ss-preview-switcher-btn" data-theme="light">Light</button>
+                                                <button type="button" class="ss-preview-switcher-btn" data-theme="dark">Dark</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Interactive Mockup Viewports (No simulation frames) -->
+                                        <div class="ss-preview-simulator-wrap">
+                                            <div class="ss-preview-screen" id="ss-preview-screen">
+                                                <div class="ss-mockup__zoom-overlay">
+                                                    {% icon "zoom_in" %}
+                                                    <span>Click to zoom</span>
+                                                </div>
+                                                <img class="ss-preview-img" id="ss-preview-img-active" src="" alt="Preview">
+                                            </div>
+                                        </div>
+
+                                        <!-- Navigation Toggles (below the images) -->
+                                        <div class="ss-preview-switcher-column" id="ss-preview-nav-column">
+                                            <div class="ss-preview-switcher-group">
+                                                <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-prev" title="Previous Preview">
+                                                    Previous
+                                                </button>
+                                                <span class="ss-preview-switcher-separator"></span>
+                                                <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-next" title="Next Preview">
+                                                    Next
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
                     </div>
                 </div>
                 <div class="ss-drawer__footer" id="variant-sync-footer">
@@ -117,5 +167,322 @@
                 </div>
             {% endif %}
         </div>
+        
+        <!-- Lightbox for variant preview images -->
+        <div class="ss-preview-lightbox" id="ss-preview-lightbox" inert>
+            <div class="ss-preview-lightbox__inner">
+                <div class="ss-preview-lightbox__header">
+                    <span class="ss-preview-lightbox__title">Variant Previews</span>
+                    <button type="button" class="ss-preview-lightbox__close-btn" id="ss-preview-lightbox-close" title="Close Preview">
+                        {% icon "close" %}
+                    </button>
+                </div>
+                
+                <!-- Screen and Mode Switchers (on top of images) -->
+                <div class="ss-preview-lightbox__top-switchers">
+                    <div class="ss-preview-switcher-column">
+                        <!-- Device Row -->
+                        <div class="ss-preview-switcher-group" id="ss-lightbox-device-group"></div>
+                        <!-- Theme Row -->
+                        <div class="ss-preview-switcher-group" id="ss-lightbox-theme-group"></div>
+                    </div>
+                </div>
+                
+                <div class="ss-preview-lightbox__content">
+                    <div class="ss-preview-lightbox__image-wrap">
+                        <img class="ss-preview-lightbox__img" id="ss-preview-lightbox-img" src="" alt="Variant Preview Detail">
+                    </div>
+                </div>
+                
+                <div class="ss-preview-lightbox__footer">
+                    <div class="ss-preview-switcher-column">
+                        <!-- Navigation Row -->
+                        <div class="ss-preview-switcher-group">
+                            <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-lightbox-prev" title="Previous Preview">
+                                Previous
+                            </button>
+                            <span class="ss-preview-switcher-separator"></span>
+                            <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-lightbox-next" title="Next Preview">
+                                Next
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<script>
+(function() {
+    const images = [];
+    {% if preview_images.desktop_light %}images.push({ device: 'desktop', theme: 'light', url: '{{ preview_images.desktop_light }}' });{% endif %}
+    {% if preview_images.desktop_dark %}images.push({ device: 'desktop', theme: 'dark', url: '{{ preview_images.desktop_dark }}' });{% endif %}
+    {% if preview_images.tablet_light %}images.push({ device: 'tablet', theme: 'light', url: '{{ preview_images.tablet_light }}' });{% endif %}
+    {% if preview_images.tablet_dark %}images.push({ device: 'tablet', theme: 'dark', url: '{{ preview_images.tablet_dark }}' });{% endif %}
+    {% if preview_images.mobile_light %}images.push({ device: 'mobile', theme: 'light', url: '{{ preview_images.mobile_light }}' });{% endif %}
+    {% if preview_images.mobile_dark %}images.push({ device: 'mobile', theme: 'dark', url: '{{ preview_images.mobile_dark }}' });{% endif %}
+
+    if (images.length === 0) return;
+
+    let activeDevice = '';
+    let activeTheme = 'light';
+
+    // Find available devices and themes
+    const availableDevices = [...new Set(images.map(img => img.device))];
+    const availableThemes = [...new Set(images.map(img => img.theme))];
+
+    // Set initial device and theme
+    activeDevice = availableDevices[0];
+    if (!availableThemes.includes(activeTheme) && availableThemes.length > 0) {
+        activeTheme = availableThemes[0];
+    }
+
+    const deviceButtons = document.querySelectorAll('.ss-preview-switcher-group--devices .ss-preview-switcher-btn');
+    const themeButtons = document.querySelectorAll('.ss-preview-switcher-group--themes .ss-preview-switcher-btn');
+    const previewPrevBtn = document.getElementById('ss-preview-prev');
+    const previewNextBtn = document.getElementById('ss-preview-next');
+
+    function updatePreview() {
+        let imgObj = images.find(img => img.device === activeDevice && img.theme === activeTheme);
+        if (!imgObj) {
+            imgObj = images.find(img => img.device === activeDevice);
+        }
+        if (!imgObj) return;
+
+        // Sync active state variables
+        activeDevice = imgObj.device;
+        activeTheme = imgObj.theme;
+
+        // Update Device switcher buttons
+        deviceButtons.forEach(btn => {
+            btn.classList.toggle('ss-preview-switcher-btn--active', btn.dataset.device === activeDevice);
+        });
+
+        // Update Theme switcher buttons
+        themeButtons.forEach(btn => {
+            btn.classList.toggle('ss-preview-switcher-btn--active', btn.dataset.theme === activeTheme);
+        });
+
+        // Update Theme button visibility based on what's available for this device
+        const themesForDevice = images.filter(img => img.device === activeDevice).map(img => img.theme);
+        themeButtons.forEach(btn => {
+            const btnTheme = btn.dataset.theme;
+            if (themesForDevice.includes(btnTheme)) {
+                btn.removeAttribute('disabled');
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.style.opacity = '0.35';
+                btn.style.pointerEvents = 'none';
+            }
+        });
+
+        // Hide navigation column outside if <= 1 image
+        const outerNavColumn = document.getElementById('ss-preview-nav-column');
+        if (outerNavColumn) {
+            outerNavColumn.style.display = images.length <= 1 ? 'none' : '';
+        }
+
+        // Update Screen aspect ratio and image src
+        const screen = document.getElementById('ss-preview-screen');
+        if (screen) {
+            screen.className = 'ss-preview-screen'; // reset class
+            screen.classList.add(`ss-preview-screen--${activeDevice}`);
+            const img = document.getElementById('ss-preview-img-active');
+            if (img) img.src = imgObj.url;
+        }
+    }
+
+    // Navigation handlers for outside switcher
+    function navigatePrev() {
+        if (images.length <= 1) return;
+        let idx = images.findIndex(img => img.device === activeDevice && img.theme === activeTheme);
+        if (idx === -1) idx = 0;
+        idx = (idx - 1 + images.length) % images.length;
+        activeDevice = images[idx].device;
+        activeTheme = images[idx].theme;
+        updatePreview();
+    }
+
+    function navigateNext() {
+        if (images.length <= 1) return;
+        let idx = images.findIndex(img => img.device === activeDevice && img.theme === activeTheme);
+        if (idx === -1) idx = 0;
+        idx = (idx + 1) % images.length;
+        activeDevice = images[idx].device;
+        activeTheme = images[idx].theme;
+        updatePreview();
+    }
+
+    // Event listeners for outside switchers
+    deviceButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeDevice = btn.dataset.device;
+            const deviceImages = images.filter(img => img.device === activeDevice);
+            const themeExists = deviceImages.some(img => img.theme === activeTheme);
+            if (!themeExists && deviceImages.length > 0) {
+                activeTheme = deviceImages[0].theme;
+            }
+            updatePreview();
+        });
+    });
+
+    themeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeTheme = btn.dataset.theme;
+            updatePreview();
+        });
+    });
+
+    if (previewPrevBtn) {
+        previewPrevBtn.addEventListener('click', (e) => { e.stopPropagation(); navigatePrev(); });
+    }
+    if (previewNextBtn) {
+        previewNextBtn.addEventListener('click', (e) => { e.stopPropagation(); navigateNext(); });
+    }
+
+    // Initialize View
+    updatePreview();
+
+    // ── LIGHTBOX ──
+    const lightbox = document.getElementById('ss-preview-lightbox');
+    const lbClose = document.getElementById('ss-preview-lightbox-close');
+    const lbPrev = document.getElementById('ss-preview-lightbox-prev');
+    const lbNext = document.getElementById('ss-preview-lightbox-next');
+    const lbImg = document.getElementById('ss-preview-lightbox-img');
+
+    const lbDeviceGroup = document.getElementById('ss-lightbox-device-group');
+    const lbThemeGroup = document.getElementById('ss-lightbox-theme-group');
+    
+    let lbIndex = 0;
+
+    function openLightbox(device, theme) {
+        if (!lightbox) return;
+        
+        let index = images.findIndex(img => img.device === device && img.theme === theme);
+        if (index === -1) {
+            index = images.findIndex(img => img.device === device);
+        }
+        lbIndex = index !== -1 ? index : 0;
+
+        renderLightboxState();
+
+        lightbox.removeAttribute('inert');
+        requestAnimationFrame(() => {
+            lightbox.classList.add('ss-preview-lightbox--open');
+        });
+    }
+
+    function closeLightbox() {
+        if (!lightbox) return;
+        lightbox.classList.remove('ss-preview-lightbox--open');
+        lightbox.setAttribute('inert', '');
+    }
+
+    function renderLightboxState() {
+        const currentImg = images[lbIndex];
+        if (!currentImg) return;
+
+        lbImg.src = currentImg.url;
+
+        // Inside lightbox switcher - devices
+        lbDeviceGroup.innerHTML = '';
+        availableDevices.forEach(d => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `ss-preview-switcher-btn ${d === currentImg.device ? 'ss-preview-switcher-btn--active' : ''}`;
+            btn.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLightbox(d, currentImg.theme);
+            });
+            lbDeviceGroup.appendChild(btn);
+        });
+
+        // Inside lightbox switcher - themes
+        lbThemeGroup.innerHTML = '';
+        const deviceThemes = images.filter(img => img.device === currentImg.device).map(img => img.theme);
+        availableThemes.forEach(t => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `ss-preview-switcher-btn ${t === currentImg.theme ? 'ss-preview-switcher-btn--active' : ''}`;
+            btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+            
+            if (deviceThemes.includes(t)) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightbox(currentImg.device, t);
+                });
+            } else {
+                btn.setAttribute('disabled', 'true');
+                btn.style.opacity = '0.3';
+                btn.style.pointerEvents = 'none';
+            }
+            lbThemeGroup.appendChild(btn);
+        });
+
+        // Prev & Next visibility
+        if (images.length <= 1) {
+            lbPrev.style.display = 'none';
+            lbNext.style.display = 'none';
+        } else {
+            lbPrev.style.display = '';
+            lbNext.style.display = '';
+        }
+    }
+
+    function prevImage() {
+        if (images.length <= 1) return;
+        lbIndex = (lbIndex - 1 + images.length) % images.length;
+        renderLightboxState();
+    }
+
+    function nextImage() {
+        if (images.length <= 1) return;
+        lbIndex = (lbIndex + 1) % images.length;
+        renderLightboxState();
+    }
+
+    // Open lightbox when clicking main screen
+    const mainScreen = document.getElementById('ss-preview-screen');
+    if (mainScreen) {
+        mainScreen.addEventListener('click', () => {
+            openLightbox(activeDevice, activeTheme);
+        });
+    }
+
+    if (lbClose) {
+        lbClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+    }
+    if (lbPrev) {
+        lbPrev.addEventListener('click', (e) => { e.stopPropagation(); prevImage(); });
+    }
+    if (lbNext) {
+        lbNext.addEventListener('click', (e) => { e.stopPropagation(); nextImage(); });
+    }
+
+    if (lightbox) {
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target.classList.contains('ss-preview-lightbox__inner')) {
+                closeLightbox();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (lightbox && lightbox.classList.contains('ss-preview-lightbox--open')) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                prevImage();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            }
+        }
+    });
+
+})();
+</script>

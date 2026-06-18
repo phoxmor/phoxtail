@@ -69,7 +69,20 @@ def list_variants(
     collection: str | None = Query(None, description="Filter by collection identifier."),
     search: str | None = Query(None, description="Prefix search on variant name and identifier."),
 ):
-    qs = BlockVariant.objects.select_related("block", "collection").prefetch_related("block__page_types").all()
+    qs = (
+        BlockVariant.objects.select_related(
+            "block",
+            "collection",
+            "preview_image_desktop",
+            "preview_image_desktop_dark",
+            "preview_image_tablet",
+            "preview_image_tablet_dark",
+            "preview_image_mobile",
+            "preview_image_mobile_dark",
+        )
+        .prefetch_related("block__page_types")
+        .all()
+    )
     if block:
         qs = qs.filter(block__identifier=block)
     if collection:
@@ -206,15 +219,25 @@ def update_variant_by_id(
     if payload.javascript is not None:
         v.javascript = payload.javascript
 
-    if "preview_image_id" in payload.model_fields_set:
-        if payload.preview_image_id is None:
-            v.preview_image = None
-        else:
-            Image = get_image_model()
-            try:
-                v.preview_image = Image.objects.get(pk=payload.preview_image_id)
-            except Image.DoesNotExist:
-                raise HttpError(404, f"Image {payload.preview_image_id} not found.")
+    _image_slots = [
+        ("preview_image_desktop_id", "preview_image_desktop"),
+        ("preview_image_desktop_dark_id", "preview_image_desktop_dark"),
+        ("preview_image_tablet_id", "preview_image_tablet"),
+        ("preview_image_tablet_dark_id", "preview_image_tablet_dark"),
+        ("preview_image_mobile_id", "preview_image_mobile"),
+        ("preview_image_mobile_dark_id", "preview_image_mobile_dark"),
+    ]
+    for payload_field, model_field in _image_slots:
+        if payload_field in payload.model_fields_set:
+            image_id = getattr(payload, payload_field)
+            if image_id is None:
+                setattr(v, model_field, None)
+            else:
+                Image = get_image_model()
+                try:
+                    setattr(v, model_field, Image.objects.get(pk=image_id))
+                except Image.DoesNotExist:
+                    raise HttpError(404, f"Image {image_id} not found.")
 
     with transaction.atomic():
         if payload.is_default is True:
