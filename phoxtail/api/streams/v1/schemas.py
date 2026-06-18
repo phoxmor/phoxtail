@@ -382,7 +382,7 @@ class PushBlockData(Schema):
     is_shared: bool = False
     source_app: str = ""
     page_types: list[str] = []
-    schema_json: str | list = []
+    block_schema: str | list = Field([], alias="schema_json")
 
 
 class PushVariantData(Schema):

@@ -50,7 +50,7 @@ def push_variant(request: HttpRequest, payload: PushPayload):
 
     from phoxtail.streams.services.sync import apply_variant_envelope
 
-    envelope = payload.install.model_dump()
+    envelope = payload.install.model_dump(by_alias=True)
     try:
         result = apply_variant_envelope(envelope)
     except ValidationError as exc:
