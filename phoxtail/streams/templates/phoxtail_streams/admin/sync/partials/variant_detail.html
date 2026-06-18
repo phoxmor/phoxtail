@@ -4,8 +4,8 @@
      data-modal-animation="slide-right"
      data-animation-duration="300ms">
     <div class="ss-drawer ss-drawer--wide" onclick="event.stopPropagation()">
-        <div class="ss-drawer__scroll">
-            {% if error %}
+        {% if error %}
+            <div class="ss-drawer__scroll">
                 <div class="ss-drawer__header">
                     <div class="ss-drawer__title-row">
                         <h2 class="ss-drawer__title">Error</h2>
@@ -17,10 +17,12 @@
                 <div class="ss-drawer__body">
                     <div class="ss-error-banner">{{ error }}</div>
                 </div>
-                <div class="ss-drawer__footer">
-                    <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
-                </div>
-            {% else %}
+            </div>
+            <div class="ss-drawer__footer">
+                <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
+            </div>
+        {% else %}
+            <div class="ss-drawer__scroll">
                 <div class="ss-drawer__header">
                     <div class="ss-drawer__title-row">
                         <div class="ss-drawer__title-group">
@@ -126,48 +128,48 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="ss-drawer__footer" id="variant-sync-footer">
-                    <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
+            </div>
+            <div class="ss-drawer__footer" id="variant-sync-footer">
+                <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
 
-                    {% if local_variant_id %}
-                        <form style="display: contents"
-                              hx-post="{% url 'streams-sync:push' %}"
-                              hx-swap="none"
-                              hx-include="this">
-                            {% csrf_token %}
-                            <input type="hidden" name="remote_id" value="{{ remote_id }}">
-                            <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
-                            <input type="hidden" name="remote_variant_id" value="{{ remote_variant_id }}">
-                            <input type="hidden" name="mode" value="{{ mode }}">
-                            <button type="submit"
-                                    class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                    {% if sync_state == 'in_sync' %}disabled{% endif %}>Push</button>
-                        </form>
-                    {% else %}
-                        <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Push</button>
-                    {% endif %}
+                {% if local_variant_id %}
+                    <form style="display: contents"
+                          hx-post="{% url 'streams-sync:push' %}"
+                          hx-swap="none"
+                          hx-include="this">
+                        {% csrf_token %}
+                        <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                        <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
+                        <input type="hidden" name="remote_variant_id" value="{{ remote_variant_id }}">
+                        <input type="hidden" name="mode" value="{{ mode }}">
+                        <button type="submit"
+                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
+                                {% if sync_state == 'in_sync' %}disabled{% endif %}>Push</button>
+                    </form>
+                {% else %}
+                    <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Push</button>
+                {% endif %}
 
-                    {% if remote_variant_id %}
-                        <form style="display: contents"
-                              hx-post="{% url 'streams-sync:pull' %}"
-                              hx-swap="none"
-                              hx-include="this">
-                            {% csrf_token %}
-                            <input type="hidden" name="remote_id" value="{{ remote_id }}">
-                            <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
-                            <input type="hidden" name="local_variant_id" value="{{ local_variant_id }}">
-                            <input type="hidden" name="mode" value="{{ mode }}">
-                            <button type="submit"
-                                    class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                    {% if sync_state == 'in_sync' %}disabled{% endif %}>Pull</button>
-                        </form>
-                    {% else %}
-                        <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Pull</button>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-        
+                {% if remote_variant_id %}
+                    <form style="display: contents"
+                          hx-post="{% url 'streams-sync:pull' %}"
+                          hx-swap="none"
+                          hx-include="this">
+                        {% csrf_token %}
+                        <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                        <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
+                        <input type="hidden" name="local_variant_id" value="{{ local_variant_id }}">
+                        <input type="hidden" name="mode" value="{{ mode }}">
+                        <button type="submit"
+                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
+                                {% if sync_state == 'in_sync' %}disabled{% endif %}>Pull</button>
+                    </form>
+                {% else %}
+                    <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Pull</button>
+                {% endif %}
+            </div>
+        {% endif %}
+
         <!-- Lightbox for variant preview images -->
         <div class="ss-preview-lightbox" id="ss-preview-lightbox" inert>
             <div class="ss-preview-lightbox__inner">
