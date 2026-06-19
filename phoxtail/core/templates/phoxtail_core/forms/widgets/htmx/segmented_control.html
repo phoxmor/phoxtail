@@ -1,17 +1,20 @@
-<div class="fw-segmented-control">
+<div class="fw-segmented-control{% if locked %} fw-segmented-control--locked{% endif %}">
     <input type="radio"
            name="{{ field.html_name }}"
            id="{{ field.id_for_label }}_remote"
            value=""
            {% if not field.value %}checked{% endif %}
            class="fw-segmented-radio fw-segmented-radio--remote"
+           {% if locked %}disabled{% endif %}
+           {% if not locked %}
            {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
            {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
            {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
            {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
            {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
            hx-vals='{"mode": "remote"}'
-           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+           {% endif %}>
 
     <input type="radio"
            name="{{ field.html_name }}"

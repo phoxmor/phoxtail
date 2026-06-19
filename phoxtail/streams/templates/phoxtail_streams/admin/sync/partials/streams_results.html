@@ -1,15 +1,10 @@
 {% url 'streams-sync:variant_detail' as variant_detail_url %}
 {% if error %}
     <div class="ss-error-banner">{{ error }}</div>
-{% elif no_remote %}
-    <div class="ss-empty">
-        <h3 class="ss-empty__title">No remote selected</h3>
-        <p class="ss-empty__text">Select a remote above to view its streams.</p>
-    </div>
 {% elif not items %}
-    <div class="ss-empty">
+    <div class="ss-empty ss-empty--compact">
         <h3 class="ss-empty__title">No variants found</h3>
-        <p class="ss-empty__text">{% if q %}Try a different search term.{% else %}This remote has no block variants.{% endif %}</p>
+        <p class="ss-empty__text">{% if q %}Try a different search term.{% else %}Nothing to display here yet.{% endif %}</p>
     </div>
 {% else %}
     <div class="ss-card-grid">

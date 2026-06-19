@@ -1,0 +1,13 @@
+<div class="ss-card-grid" aria-hidden="true">
+    {% for _ in skeleton_range %}
+    <div class="ss-card ss-card--skeleton">
+        <div class="ss-card__preview"></div>
+        <div class="ss-card__body">
+            <div class="ss-card__body-text">
+                <div class="ss-skeleton-line" style="width:{% cycle '42%' '55%' '38%' '50%' '45%' '58%' '35%' '48%' %}"></div>
+                <div class="ss-skeleton-line" style="width:{% cycle '68%' '75%' '60%' '72%' '63%' '70%' '58%' '66%' %}"></div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

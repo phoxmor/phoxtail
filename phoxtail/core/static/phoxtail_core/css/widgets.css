@@ -923,6 +923,11 @@ textarea.fw-input {
     color: #111111 !important;
 }
 
+.fw-segmented-control--locked .fw-segmented-label--remote {
+    opacity: 0.35 !important;
+    cursor: default !important;
+}
+
 /* ── Dark Mode ── */
 
 @media (prefers-color-scheme: dark) {
@@ -1064,5 +1069,9 @@ textarea.fw-input {
 
     .fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-label--local {
         color: #ffffff !important;
+    }
+
+    .fw-segmented-control--locked .fw-segmented-label--remote {
+        opacity: 0.2 !important;
     }
 }

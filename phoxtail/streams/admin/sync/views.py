@@ -26,6 +26,7 @@ from phoxtail.streams.utils import _image_url
 from .forms import RemoteSelectForm, SyncModeForm
 
 _T = "phoxtail_streams/admin/sync"
+_DEFAULT_LIMIT = 12
 
 
 def _build_streams_paginator_ctx(offset, limit, total, remote_id, q, mode="remote"):
@@ -60,7 +61,9 @@ def _remote_select_field(remotes_qs=None):
     remotes_list = list(remotes_qs)
     auto_select = remotes_list[0] if len(remotes_list) == 1 else None
     form = RemoteSelectForm({"remote": str(auto_select.pk) if auto_select else ""})
-    return form["remote"]
+    field = form["remote"]
+    field._auto_select = auto_select
+    return field
 
 
 def _mode_field(mode: str):
@@ -91,12 +94,20 @@ def _variant_differs(local_v, remote_variant_data: dict) -> bool:
 @remotes_permission_required("manage_remotes")
 def admin_sync_index(request):
     remotes = Remote.objects.all()
-    mode = request.GET.get("mode", "remote")
+    remote_select_field = _remote_select_field(remotes)
+    has_selected_remote = bool(getattr(remote_select_field, "_auto_select", None))
+    no_remotes = not remotes.exists()
+    locked_local = not has_selected_remote
+    mode = request.GET.get("mode", "local" if locked_local else "remote")
     context = {
         "remotes": remotes,
-        "remote_select_field": _remote_select_field(remotes),
+        "remote_select_field": remote_select_field,
         "mode_field": _mode_field(mode),
         "mode": mode,
+        "no_remotes": no_remotes,
+        "locked_local": locked_local,
+        "has_selected_remote": has_selected_remote,
+        "skeleton_range": range(_DEFAULT_LIMIT),
     }
     if getattr(request, "htmx", None):
         return render(request, f"{_T}/partials/page.html", context)
@@ -143,6 +154,9 @@ def admin_sync_remote_select(request):
         "search_value": search_value,
         "search_placeholder": "Search remotes",
         "selected_remote": selected_item,
+        "mode_field": _mode_field("remote" if selected_item else "local"),
+        "locked_local": not bool(selected_item),
+        "skeleton_range": range(_DEFAULT_LIMIT),
     }
 
     if not selection_changed:
@@ -166,17 +180,10 @@ def admin_sync_streams(request):
     remote_id = request.GET.get("remote")
     q = request.GET.get("q", "")
     mode = request.GET.get("mode", "remote")
-    limit = min(int(request.GET.get("limit", 20)), 100)
+    limit = min(int(request.GET.get("limit", _DEFAULT_LIMIT)), 100)
     offset = max(int(request.GET.get("offset", 0)), 0)
 
-    if not remote_id:
-        return render(
-            request,
-            f"{_T}/partials/streams_results.html",
-            {"items": [], "error": None, "mode": mode, "no_remote": True},
-        )
-
-    if mode == "local":
+    if not remote_id or mode == "local":
         # Browse local variants.
         qs = BlockVariant.objects.select_related(
             "block",
@@ -207,11 +214,11 @@ def admin_sync_streams(request):
                 "total": total,
                 "limit": limit,
                 "offset": offset,
-                "remote_id": remote_id,
+                "remote_id": remote_id or "",
                 "q": q,
                 "mode": "local",
                 "error": None,
-                "paginator_ctx": _build_streams_paginator_ctx(offset, limit, total, remote_id, q, mode="local"),
+                "paginator_ctx": _build_streams_paginator_ctx(offset, limit, total, remote_id or "", q, mode="local"),
             },
         )
 
@@ -394,8 +401,49 @@ def admin_sync_variant_detail(request):
     remote_id = request.GET.get("remote_id")
     mode = request.GET.get("mode", "remote")
 
-    if not variant_id or not remote_id:
-        return HttpResponseBadRequest("Missing variant_id or remote_id")
+    if not variant_id:
+        return HttpResponseBadRequest("Missing variant_id")
+
+    if mode == "local" and not remote_id:
+        v = get_object_or_404(
+            BlockVariant.objects.select_related(
+                "block",
+                "collection",
+                "preview_image_desktop",
+                "preview_image_desktop_dark",
+                "preview_image_tablet",
+                "preview_image_tablet_dark",
+                "preview_image_mobile",
+                "preview_image_mobile_dark",
+            ),
+            pk=variant_id,
+        )
+        return render(
+            request,
+            f"{_T}/partials/variant_detail.html",
+            {
+                "item": {"title": v.name, "description": v.description},
+                "block": {"name": v.block.name, "identifier": v.block.identifier},
+                "collection": {"name": v.collection.name},
+                "variant_id": variant_id,
+                "remote_id": "",
+                "sync_state": None,
+                "remote_variant_id": None,
+                "local_variant_id": v.pk,
+                "mode": mode,
+                "preview_images": {
+                    "desktop_light": _image_url(v.preview_image_desktop),
+                    "desktop_dark": _image_url(v.preview_image_desktop_dark),
+                    "tablet_light": _image_url(v.preview_image_tablet),
+                    "tablet_dark": _image_url(v.preview_image_tablet_dark),
+                    "mobile_light": _image_url(v.preview_image_mobile),
+                    "mobile_dark": _image_url(v.preview_image_mobile_dark),
+                },
+            },
+        )
+
+    if not remote_id:
+        return HttpResponseBadRequest("Missing remote_id")
 
     remote = get_object_or_404(Remote, pk=remote_id)
 

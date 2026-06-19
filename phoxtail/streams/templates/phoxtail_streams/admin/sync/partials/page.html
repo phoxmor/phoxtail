@@ -12,99 +12,106 @@
             </h1>
         </div>
         <div class="ss-page-header__controls">
-            {% if remotes %}
-                {% include "phoxtail_core/forms/widgets/htmx/segmented_control.html" with field=mode_field label_off="Remote" label_on="Local" hx_get=streams_url hx_target="#streams-results" hx_swap="innerHTML" hx_include="#remote-selected-value" %}
-                <div class="ss-search-form">
-                    <div class="ss-search-wrap">
-                        <div class="ss-search-icon-wrap">
-                            <div id="streams-search-icon">{% icon "search" %}</div>
-                            <button type="button"
-                                    id="streams-clear-search"
-                                    class="ss-search-clear ss-search-hidden"
-                                    aria-label="Clear search">
-                                {% icon "close" %}
-                            </button>
-                        </div>
-                        <input type="text"
-                               id="streams-search-input"
-                               name="q"
-                               value="{{ q|default:'' }}"
-                               placeholder="Search variants"
-                               class="ss-search-input"
-                               hx-get="{{ streams_url }}"
-                               hx-target="#streams-results"
-                               hx-swap="innerHTML"
-                               hx-include="#remote-selected-value"
-                               hx-vals='js:{mode: document.getElementById("{{ mode_field.id_for_label }}_local").checked ? "local" : "remote"}'
-                               hx-trigger="input changed delay:300ms">
-                        <span id="streams-results-count" class="ss-search-results-count">
-                            {% if total is not None %}
-                                {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
-                            {% endif %}
-                        </span>
+            <div id="streams-mode-control">{% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}</div>
+            <div class="ss-search-form">
+                <div class="ss-search-wrap">
+                    <div class="ss-search-icon-wrap">
+                        <div id="streams-search-icon">{% icon "search" %}</div>
+                        <button type="button"
+                                id="streams-clear-search"
+                                class="ss-search-clear ss-search-hidden"
+                                aria-label="Clear search">
+                            {% icon "close" %}
+                        </button>
                     </div>
+                    <input type="text"
+                           id="streams-search-input"
+                           name="q"
+                           value="{{ q|default:'' }}"
+                           placeholder="Search variants"
+                           class="ss-search-input"
+                           hx-get="{{ streams_url }}"
+                           hx-target="#streams-results"
+                           hx-swap="innerHTML"
+                           hx-include="#remote-selected-value"
+                           hx-vals='js:{mode: document.getElementById("{{ mode_field.id_for_label }}_local").checked ? "local" : "remote"}'
+                           hx-trigger="input changed delay:300ms">
+                    <span id="streams-results-count" class="ss-search-results-count">
+                        {% if total is not None %}
+                            {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
+                        {% endif %}
+                    </span>
                 </div>
+            </div>
+            {% if remotes %}
                 <div id="remote-container" class="ss-remote-select">
                     {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/input.html' with field=remote_select_field widget_id="remote" selected_item=remote_select_field.selected_item available_items=remote_select_field.available_items search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" %}
                 </div>
-                <script>
-                    (function () {
-                        var input = document.getElementById('streams-search-input');
-                        var clearBtn = document.getElementById('streams-clear-search');
-                        var icon = document.getElementById('streams-search-icon');
-                        if (!input) return;
-                        if (input.value.trim().length > 0) {
+            {% endif %}
+            <script>
+                (function () {
+                    var input = document.getElementById('streams-search-input');
+                    var clearBtn = document.getElementById('streams-clear-search');
+                    var icon = document.getElementById('streams-search-icon');
+                    if (!input) return;
+                    if (input.value.trim().length > 0) {
+                        icon.classList.add('ss-search-hidden');
+                        clearBtn.classList.remove('ss-search-hidden');
+                    }
+                    clearBtn.addEventListener('click', function () {
+                        input.value = '';
+                        icon.classList.remove('ss-search-hidden');
+                        clearBtn.classList.add('ss-search-hidden');
+                        htmx.trigger(input, 'input');
+                    });
+                    input.addEventListener('input', function () {
+                        if (this.value.trim().length > 0) {
                             icon.classList.add('ss-search-hidden');
                             clearBtn.classList.remove('ss-search-hidden');
-                        }
-                        clearBtn.addEventListener('click', function () {
-                            input.value = '';
+                        } else {
                             icon.classList.remove('ss-search-hidden');
                             clearBtn.classList.add('ss-search-hidden');
-                            htmx.trigger(input, 'input');
-                        });
-                        input.addEventListener('input', function () {
-                            if (this.value.trim().length > 0) {
-                                icon.classList.add('ss-search-hidden');
-                                clearBtn.classList.remove('ss-search-hidden');
-                            } else {
-                                icon.classList.remove('ss-search-hidden');
-                                clearBtn.classList.add('ss-search-hidden');
-                            }
-                        });
-                    })();
-                </script>
-            {% endif %}
+                        }
+                    });
+                })();
+            </script>
         </div>
     </div>
 </div>
 
+<template id="streams-skeleton-tpl">{% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}</template>
+<script>
+    (function () {
+        document.body.addEventListener('htmx:beforeRequest', function (e) {
+            var target = e.detail && e.detail.target;
+            if (target && target.id === 'streams-results') {
+                var tpl = document.getElementById('streams-skeleton-tpl');
+                if (tpl) target.innerHTML = tpl.innerHTML;
+            }
+        });
+    })();
+</script>
+
 <!-- Streams panel -->
-{% if remotes %}
-    <div class="ss-streams-panel">
-        <div id="streams-results"
-             {% if remote_select_field.selected_item %}
-             hx-get="{% url 'streams-sync:streams' %}?remote={{ remote_select_field.selected_item.pk }}"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             {% endif %}>
-            {% if remote_select_field.selected_item %}
-                <div class="ss-streams-loading">Loading…</div>
-            {% else %}
-                <div class="ss-empty">
-                    <h3 class="ss-empty__title">No remote selected</h3>
-                    <p class="ss-empty__text">Select a remote above to view its streams.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-{% else %}
+<div class="ss-streams-panel">
+    <div id="streams-notice">
+    {% if no_remotes %}
     {% url 'remotes:index' as remotes_settings_url %}
-    <div class="ss-empty ss-empty--page">
-        <div class="ss-empty__icon">{% icon "graph_5" %}</div>
-        <h3 class="ss-empty__title">No remotes connected</h3>
-        <p class="ss-empty__text">
-            Go to <a href="{{ remotes_settings_url }}">Settings → Remotes</a> to connect a remote project.
-        </p>
+    <p class="ss-local-only-notice">Viewing local assets only. <a href="{{ remotes_settings_url }}">Connect a remote</a> to compare and sync.</p>
+    {% elif locked_local %}
+    <p class="ss-local-only-notice">Viewing local assets only. Select a remote to compare and sync.</p>
+    {% endif %}
     </div>
-{% endif %}
+    <div id="streams-results"
+         {% if remote_select_field.selected_item %}
+         hx-get="{{ streams_url }}?remote={{ remote_select_field.selected_item.pk }}"
+         hx-trigger="load"
+         hx-swap="innerHTML"
+         {% else %}
+         hx-get="{{ streams_url }}?mode=local"
+         hx-trigger="load"
+         hx-swap="innerHTML"
+         {% endif %}>
+        {% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}
+    </div>
+</div>

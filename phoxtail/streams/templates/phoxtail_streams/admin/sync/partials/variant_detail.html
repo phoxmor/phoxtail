@@ -132,7 +132,7 @@
             <div class="ss-drawer__footer" id="variant-sync-footer">
                 <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
 
-                {% if local_variant_id %}
+                {% if local_variant_id and remote_id %}
                     <form style="display: contents"
                           hx-post="{% url 'streams-sync:push' %}"
                           hx-swap="none"
