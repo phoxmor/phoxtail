@@ -24,7 +24,7 @@
                     {% if item_template %}
                         {% include item_template with item=selected_item %}
                     {% else %}
-                        {{ selected_item }}
+                        Remote: {{ selected_item }}
                     {% endif %}
                 {% else %}
                     {{ trigger_placeholder|default:_("Select remote") }}
