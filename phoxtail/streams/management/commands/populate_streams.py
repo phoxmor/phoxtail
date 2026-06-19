@@ -20,21 +20,46 @@ Usage:
     python manage.py populate_streams --only=collections
     python manage.py populate_streams --only=blocks
     python manage.py populate_streams --only=variants
+    python manage.py populate_streams --verbose    # Per-entity detail
 """
 
+from __future__ import annotations
+
 import json
+from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
 from django.apps import apps
 from django.core.management.base import BaseCommand
 from django.db import IntegrityError, transaction
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from phoxtail.streams.models import (
     Block,
     BlockVariant,
     VariantCollection,
 )
+
+console = Console()
+
+_ICONS = {
+    "ok": "[green]✓[/green]",
+    "warn": "[yellow]⚠[/yellow]",
+}
+
+
+@dataclass
+class _Counts:
+    created: int = 0
+    patched: int = 0  # blocks only: source_app backfilled on existing records
+    skipped: int = 0
+    warnings: list[str] = field(default_factory=list)
+    details: list[str] = field(default_factory=list)
 
 
 def _get_data_dirs() -> list[tuple[str, Path]]:
@@ -67,7 +92,6 @@ def _check_app_references(page_types_config: list, schema: list) -> list[str]:
     """
     missing = set()
 
-    # Check page_types (list of "app_label.model" strings)
     for app_model in page_types_config:
         try:
             app_label = app_model.rsplit(".", 1)[0]
@@ -75,10 +99,9 @@ def _check_app_references(page_types_config: list, schema: list) -> list[str]:
         except (LookupError, IndexError):
             missing.add(app_label)
 
-    # Check schema for page_type / target_model references
     def _scan_schema(fields):
-        for field in fields:
-            value = field.get("value", {}) if isinstance(field, dict) else {}
+        for field_item in fields:
+            value = field_item.get("value", {}) if isinstance(field_item, dict) else {}
             for key in ("page_type", "target_model"):
                 ref = value.get(key)
                 if ref and "." in ref:
@@ -88,7 +111,6 @@ def _check_app_references(page_types_config: list, schema: list) -> list[str]:
                     except LookupError:
                         missing.add(app_label)
 
-            # Recurse into nested blocks
             nested = value.get("blocks", [])
             if nested:
                 _scan_schema(nested)
@@ -123,6 +145,91 @@ def parse_frontmatter(content: str) -> tuple[dict, str]:
     return metadata, body
 
 
+@dataclass
+class _VariantItem:
+    block_dir: Path
+    block_identifier: str
+    collection_identifier: str
+    variant_dir: Path
+
+
+def _print_summary(
+    *,
+    coll_counts: _Counts | None,
+    block_counts: _Counts | None,
+    variant_counts: _Counts | None,
+    verbose: bool = False,
+) -> None:
+    table = Table(box=None, show_header=True, pad_edge=False, show_edge=False)
+    table.add_column("", no_wrap=True, min_width=2)
+    table.add_column("Type", style="bold", min_width=14)
+    table.add_column("Created", justify="right", style="green")
+    table.add_column("Patched", justify="right", style="cyan")
+    table.add_column("Skipped", justify="right", style="yellow")
+
+    rows: list[tuple[str, _Counts]] = []
+    if coll_counts is not None:
+        rows.append(("Collections", coll_counts))
+    if block_counts is not None:
+        rows.append(("Blocks", block_counts))
+    if variant_counts is not None:
+        rows.append(("Variants", variant_counts))
+
+    all_warnings: list[str] = []
+    for label, counts in rows:
+        icon = _ICONS["warn"] if counts.warnings else _ICONS["ok"]
+        table.add_row(
+            icon,
+            label,
+            str(counts.created),
+            str(counts.patched) if counts.patched else "[dim]—[/dim]",
+            str(counts.skipped),
+        )
+        all_warnings.extend(counts.warnings)
+
+    extra_lines: list[str] = []
+
+    if verbose:
+        for label, counts in rows:
+            if counts.details:
+                extra_lines.append(f"  [dim]{label}:[/dim]")
+                for line in counts.details:
+                    extra_lines.append(f"  [dim]  · {line}[/dim]")
+
+        # Source-app breakdown (only in verbose mode)
+        groups: dict[str, list[str]] = defaultdict(list)
+        for block in Block.objects.order_by("source_app", "identifier"):
+            groups[block.source_app or ""].append(block.identifier)
+
+        if groups:
+            extra_lines.append("  [dim]Blocks by source app:[/dim]")
+            for app_label, identifiers in sorted(groups.items(), key=lambda x: (x[0] == "", x[0])):
+                label_text = app_label if app_label else "(no source_app — manually created)"
+                extra_lines.append(f"  [dim]  {label_text} ({len(identifiers)})[/dim]")
+                for ident in identifiers:
+                    extra_lines.append(f"  [dim]    · {ident}[/dim]")
+
+    if all_warnings:
+        extra_lines.append("  [bold yellow]Warnings[/bold yellow]")
+        for w in all_warnings:
+            extra_lines.append(f"  [yellow]⚠[/yellow]  {w}")
+
+    renderables: list = [table]
+    if extra_lines:
+        renderables.append("\n" + "\n".join(extra_lines))
+
+    console.print()
+    console.print(
+        Panel(
+            Group(*renderables),
+            title="[bold cyan]Populate Streams[/bold cyan]",
+            border_style="cyan",
+            expand=False,
+        )
+    )
+    console.print()
+
+
 class Command(BaseCommand):
     help = "Populates all stream entities from data files"
 
@@ -133,38 +240,55 @@ class Command(BaseCommand):
             default="all",
             help="Import only specific entity type",
         )
+        parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Show per-entity detail in the summary",
+        )
 
     def handle(self, *args, **options):
         only = options["only"]
+        verbose = options["verbose"]
 
-        if only in ("all", "collections"):
-            self.import_collections()
+        coll_counts: _Counts | None = None
+        block_counts: _Counts | None = None
+        variant_counts: _Counts | None = None
 
-        if only in ("all", "blocks"):
-            self.import_blocks()
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=30),
+            MofNCompleteColumn(),
+            transient=True,
+            console=console,
+            disable=not console.is_terminal,
+        ) as progress:
+            if only in ("all", "collections"):
+                coll_counts = self._import_collections(progress)
 
-        if only in ("all", "variants"):
-            self.import_variants()
+            if only in ("all", "blocks"):
+                block_counts = self._import_blocks(progress)
 
-        self.stdout.write(self.style.SUCCESS("Stream entities populated successfully!"))
-        self.report_source_app()
+            if only in ("all", "variants"):
+                variant_counts = self._import_variants(progress)
 
-    def import_collections(self):
-        """Import collections from data/collections/*.md files."""
-        self.stdout.write(self.style.SUCCESS("Importing collections..."))
+        _print_summary(
+            coll_counts=coll_counts,
+            block_counts=block_counts,
+            variant_counts=variant_counts,
+            verbose=verbose,
+        )
 
-        md_files = []
+    def _import_collections(self, progress: Progress) -> _Counts:
+        counts = _Counts()
+
+        md_files: list[Path] = []
         for _app_label, data_dir in _get_data_dirs():
             collections_dir = data_dir / "collections"
             if collections_dir.exists():
                 md_files.extend(collections_dir.glob("*.md"))
 
-        if not md_files:
-            self.stdout.write(self.style.WARNING("No collection files found in any app"))
-            return
-
-        created_count = 0
-        skipped_count = 0
+        task_id = progress.add_task("[dim]Collections[/dim]", total=len(md_files))
 
         for md_file in md_files:
             content = md_file.read_text()
@@ -172,15 +296,18 @@ class Command(BaseCommand):
 
             name = metadata.get("name")
             if not name:
-                self.stdout.write(self.style.WARNING(f"Skipping {md_file.name}: missing 'name' in frontmatter"))
+                counts.warnings.append(f"{md_file.name}: missing 'name' in frontmatter")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
             identifier = metadata.get("identifier", md_file.stem)
             description = metadata.get("description", "")
 
             if VariantCollection.objects.filter(identifier=identifier).exists():
-                self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
-                skipped_count += 1
+                counts.skipped += 1
+                counts.details.append(f"skipped {identifier} — already exists")
+                progress.advance(task_id)
                 continue
 
             collection = VariantCollection.objects.create(
@@ -189,14 +316,15 @@ class Command(BaseCommand):
                 description=description,
                 template=body,
             )
-            self.stdout.write(self.style.SUCCESS(f"  Created collection: {collection.name}"))
-            created_count += 1
+            counts.created += 1
+            counts.details.append(f"created {collection.name} ({identifier})")
 
-        self.stdout.write(self.style.SUCCESS(f"Collections: {created_count} created, {skipped_count} skipped"))
+            progress.advance(task_id)
 
-    def import_blocks(self):
-        """Import blocks from data/blocks/<identifier>/ directories."""
-        self.stdout.write(self.style.SUCCESS("Importing blocks..."))
+        return counts
+
+    def _import_blocks(self, progress: Progress) -> _Counts:
+        counts = _Counts()
 
         block_dirs: list[tuple[str, Path]] = []
         for app_label, data_dir in _get_data_dirs():
@@ -204,67 +332,62 @@ class Command(BaseCommand):
             if blocks_dir.exists():
                 block_dirs.extend((app_label, d) for d in blocks_dir.iterdir() if d.is_dir())
 
-        if not block_dirs:
-            self.stdout.write(self.style.WARNING("No block directories found in any app"))
-            return
-
-        created_count = 0
-        skipped_count = 0
-        patched_count = 0
+        task_id = progress.add_task("[dim]Blocks[/dim]", total=len(block_dirs))
 
         for app_label, block_dir in block_dirs:
-            # Load metadata from block.yaml
             metadata_file = block_dir / "block.yaml"
             if not metadata_file.exists():
-                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: missing block.yaml"))
+                counts.warnings.append(f"{block_dir.name}: missing block.yaml")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
             try:
                 metadata = yaml.safe_load(metadata_file.read_text())
             except yaml.YAMLError as e:
-                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: invalid block.yaml - {e}"))
+                counts.warnings.append(f"{block_dir.name}: invalid block.yaml — {e}")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
             identifier = metadata.get("identifier", block_dir.name)
 
             existing = Block.objects.filter(identifier=identifier).first()
             if existing is not None:
-                # Backfill source_app when the block already exists but wasn't stamped yet.
                 if not existing.source_app:
                     existing.source_app = app_label
                     existing.save(update_fields=["source_app"])
-                    self.stdout.write(self.style.WARNING(f"  {identifier}: stamped source_app={app_label}"))
-                    patched_count += 1
+                    counts.patched += 1
+                    counts.details.append(f"stamped {identifier} source_app={app_label}")
                 else:
-                    self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
-                skipped_count += 1
+                    counts.details.append(f"skipped {identifier} — already exists")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
-            # Load schema from schema.json
             schema_file = block_dir / "schema.json"
             if not schema_file.exists():
-                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: missing schema.json"))
+                counts.warnings.append(f"{block_dir.name}: missing schema.json")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
             try:
                 schema = json.loads(schema_file.read_text())
             except json.JSONDecodeError as e:
-                self.stdout.write(self.style.WARNING(f"Skipping {block_dir.name}: invalid schema.json - {e}"))
+                counts.warnings.append(f"{block_dir.name}: invalid schema.json — {e}")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
-            # Validate that all app references are resolvable
             page_types_config = metadata.get("page_types", [])
             missing_apps = _check_app_references(page_types_config, schema)
             if missing_apps:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"  Skipping {identifier}: references uninstalled app(s): {', '.join(missing_apps)}"
-                    )
-                )
-                skipped_count += 1
+                counts.warnings.append(f"{identifier}: references uninstalled app(s): {', '.join(missing_apps)}")
+                counts.skipped += 1
+                progress.advance(task_id)
                 continue
 
-            # Create the block
             block = Block.objects.create(
                 name=metadata.get("name", identifier),
                 identifier=identifier,
@@ -276,7 +399,6 @@ class Command(BaseCommand):
                 schema=schema,
             )
 
-            # Set page_types (already validated above)
             if page_types_config:
                 from django.contrib.contenttypes.models import ContentType
 
@@ -286,27 +408,17 @@ class Command(BaseCommand):
                         ct = ContentType.objects.get(app_label=app_label_pt, model=model_name.lower())
                         block.page_types.add(ct)
                     except (ValueError, ContentType.DoesNotExist) as e:
-                        self.stdout.write(self.style.WARNING(f"  Could not add page_type '{app_model}': {e}"))
+                        counts.warnings.append(f"{identifier}: could not add page_type '{app_model}' — {e}")
 
-            self.stdout.write(self.style.SUCCESS(f"  Created block: {block.name} ({block.identifier})"))
-            created_count += 1
+            counts.created += 1
+            counts.details.append(f"created {block.name} ({identifier})")
 
-        self.stdout.write(
-            self.style.SUCCESS(f"Blocks: {created_count} created, {patched_count} stamped, {skipped_count} skipped")
-        )
+            progress.advance(task_id)
 
-    def import_variants(self):
-        """
-        Import variants from data/blocks/<block>/variants/
-        <collection>/<variant>/ directories.
+        return counts
 
-        Folder structure mirrors the database constraint
-        (block, collection, identifier):
-        - Block identifier: derived from block folder name
-        - Collection identifier: derived from collection folder name
-        - Variant identifier: derived from variant folder name or variant.yaml
-        """
-        self.stdout.write(self.style.SUCCESS("Importing variants..."))
+    def _import_variants(self, progress: Progress) -> _Counts:
+        counts = _Counts()
 
         block_dirs: list[Path] = []
         for _app_label, data_dir in _get_data_dirs():
@@ -314,148 +426,128 @@ class Command(BaseCommand):
             if blocks_dir.exists():
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
 
-        if not block_dirs:
-            self.stdout.write(self.style.WARNING("No block directories found in any app"))
-            return
-
-        created_count = 0
-        skipped_count = 0
-
+        # Flatten all variant work items upfront so total is known before we start.
+        work_items: list[_VariantItem] = []
         for block_dir in block_dirs:
             variants_dir = block_dir / "variants"
             if not variants_dir.exists():
                 continue
-
-            # Get parent block
-            block_identifier = block_dir.name
-            block = Block.objects.filter(identifier=block_identifier).first()
-            if not block:
-                self.stdout.write(self.style.WARNING(f"Block {block_identifier} not found, skipping variants..."))
-                continue
-
-            # Iterate over collection folders within variants/
             for collection_dir in variants_dir.iterdir():
                 if not collection_dir.is_dir():
                     continue
-
-                # Get collection by identifier (folder name)
-                collection_identifier = collection_dir.name
-                collection = VariantCollection.objects.filter(identifier=collection_identifier).first()
-                if not collection:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"Collection '{collection_identifier}' not found, "
-                            f"skipping variants in "
-                            f"{block_identifier}/variants/{collection_identifier}/"
-                        )
-                    )
-                    continue
-
-                # Iterate over variant folders within the collection folder
                 for variant_dir in collection_dir.iterdir():
-                    if not variant_dir.is_dir():
-                        continue
-
-                    # Load variant.yaml
-                    metadata_file = variant_dir / "variant.yaml"
-                    if not metadata_file.exists():
-                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing variant.yaml"))
-                        continue
-
-                    try:
-                        metadata = yaml.safe_load(metadata_file.read_text())
-                    except yaml.YAMLError as e:
-                        self.stdout.write(
-                            self.style.WARNING(f"Skipping {variant_dir.name}: invalid variant.yaml - {e}")
-                        )
-                        continue
-
-                    name = metadata.get("name", variant_dir.name)
-                    identifier = metadata.get("identifier", variant_dir.name)
-
-                    # Check if variant already exists
-                    if BlockVariant.objects.filter(block=block, collection=collection, identifier=identifier).exists():
-                        self.stdout.write(self.style.WARNING(f"  {identifier} already exists, skipping..."))
-                        skipped_count += 1
-                        continue
-
-                    # Load required description.md
-                    description_file = variant_dir / "description.md"
-                    if not description_file.exists():
-                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing description.md"))
-                        continue
-                    description = description_file.read_text()
-
-                    # Load required template.html
-                    html_file = variant_dir / "template.html"
-                    if not html_file.exists():
-                        self.stdout.write(self.style.WARNING(f"Skipping {variant_dir.name}: missing template.html"))
-                        continue
-                    html = html_file.read_text()
-
-                    # Load optional CSS
-                    css_file = variant_dir / "styles.css"
-                    css = css_file.read_text() if css_file.exists() else ""
-
-                    # Load optional JavaScript
-                    js_file = variant_dir / "script.js"
-                    javascript = js_file.read_text() if js_file.exists() else ""
-
-                    # Read is_default flag
-                    is_default = metadata.get("is_default", False)
-
-                    try:
-                        with transaction.atomic():
-                            # Clear any existing default for this block before
-                            # inserting — prevents the partial unique index from
-                            # firing when the DB has a stale default row.
-                            if is_default:
-                                BlockVariant.objects.filter(block=block, is_default=True).update(is_default=False)
-                            variant = BlockVariant.objects.create(
-                                block=block,
-                                collection=collection,
-                                name=name,
-                                identifier=identifier,
-                                description=description,
-                                is_default=is_default,
-                                html=html,
-                                css=css,
-                                javascript=javascript,
-                            )
-                    except IntegrityError:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"  Skipping {identifier}: integrity error (likely concurrent run or stale default)"
+                    if variant_dir.is_dir():
+                        work_items.append(
+                            _VariantItem(
+                                block_dir=block_dir,
+                                block_identifier=block_dir.name,
+                                collection_identifier=collection_dir.name,
+                                variant_dir=variant_dir,
                             )
                         )
-                        skipped_count += 1
-                        continue
 
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"  Created variant: {variant.name} ({block.identifier}/{collection.identifier})"
-                        )
+        task_id = progress.add_task("[dim]Variants[/dim]", total=len(work_items))
+
+        block_cache: dict[str, Block | None] = {}
+        collection_cache: dict[str, VariantCollection | None] = {}
+        seen_missing_blocks: set[str] = set()
+        seen_missing_collections: set[str] = set()
+
+        for item in work_items:
+            if item.block_identifier not in block_cache:
+                block_cache[item.block_identifier] = Block.objects.filter(identifier=item.block_identifier).first()
+            block = block_cache[item.block_identifier]
+            if not block:
+                if item.block_identifier not in seen_missing_blocks:
+                    seen_missing_blocks.add(item.block_identifier)
+                    counts.warnings.append(f"block {item.block_identifier}: not found, skipping its variants")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+
+            if item.collection_identifier not in collection_cache:
+                collection_cache[item.collection_identifier] = VariantCollection.objects.filter(
+                    identifier=item.collection_identifier
+                ).first()
+            collection = collection_cache[item.collection_identifier]
+            if not collection:
+                if item.collection_identifier not in seen_missing_collections:
+                    seen_missing_collections.add(item.collection_identifier)
+                    counts.warnings.append(
+                        f"collection '{item.collection_identifier}': not found, "
+                        f"skipping variants in {item.block_identifier}/variants/{item.collection_identifier}/"
                     )
-                    created_count += 1
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
 
-        self.stdout.write(self.style.SUCCESS(f"Variants: {created_count} created, {skipped_count} skipped"))
+            variant_dir = item.variant_dir
+            metadata_file = variant_dir / "variant.yaml"
+            if not metadata_file.exists():
+                counts.warnings.append(f"{variant_dir.name}: missing variant.yaml")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
 
-    def report_source_app(self):
-        """Print a summary of all blocks grouped by source_app.
+            try:
+                metadata = yaml.safe_load(metadata_file.read_text())
+            except yaml.YAMLError as e:
+                counts.warnings.append(f"{variant_dir.name}: invalid variant.yaml — {e}")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
 
-        Blocks with no source_app were created manually (via admin or API)
-        and could not be auto-attributed to an app.
-        """
-        self.stdout.write(self.style.SUCCESS("\n--- source_app report ---"))
-        from collections import defaultdict
+            name = metadata.get("name", variant_dir.name)
+            identifier = metadata.get("identifier", variant_dir.name)
 
-        groups: dict[str, list[str]] = defaultdict(list)
-        for block in Block.objects.order_by("source_app", "identifier"):
-            groups[block.source_app or ""].append(block.identifier)
+            if BlockVariant.objects.filter(block=block, collection=collection, identifier=identifier).exists():
+                counts.skipped += 1
+                counts.details.append(f"skipped {identifier} — already exists")
+                progress.advance(task_id)
+                continue
 
-        for app_label, identifiers in sorted(groups.items(), key=lambda x: (x[0] == "", x[0])):
-            label = app_label if app_label else "(no source_app — manually created)"
-            style = self.style.SUCCESS if app_label else self.style.WARNING
-            self.stdout.write(style(f"  {label} ({len(identifiers)}):"))
-            for identifier in identifiers:
-                self.stdout.write(f"    {identifier}")
+            description_file = variant_dir / "description.md"
+            if not description_file.exists():
+                counts.warnings.append(f"{variant_dir.name}: missing description.md")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+
+            html_file = variant_dir / "template.html"
+            if not html_file.exists():
+                counts.warnings.append(f"{variant_dir.name}: missing template.html")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+
+            css_file = variant_dir / "styles.css"
+            js_file = variant_dir / "script.js"
+            is_default = metadata.get("is_default", False)
+
+            try:
+                with transaction.atomic():
+                    if is_default:
+                        BlockVariant.objects.filter(block=block, is_default=True).update(is_default=False)
+                    variant = BlockVariant.objects.create(
+                        block=block,
+                        collection=collection,
+                        name=name,
+                        identifier=identifier,
+                        description=description_file.read_text(),
+                        is_default=is_default,
+                        html=html_file.read_text(),
+                        css=css_file.read_text() if css_file.exists() else "",
+                        javascript=js_file.read_text() if js_file.exists() else "",
+                    )
+            except IntegrityError:
+                counts.warnings.append(f"{identifier}: integrity error (likely concurrent run or stale default)")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+
+            counts.created += 1
+            counts.details.append(f"created {variant.name} ({item.block_identifier}/{item.collection_identifier})")
+
+            progress.advance(task_id)
+
+        return counts
