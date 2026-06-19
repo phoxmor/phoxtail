@@ -785,7 +785,7 @@ def _noop(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("{{ phoxtail_project_name }}", "0001_initial"),
-        ("phoxtail_streams", "0001_initial"),
+        ("phoxtail_streams", "0009_collection_optional_label"),
     ]
 
     operations = [
