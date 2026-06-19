@@ -34,6 +34,7 @@ Usage::
     phoxtail studio dump --only=blocks
     phoxtail studio dump --only=variants
     phoxtail studio dump --peer https://other-project.example.com
+    phoxtail studio dump --verbose              # show per-entity detail
 """
 
 from __future__ import annotations
@@ -41,13 +42,17 @@ from __future__ import annotations
 import json
 import shutil
 import zipfile
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
 import typer
 import yaml
-from rich.console import Console
+from rich.console import Console, Group
+from rich.panel import Panel
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from phoxtail.cli.studio import client
 from phoxtail.cli.utils.config import find_config_file
@@ -63,12 +68,80 @@ console = Console()
 
 _YAML_OPTS: dict = dict(default_flow_style=False, allow_unicode=True, sort_keys=False, width=1000)
 
+_ICONS = {
+    "ok": "[green]✓[/green]",
+    "warn": "[yellow]⚠[/yellow]",
+}
+
 
 class DumpScope(StrEnum):
     all = "all"
     collections = "collections"
     blocks = "blocks"
     variants = "variants"
+
+
+@dataclass
+class _Counts:
+    written: int = 0
+    warnings: list[str] = field(default_factory=list)
+    details: list[str] = field(default_factory=list)
+
+
+def _print_summary(
+    *,
+    coll_counts: _Counts | None,
+    block_counts: _Counts | None,
+    variant_counts: _Counts | None,
+    verbose: bool = False,
+) -> None:
+    table = Table(box=None, show_header=True, pad_edge=False, show_edge=False)
+    table.add_column("", no_wrap=True, min_width=2)
+    table.add_column("Type", style="bold", min_width=14)
+    table.add_column("Written", justify="right", style="green")
+
+    rows: list[tuple[str, _Counts]] = []
+    if coll_counts is not None:
+        rows.append(("Collections", coll_counts))
+    if block_counts is not None:
+        rows.append(("Blocks", block_counts))
+    if variant_counts is not None:
+        rows.append(("Variants", variant_counts))
+
+    all_warnings: list[str] = []
+    for label, counts in rows:
+        icon = _ICONS["warn"] if counts.warnings else _ICONS["ok"]
+        table.add_row(icon, label, str(counts.written))
+        all_warnings.extend(counts.warnings)
+
+    extra_lines: list[str] = []
+
+    if verbose:
+        for label, counts in rows:
+            if counts.details:
+                extra_lines.append(f"  [dim]{label}:[/dim]")
+                for line in counts.details:
+                    extra_lines.append(f"  [dim]  · {line}[/dim]")
+
+    if all_warnings:
+        extra_lines.append("  [bold yellow]Warnings[/bold yellow]")
+        for w in all_warnings:
+            extra_lines.append(f"  [yellow]⚠[/yellow]  {w}")
+
+    renderables: list = [table]
+    if extra_lines:
+        renderables.append("\n" + "\n".join(extra_lines))
+
+    console.print()
+    console.print(
+        Panel(
+            Group(*renderables),
+            title="[bold cyan]Studio Dump[/bold cyan]",
+            border_style="cyan",
+            expand=False,
+        )
+    )
+    console.print()
 
 
 def dump(
@@ -106,6 +179,13 @@ def dump(
             show_default=False,
         ),
     ] = None,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            help="Show per-entity detail in the summary.",
+        ),
+    ] = False,
 ) -> None:
     """Dump collections, blocks, and variants to a portable file archive."""
 
@@ -115,22 +195,42 @@ def dump(
     out = (out or _default_dump_path()).resolve()
     out.mkdir(parents=True, exist_ok=True)
 
-    if only in (DumpScope.all, DumpScope.collections):
-        _dump_collections(out)
+    coll_counts: _Counts | None = None
+    block_counts: _Counts | None = None
+    variant_counts: _Counts | None = None
 
-    if only in (DumpScope.all, DumpScope.blocks):
-        _dump_blocks(out)
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(bar_width=30),
+        MofNCompleteColumn(),
+        transient=True,
+        console=console,
+        disable=not console.is_terminal,
+    ) as progress:
+        if only in (DumpScope.all, DumpScope.collections):
+            coll_counts = _dump_collections(out, progress=progress)
 
-    if only in (DumpScope.all, DumpScope.variants):
-        _dump_variants(out)
+        if only in (DumpScope.all, DumpScope.blocks):
+            block_counts = _dump_blocks(out, progress=progress)
+
+        if only in (DumpScope.all, DumpScope.variants):
+            variant_counts = _dump_variants(out, progress=progress)
+
+    _print_summary(
+        coll_counts=coll_counts,
+        block_counts=block_counts,
+        variant_counts=variant_counts,
+        verbose=verbose,
+    )
 
     if zip_output:
         zip_path = out.with_suffix(".zip")
         _zip_directory(out, zip_path)
         shutil.rmtree(out)
-        console.print(f"[green]Dumped[/green] archive [bold]{zip_path}[/bold]")
+        console.print(f"[green]Archive[/green] [bold]{zip_path}[/bold]")
     else:
-        console.print(f"[green]Dumped[/green] data to [bold]{out}[/bold]")
+        console.print(f"[green]Output[/green]  [bold]{out}[/bold]")
 
 
 # ---------------------------------------------------------------------------
@@ -138,16 +238,24 @@ def dump(
 # ---------------------------------------------------------------------------
 
 
-def _dump_collections(root: Path) -> None:
-    console.print("[dim]Dumping collections…[/dim]")
+def _dump_collections(root: Path, *, progress: Progress) -> _Counts:
+    counts = _Counts()
     response = client.list_collections()
+    summaries = response.get("collections", [])
+
     collections_dir = root / "collections"
     collections_dir.mkdir(parents=True, exist_ok=True)
 
-    for summary in response.get("collections", []):
+    task_id = progress.add_task("[dim]Collections[/dim]", total=len(summaries))
+
+    for summary in summaries:
         detail, _ = client.get_collection_by_id(summary["id"])
         _write_collection(collections_dir, detail)
-        console.print(f"  [cyan]{summary['identifier']}[/cyan]")
+        counts.written += 1
+        counts.details.append(summary["identifier"])
+        progress.advance(task_id)
+
+    return counts
 
 
 def _write_collection(collections_dir: Path, detail: dict) -> None:
@@ -168,16 +276,24 @@ def _write_collection(collections_dir: Path, detail: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _dump_blocks(root: Path) -> None:
-    console.print("[dim]Dumping blocks…[/dim]")
+def _dump_blocks(root: Path, *, progress: Progress) -> _Counts:
+    counts = _Counts()
     response = client.list_blocks()
+    summaries = response.get("blocks", [])
+
     blocks_dir = root / "blocks"
     blocks_dir.mkdir(parents=True, exist_ok=True)
 
-    for summary in response.get("blocks", []):
+    task_id = progress.add_task("[dim]Blocks[/dim]", total=len(summaries))
+
+    for summary in summaries:
         detail, _ = client.get_block_by_id(summary["id"])
         _write_block(blocks_dir, detail)
-        console.print(f"  [cyan]{summary['identifier']}[/cyan]")
+        counts.written += 1
+        counts.details.append(summary["identifier"])
+        progress.advance(task_id)
+
+    return counts
 
 
 def _write_block(blocks_dir: Path, detail: dict) -> None:
@@ -220,12 +336,16 @@ def _write_block(blocks_dir: Path, detail: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _dump_variants(root: Path) -> None:
-    console.print("[dim]Dumping variants…[/dim]")
+def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
+    counts = _Counts()
     response = client.list_variants()
+    summaries = response.get("variants", [])
+
     blocks_dir = root / "blocks"
 
-    for summary in response.get("variants", []):
+    task_id = progress.add_task("[dim]Variants[/dim]", total=len(summaries))
+
+    for summary in summaries:
         block_slug = summary["block"]["identifier"]
         collection_slug = summary["collection"]["identifier"]
         variant_slug = summary["identifier"]
@@ -234,7 +354,11 @@ def _dump_variants(root: Path) -> None:
         variant_dir = blocks_dir / block_slug / "variants" / collection_slug / variant_slug
         variant_dir.mkdir(parents=True, exist_ok=True)
         _write_variant(variant_dir, detail)
-        console.print(f"  [cyan]{block_slug}/{collection_slug}/{variant_slug}[/cyan]")
+        counts.written += 1
+        counts.details.append(f"{block_slug}/{collection_slug}/{variant_slug}")
+        progress.advance(task_id)
+
+    return counts
 
 
 def _write_variant(variant_dir: Path, detail: dict) -> None:
