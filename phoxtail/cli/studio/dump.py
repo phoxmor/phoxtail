@@ -84,6 +84,7 @@ class DumpScope(StrEnum):
 @dataclass
 class _Counts:
     written: int = 0
+    archived: int = 0
     warnings: list[str] = field(default_factory=list)
     details: list[str] = field(default_factory=list)
 
@@ -93,12 +94,14 @@ def _print_summary(
     coll_counts: _Counts | None,
     block_counts: _Counts | None,
     variant_counts: _Counts | None,
+    archive_root: Path | None = None,
     verbose: bool = False,
 ) -> None:
     table = Table(box=None, show_header=True, pad_edge=False, show_edge=False)
     table.add_column("", no_wrap=True, min_width=2)
     table.add_column("Type", style="bold", min_width=14)
     table.add_column("Written", justify="right", style="green")
+    table.add_column("Archived", justify="right")
 
     rows: list[tuple[str, _Counts]] = []
     if coll_counts is not None:
@@ -111,7 +114,8 @@ def _print_summary(
     all_warnings: list[str] = []
     for label, counts in rows:
         icon = _ICONS["warn"] if counts.warnings else _ICONS["ok"]
-        table.add_row(icon, label, str(counts.written))
+        archived_cell = f"[yellow]{counts.archived}[/yellow]" if counts.archived else "[dim]—[/dim]"
+        table.add_row(icon, label, str(counts.written), archived_cell)
         all_warnings.extend(counts.warnings)
 
     extra_lines: list[str] = []
@@ -122,6 +126,10 @@ def _print_summary(
                 extra_lines.append(f"  [dim]{label}:[/dim]")
                 for line in counts.details:
                     extra_lines.append(f"  [dim]  · {line}[/dim]")
+
+    total_archived = sum(c.archived for _, c in rows)
+    if total_archived and archive_root is not None:
+        extra_lines.append(f"  [dim]Archived items moved to [bold]{archive_root}[/bold][/dim]")
 
     if all_warnings:
         extra_lines.append("  [bold yellow]Warnings[/bold yellow]")
@@ -221,6 +229,7 @@ def dump(
         coll_counts=coll_counts,
         block_counts=block_counts,
         variant_counts=variant_counts,
+        archive_root=out / ".archive",
         verbose=verbose,
     )
 
@@ -245,6 +254,16 @@ def _dump_collections(root: Path, *, progress: Progress) -> _Counts:
 
     collections_dir = root / "collections"
     collections_dir.mkdir(parents=True, exist_ok=True)
+
+    # Archive stale collections
+    db_identifiers = {summary["identifier"] for summary in summaries}
+    if collections_dir.exists():
+        for path in collections_dir.glob("*.md"):
+            if path.stem not in db_identifiers:
+                archive_dir = root / ".archive" / "collections"
+                archive_dir.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(path), archive_dir / path.name)
+                counts.archived += 1
 
     task_id = progress.add_task("[dim]Collections[/dim]", total=len(summaries))
 
@@ -283,6 +302,21 @@ def _dump_blocks(root: Path, *, progress: Progress) -> _Counts:
 
     blocks_dir = root / "blocks"
     blocks_dir.mkdir(parents=True, exist_ok=True)
+
+    # Archive stale blocks
+    db_identifiers = {summary["identifier"] for summary in summaries}
+    if blocks_dir.exists():
+        for path in list(blocks_dir.iterdir()):
+            if path.is_dir() and path.name not in db_identifiers:
+                archive_dir = root / ".archive" / "blocks"
+                archive_dir.mkdir(parents=True, exist_ok=True)
+                dest = archive_dir / path.name
+                if dest.exists():
+                    shutil.copytree(path, dest, dirs_exist_ok=True)
+                    shutil.rmtree(path)
+                else:
+                    shutil.move(str(path), dest)
+                counts.archived += 1
 
     task_id = progress.add_task("[dim]Blocks[/dim]", total=len(summaries))
 
@@ -342,6 +376,36 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
     summaries = response.get("variants", [])
 
     blocks_dir = root / "blocks"
+
+    # Clean up stale variants in the dump
+    db_variants = {
+        (summary["block"]["identifier"], summary["collection"]["identifier"], summary["identifier"])
+        for summary in summaries
+    }
+    if blocks_dir.exists():
+        for variant_path in list(blocks_dir.glob("*/variants/*/*")):
+            if variant_path.is_dir():
+                rel_parts = variant_path.relative_to(blocks_dir).parts
+                if len(rel_parts) == 4 and rel_parts[1] == "variants":
+                    block_slug = rel_parts[0]
+                    collection_slug = rel_parts[2]
+                    variant_slug = rel_parts[3]
+                    if (block_slug, collection_slug, variant_slug) not in db_variants:
+                        rel = variant_path.relative_to(blocks_dir)
+                        archive_path = root / ".archive" / "blocks" / rel
+                        if archive_path.exists():
+                            shutil.rmtree(archive_path)
+                        archive_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.move(str(variant_path), archive_path)
+                        counts.archived += 1
+
+                        # Clean up empty parent directories in the main blocks dir
+                        collection_dir = variant_path.parent
+                        if collection_dir.is_dir() and not any(collection_dir.iterdir()):
+                            collection_dir.rmdir()
+                        variants_dir = collection_dir.parent
+                        if variants_dir.is_dir() and not any(variants_dir.iterdir()):
+                            variants_dir.rmdir()
 
     task_id = progress.add_task("[dim]Variants[/dim]", total=len(summaries))
 
