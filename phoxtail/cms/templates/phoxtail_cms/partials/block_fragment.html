@@ -6,10 +6,10 @@
      data-phoxtail-bar-uuid="{{ bound_block.id }}"
      data-phoxtail-bar-type="{{ bound_block.block_type }}"
      {% if variant %}data-phoxtail-bar-variant-id="{{ variant.id }}" data-phoxtail-bar-variant-identifier="{{ variant.identifier }}"{% endif %}
-     hx-get="{% url 'phoxtail_agent:render_block_fragment' page_id=page_id block_uuid=bound_block.id %}"
+     {% if page_id %}hx-get="{% url 'phoxtail_agent:render_block_fragment' page_id=page_id block_uuid=bound_block.id %}"
      hx-trigger="phoxtail:block-refresh"
      hx-swap="outerHTML"
-     hx-indicator="#phoxtail-block-{{ bound_block.id }}-indicator">
+     hx-indicator="#phoxtail-block-{{ bound_block.id }}-indicator"{% endif %}>
     <span id="phoxtail-block-{{ bound_block.id }}-indicator"
           class="phoxtail-block-refresh-indicator htmx-indicator"
           aria-hidden="true"></span>
