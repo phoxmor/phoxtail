@@ -18,9 +18,9 @@ from phoxtail.api.streams.v1._helpers import (
     resolve_collection_by_pk,
 )
 from phoxtail.api.streams.v1.schemas import (
-    Collection,
     CollectionCreate,
     CollectionList,
+    CollectionSummary,
     CollectionUpdate,
     Error,
 )
@@ -43,7 +43,7 @@ def list_collections(
 
 @router.get(
     "/{collection_id}/",
-    response={200: Collection, 404: Error},
+    response={200: CollectionSummary, 404: Error},
     summary="Show a VariantCollection by numeric ID",
 )
 def get_collection_by_id(request: HttpRequest, response: HttpResponse, collection_id: int):
@@ -54,7 +54,7 @@ def get_collection_by_id(request: HttpRequest, response: HttpResponse, collectio
 
 @router.patch(
     "/{collection_id}/",
-    response={200: Collection, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
+    response={200: CollectionSummary, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a VariantCollection by numeric ID",
 )
 def update_collection_by_id(
@@ -89,8 +89,6 @@ def update_collection_by_id(
         c.name = payload.name
     if payload.description is not None:
         c.description = payload.description
-    if payload.template is not None:
-        c.template = payload.template
 
     try:
         c.full_clean()
@@ -106,7 +104,7 @@ def update_collection_by_id(
 
 @router.post(
     "/",
-    response={201: Collection, 400: Error, 409: Error},
+    response={201: CollectionSummary, 400: Error, 409: Error},
     summary="Create a VariantCollection",
 )
 def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
@@ -117,7 +115,6 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
         identifier=payload.identifier,
         name=payload.name,
         description=payload.description,
-        template=payload.template,
     )
 
     try:

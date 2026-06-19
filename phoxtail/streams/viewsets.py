@@ -141,21 +141,10 @@ class VariantCollectionViewSet(SnippetViewSet):
     list_filter = []
     search_fields = ["name", "identifier", "description"]
 
-    edit_handler = TabbedInterface(
+    edit_handler = ObjectList(
         [
-            ObjectList(
-                [
-                    FieldPanel("name"),
-                    FieldPanel("identifier"),
-                    FieldPanel("description"),
-                ],
-                heading=_("Details"),
-            ),
-            ObjectList(
-                [
-                    CodeEditorPanel("template"),
-                ],
-                heading=_("Template"),
-            ),
+            FieldPanel("name"),
+            FieldPanel("identifier"),
+            FieldPanel("description"),
         ]
     )

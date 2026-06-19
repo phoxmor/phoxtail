@@ -122,18 +122,16 @@ def _kv_text(rows: list[tuple[str, str]]) -> Text:
 def render_variant_detail(variant: dict[str, Any], console: Console) -> None:
     """Render a single variant response body (``GET /variants/{id}``)."""
     block = variant.get("block") or {}
-    collection = variant.get("collection") or {}
+    collection = variant.get("collection")
 
-    header_rows = [
+    header_rows: list[tuple[str, str]] = [
         ("Identifier", variant.get("identifier", "")),
         ("Name", variant.get("name", "")),
         ("Block", f"{block.get('identifier', '')} ({block.get('name', '')})"),
-        (
-            "Collection",
-            f"{collection.get('identifier', '')} ({collection.get('name', '')})",
-        ),
-        ("Default", "yes" if variant.get("is_default") else "no"),
     ]
+    if collection:
+        header_rows.append(("Collection", f"{collection.get('identifier', '')} ({collection.get('name', '')})"))
+    header_rows.append(("Default", "yes" if variant.get("is_default") else "no"))
     console.print(
         Panel(
             _kv_text(header_rows),
@@ -206,19 +204,6 @@ def render_collection_detail(collection: dict[str, Any], console: Console) -> No
                 expand=False,
             )
         )
-    if collection.get("template"):
-        console.print(
-            Panel(
-                Syntax(
-                    collection["template"],
-                    "django",
-                    line_numbers=True,
-                    word_wrap=True,
-                ),
-                title="Template (DTL)",
-                border_style="yellow",
-            )
-        )
 
 
 def render_block_detail(block: dict[str, Any], console: Console) -> None:
@@ -282,7 +267,7 @@ def render_session_detail(session: dict[str, Any], console: Console) -> None:
     """Render full detail for a single editing session."""
     variant = session.get("variant") or {}
     block = variant.get("block") or {}
-    collection = variant.get("collection") or {}
+    collection = variant.get("collection")
     started = session.get("started_at", "")
     if started:
         started = started[:19].replace("T", " ")
@@ -290,12 +275,15 @@ def render_session_detail(session: dict[str, Any], console: Console) -> None:
     full_path = session.get("path", "")
     display_path = full_path.replace(str(Path.home()), "~", 1)
 
-    rows = [
+    rows: list[tuple[str, str]] = [
         ("Path", display_path),
         ("Session ID", session.get("session_id", "")),
         ("Variant", f"{variant.get('identifier', '')} (ID {variant.get('id', '')})"),
         ("Block", block.get("identifier", "")),
-        ("Collection", collection.get("identifier", "")),
+    ]
+    if collection:
+        rows.append(("Collection", collection.get("identifier", "")))
+    rows += [
         ("Started", started),
         ("ETag", session.get("etag", "") or "—"),
     ]

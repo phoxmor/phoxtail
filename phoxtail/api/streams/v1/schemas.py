@@ -47,7 +47,7 @@ class VariantSummary(Schema):
     description: str
     is_default: bool
     block: BlockRef
-    collection: CollectionRef
+    collection: CollectionRef | None = None
     preview_desktop_light_url: str = ""
     preview_desktop_dark_url: str = ""
     preview_tablet_light_url: str = ""
@@ -75,7 +75,7 @@ class VariantCreate(Schema):
     identifier: str
     name: str
     block_id: int
-    collection_id: int
+    collection_id: int | None = None
     description: str = ""
     html: str = ""
     css: str = ""
@@ -119,10 +119,6 @@ class CollectionSummary(Schema):
     variant_count: int
 
 
-class Collection(CollectionSummary):
-    template: str
-
-
 class CollectionList(Schema):
     collections: list[CollectionSummary]
     total: int
@@ -134,7 +130,6 @@ class CollectionCreate(Schema):
     identifier: str
     name: str
     description: str = ""
-    template: str = ""
 
 
 class CollectionUpdate(Schema):
@@ -147,7 +142,6 @@ class CollectionUpdate(Schema):
     identifier: str | None = None
     name: str | None = None
     description: str | None = None
-    template: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +168,7 @@ class BlockVariantRef(Schema):
     identifier: str
     name: str
     is_default: bool
-    collection: CollectionRef
+    collection: CollectionRef | None = None
 
 
 class Block(BlockSummary):
@@ -265,12 +259,11 @@ class ContextBlockRef(Schema):
 
 
 class ContextCollectionRef(Schema):
-    """Collection data for the context document, including design guidelines."""
+    """Optional collection label embedded in the context document."""
 
     identifier: str
     name: str
     description: str
-    design_guidelines: str
 
 
 class DesignTokenRole(Schema):
@@ -308,7 +301,7 @@ class ContextRequest(Schema):
     """
 
     block_id: int
-    collection_id: int
+    collection_id: int | None = None
     references: list[int] = []
 
 
@@ -316,7 +309,7 @@ class ContextResponse(Schema):
     """Structured data for rendering the context template."""
 
     block: ContextBlockRef
-    collection: ContextCollectionRef
+    collection: ContextCollectionRef | None = None
     design_tokens: DesignTokens
     references: list[ContextReferenceVariant]
 
@@ -402,7 +395,7 @@ class PushVariantData(Schema):
 
 
 class PushInstallEnvelope(Schema):
-    collection: PushCollectionData
+    collection: PushCollectionData | None = None
     block: PushBlockData
     variant: PushVariantData
 

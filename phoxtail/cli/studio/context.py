@@ -1,8 +1,8 @@
-"""``phoxtail studio context`` — render the context briefing for a block + collection.
+"""``phoxtail studio context`` — render the context briefing for a block.
 
 Assembles the context document that AI agents use when editing or
 creating block variants: block schema, DTL rules, CSS architecture,
-design guidelines, design tokens, and references.
+design tokens, and optionally a collection label.
 """
 
 from __future__ import annotations
@@ -32,10 +32,10 @@ def context(
         "--block",
         help="Block ID (from `phoxtail studio list blocks`).",
     ),
-    collection: int = typer.Option(
-        ...,
+    collection: int | None = typer.Option(
+        None,
         "--collection",
-        help="Collection ID (from `phoxtail studio list collections`).",
+        help="Collection ID (from `phoxtail studio list collections`). Optional.",
     ),
     references: str | None = typer.Option(
         None,
@@ -59,7 +59,7 @@ def context(
         help="Print plain text without Rich formatting (for piping).",
     ),
 ) -> None:
-    """Render the context briefing for a block in a collection."""
+    """Render the context briefing for a block."""
     ref_list: list[int] = []
     if references:
         for r in references.split(","):
@@ -100,13 +100,12 @@ def context(
 
     # Rich-formatted output
     block_data = data.get("block") or {}
-    collection_data = data.get("collection") or {}
+    collection_data = data.get("collection")
 
+    subtitle = f"  \u2014  [blue]{collection_data.get('name', '')}[/blue]" if collection_data else ""
     console.print(
         Panel(
-            f"[bold]{block_data.get('name', '')}[/bold] "
-            f"[dim]({block_data.get('identifier', '')})[/dim]  \u2014  "
-            f"[blue]{collection_data.get('name', '')}[/blue]",
+            f"[bold]{block_data.get('name', '')}[/bold] [dim]({block_data.get('identifier', '')})[/dim]{subtitle}",
             title="[bold]Studio Context[/bold]",
             border_style="cyan",
             expand=False,

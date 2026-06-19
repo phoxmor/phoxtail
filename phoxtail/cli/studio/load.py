@@ -14,13 +14,12 @@ Expected layout (directory or zip)::
         block.yaml
         schema.json
         variants/
-          <collection>/
-            <variant>/
-              variant.yaml
-              description.md
-              template.html
-              styles.css   (optional)
-              script.js    (optional)
+          <variant>/
+            variant.yaml
+            description.md
+            template.html
+            styles.css   (optional)
+            script.js    (optional)
 
 Usage::
 
@@ -148,7 +147,7 @@ def load(
         data_root = subdirs[0] if len(subdirs) == 1 else tmp_dir
 
     try:
-        incompatible, needed_collections, skipped_by_app = _preflight(data_root)
+        incompatible, skipped_by_app = _preflight(data_root)
 
         coll_counts: _Counts | None = None
         block_counts: _Counts | None = None
@@ -163,7 +162,7 @@ def load(
             console=console,
         ) as progress:
             if only in (LoadScope.all, LoadScope.collections):
-                coll_counts = _load_collections(data_root, needed=needed_collections, force=force, progress=progress)
+                coll_counts = _load_collections(data_root, force=force, progress=progress)
 
             if only in (LoadScope.all, LoadScope.blocks):
                 block_counts = _load_blocks(data_root, incompatible=incompatible, force=force, progress=progress)
@@ -286,26 +285,22 @@ def _parse_frontmatter(content: str) -> tuple[dict, str]:
 # ---------------------------------------------------------------------------
 
 
-def _preflight(root: Path) -> tuple[set[str], set[str], dict[str, list[str]]]:
+def _preflight(root: Path) -> tuple[set[str], dict[str, list[str]]]:
     """Scan dump for blocks whose page_types reference uninstalled apps.
 
-    Returns ``(incompatible_identifiers, needed_collections, skipped_by_app)``:
+    Returns ``(incompatible_identifiers, skipped_by_app)``:
     - ``incompatible_identifiers`` — block identifiers to skip entirely
-    - ``needed_collections`` — collection identifiers referenced by at least one
-      compatible block; only these should be loaded
     - ``skipped_by_app`` — maps app_label → list of block identifiers for the summary
     """
     blocks_dir = root / "blocks"
     if not blocks_dir.exists():
-        return set(), set(), {}
+        return set(), {}
 
     valid_app_labels = client.list_page_type_app_labels()
 
     unknown: dict[str, list[str]] = {}
     incompatible: set[str] = set()
 
-    # First pass: determine which blocks are incompatible.
-    block_identifiers: dict[Path, str] = {}
     for block_dir in sorted(d for d in blocks_dir.iterdir() if d.is_dir()):
         metadata_file = block_dir / "block.yaml"
         if not metadata_file.exists():
@@ -316,7 +311,6 @@ def _preflight(root: Path) -> tuple[set[str], set[str], dict[str, list[str]]]:
             continue
 
         identifier = metadata.get("identifier", block_dir.name)
-        block_identifiers[block_dir] = identifier
 
         # Check source_app first — strongest signal.
         source_app = metadata.get("source_app", "")
@@ -337,18 +331,7 @@ def _preflight(root: Path) -> tuple[set[str], set[str], dict[str, list[str]]]:
                 unknown.setdefault(app_label, []).append(identifier)
                 incompatible.add(identifier)
 
-    # Second pass: collect collections referenced by compatible blocks only.
-    needed_collections: set[str] = set()
-    for block_dir, identifier in block_identifiers.items():
-        if identifier in incompatible:
-            continue
-        variants_dir = block_dir / "variants"
-        if variants_dir.exists():
-            for collection_dir in variants_dir.iterdir():
-                if collection_dir.is_dir():
-                    needed_collections.add(collection_dir.name)
-
-    return incompatible, needed_collections, unknown
+    return incompatible, unknown
 
 
 # ---------------------------------------------------------------------------
@@ -356,9 +339,7 @@ def _preflight(root: Path) -> tuple[set[str], set[str], dict[str, list[str]]]:
 # ---------------------------------------------------------------------------
 
 
-def _load_collections(
-    root: Path, *, needed: set[str], force: bool = False, progress: Progress | None = None
-) -> _Counts:
+def _load_collections(root: Path, *, force: bool = False, progress: Progress | None = None) -> _Counts:
     counts = _Counts()
     collections_dir = root / "collections"
 
@@ -371,7 +352,7 @@ def _load_collections(
         id_by_identifier = {c["identifier"]: c["id"] for c in data.get("collections", [])}
 
     for md_file in all_files:
-        metadata, body = _parse_frontmatter(md_file.read_text(encoding="utf-8"))
+        metadata, _ = _parse_frontmatter(md_file.read_text(encoding="utf-8"))
         name = metadata.get("name")
         if not name:
             counts.warnings.append(f"{md_file.name}: missing 'name' in frontmatter")
@@ -381,18 +362,12 @@ def _load_collections(
             continue
 
         identifier = metadata.get("identifier", md_file.stem)
-
-        if needed and identifier not in needed:
-            counts.skipped_incompatible += 1
-            if progress and task_id is not None:
-                progress.advance(task_id)
-            continue
+        description = metadata.get("description", "")
 
         _, status = client.create_collection(
             identifier=identifier,
             name=name,
-            description=metadata.get("description", ""),
-            template=body,
+            description=description,
         )
         if status == 409:
             if force:
@@ -405,8 +380,7 @@ def _load_collections(
                     client.update_collection_by_id(
                         coll_id,
                         name=name,
-                        description=metadata.get("description", ""),
-                        template=body,
+                        description=description,
                         etag=etag or "*",
                     )
                     counts.updated += 1
@@ -535,7 +509,6 @@ def _load_blocks(
 class _VariantItem:
     block_dir: Path
     block_identifier: str
-    collection_identifier: str
     variant_dir: Path
 
 
@@ -547,7 +520,7 @@ def _load_variants(
     if not blocks_dir.exists():
         return counts
 
-    # Flatten all variant work items upfront so total is known before we start.
+    # Collect all variant work items upfront so total is known before we start.
     work_items: list[_VariantItem] = []
     for block_dir in sorted(d for d in blocks_dir.iterdir() if d.is_dir()):
         if block_dir.name in incompatible:
@@ -555,38 +528,28 @@ def _load_variants(
         variants_dir = block_dir / "variants"
         if not variants_dir.exists():
             continue
-        for collection_dir in sorted(d for d in variants_dir.iterdir() if d.is_dir()):
-            for variant_dir in sorted(d for d in collection_dir.iterdir() if d.is_dir()):
-                work_items.append(
-                    _VariantItem(
-                        block_dir=block_dir,
-                        block_identifier=block_dir.name,
-                        collection_identifier=collection_dir.name,
-                        variant_dir=variant_dir,
-                    )
+        for variant_dir in sorted(d for d in variants_dir.iterdir() if d.is_dir()):
+            work_items.append(
+                _VariantItem(
+                    block_dir=block_dir,
+                    block_identifier=block_dir.name,
+                    variant_dir=variant_dir,
                 )
+            )
 
     task_id = progress.add_task("[dim]Variants[/dim]", total=len(work_items)) if progress else None
 
     blocks_data = client.list_blocks()
     block_id_by_identifier = {b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])}
 
-    collections_data = client.list_collections()
-    collection_id_by_identifier = {c["identifier"]: c["id"] for c in collections_data.get("collections", [])}
-
-    variant_id_by_key: dict[tuple[str, str, str], int] = {}
+    variant_id_by_key: dict[tuple[str, str], int] = {}
     if force:
         variants_data = client.list_variants()
         for v in variants_data.get("variants", []):
-            key = (
-                v["block"]["identifier"],
-                v["collection"]["identifier"],
-                v["identifier"],
-            )
+            key = (v["block"]["identifier"], v["identifier"])
             variant_id_by_key[key] = v["id"]
 
     seen_missing_blocks: set[str] = set()
-    seen_missing_collections: set[str] = set()
 
     for item in work_items:
         block_id = block_id_by_identifier.get(item.block_identifier)
@@ -594,15 +557,6 @@ def _load_variants(
             if item.block_identifier not in seen_missing_blocks:
                 seen_missing_blocks.add(item.block_identifier)
                 counts.warnings.append(f"block {item.block_identifier}: not found on server")
-            if progress and task_id is not None:
-                progress.advance(task_id)
-            continue
-
-        collection_id = collection_id_by_identifier.get(item.collection_identifier)
-        if collection_id is None:
-            if item.collection_identifier not in seen_missing_collections:
-                seen_missing_collections.add(item.collection_identifier)
-                counts.warnings.append(f"collection {item.collection_identifier}: not found on server")
             if progress and task_id is not None:
                 progress.advance(task_id)
             continue
@@ -648,7 +602,7 @@ def _load_variants(
             identifier=identifier,
             name=name,
             block_id=block_id,
-            collection_id=collection_id,
+            collection_id=None,
             description=description,
             html=html,
             css=css,
@@ -657,13 +611,10 @@ def _load_variants(
         )
         if status == 409:
             if force:
-                key = (item.block_identifier, item.collection_identifier, identifier)
+                key = (item.block_identifier, identifier)
                 variant_id = variant_id_by_key.get(key)
                 if variant_id is None:
-                    counts.warnings.append(
-                        f"{item.block_identifier}/{item.collection_identifier}/{identifier}:"
-                        " exists but ID not found, skipping"
-                    )
+                    counts.warnings.append(f"{item.block_identifier}/{identifier}: exists but ID not found, skipping")
                     counts.skipped_other += 1
                 else:
                     _, etag = client.get_variant_by_id(variant_id)

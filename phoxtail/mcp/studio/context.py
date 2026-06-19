@@ -20,24 +20,25 @@ _jinja_env = Environment(
 @mcp_server.tool(
     name="phoxtail_studio_get_context",
     description=(
-        "Get the full context document for working with a block in a "
-        "given collection. Returns a rendered briefing that includes "
-        "the block's field schema, DTL syntax reference, CSS "
-        "architecture rules, the collection's design guidelines, "
-        "site-wide design tokens (palettes, fonts), and optionally "
-        "reference variants for inspiration. "
-        "Pass `block_id` from phoxtail_studio_list_blocks and "
-        "`collection_id` from phoxtail_studio_list_collections. "
+        "Get the full context document for working with a block. Returns a "
+        "rendered briefing that includes the block's field schema, DTL syntax "
+        "reference, CSS architecture rules, site-wide design tokens (palettes, "
+        "fonts), and optionally reference variants for inspiration. "
+        "Pass `block_id` from phoxtail_studio_list_blocks. "
+        "Optionally pass `collection_id` from phoxtail_studio_list_collections "
+        "to include the collection label in the context. "
         "Call this before creating or editing a variant to understand "
         "the domain constraints."
     ),
 )
 def get_context(
     block_id: int,
-    collection_id: int,
+    collection_id: int | None = None,
     references: list[int] | None = None,
 ) -> str:
-    body: dict[str, Any] = {"block_id": block_id, "collection_id": collection_id}
+    body: dict[str, Any] = {"block_id": block_id}
+    if collection_id is not None:
+        body["collection_id"] = collection_id
     if references:
         body["references"] = references
     resp = request("POST", "/context/", json_body=body)

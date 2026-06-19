@@ -24,10 +24,8 @@ def list_collections(search: str | None = None) -> str:
 @mcp_server.tool(
     name="phoxtail_studio_get_collection",
     description=(
-        "Get a collection's full detail including its design guidelines "
-        "(the template field) — the philosophy, principles, and design "
-        "patterns that define this collection's character. Also returns "
-        "the current ETag which MUST be passed to "
+        "Get a collection's full detail — name, identifier, and description. "
+        "Also returns the current ETag which MUST be passed to "
         "phoxtail_studio_update_collection for concurrency control. "
         "Pass the integer `collection_id` from phoxtail_studio_list_collections. "
         "Design tokens (palette roles, font roles) are provided "
@@ -45,20 +43,16 @@ def get_collection(collection_id: int) -> str:
 @mcp_server.tool(
     name="phoxtail_studio_create_collection",
     description=(
-        "Create a new variant collection — a named design system that "
-        "variants can belong to. Requires an identifier "
-        "(unique, lowercase_with_underscores) and a human-readable name. "
-        "The template field should contain a Markdown document describing "
-        "the collection's design philosophy, principles, and guidelines "
-        "that agents will use when creating variants for this collection. "
-        "Returns the created collection with its ETag."
+        "Create a new variant collection — an optional ad-hoc design-system "
+        "label that variants can belong to (e.g. 'Material Design 3', 'HIG'). "
+        "Requires an identifier (unique, lowercase_with_underscores) and a "
+        "human-readable name. Returns the created collection with its ETag."
     ),
 )
 def create_collection(
     identifier: str,
     name: str,
     description: str = "",
-    template: str = "",
 ) -> str:
     resp = request(
         "POST",
@@ -67,7 +61,6 @@ def create_collection(
             "identifier": identifier,
             "name": name,
             "description": description,
-            "template": template,
         },
     )
     if resp.status_code == 409:
@@ -94,7 +87,7 @@ def create_collection(
 @mcp_server.tool(
     name="phoxtail_studio_update_collection",
     description=(
-        "Update a collection's metadata and/or design guidelines template. "
+        "Update a collection's metadata. "
         "Requires the ETag from a prior phoxtail_studio_get_collection call "
         "for optimistic concurrency control — if the collection has been "
         "modified since you read it, the update will fail with a conflict "
@@ -110,7 +103,6 @@ def update_collection(
     identifier: str | None = None,
     name: str | None = None,
     description: str | None = None,
-    template: str | None = None,
 ) -> str:
     body: dict[str, Any] = {}
     if identifier is not None:
@@ -119,8 +111,6 @@ def update_collection(
         body["name"] = name
     if description is not None:
         body["description"] = description
-    if template is not None:
-        body["template"] = template
 
     resp = request(
         "PATCH",
@@ -174,8 +164,8 @@ def update_collection(
     name="phoxtail_studio_delete_collection",
     description=(
         "Permanently delete a variant collection by its numeric ID. "
-        "WARNING: this also deletes all variants belonging to the collection. "
-        "This action cannot be undone. "
+        "WARNING: variants that belong to this collection will have their "
+        "collection field set to null. This action cannot be undone. "
         "Pass the integer `collection_id` from phoxtail_studio_list_collections."
     ),
 )

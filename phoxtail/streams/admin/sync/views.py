@@ -265,7 +265,8 @@ def admin_sync_streams(request):
         required_apps = page_type_apps | ({source_app} if source_app else set())
         if required_apps - local_app_labels:
             continue
-        key = (block["identifier"], v["collection"]["identifier"], v["identifier"])
+        coll = v.get("collection") or {}
+        key = (block["identifier"], coll.get("identifier"), v["identifier"])
         all_items.append(
             {
                 "id": v["id"],
@@ -424,7 +425,7 @@ def admin_sync_variant_detail(request):
             {
                 "item": {"title": v.name, "description": v.description},
                 "block": {"name": v.block.name, "identifier": v.block.identifier},
-                "collection": {"name": v.collection.name},
+                "collection": {"name": v.collection.name} if v.collection_id else None,
                 "variant_id": variant_id,
                 "remote_id": "",
                 "sync_state": None,
@@ -467,10 +468,13 @@ def admin_sync_variant_detail(request):
         sync_state = "not_remote"
 
         try:
+            _params: dict = {"block": v.block.identifier}
+            if v.collection_id:
+                _params["collection"] = v.collection.identifier
             list_resp = httpx.get(
                 f"{remote.base_url}/api/streams/v1/variants/",
                 headers={"Authorization": f"Bearer {remote.token}"},
-                params={"block": v.block.identifier, "collection": v.collection.identifier},
+                params=_params,
                 timeout=15,
                 follow_redirects=True,
             )
@@ -500,7 +504,7 @@ def admin_sync_variant_detail(request):
             {
                 "item": {"title": v.name, "description": v.description},
                 "block": {"name": v.block.name, "identifier": v.block.identifier},
-                "collection": {"name": v.collection.name},
+                "collection": {"name": v.collection.name} if v.collection_id else None,
                 "variant_id": variant_id,
                 "remote_id": remote_id,
                 "sync_state": sync_state,
@@ -541,13 +545,20 @@ def admin_sync_variant_detail(request):
     variant_identifier = variant_data.get("identifier")
 
     local_v = None
-    if all([block_data.get("identifier"), collection_data.get("identifier"), variant_identifier]):
+    if block_data.get("identifier") and variant_identifier:
         try:
-            local_v = BlockVariant.objects.get(
-                block__identifier=block_data["identifier"],
-                collection__identifier=collection_data["identifier"],
-                identifier=variant_identifier,
-            )
+            if collection_data and collection_data.get("identifier"):
+                local_v = BlockVariant.objects.get(
+                    block__identifier=block_data["identifier"],
+                    collection__identifier=collection_data["identifier"],
+                    identifier=variant_identifier,
+                )
+            else:
+                local_v = BlockVariant.objects.get(
+                    block__identifier=block_data["identifier"],
+                    collection__isnull=True,
+                    identifier=variant_identifier,
+                )
         except BlockVariant.DoesNotExist:
             pass
 

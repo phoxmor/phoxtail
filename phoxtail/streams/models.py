@@ -214,17 +214,6 @@ class VariantCollection(index.Indexed, ClusterableModel):
     description = models.TextField(
         help_text=_("Short description of this collection's purpose"),
     )
-    template = models.TextField(
-        blank=True,
-        default="",
-        help_text=_(
-            "Markdown description of this collection's design "
-            "philosophy and guidelines. Plain text — no template "
-            "rendering. Design tokens (palettes, fonts) are "
-            "provided separately via the context layer."
-        ),
-    )
-
     search_fields = [
         index.AutocompleteField("name"),
         index.AutocompleteField("identifier"),
@@ -249,9 +238,11 @@ class BlockVariant(index.Indexed, models.Model):
     block = ParentalKey(Block, on_delete=models.CASCADE, related_name="variants")
     collection = models.ForeignKey(
         VariantCollection,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="variants",
-        help_text=_("The collection this variant belongs to"),
+        null=True,
+        blank=True,
+        help_text=_("Optional design-system label for this variant (e.g. 'Material Design 3')."),
     )
     name = models.CharField(
         max_length=255,
@@ -368,6 +359,11 @@ class BlockVariant(index.Indexed, models.Model):
                 name="unique_block_collection_variant_identifier",
             ),
             models.UniqueConstraint(
+                fields=["block", "identifier"],
+                condition=Q(collection=None),
+                name="unique_variant_identifier_per_block_no_collection",
+            ),
+            models.UniqueConstraint(
                 fields=["block"],
                 condition=Q(is_default=True),
                 name="unique_default_variant_per_block",
@@ -375,7 +371,8 @@ class BlockVariant(index.Indexed, models.Model):
         ]
 
     def __str__(self):
-        return f"{self.block.name} | {self.name} ({self.collection.name})"
+        collection_label = self.collection.name if self.collection_id else "—"
+        return f"{self.block.name} | {self.name} ({collection_label})"
 
 
 class SharedBlock(index.Indexed, TimestampMixin, models.Model):

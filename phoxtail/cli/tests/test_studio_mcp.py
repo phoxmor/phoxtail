@@ -305,13 +305,12 @@ class TestGetCollection:
             "identifier": "general-unsorted",
             "name": "General (Unsorted)",
             "description": "Minimal design system.",
-            "template": "## Core Principles\n\nStructure dictates form.",
             "variant_count": 3,
         }
         httpx_mock.add_response(url=url("/api/streams/v1/collections/1/"), json=payload)
         result = json.loads(get_collection(1))
         assert result["identifier"] == "general-unsorted"
-        assert result["template"] == "## Core Principles\n\nStructure dictates form."
+        assert result["name"] == "General (Unsorted)"
 
 
 class TestGetVariant:
@@ -340,7 +339,6 @@ class TestGetContext:
             "identifier": "general-unsorted",
             "name": "General (Unsorted)",
             "description": "Minimal design system.",
-            "design_guidelines": "## Core Principles\n\nStructure dictates form.",
         },
         "design_tokens": {
             "palette_roles": [
@@ -367,7 +365,6 @@ class TestGetContext:
         assert "Header Section" in result
         assert "DTL Reference" in result
         assert "CSS Scoping" in result
-        assert "Structure dictates form" in result
         assert "Primary" in result
         assert "primary" in result
         assert "Heading" in result

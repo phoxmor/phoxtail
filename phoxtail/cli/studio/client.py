@@ -373,11 +373,13 @@ def get_block_by_id(block_id: int) -> tuple[dict[str, Any], str | None]:
 def get_context(
     *,
     block_id: int,
-    collection_id: int,
+    collection_id: int | None = None,
     references: list[int] | None = None,
 ) -> dict[str, Any]:
     """Fetch assembled context data for an AI agent briefing."""
-    body: dict[str, Any] = {"block_id": block_id, "collection_id": collection_id}
+    body: dict[str, Any] = {"block_id": block_id}
+    if collection_id is not None:
+        body["collection_id"] = collection_id
     if references:
         body["references"] = references
     response = request("POST", "/context/", json_body=body)

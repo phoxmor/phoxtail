@@ -16,13 +16,12 @@ Dumped layout::
           block.yaml
           schema.json
           variants/
-            <collection>/
-              <variant>/
-                variant.yaml
-                description.md
-                template.html
-                styles.css         (omitted when empty)
-                script.js          (omitted when empty)
+            <variant>/
+              variant.yaml
+              description.md
+              template.html
+              styles.css         (omitted when empty)
+              script.js          (omitted when empty)
 
 Usage::
 
@@ -284,9 +283,7 @@ def _write_collection(collections_dir: Path, detail: dict) -> None:
         frontmatter["description"] = detail["description"]
 
     fm_text = yaml.dump(frontmatter, **_YAML_OPTS).rstrip()
-    body = detail.get("template", "").strip()
-
-    content = f"---\n{fm_text}\n---\n\n{body}\n" if body else f"---\n{fm_text}\n---\n"
+    content = f"---\n{fm_text}\n---\n"
     (collections_dir / f"{detail['identifier']}.md").write_text(content, encoding="utf-8")
 
 
@@ -377,20 +374,17 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
 
     blocks_dir = root / "blocks"
 
-    # Clean up stale variants in the dump
-    db_variants = {
-        (summary["block"]["identifier"], summary["collection"]["identifier"], summary["identifier"])
-        for summary in summaries
-    }
+    # Clean up stale variants in the dump.
+    # Path structure is now flat: blocks/<block>/variants/<variant>/
+    db_variants = {(summary["block"]["identifier"], summary["identifier"]) for summary in summaries}
     if blocks_dir.exists():
-        for variant_path in list(blocks_dir.glob("*/variants/*/*")):
+        for variant_path in list(blocks_dir.glob("*/variants/*")):
             if variant_path.is_dir():
                 rel_parts = variant_path.relative_to(blocks_dir).parts
-                if len(rel_parts) == 4 and rel_parts[1] == "variants":
+                if len(rel_parts) == 3 and rel_parts[1] == "variants":
                     block_slug = rel_parts[0]
-                    collection_slug = rel_parts[2]
-                    variant_slug = rel_parts[3]
-                    if (block_slug, collection_slug, variant_slug) not in db_variants:
+                    variant_slug = rel_parts[2]
+                    if (block_slug, variant_slug) not in db_variants:
                         rel = variant_path.relative_to(blocks_dir)
                         archive_path = root / ".archive" / "blocks" / rel
                         if archive_path.exists():
@@ -399,11 +393,7 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
                         shutil.move(str(variant_path), archive_path)
                         counts.archived += 1
 
-                        # Clean up empty parent directories in the main blocks dir
-                        collection_dir = variant_path.parent
-                        if collection_dir.is_dir() and not any(collection_dir.iterdir()):
-                            collection_dir.rmdir()
-                        variants_dir = collection_dir.parent
+                        variants_dir = variant_path.parent
                         if variants_dir.is_dir() and not any(variants_dir.iterdir()):
                             variants_dir.rmdir()
 
@@ -411,15 +401,14 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
 
     for summary in summaries:
         block_slug = summary["block"]["identifier"]
-        collection_slug = summary["collection"]["identifier"]
         variant_slug = summary["identifier"]
 
         detail, _ = client.get_variant_by_id(summary["id"])
-        variant_dir = blocks_dir / block_slug / "variants" / collection_slug / variant_slug
+        variant_dir = blocks_dir / block_slug / "variants" / variant_slug
         variant_dir.mkdir(parents=True, exist_ok=True)
         _write_variant(variant_dir, detail)
         counts.written += 1
-        counts.details.append(f"{block_slug}/{collection_slug}/{variant_slug}")
+        counts.details.append(f"{block_slug}/{variant_slug}")
         progress.advance(task_id)
 
     return counts

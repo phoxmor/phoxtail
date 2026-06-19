@@ -78,10 +78,7 @@ def build_variant_envelope(v: BlockVariant) -> dict:
     """
     b = v.block
     return {
-        "collection": {
-            "name": v.collection.name,
-            "identifier": v.collection.identifier,
-        },
+        "collection": ({"name": v.collection.name, "identifier": v.collection.identifier} if v.collection_id else None),
         "block": {
             "name": b.name,
             "identifier": b.identifier,
@@ -122,11 +119,11 @@ def variant_summary(v: BlockVariant) -> dict:
             "source_app": v.block.source_app,
             "page_types": [f"{ct.app_label}.{ct.model}" for ct in v.block.page_types.all()],
         },
-        "collection": {
-            "id": v.collection.id,
-            "identifier": v.collection.identifier,
-            "name": v.collection.name,
-        },
+        "collection": (
+            {"id": v.collection.id, "identifier": v.collection.identifier, "name": v.collection.name}
+            if v.collection_id
+            else None
+        ),
         "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
         "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
         "preview_tablet_light_url": _image_url(v.preview_image_tablet) or "",
@@ -156,7 +153,7 @@ def collection_summary(c: VariantCollection, variant_count: int) -> dict:
 
 
 def collection_detail(c: VariantCollection, variant_count: int) -> dict:
-    return {**collection_summary(c, variant_count), "template": c.template}
+    return collection_summary(c, variant_count)
 
 
 def block_summary(b: Block, variant_count: int) -> dict:
@@ -180,11 +177,11 @@ def block_detail(b: Block) -> dict:
             "identifier": v.identifier,
             "name": v.name,
             "is_default": v.is_default,
-            "collection": {
-                "id": v.collection.id,
-                "identifier": v.collection.identifier,
-                "name": v.collection.name,
-            },
+            "collection": (
+                {"id": v.collection.id, "identifier": v.collection.identifier, "name": v.collection.name}
+                if v.collection_id
+                else None
+            ),
         }
         for v in b.variants.all()
     ]
@@ -254,12 +251,9 @@ def _strip_weak_prefix(tag: str) -> str:
 
 
 def collection_etag(c: VariantCollection) -> str:
-    """Compute a weak ETag for a collection's content.
-
-    Hashes the mutable content fields (name, description, template).
-    """
+    """Compute a weak ETag for a collection's mutable fields."""
     h = hashlib.sha256()
-    for field in (c.name, c.identifier, c.description, c.template):
+    for field in (c.name, c.identifier, c.description):
         h.update(field.encode("utf-8"))
         h.update(b"\x00")
     return f'W/"{h.hexdigest()[:16]}"'

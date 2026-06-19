@@ -61,9 +61,10 @@ def sessions_start(
 
     context_md = ""
     try:
+        _collection = variant_data.get("collection") or {}
         data = _client.get_context(
             block_id=variant_data["block"]["id"],
-            collection_id=variant_data["collection"]["id"],
+            collection_id=_collection.get("id"),
         )
         jinja_template = _jinja_env.get_template("variant_design_context.md")
         context_md = jinja_template.render(**data)

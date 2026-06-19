@@ -1,4 +1,4 @@
-{#- Phoxtail Studio — Block + Collection Context
+{#- Phoxtail Studio — Block Context
 
 This template is rendered by the MCP server / CLI to brief an AI agent on
 the domain objects it will be working with. It is pure context — no task
@@ -7,8 +7,7 @@ to do based on the human's request and the MCP tools available to it.
 
 Context variables:
   block         — dict with name, identifier, description, field_schema
-  collection    — dict with name, identifier, description,
-                  design_guidelines (plain markdown)
+  collection    — dict with name, identifier, description (or None)
   design_tokens — dict with palette_roles and font_roles lists
   references    — list of variant dicts (may be empty)
 -#}
@@ -80,15 +79,15 @@ All variants must support `prefers-color-scheme: dark` via CSS custom properties
 | Prose | `max-width: 65ch; margin: 0 auto` | Long-form text, articles |
 
 ---
+{% if collection %}
 
 ## Design System: {{ collection.name }}
 
 **Identifier:** `{{ collection.identifier }}`
 **Philosophy:** {{ collection.description }}
 
-{% if collection.design_guidelines %}{{ collection.design_guidelines }}{% endif %}
-
 ---
+{% endif %}
 
 ## Design Tokens
 

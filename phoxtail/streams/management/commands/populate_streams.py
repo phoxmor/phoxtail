@@ -3,17 +3,18 @@ Unified management command to populate all stream entities from data files.
 
 Discovers ``management/data/`` directories across all installed Django
 apps, so each phoxtail app (streams, blog, booking, ...) can ship its
-own blocks, variants, prompts, and collections alongside its models.
+own blocks, variants, and collections alongside its models.
 
 Auto-discovers and imports:
-- Collections from data/collections/*.md (YAML frontmatter + markdown body)
-- Blocks from data/blocks/<block-identifier>/ (directory with block.yaml, schema.json)
-- Variants from data/blocks/<block-identifier>/variants/
-  <collection-identifier>/<variant-identifier>/
+- Collections from data/collections/*.md (YAML frontmatter only — name,
+  identifier, description; the markdown body is ignored)
+- Blocks from data/blocks/<block-identifier>/ (directory with block.yaml,
+  schema.json)
+- Variants from data/blocks/<block-identifier>/variants/<variant-identifier>/
+  (flat — no collection subdirectory level)
 
-The variant folder structure mirrors the database constraint
-(block, collection, identifier), ensuring each variant is
-uniquely identified by its position in the hierarchy.
+Variants are imported with collection=None. A collection can be assigned
+manually in the admin or via the studio API after import.
 
 Usage:
     python manage.py populate_streams              # Import all entities
@@ -149,7 +150,6 @@ def parse_frontmatter(content: str) -> tuple[dict, str]:
 class _VariantItem:
     block_dir: Path
     block_identifier: str
-    collection_identifier: str
     variant_dir: Path
 
 
@@ -314,7 +314,6 @@ class Command(BaseCommand):
                 name=name,
                 identifier=identifier,
                 description=description,
-                template=body,
             )
             counts.created += 1
             counts.details.append(f"created {collection.name} ({identifier})")
@@ -426,32 +425,26 @@ class Command(BaseCommand):
             if blocks_dir.exists():
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
 
-        # Flatten all variant work items upfront so total is known before we start.
+        # Collect all variant work items upfront so total is known before we start.
         work_items: list[_VariantItem] = []
         for block_dir in block_dirs:
             variants_dir = block_dir / "variants"
             if not variants_dir.exists():
                 continue
-            for collection_dir in variants_dir.iterdir():
-                if not collection_dir.is_dir():
-                    continue
-                for variant_dir in collection_dir.iterdir():
-                    if variant_dir.is_dir():
-                        work_items.append(
-                            _VariantItem(
-                                block_dir=block_dir,
-                                block_identifier=block_dir.name,
-                                collection_identifier=collection_dir.name,
-                                variant_dir=variant_dir,
-                            )
+            for variant_dir in variants_dir.iterdir():
+                if variant_dir.is_dir():
+                    work_items.append(
+                        _VariantItem(
+                            block_dir=block_dir,
+                            block_identifier=block_dir.name,
+                            variant_dir=variant_dir,
                         )
+                    )
 
         task_id = progress.add_task("[dim]Variants[/dim]", total=len(work_items))
 
         block_cache: dict[str, Block | None] = {}
-        collection_cache: dict[str, VariantCollection | None] = {}
         seen_missing_blocks: set[str] = set()
-        seen_missing_collections: set[str] = set()
 
         for item in work_items:
             if item.block_identifier not in block_cache:
@@ -461,22 +454,6 @@ class Command(BaseCommand):
                 if item.block_identifier not in seen_missing_blocks:
                     seen_missing_blocks.add(item.block_identifier)
                     counts.warnings.append(f"block {item.block_identifier}: not found, skipping its variants")
-                counts.skipped += 1
-                progress.advance(task_id)
-                continue
-
-            if item.collection_identifier not in collection_cache:
-                collection_cache[item.collection_identifier] = VariantCollection.objects.filter(
-                    identifier=item.collection_identifier
-                ).first()
-            collection = collection_cache[item.collection_identifier]
-            if not collection:
-                if item.collection_identifier not in seen_missing_collections:
-                    seen_missing_collections.add(item.collection_identifier)
-                    counts.warnings.append(
-                        f"collection '{item.collection_identifier}': not found, "
-                        f"skipping variants in {item.block_identifier}/variants/{item.collection_identifier}/"
-                    )
                 counts.skipped += 1
                 progress.advance(task_id)
                 continue
@@ -500,7 +477,7 @@ class Command(BaseCommand):
             name = metadata.get("name", variant_dir.name)
             identifier = metadata.get("identifier", variant_dir.name)
 
-            if BlockVariant.objects.filter(block=block, collection=collection, identifier=identifier).exists():
+            if BlockVariant.objects.filter(block=block, collection=None, identifier=identifier).exists():
                 counts.skipped += 1
                 counts.details.append(f"skipped {identifier} — already exists")
                 progress.advance(task_id)
@@ -530,7 +507,7 @@ class Command(BaseCommand):
                         BlockVariant.objects.filter(block=block, is_default=True).update(is_default=False)
                     variant = BlockVariant.objects.create(
                         block=block,
-                        collection=collection,
+                        collection=None,
                         name=name,
                         identifier=identifier,
                         description=description_file.read_text(),
@@ -546,7 +523,7 @@ class Command(BaseCommand):
                 continue
 
             counts.created += 1
-            counts.details.append(f"created {variant.name} ({item.block_identifier}/{item.collection_identifier})")
+            counts.details.append(f"created {variant.name} ({item.block_identifier})")
 
             progress.advance(task_id)
 

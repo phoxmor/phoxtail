@@ -45,7 +45,7 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
     """
     from phoxtail.streams.models import Block, BlockVariant, VariantCollection
 
-    collection_data = envelope.get("collection") or {}
+    collection_data = envelope.get("collection")
     block_data = envelope.get("block") or {}
     variant_data = envelope.get("variant") or {}
 
@@ -70,10 +70,12 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
         )
 
     with transaction.atomic():
-        collection, _ = VariantCollection.objects.get_or_create(
-            identifier=collection_data["identifier"],
-            defaults={"name": collection_data["name"]},
-        )
+        collection = None
+        if collection_data and collection_data.get("identifier"):
+            collection, _ = VariantCollection.objects.get_or_create(
+                identifier=collection_data["identifier"],
+                defaults={"name": collection_data.get("name", collection_data["identifier"])},
+            )
 
         block, block_created = Block.objects.get_or_create(
             identifier=block_data["identifier"],

@@ -108,16 +108,18 @@ def create_variant(
         block = Block.objects.get(pk=payload.block_id)
     except Block.DoesNotExist:
         raise HttpError(404, f"Block {payload.block_id} not found.")
-    try:
-        collection = VariantCollection.objects.get(pk=payload.collection_id)
-    except VariantCollection.DoesNotExist:
-        raise HttpError(404, f"Collection {payload.collection_id} not found.")
+
+    collection = None
+    if payload.collection_id is not None:
+        try:
+            collection = VariantCollection.objects.get(pk=payload.collection_id)
+        except VariantCollection.DoesNotExist:
+            raise HttpError(404, f"Collection {payload.collection_id} not found.")
 
     if BlockVariant.objects.filter(identifier=payload.identifier, block=block, collection=collection).exists():
         raise HttpError(
             409,
-            f"Variant '{payload.identifier}' already exists "
-            f"for block {payload.block_id}/collection {payload.collection_id}.",
+            f"Variant '{payload.identifier}' already exists for block {payload.block_id}.",
         )
 
     v = BlockVariant.objects.create(
@@ -201,11 +203,15 @@ def update_variant_by_id(
             .exists()
         )
         if collision:
+            if new_collection is not None:
+                raise HttpError(
+                    409,
+                    f"Variant '{new_identifier}' already exists for block "
+                    f"'{v.block.identifier}' in collection '{new_collection.identifier}'.",
+                )
             raise HttpError(
                 409,
-                f"Variant '{new_identifier}' already exists for block "
-                f"'{v.block.identifier}' in collection "
-                f"'{new_collection.identifier}'.",
+                f"Variant '{new_identifier}' already exists for block '{v.block.identifier}'.",
             )
 
     if payload.name is not None:

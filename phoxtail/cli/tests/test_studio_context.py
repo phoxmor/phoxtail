@@ -22,7 +22,6 @@ CONTEXT_RESPONSE = {
         "identifier": "general-unsorted",
         "name": "General (Unsorted)",
         "description": "Minimal design system.",
-        "design_guidelines": "## Core Principles\n\nStructure dictates form.",
     },
     "design_tokens": {
         "palette_roles": [],

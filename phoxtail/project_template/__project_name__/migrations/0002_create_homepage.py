@@ -15,7 +15,6 @@ from django.db import migrations
 
 _APP_LABEL = "{{ phoxtail_project_name }}"
 
-_COLLECTION_IDENTIFIER = "general_unsorted"
 _BLOCK_IDENTIFIER = "hatchling"
 
 _HTML = """\
@@ -677,7 +676,6 @@ _JS = """\
 
 
 def _create_homepage(apps, schema_editor):
-    VariantCollection = apps.get_model("phoxtail_streams", "VariantCollection")
     Block = apps.get_model("phoxtail_streams", "Block")
     BlockVariant = apps.get_model("phoxtail_streams", "BlockVariant")
     ContentType = apps.get_model("contenttypes", "ContentType")
@@ -690,14 +688,6 @@ def _create_homepage(apps, schema_editor):
     if Page.objects.filter(depth=2).exclude(slug="home").exists():
         return
 
-    collection, _ = VariantCollection.objects.get_or_create(
-        identifier=_COLLECTION_IDENTIFIER,
-        defaults={
-            "name": "General (Unsorted)",
-            "description": "The default baseline collection for block variants with no specific grouping.",
-        },
-    )
-
     block, _ = Block.objects.get_or_create(
         identifier=_BLOCK_IDENTIFIER,
         defaults={
@@ -709,10 +699,10 @@ def _create_homepage(apps, schema_editor):
 
     variant, _ = BlockVariant.objects.get_or_create(
         block=block,
-        collection=collection,
-        identifier="default",
+        collection=None,
+        identifier="phoenix",
         defaults={
-            "name": "Default",
+            "name": "Phoenix",
             "description": "Default hatchling variant.",
             "is_default": True,
             "html": _HTML,

@@ -152,14 +152,11 @@ def _render_context(variant_data: dict) -> str:
             loader=FileSystemLoader(str(_TEMPLATE_DIR)),
             keep_trailing_newline=True,
         )
-        ctx_resp = request(
-            "POST",
-            "/context/",
-            json_body={
-                "block_id": variant_data["block"]["id"],
-                "collection_id": variant_data["collection"]["id"],
-            },
-        )
+        _collection = variant_data.get("collection") or {}
+        ctx_body: dict = {"block_id": variant_data["block"]["id"]}
+        if _collection.get("id") is not None:
+            ctx_body["collection_id"] = _collection["id"]
+        ctx_resp = request("POST", "/context/", json_body=ctx_body)
         if ctx_resp.is_success:
             return jinja_env.get_template("variant_design_context.md").render(**ctx_resp.json())
     except Exception:
@@ -262,7 +259,7 @@ def commit_variant(
                 "identifier": updated["identifier"],
                 "name": updated["name"],
                 "block": updated.get("block", {}),
-                "collection": updated.get("collection", {}),
+                "collection": updated.get("collection"),
             },
             "_etag": new_etag,
         },
