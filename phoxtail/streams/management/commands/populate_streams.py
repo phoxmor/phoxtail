@@ -79,8 +79,10 @@ def _get_data_dirs(app_filter: str | None = None) -> list[tuple[str, Path]]:
     always listed first so its collections exist before other apps reference
     them in blocks or variants.
 
-    If ``app_filter`` is given, only that app's directory is returned (useful
-    when populating a single newly-installed app).
+    If ``app_filter`` is given, only directories belonging to that app (or its
+    sub-apps) are returned.  Sub-apps are matched by label prefix: a package
+    whose sub-apps share the parent label as a prefix will have all of their
+    data dirs included when the parent label is passed as ``app_filter``.
     """
     streams_app = apps.get_app_config("phoxtail_streams")
     streams_dir = Path(__file__).resolve().parent.parent / "data"
@@ -94,7 +96,9 @@ def _get_data_dirs(app_filter: str | None = None) -> list[tuple[str, Path]]:
             dirs.append((app_config.label, data_dir))
 
     if app_filter:
-        dirs = [(label, path) for label, path in dirs if label == app_filter]
+        # Prefix match (label + "_") catches sub-apps of a package.
+        # Convention-based: assumes sibling packages don't share the same prefix.
+        dirs = [(label, path) for label, path in dirs if label == app_filter or label.startswith(app_filter + "_")]
 
     return dirs
 
