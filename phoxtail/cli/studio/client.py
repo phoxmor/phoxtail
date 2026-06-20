@@ -31,6 +31,7 @@ EXIT_ENVIRONMENT = 2
 
 API_PREFIX = "/api/streams/v1"
 CONTENT_API_PREFIX = "/api/content/v1"
+CONTENT_IMAGES_PATH = "/media/images/"
 
 # Module-level override set by commands that accept a --peer flag.
 # When set, this takes precedence over phoxtail.toml and the default.
@@ -442,7 +443,7 @@ def upload_image(*, title: str, file_path: Path) -> tuple[dict[str, Any], int]:
     try:
         with open(file_path, "rb") as f:
             response = httpx.post(
-                _content_url("/images/"),
+                _content_url(CONTENT_IMAGES_PATH),
                 data={"title": title},
                 files={"file": (file_path.name, f, mime_type)},
                 headers=_auth_headers(),
@@ -466,7 +467,7 @@ def search_images(title: str) -> list[dict[str, Any]]:
     """Search the image library by title substring. Returns list of image dicts."""
     try:
         response = httpx.get(
-            _content_url("/images/"),
+            _content_url(CONTENT_IMAGES_PATH),
             params={"search": title, "limit": 50},
             headers=_auth_headers(),
             timeout=DEFAULT_TIMEOUT,
