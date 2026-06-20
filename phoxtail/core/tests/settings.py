@@ -9,6 +9,8 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "phoxtail_users.User"
+
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -26,10 +28,14 @@ INSTALLED_APPS = [
     "wagtail.users",
     "wagtailmedia",
     "phoxtail.core",
+    "phoxtail.users",
     "phoxtail.media",
     "phoxtail.core.tests.testapp",
     "phoxtail.design",
     "phoxtail.streams",
+    "phoxtail.remotes",
+    "phoxtail.cms",
+    "phoxtail.agent",
     "phoxtail.dashboard",
     "phoxtail.tokens",
 ]
