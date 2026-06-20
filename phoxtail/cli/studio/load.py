@@ -642,7 +642,7 @@ def _load_variants(
     block_id_by_identifier = {b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])}
 
     variant_id_by_key: dict[tuple[str, str], int] = {}
-    if force:
+    if force or with_previews:
         variants_data = client.list_variants()
         for v in variants_data.get("variants", []):
             key = (v["block"]["identifier"], v["identifier"])
@@ -745,6 +745,15 @@ def _load_variants(
                             )
             else:
                 counts.unchanged += 1
+                if with_previews:
+                    key = (item.block_identifier, identifier)
+                    variant_id = variant_id_by_key.get(key)
+                    if variant_id is None:
+                        counts.warnings.append(
+                            f"{item.block_identifier}/{identifier}: exists but ID not found, skipping previews"
+                        )
+                    else:
+                        _attach_previews(variant_id, variant_dir, item.block_identifier, identifier, counts, "*")
         else:
             counts.created += 1
             if with_previews:
