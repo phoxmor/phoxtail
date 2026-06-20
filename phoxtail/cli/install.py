@@ -26,6 +26,7 @@ INSTALL_STEPS = [
     ("compose", "Compose"),
     ("build", "Build"),
     ("migrate", "Migrate"),
+    ("populate", "Populate"),
     ("launch", "Launch"),
 ]
 
@@ -388,6 +389,23 @@ def install(
                 _redraw(package, steps, details)
                 raise typer.Exit(1)
             steps["migrate"] = "done"
+
+        # --- Populate ---
+        if steps.get("migrate") in ("skipped", "failed"):
+            steps["populate"] = "skipped"
+            details["populate"] = "migrate not run"
+        elif django_label is None:
+            steps["populate"] = "skipped"
+            details["populate"] = "no app label detected"
+        else:
+            _redraw(package, steps, details, step_idx["populate"])
+            rc = subprocess.call(
+                [
+                    "docker", "compose", "run", "--rm", "-T", "web",
+                    "python", "manage.py", "populate_streams", "--app", django_label,
+                ],
+            )
+            steps["populate"] = "done" if rc == 0 else "failed"
 
         # --- Launch ---
         # Image already built above; start detached so the wizard can finish.

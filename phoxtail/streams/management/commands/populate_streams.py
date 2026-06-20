@@ -21,6 +21,7 @@ Usage:
     python manage.py populate_streams --only=collections
     python manage.py populate_streams --only=blocks
     python manage.py populate_streams --only=variants
+    python manage.py populate_streams --app=phoxtail_blog  # Single app only
     python manage.py populate_streams --verbose    # Per-entity detail
 """
 
@@ -54,6 +55,14 @@ _ICONS = {
 }
 
 
+def _parse_description(text: str) -> str:
+    """Strip a leading Markdown heading line from description.md content."""
+    lines = text.splitlines()
+    if lines and lines[0].startswith("#"):
+        lines = lines[1:]
+    return "\n".join(lines).strip()
+
+
 @dataclass
 class _Counts:
     created: int = 0
@@ -63,12 +72,15 @@ class _Counts:
     details: list[str] = field(default_factory=list)
 
 
-def _get_data_dirs() -> list[tuple[str, Path]]:
+def _get_data_dirs(app_filter: str | None = None) -> list[tuple[str, Path]]:
     """Discover management/data/ directories from all installed apps.
 
     Returns ``(app_label, path)`` pairs.  The streams app's own directory is
     always listed first so its collections exist before other apps reference
     them in blocks or variants.
+
+    If ``app_filter`` is given, only that app's directory is returned (useful
+    when populating a single newly-installed app).
     """
     streams_app = apps.get_app_config("phoxtail_streams")
     streams_dir = Path(__file__).resolve().parent.parent / "data"
@@ -80,6 +92,9 @@ def _get_data_dirs() -> list[tuple[str, Path]]:
         data_dir = Path(app_config.path) / "management" / "data"
         if data_dir.is_dir() and data_dir != streams_dir:
             dirs.append((app_config.label, data_dir))
+
+    if app_filter:
+        dirs = [(label, path) for label, path in dirs if label == app_filter]
 
     return dirs
 
@@ -241,6 +256,12 @@ class Command(BaseCommand):
             help="Import only specific entity type",
         )
         parser.add_argument(
+            "--app",
+            default=None,
+            metavar="APP_LABEL",
+            help="Restrict import to a single Django app label (e.g. phoxtail_blog)",
+        )
+        parser.add_argument(
             "--verbose",
             action="store_true",
             help="Show per-entity detail in the summary",
@@ -248,7 +269,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         only = options["only"]
+        app_filter: str | None = options["app"]
         verbose = options["verbose"]
+
+        if app_filter and not _get_data_dirs(app_filter):
+            console.print(
+                f"[yellow]Warning:[/yellow] --app '{app_filter}' matched no data directories. "
+                "Check the app label and that the package ships stream data files."
+            )
+            return
 
         coll_counts: _Counts | None = None
         block_counts: _Counts | None = None
@@ -264,13 +293,13 @@ class Command(BaseCommand):
             disable=not console.is_terminal,
         ) as progress:
             if only in ("all", "collections"):
-                coll_counts = self._import_collections(progress)
+                coll_counts = self._import_collections(progress, app_filter=app_filter)
 
             if only in ("all", "blocks"):
-                block_counts = self._import_blocks(progress)
+                block_counts = self._import_blocks(progress, app_filter=app_filter)
 
             if only in ("all", "variants"):
-                variant_counts = self._import_variants(progress)
+                variant_counts = self._import_variants(progress, app_filter=app_filter)
 
         _print_summary(
             coll_counts=coll_counts,
@@ -279,11 +308,11 @@ class Command(BaseCommand):
             verbose=verbose,
         )
 
-    def _import_collections(self, progress: Progress) -> _Counts:
+    def _import_collections(self, progress: Progress, *, app_filter: str | None = None) -> _Counts:
         counts = _Counts()
 
         md_files: list[Path] = []
-        for _app_label, data_dir in _get_data_dirs():
+        for _app_label, data_dir in _get_data_dirs(app_filter):
             collections_dir = data_dir / "collections"
             if collections_dir.exists():
                 md_files.extend(collections_dir.glob("*.md"))
@@ -322,11 +351,11 @@ class Command(BaseCommand):
 
         return counts
 
-    def _import_blocks(self, progress: Progress) -> _Counts:
+    def _import_blocks(self, progress: Progress, *, app_filter: str | None = None) -> _Counts:
         counts = _Counts()
 
         block_dirs: list[tuple[str, Path]] = []
-        for app_label, data_dir in _get_data_dirs():
+        for app_label, data_dir in _get_data_dirs(app_filter):
             blocks_dir = data_dir / "blocks"
             if blocks_dir.exists():
                 block_dirs.extend((app_label, d) for d in blocks_dir.iterdir() if d.is_dir())
@@ -416,11 +445,11 @@ class Command(BaseCommand):
 
         return counts
 
-    def _import_variants(self, progress: Progress) -> _Counts:
+    def _import_variants(self, progress: Progress, *, app_filter: str | None = None) -> _Counts:
         counts = _Counts()
 
         block_dirs: list[Path] = []
-        for _app_label, data_dir in _get_data_dirs():
+        for _app_label, data_dir in _get_data_dirs(app_filter):
             blocks_dir = data_dir / "blocks"
             if blocks_dir.exists():
                 block_dirs.extend(d for d in blocks_dir.iterdir() if d.is_dir())
@@ -510,7 +539,7 @@ class Command(BaseCommand):
                         collection=None,
                         name=name,
                         identifier=identifier,
-                        description=description_file.read_text(),
+                        description=_parse_description(description_file.read_text()),
                         is_default=is_default,
                         html=html_file.read_text(),
                         css=css_file.read_text() if css_file.exists() else "",
