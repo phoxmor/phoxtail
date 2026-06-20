@@ -364,8 +364,14 @@ class Command(BaseCommand):
 
         for app_label, block_dir in block_dirs:
             metadata_file = block_dir / "block.yaml"
+            description_file = block_dir / "description.md"
             if not metadata_file.exists():
                 counts.warnings.append(f"{block_dir.name}: missing block.yaml")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+            if not description_file.exists():
+                counts.warnings.append(f"{block_dir.name}: missing description.md")
                 counts.skipped += 1
                 progress.advance(task_id)
                 continue
@@ -419,7 +425,7 @@ class Command(BaseCommand):
             block = Block.objects.create(
                 name=metadata.get("name", identifier),
                 identifier=identifier,
-                description=metadata.get("description", ""),
+                description=_parse_description(description_file.read_text()),
                 icon=metadata.get("icon", ""),
                 group=metadata.get("group", ""),
                 is_shared=metadata.get("is_shared", False),
@@ -520,14 +526,24 @@ class Command(BaseCommand):
                 continue
 
             html_file = variant_dir / "template.html"
+            css_file = variant_dir / "styles.css"
+            js_file = variant_dir / "script.js"
             if not html_file.exists():
                 counts.warnings.append(f"{variant_dir.name}: missing template.html")
                 counts.skipped += 1
                 progress.advance(task_id)
                 continue
+            if not css_file.exists():
+                counts.warnings.append(f"{variant_dir.name}: missing styles.css")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
+            if not js_file.exists():
+                counts.warnings.append(f"{variant_dir.name}: missing script.js")
+                counts.skipped += 1
+                progress.advance(task_id)
+                continue
 
-            css_file = variant_dir / "styles.css"
-            js_file = variant_dir / "script.js"
             is_default = metadata.get("is_default", False)
 
             try:
@@ -542,8 +558,8 @@ class Command(BaseCommand):
                         description=_parse_description(description_file.read_text()),
                         is_default=is_default,
                         html=html_file.read_text(),
-                        css=css_file.read_text() if css_file.exists() else "",
-                        javascript=js_file.read_text() if js_file.exists() else "",
+                        css=css_file.read_text(),
+                        javascript=js_file.read_text(),
                     )
             except IntegrityError:
                 counts.warnings.append(f"{identifier}: integrity error (likely concurrent run or stale default)")

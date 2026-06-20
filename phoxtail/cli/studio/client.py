@@ -1,4 +1,4 @@
-"""HTTP client for the Phoxtail streams v1 API.
+"""HTTP client for the Phoxtail streams v1 and content v1 APIs.
 
 Every Studio CLI verb calls the API through this module. The client:
 
@@ -13,7 +13,10 @@ Every Studio CLI verb calls the API through this module. The client:
 from __future__ import annotations
 
 import json
+import mimetypes
+from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 import typer
@@ -27,6 +30,7 @@ EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
 API_PREFIX = "/api/streams/v1"
+CONTENT_API_PREFIX = "/api/content/v1"
 
 # Module-level override set by commands that accept a --peer flag.
 # When set, this takes precedence over phoxtail.toml and the default.
@@ -65,6 +69,16 @@ def _api_base_url() -> str:
 
 def _url(path: str) -> str:
     return f"{_api_base_url()}{API_PREFIX}{path}"
+
+
+def _content_url(path: str) -> str:
+    return f"{_api_base_url()}{CONTENT_API_PREFIX}{path}"
+
+
+def _auth_headers() -> dict[str, str]:
+    """Return an Authorization header dict for the current project token."""
+    token = resolve_token(_api_base_url())
+    return {"Authorization": f"Bearer {token}"} if token else {}
 
 
 # ---------------------------------------------------------------------------
@@ -193,7 +207,7 @@ def update_variant_by_id(
     javascript: str | None = None,
     is_default: bool | None = None,
     etag: str,
-) -> tuple[dict[str, Any], str | None]:
+) -> tuple[dict[str, Any], int, str | None]:
     body: dict[str, Any] = {}
     if name is not None:
         body["name"] = name
@@ -212,8 +226,9 @@ def update_variant_by_id(
         f"/variants/{variant_id}/",
         json_body=body,
         headers={"If-Match": etag},
+        allow_status=(400,),
     )
-    return response.json(), response.headers.get("ETag")
+    return response.json(), response.status_code, response.headers.get("ETag")
 
 
 def update_collection_by_id(
@@ -223,14 +238,15 @@ def update_collection_by_id(
     description: str,
     template: str,
     etag: str,
-) -> tuple[dict[str, Any], str | None]:
+) -> tuple[dict[str, Any], int, str | None]:
     response = request(
         "PATCH",
         f"/collections/{collection_id}/",
         json_body={"name": name, "description": description, "template": template},
         headers={"If-Match": etag},
+        allow_status=(400,),
     )
-    return response.json(), response.headers.get("ETag")
+    return response.json(), response.status_code, response.headers.get("ETag")
 
 
 def update_block_by_id(
@@ -245,7 +261,7 @@ def update_block_by_id(
     schema: list[dict],
     sort_order: int,
     etag: str,
-) -> tuple[dict[str, Any], str | None]:
+) -> tuple[dict[str, Any], int, str | None]:
     response = request(
         "PATCH",
         f"/blocks/{block_id}/",
@@ -260,8 +276,9 @@ def update_block_by_id(
             "sort_order": sort_order,
         },
         headers={"If-Match": etag},
+        allow_status=(400,),
     )
-    return response.json(), response.headers.get("ETag")
+    return response.json(), response.status_code, response.headers.get("ETag")
 
 
 def create_variant(
@@ -275,8 +292,8 @@ def create_variant(
     css: str = "",
     javascript: str = "",
     is_default: bool = False,
-) -> tuple[dict[str, Any], int]:
-    """Create a new variant. Returns ``(body, status_code)``.
+) -> tuple[dict[str, Any], int, str | None]:
+    """Create a new variant. Returns ``(body, status_code, etag)``.
 
     201 = created, 409 = already exists (skip).
     """
@@ -294,9 +311,9 @@ def create_variant(
             "javascript": javascript,
             "is_default": is_default,
         },
-        allow_status=(409,),
+        allow_status=(409, 400),
     )
-    return response.json(), response.status_code
+    return response.json(), response.status_code, response.headers.get("ETag")
 
 
 def get_collection_by_id(collection_id: int) -> tuple[dict[str, Any], str | None]:
@@ -325,7 +342,7 @@ def create_collection(
             "description": description,
             "template": template,
         },
-        allow_status=(409,),
+        allow_status=(409, 400),
     )
     return response.json(), response.status_code
 
@@ -360,7 +377,7 @@ def create_block(
             "schema": schema or [],
             "sort_order": sort_order,
         },
-        allow_status=(409,),
+        allow_status=(409, 400),
     )
     return response.json(), response.status_code
 
@@ -389,3 +406,95 @@ def get_context(
 def emit_json(data: Any) -> None:
     """Print a value to stdout as pretty-printed JSON (no Rich markup)."""
     print(json.dumps(data, indent=2, default=str))
+
+
+# ---------------------------------------------------------------------------
+# Image helpers (content v1 API)
+# ---------------------------------------------------------------------------
+
+
+def download_bytes(url: str) -> bytes | None:
+    """Download a URL and return raw bytes, or None on any failure.
+
+    Auth header is only sent when the target host matches the API base URL
+    (i.e. local dev server).  External hosts like S3 or a CDN receive no token.
+    """
+    api_host = urlparse(_api_base_url()).netloc
+    url_host = urlparse(url).netloc
+    headers = _auth_headers() if url_host == api_host else {}
+    try:
+        response = httpx.get(url, headers=headers, timeout=DEFAULT_TIMEOUT, follow_redirects=True)
+        if response.status_code == 200:
+            return response.content
+    except httpx.HTTPError:
+        pass
+    return None
+
+
+def upload_image(*, title: str, file_path: Path) -> tuple[dict[str, Any], int]:
+    """Upload an image to the Wagtail image library. Returns ``(body, status_code)``.
+
+    201 = uploaded successfully (body has ``id``). Other 4xx = validation/auth
+    error (caller should warn+skip). Connection failures still raise ``typer.Exit``
+    because they indicate the server is unreachable.
+    """
+    mime_type = mimetypes.guess_type(str(file_path))[0] or "image/png"
+    try:
+        with open(file_path, "rb") as f:
+            response = httpx.post(
+                _content_url("/images/"),
+                data={"title": title},
+                files={"file": (file_path.name, f, mime_type)},
+                headers=_auth_headers(),
+                timeout=DEFAULT_TIMEOUT,
+                follow_redirects=True,
+            )
+    except httpx.ConnectError as exc:
+        console.print(
+            "[red]Error:[/red] could not reach the Phoxtail API at "
+            f"[bold]{_api_base_url()}{CONTENT_API_PREFIX}[/bold]. "
+            "Is the dev server running ([bold]docker compose up[/bold])?"
+        )
+        raise typer.Exit(code=EXIT_ENVIRONMENT) from exc
+    except httpx.HTTPError as exc:
+        console.print(f"[red]Error:[/red] HTTP request failed: {exc}")
+        raise typer.Exit(code=EXIT_ENVIRONMENT) from exc
+    return response.json(), response.status_code
+
+
+def search_images(title: str) -> list[dict[str, Any]]:
+    """Search the image library by title substring. Returns list of image dicts."""
+    try:
+        response = httpx.get(
+            _content_url("/images/"),
+            params={"search": title, "limit": 50},
+            headers=_auth_headers(),
+            timeout=DEFAULT_TIMEOUT,
+            follow_redirects=True,
+        )
+        if response.status_code == 200:
+            return response.json().get("items", [])
+    except httpx.HTTPError:
+        pass
+    return []
+
+
+def attach_variant_previews(
+    variant_id: int,
+    *,
+    image_ids: dict[str, int | None],
+    etag: str,
+) -> tuple[dict[str, Any], int, str | None]:
+    """Attach preview images to a variant via a partial PUT.
+
+    ``image_ids`` maps VariantUpdate field names (e.g. ``preview_image_desktop_id``)
+    to image PKs. Only the supplied keys are sent so other fields are untouched.
+    """
+    response = request(
+        "PUT",
+        f"/variants/{variant_id}/",
+        json_body=image_ids,
+        headers={"If-Match": etag},
+        allow_status=(400,),
+    )
+    return response.json(), response.status_code, response.headers.get("ETag")

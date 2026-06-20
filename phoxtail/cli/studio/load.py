@@ -12,14 +12,18 @@ Expected layout (directory or zip)::
     blocks/
       <identifier>/
         block.yaml
+        description.md
         schema.json
         variants/
           <variant>/
             variant.yaml
             description.md
             template.html
-            styles.css   (optional)
-            script.js    (optional)
+            styles.css
+            script.js
+            preview/               (optional, used with --with-previews)
+              preview_image_desktop.<ext>
+              ...
 
 Usage::
 
@@ -122,6 +126,13 @@ def load(
             help="Overwrite existing entities instead of skipping them.",
         ),
     ] = False,
+    with_previews: Annotated[
+        bool,
+        typer.Option(
+            "--with-previews",
+            help="Upload and attach variant preview images from the preview/ subfolder.",
+        ),
+    ] = False,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -168,7 +179,9 @@ def load(
                 block_counts = _load_blocks(data_root, incompatible=incompatible, force=force, progress=progress)
 
             if only in (LoadScope.all, LoadScope.variants):
-                variant_counts = _load_variants(data_root, incompatible=incompatible, force=force, progress=progress)
+                variant_counts = _load_variants(
+                    data_root, incompatible=incompatible, force=force, with_previews=with_previews, progress=progress
+                )
 
     finally:
         if tmp_dir:
@@ -364,26 +377,36 @@ def _load_collections(root: Path, *, force: bool = False, progress: Progress | N
         identifier = metadata.get("identifier", md_file.stem)
         description = metadata.get("description", "")
 
-        _, status = client.create_collection(
+        body, status = client.create_collection(
             identifier=identifier,
             name=name,
             description=description,
         )
-        if status == 409:
+        if status == 400:
+            detail = body.get("detail") or body.get("message") or "validation error"
+            counts.warnings.append(f"{identifier}: {detail}")
+            counts.skipped_other += 1
+        elif status == 409:
             if force:
                 coll_id = id_by_identifier.get(identifier)
                 if coll_id is None:
                     counts.warnings.append(f"{identifier}: exists but ID not found, skipping")
                     counts.skipped_other += 1
                 else:
-                    _, etag = client.get_collection_by_id(coll_id)
-                    client.update_collection_by_id(
+                    existing_body, etag = client.get_collection_by_id(coll_id)
+                    upd_body, upd_status, _ = client.update_collection_by_id(
                         coll_id,
                         name=name,
                         description=description,
+                        template=existing_body.get("template", ""),
                         etag=etag or "*",
                     )
-                    counts.updated += 1
+                    if upd_status == 400:
+                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                        counts.warnings.append(f"{identifier}: {detail}")
+                        counts.skipped_other += 1
+                    else:
+                        counts.updated += 1
             else:
                 counts.unchanged += 1
         else:
@@ -416,10 +439,17 @@ def _load_blocks(
 
     for block_dir in all_dirs:
         metadata_file = block_dir / "block.yaml"
+        description_file = block_dir / "description.md"
         schema_file = block_dir / "schema.json"
 
         if not metadata_file.exists():
             counts.warnings.append(f"{block_dir.name}: missing block.yaml")
+            counts.skipped_other += 1
+            if progress and task_id is not None:
+                progress.advance(task_id)
+            continue
+        if not description_file.exists():
+            counts.warnings.append(f"{block_dir.name}: missing description.md")
             counts.skipped_other += 1
             if progress and task_id is not None:
                 progress.advance(task_id)
@@ -450,6 +480,7 @@ def _load_blocks(
             continue
 
         identifier = metadata.get("identifier", block_dir.name)
+        description = description_file.read_text(encoding="utf-8").strip()
 
         if identifier in incompatible:
             counts.skipped_incompatible += 1
@@ -457,10 +488,10 @@ def _load_blocks(
                 progress.advance(task_id)
             continue
 
-        _, status = client.create_block(
+        body, status = client.create_block(
             identifier=identifier,
             name=metadata.get("name", identifier),
-            description=metadata.get("description", ""),
+            description=description,
             icon=metadata.get("icon", ""),
             group=metadata.get("group", ""),
             is_shared=metadata.get("is_shared", False),
@@ -468,7 +499,11 @@ def _load_blocks(
             schema=schema,
             sort_order=metadata.get("sort_order", 0),
         )
-        if status == 409:
+        if status == 400:
+            detail = body.get("detail") or body.get("message") or "validation error"
+            counts.warnings.append(f"{identifier}: {detail}")
+            counts.skipped_other += 1
+        elif status == 409:
             if force:
                 block_id = id_by_identifier.get(identifier)
                 if block_id is None:
@@ -476,10 +511,10 @@ def _load_blocks(
                     counts.skipped_other += 1
                 else:
                     _, etag = client.get_block_by_id(block_id)
-                    client.update_block_by_id(
+                    upd_body, upd_status, _ = client.update_block_by_id(
                         block_id,
                         name=metadata.get("name", identifier),
-                        description=metadata.get("description", ""),
+                        description=description,
                         icon=metadata.get("icon", ""),
                         group=metadata.get("group", ""),
                         is_shared=metadata.get("is_shared", False),
@@ -488,7 +523,12 @@ def _load_blocks(
                         sort_order=metadata.get("sort_order", 0),
                         etag=etag or "*",
                     )
-                    counts.updated += 1
+                    if upd_status == 400:
+                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                        counts.warnings.append(f"{identifier}: {detail}")
+                        counts.skipped_other += 1
+                    else:
+                        counts.updated += 1
             else:
                 counts.unchanged += 1
         else:
@@ -512,8 +552,67 @@ class _VariantItem:
     variant_dir: Path
 
 
+_PREVIEW_FIELDS: list[tuple[str, str]] = [
+    ("preview_image_desktop", "preview_image_desktop_id"),
+    ("preview_image_desktop_dark", "preview_image_desktop_dark_id"),
+    ("preview_image_tablet", "preview_image_tablet_id"),
+    ("preview_image_tablet_dark", "preview_image_tablet_dark_id"),
+    ("preview_image_mobile", "preview_image_mobile_id"),
+    ("preview_image_mobile_dark", "preview_image_mobile_dark_id"),
+]
+
+
+def _attach_previews(
+    variant_id: int,
+    variant_dir: Path,
+    block_identifier: str,
+    variant_identifier: str,
+    counts: _Counts,
+    etag: str,
+) -> str:
+    """Upload preview images and attach them to a variant. Returns the latest ETag."""
+    preview_dir = variant_dir / "preview"
+    if not preview_dir.exists():
+        return etag
+
+    image_ids: dict[str, int] = {}
+    for field_name, id_field in _PREVIEW_FIELDS:
+        matches = list(preview_dir.glob(f"{field_name}.*"))
+        if not matches:
+            continue
+        file_path = matches[0]
+        title = f"{block_identifier}/{variant_identifier}/{field_name}"
+        existing = [img for img in client.search_images(title) if img["title"] == title]
+        if existing:
+            image_ids[id_field] = existing[0]["id"]
+        else:
+            img_data, img_status = client.upload_image(title=title, file_path=file_path)
+            if img_status == 201:
+                image_ids[id_field] = img_data["id"]
+            else:
+                counts.warnings.append(f"{block_identifier}/{variant_identifier}: failed to upload {field_name}")
+
+    if not image_ids:
+        return etag
+
+    upd_body, upd_status, new_etag = client.attach_variant_previews(
+        variant_id,
+        image_ids=image_ids,
+        etag=etag or "*",
+    )
+    if upd_status == 400:
+        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+        counts.warnings.append(f"{block_identifier}/{variant_identifier}: preview attach failed: {detail}")
+    return new_etag or etag
+
+
 def _load_variants(
-    root: Path, *, incompatible: set[str], force: bool = False, progress: Progress | None = None
+    root: Path,
+    *,
+    incompatible: set[str],
+    force: bool = False,
+    with_previews: bool = False,
+    progress: Progress | None = None,
 ) -> _Counts:
     counts = _Counts()
     blocks_dir = root / "blocks"
@@ -565,11 +664,15 @@ def _load_variants(
         metadata_file = variant_dir / "variant.yaml"
         description_file = variant_dir / "description.md"
         html_file = variant_dir / "template.html"
+        css_file = variant_dir / "styles.css"
+        js_file = variant_dir / "script.js"
 
         required = [
             (metadata_file, "variant.yaml"),
             (description_file, "description.md"),
             (html_file, "template.html"),
+            (css_file, "styles.css"),
+            (js_file, "script.js"),
         ]
         missing = next((label for f, label in required if not f.exists()), None)
         if missing:
@@ -588,17 +691,15 @@ def _load_variants(
                 progress.advance(task_id)
             continue
 
-        css_file = variant_dir / "styles.css"
-        js_file = variant_dir / "script.js"
         identifier = metadata.get("identifier", variant_dir.name)
         name = metadata.get("name", variant_dir.name)
-        description = description_file.read_text(encoding="utf-8")
+        description = description_file.read_text(encoding="utf-8").strip()
         html = html_file.read_text(encoding="utf-8")
-        css = css_file.read_text(encoding="utf-8") if css_file.exists() else ""
-        javascript = js_file.read_text(encoding="utf-8") if js_file.exists() else ""
+        css = css_file.read_text(encoding="utf-8")
+        javascript = js_file.read_text(encoding="utf-8")
         is_default = metadata.get("is_default", False)
 
-        _, status = client.create_variant(
+        body, status, created_etag = client.create_variant(
             identifier=identifier,
             name=name,
             block_id=block_id,
@@ -609,7 +710,11 @@ def _load_variants(
             javascript=javascript,
             is_default=is_default,
         )
-        if status == 409:
+        if status == 400:
+            detail = body.get("detail") or body.get("message") or "validation error"
+            counts.warnings.append(f"{item.block_identifier}/{identifier}: {detail}")
+            counts.skipped_other += 1
+        elif status == 409:
             if force:
                 key = (item.block_identifier, identifier)
                 variant_id = variant_id_by_key.get(key)
@@ -618,7 +723,7 @@ def _load_variants(
                     counts.skipped_other += 1
                 else:
                     _, etag = client.get_variant_by_id(variant_id)
-                    client.update_variant_by_id(
+                    upd_body, upd_status, upd_etag = client.update_variant_by_id(
                         variant_id,
                         name=name,
                         description=description,
@@ -628,11 +733,24 @@ def _load_variants(
                         is_default=is_default,
                         etag=etag or "*",
                     )
-                    counts.updated += 1
+                    if upd_status == 400:
+                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                        counts.warnings.append(f"{item.block_identifier}/{identifier}: {detail}")
+                        counts.skipped_other += 1
+                    else:
+                        counts.updated += 1
+                        if with_previews:
+                            _attach_previews(
+                                variant_id, variant_dir, item.block_identifier, identifier, counts, upd_etag or "*"
+                            )
             else:
                 counts.unchanged += 1
         else:
             counts.created += 1
+            if with_previews:
+                _attach_previews(
+                    body["id"], variant_dir, item.block_identifier, identifier, counts, created_etag or "*"
+                )
 
         if progress and task_id is not None:
             progress.advance(task_id)

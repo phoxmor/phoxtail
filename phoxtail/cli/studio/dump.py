@@ -14,14 +14,22 @@ Dumped layout::
       blocks/
         <identifier>/
           block.yaml
+          description.md
           schema.json
           variants/
             <variant>/
               variant.yaml
               description.md
               template.html
-              styles.css         (omitted when empty)
-              script.js          (omitted when empty)
+              styles.css
+              script.js
+              preview/                      (only with --with-previews)
+                preview_image_desktop.<ext>
+                preview_image_desktop_dark.<ext>
+                preview_image_tablet.<ext>
+                preview_image_tablet_dark.<ext>
+                preview_image_mobile.<ext>
+                preview_image_mobile_dark.<ext>
 
 Usage::
 
@@ -32,6 +40,7 @@ Usage::
     phoxtail studio dump --only=collections
     phoxtail studio dump --only=blocks
     phoxtail studio dump --only=variants
+    phoxtail studio dump --with-previews        # also dump variant preview images
     phoxtail studio dump --peer https://other-project.example.com
     phoxtail studio dump --verbose              # show per-entity detail
 """
@@ -45,6 +54,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
+from urllib.parse import urlparse
 
 import typer
 import yaml
@@ -186,6 +196,13 @@ def dump(
             show_default=False,
         ),
     ] = None,
+    with_previews: Annotated[
+        bool,
+        typer.Option(
+            "--with-previews",
+            help="Also download and dump variant preview images into a preview/ subfolder.",
+        ),
+    ] = False,
     verbose: Annotated[
         bool,
         typer.Option(
@@ -222,7 +239,7 @@ def dump(
             block_counts = _dump_blocks(out, progress=progress)
 
         if only in (DumpScope.all, DumpScope.variants):
-            variant_counts = _dump_variants(out, progress=progress)
+            variant_counts = _dump_variants(out, progress=progress, with_previews=with_previews)
 
     _print_summary(
         coll_counts=coll_counts,
@@ -328,13 +345,11 @@ def _dump_blocks(root: Path, *, progress: Progress) -> _Counts:
 
 
 def _write_block(blocks_dir: Path, detail: dict) -> None:
-    """Write block.yaml and schema.json for a single block."""
+    """Write block.yaml, description.md, and schema.json for a single block."""
     block_dir = blocks_dir / detail["identifier"]
     block_dir.mkdir(parents=True, exist_ok=True)
 
     metadata: dict = {"name": detail["name"], "identifier": detail["identifier"]}
-    if detail.get("description"):
-        metadata["description"] = detail["description"]
     if detail.get("icon"):
         metadata["icon"] = detail["icon"]
     if detail.get("group"):
@@ -350,6 +365,7 @@ def _write_block(blocks_dir: Path, detail: dict) -> None:
         metadata["sort_order"] = sort_order
 
     (block_dir / "block.yaml").write_text(yaml.dump(metadata, **_YAML_OPTS), encoding="utf-8")
+    (block_dir / "description.md").write_text(detail.get("description", ""), encoding="utf-8")
 
     field_schema_raw = detail.get("field_schema", "[]")
     try:
@@ -366,8 +382,17 @@ def _write_block(blocks_dir: Path, detail: dict) -> None:
 # Variants
 # ---------------------------------------------------------------------------
 
+_PREVIEW_FIELDS: list[tuple[str, str]] = [
+    ("preview_desktop_light_url", "preview_image_desktop"),
+    ("preview_desktop_dark_url", "preview_image_desktop_dark"),
+    ("preview_tablet_light_url", "preview_image_tablet"),
+    ("preview_tablet_dark_url", "preview_image_tablet_dark"),
+    ("preview_mobile_light_url", "preview_image_mobile"),
+    ("preview_mobile_dark_url", "preview_image_mobile_dark"),
+]
 
-def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
+
+def _dump_variants(root: Path, *, progress: Progress, with_previews: bool = False) -> _Counts:
     counts = _Counts()
     response = client.list_variants()
     summaries = response.get("variants", [])
@@ -406,7 +431,9 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
         detail, _ = client.get_variant_by_id(summary["id"])
         variant_dir = blocks_dir / block_slug / "variants" / variant_slug
         variant_dir.mkdir(parents=True, exist_ok=True)
-        _write_variant(variant_dir, detail)
+        warn = _write_variant(variant_dir, detail, with_previews=with_previews)
+        if warn:
+            counts.warnings.append(warn)
         counts.written += 1
         counts.details.append(f"{block_slug}/{variant_slug}")
         progress.advance(task_id)
@@ -414,8 +441,8 @@ def _dump_variants(root: Path, *, progress: Progress) -> _Counts:
     return counts
 
 
-def _write_variant(variant_dir: Path, detail: dict) -> None:
-    """Write all files for a single variant directory."""
+def _write_variant(variant_dir: Path, detail: dict, *, with_previews: bool = False) -> str | None:
+    """Write all files for a single variant directory. Returns a warning string or None."""
     variant_meta: dict = {"name": detail["name"], "identifier": detail["identifier"]}
     if detail.get("is_default"):
         variant_meta["is_default"] = True
@@ -423,14 +450,30 @@ def _write_variant(variant_dir: Path, detail: dict) -> None:
     (variant_dir / "variant.yaml").write_text(yaml.dump(variant_meta, **_YAML_OPTS), encoding="utf-8")
     (variant_dir / "description.md").write_text(detail.get("description", ""), encoding="utf-8")
     (variant_dir / "template.html").write_text(detail.get("html", ""), encoding="utf-8")
+    (variant_dir / "styles.css").write_text(detail.get("css", ""), encoding="utf-8")
+    (variant_dir / "script.js").write_text(detail.get("javascript", ""), encoding="utf-8")
 
-    css = detail.get("css", "")
-    if css.strip():
-        (variant_dir / "styles.css").write_text(css, encoding="utf-8")
+    if not with_previews:
+        return None
 
-    js = detail.get("javascript", "")
-    if js.strip():
-        (variant_dir / "script.js").write_text(js, encoding="utf-8")
+    preview_dir = variant_dir / "preview"
+    failed: list[str] = []
+    for url_key, field_name in _PREVIEW_FIELDS:
+        url = detail.get(url_key)
+        if not url:
+            continue
+        preview_dir.mkdir(exist_ok=True)
+        ext = Path(urlparse(url).path).suffix or ".png"
+        data = client.download_bytes(url)
+        if data:
+            (preview_dir / f"{field_name}{ext}").write_bytes(data)
+        else:
+            failed.append(field_name)
+
+    if failed:
+        slug = detail.get("identifier", variant_dir.name)
+        return f"{slug}: failed to download preview(s): {', '.join(failed)}"
+    return None
 
 
 # ---------------------------------------------------------------------------

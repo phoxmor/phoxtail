@@ -154,13 +154,18 @@ def sessions_commit(
         console.print("[red]Error:[/red] session predates ID-based routing; discard it and start a new one.")
         raise typer.Exit(code=1)
 
-    updated, new_etag = client.update_variant_by_id(
+    updated, status, new_etag = client.update_variant_by_id(
         variant_meta["id"],
         html=session_data["html"],
         css=session_data["css"],
         javascript=session_data["javascript"],
         etag=etag,
     )
+
+    if status == 400:
+        detail = updated.get("detail") or updated.get("message") or "validation error"
+        console.print(f"[red]Error:[/red] server rejected the commit: {detail}")
+        raise typer.Exit(code=1)
 
     if clean:
         session.discard_session(session_id)
