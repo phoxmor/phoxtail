@@ -401,8 +401,17 @@ def install(
             _redraw(package, steps, details, step_idx["populate"])
             rc = subprocess.call(
                 [
-                    "docker", "compose", "run", "--rm", "-T", "web",
-                    "python", "manage.py", "populate_streams", "--app", django_label,
+                    "docker",
+                    "compose",
+                    "run",
+                    "--rm",
+                    "-T",
+                    "web",
+                    "python",
+                    "manage.py",
+                    "populate_streams",
+                    "--app",
+                    django_label,
                 ],
             )
             steps["populate"] = "done" if rc == 0 else "failed"

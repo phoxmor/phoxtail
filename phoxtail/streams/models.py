@@ -371,8 +371,7 @@ class BlockVariant(index.Indexed, models.Model):
         ]
 
     def __str__(self):
-        collection_label = self.collection.name if self.collection_id else "—"
-        return f"{self.block.name} | {self.name} ({collection_label})"
+        return self.name
 
 
 class SharedBlock(index.Indexed, TimestampMixin, models.Model):
