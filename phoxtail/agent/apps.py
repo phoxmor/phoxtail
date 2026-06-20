@@ -1,3 +1,10 @@
+try:
+    import pydantic_ai  # noqa: F401
+
+    _HAS_CHATBOT = True
+except ImportError:
+    _HAS_CHATBOT = False
+
 from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
 
 
@@ -13,7 +20,7 @@ class PhoxtailAgentConfig(PhoxtailAppConfig):
         "phoxtail.cms",
     ]
 
-    api_version_router = "phoxtail.agent.api.v1.router"
+    api_version_router = "phoxtail.agent.api.v1.router" if _HAS_CHATBOT else None
     url_mount = UrlMount(
         prefix="phoxtail-agent/",
         module="phoxtail.agent.urls",
