@@ -1,8 +1,17 @@
 """
 In-memory caches for the dynamic blocks system.
+
+Cross-process invalidation: a shared Redis counter acts as a generation
+doorbell. Each worker reads the counter on every SchemaStreamField access
+and self-clears if it has fallen behind. One Redis GET per access (~0.1ms);
+the per-process dicts remain the fast path.
+
+Graceful fallback: if Redis is unavailable (bare runserver without Docker),
+invalidation is process-local only — the same behaviour as before this change.
 """
 
 import logging
+import os
 
 from django.template import Template
 
@@ -15,7 +24,64 @@ _dynamic_blocks_cache = None
 _shared_blocks_cache = None
 _page_type_blocks_cache: dict = {}
 _shared_block_cache: dict = {}
-_cache_generation: int = 0
+
+_local_generation: int = 0  # generation this process's caches currently reflect
+
+_REDIS_KEY = "phoxtail:cache_generation"
+_redis_client = None
+_redis_probed: bool = False  # True after first connection attempt
+
+
+def _get_redis():
+    global _redis_client, _redis_probed
+    if _redis_probed and _redis_client is None:
+        return None
+    if _redis_client is not None:
+        return _redis_client
+    _redis_probed = True
+    try:
+        import redis
+
+        url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+        client = redis.from_url(url, socket_connect_timeout=1, socket_timeout=0.1)
+        client.ping()
+        _redis_client = client
+        logger.debug("Redis connected for block cache generation counter")
+        return _redis_client
+    except Exception:
+        logger.warning("Redis unavailable — block cache invalidation is process-local only")
+        return None
+
+
+def _get_redis_generation() -> int:
+    r = _get_redis()
+    if r is None:
+        return _local_generation
+    try:
+        val = r.get(_REDIS_KEY)
+        return int(val) if val is not None else 0
+    except Exception:
+        return _local_generation
+
+
+def _incr_redis_generation() -> int:
+    r = _get_redis()
+    if r is None:
+        return _local_generation + 1
+    try:
+        return int(r.incr(_REDIS_KEY))
+    except Exception:
+        return _local_generation + 1
+
+
+def _clear_local_caches():
+    global _dynamic_blocks_cache, _shared_blocks_cache, _page_type_blocks_cache
+    _block_cache.clear()
+    _default_variant_cache.clear()
+    _template_cache.clear()
+    _dynamic_blocks_cache = None
+    _shared_blocks_cache = None
+    _page_type_blocks_cache = {}
 
 
 def get_block_by_identifier(identifier: str):
@@ -96,19 +162,21 @@ def get_shared_block(block_identifier: str, site, locale):
 
 
 def get_cache_generation() -> int:
-    return _cache_generation
+    global _local_generation
+    redis_gen = _get_redis_generation()
+    if redis_gen != _local_generation:
+        _clear_local_caches()
+        _local_generation = redis_gen
+        logger.debug("Block caches invalidated by Redis generation change (generation %d)", redis_gen)
+    return _local_generation
 
 
 def clear_block_cache(**kwargs):
-    global _dynamic_blocks_cache, _shared_blocks_cache, _cache_generation, _page_type_blocks_cache
-    _block_cache.clear()
-    _default_variant_cache.clear()
-    _template_cache.clear()
-    _dynamic_blocks_cache = None
-    _shared_blocks_cache = None
-    _page_type_blocks_cache = {}
-    _cache_generation += 1
-    logger.debug("All block caches cleared (generation %d)", _cache_generation)
+    global _local_generation
+    new_gen = _incr_redis_generation()
+    _clear_local_caches()
+    _local_generation = new_gen
+    logger.debug("Block caches cleared (generation %d)", _local_generation)
 
 
 def clear_shared_block_cache(**kwargs):

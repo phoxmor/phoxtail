@@ -29,6 +29,11 @@ services:
 {% endif %}
     depends_on:
       - db
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    restart: always
 
   db:
     image: postgres:{{ postgres_version }}
