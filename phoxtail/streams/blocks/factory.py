@@ -130,12 +130,11 @@ def create_shared_block_ref(block):
     )
 
     # Create Meta class with icon, label, and group
-    meta_attrs = {
-        "icon": block.icon if block.icon else "placeholder",
-        "group": "Shared",
-    }
+    meta_attrs = {"icon": block.icon if block.icon else "placeholder"}
     if block.name:
         meta_attrs["label"] = block.name
+    if block.group:
+        meta_attrs["group"] = block.group
 
     Meta = type("Meta", (), meta_attrs)
     fields["Meta"] = Meta
