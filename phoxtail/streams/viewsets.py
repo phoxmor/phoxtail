@@ -83,6 +83,11 @@ class SharedBlockViewSet(SnippetViewSet):
         FieldPanel("content"),
     ]
 
+    @property
+    def _edit_handler(self):
+        # Bypasses Wagtail's cached_property so BlockField always uses the current stream_block.
+        return self.get_edit_handler()
+
 
 class BlockVariantViewSet(SnippetViewSet):
     model = BlockVariant
