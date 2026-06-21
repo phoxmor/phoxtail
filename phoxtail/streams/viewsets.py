@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
-from wagtail.snippets.views.snippets import SnippetViewSet
+from wagtail.snippets.views.snippets import CreateView, EditView, SnippetViewSet
 
 from .admin.panels import CodeEditorPanel
 from .models import (
@@ -66,6 +66,22 @@ class BlockViewSet(SnippetViewSet):
     )
 
 
+class _SharedBlockFormMixin:
+    # Wagtail bakes form_class into the view via as_view() at URL setup time.
+    # Override get_form_class() to fetch it from the viewset per-request so
+    # SchemaStreamField.stream_block's generation check always runs.
+    def get_form_class(self):
+        return self.model.snippet_viewset.get_form_class()
+
+
+class SharedBlockCreateView(_SharedBlockFormMixin, CreateView):
+    pass
+
+
+class SharedBlockEditView(_SharedBlockFormMixin, EditView):
+    pass
+
+
 class SharedBlockViewSet(SnippetViewSet):
     model = SharedBlock
     icon = "interests"
@@ -75,6 +91,8 @@ class SharedBlockViewSet(SnippetViewSet):
     list_display = ["block", "site", "locale"]
     list_filter = ["block", "site", "locale"]
     search_fields = []
+    add_view_class = SharedBlockCreateView
+    edit_view_class = SharedBlockEditView
 
     panels = [
         FieldPanel("block"),
@@ -85,7 +103,7 @@ class SharedBlockViewSet(SnippetViewSet):
 
     @property
     def _edit_handler(self):
-        # Bypasses Wagtail's cached_property so BlockField always uses the current stream_block.
+        # Bypasses Wagtail's cached_property so get_form_class() rebuilds fresh each call.
         return self.get_edit_handler()
 
 
