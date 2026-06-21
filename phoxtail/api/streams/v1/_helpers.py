@@ -82,6 +82,7 @@ def build_variant_envelope(v: BlockVariant) -> dict:
         "block": {
             "name": b.name,
             "identifier": b.identifier,
+            "description": b.description,
             "is_shared": b.is_shared,
             "source_app": b.source_app,
             "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
