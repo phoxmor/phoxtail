@@ -10,6 +10,7 @@ from rich.panel import Panel
 
 from phoxtail.cli.server.utils import (
     _SCP_OPTS,
+    read_deploy_env,
     scp_to,
     ssh_check,
     ssh_live,
@@ -207,15 +208,33 @@ def deploy(
         # ------------------------------------------------------------------
         # Done
         # ------------------------------------------------------------------
+        domain = read_deploy_env("DOMAIN")
+        ssl_active = bool(
+            domain
+            and ssh_check(
+                user,
+                ip,
+                f"cd {project_dir} && docker compose run --rm -T --entrypoint sh certbot"
+                f" -c 'test -f /etc/letsencrypt/live/{domain}/fullchain.pem' 2>/dev/null",
+            )
+        )
+
+        if ssl_active:
+            app_url = f"https://{domain}"
+            next_steps = ""
+        else:
+            app_url = f"http://{ip}"
+            next_steps = (
+                "\n\n"
+                "  [dim]Next — point your domain's DNS A record "
+                f"to {ip}, then run:[/dim]\n"
+                f"  [cyan]phoxtail server ssl {ip}[/cyan]"
+            )
+
         console.print()
         console.print(
             Panel(
-                "[green]Deployment complete![/green]"
-                "\n\n"
-                f"  [dim]Application:[/dim]  http://{ip}\n\n"
-                "  [dim]Next — point your domain's DNS A record "
-                f"to {ip}, then run:[/dim]\n"
-                f"  [cyan]phoxtail server ssl {ip}[/cyan]",
+                f"[green]Deployment complete![/green]\n\n  [dim]Application:[/dim]  {app_url}{next_steps}",
                 border_style="green",
                 expand=False,
             )

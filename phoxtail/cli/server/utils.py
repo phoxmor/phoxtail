@@ -31,6 +31,24 @@ def price_key(price_str: str) -> float:
 
 
 # ------------------------------------------------------------------
+# Deploy env helpers
+# ------------------------------------------------------------------
+
+_DEPLOY_ENV = Path(".phoxtail/deploy/.env")
+
+
+def read_deploy_env(key: str) -> str | None:
+    """Read a single key from the local .phoxtail/deploy/.env file."""
+    if not _DEPLOY_ENV.exists():
+        return None
+    for line in _DEPLOY_ENV.read_text().splitlines():
+        line = line.strip()
+        if line.startswith(f"{key}="):
+            return line[len(key) + 1 :].strip()
+    return None
+
+
+# ------------------------------------------------------------------
 # SSH helpers
 # ------------------------------------------------------------------
 

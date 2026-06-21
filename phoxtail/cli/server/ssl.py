@@ -8,24 +8,12 @@ import typer
 from rich.console import Console
 from rich.panel import Panel
 
-from phoxtail.cli.server.utils import scp_to, ssh_check, ssh_live
+from phoxtail.cli.server.utils import read_deploy_env, scp_to, ssh_check, ssh_live
 from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
 
 console = Console()
 
 _DEPLOY_DIR = Path(".phoxtail/deploy")
-
-
-def _read_deploy_env(key: str) -> str | None:
-    """Read a single key from the local .phoxtail/deploy/.env file."""
-    env_path = _DEPLOY_DIR / ".env"
-    if not env_path.exists():
-        return None
-    for line in env_path.read_text().splitlines():
-        line = line.strip()
-        if line.startswith(f"{key}="):
-            return line[len(key) + 1 :].strip()
-    return None
 
 
 def _dns_resolves_to(domain: str, ip: str) -> bool:
@@ -104,8 +92,8 @@ def ssl(
         console.print("[red]Error:[/red] No phoxtail.toml found. Run this command from a phoxtail project directory.")
         raise typer.Exit(1)
 
-    domain = domain or _read_deploy_env("DOMAIN")
-    email = email or _read_deploy_env("DOMAIN_EMAIL")
+    domain = domain or read_deploy_env("DOMAIN")
+    email = email or read_deploy_env("DOMAIN_EMAIL")
 
     if not domain:
         console.print(
