@@ -368,6 +368,36 @@
     cursor: default;
 }
 
+/* ── Button loading state ── */
+
+.ss-btn__connecting {
+    display: none;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+#streams-push-btn.htmx-request,
+#streams-pull-btn.htmx-request {
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+#streams-push-btn.htmx-request .ss-btn__idle,
+#streams-pull-btn.htmx-request .ss-btn__idle { display: none; }
+
+#streams-push-btn.htmx-request .ss-btn__connecting,
+#streams-pull-btn.htmx-request .ss-btn__connecting { display: inline-flex; }
+
+.ss-btn-spinner {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: ss-spin 0.6s linear infinite;
+    flex-shrink: 0;
+}
+
 /* ── Empty state ── */
 
 .ss-empty {

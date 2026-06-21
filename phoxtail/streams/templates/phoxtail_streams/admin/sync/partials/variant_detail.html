@@ -136,15 +136,20 @@
                     <form style="display: contents"
                           hx-post="{% url 'streams-sync:push' %}"
                           hx-swap="none"
-                          hx-include="this">
+                          hx-include="this"
+                          hx-indicator="#streams-push-btn">
                         {% csrf_token %}
                         <input type="hidden" name="remote_id" value="{{ remote_id }}">
                         <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
                         <input type="hidden" name="remote_variant_id" value="{{ remote_variant_id }}">
                         <input type="hidden" name="mode" value="{{ mode }}">
                         <button type="submit"
+                                id="streams-push-btn"
                                 class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                {% if sync_state == 'in_sync' %}disabled{% endif %}>Push</button>
+                                {% if sync_state == 'in_sync' %}disabled{% endif %}>
+                            <span class="ss-btn__idle">Push</span>
+                            <span class="ss-btn__connecting"><span class="ss-btn-spinner"></span><span>Pushing…</span></span>
+                        </button>
                     </form>
                 {% else %}
                     <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Push</button>
@@ -154,15 +159,20 @@
                     <form style="display: contents"
                           hx-post="{% url 'streams-sync:pull' %}"
                           hx-swap="none"
-                          hx-include="this">
+                          hx-include="this"
+                          hx-indicator="#streams-pull-btn">
                         {% csrf_token %}
                         <input type="hidden" name="remote_id" value="{{ remote_id }}">
                         <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
                         <input type="hidden" name="local_variant_id" value="{{ local_variant_id }}">
                         <input type="hidden" name="mode" value="{{ mode }}">
                         <button type="submit"
+                                id="streams-pull-btn"
                                 class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                {% if sync_state == 'in_sync' %}disabled{% endif %}>Pull</button>
+                                {% if sync_state == 'in_sync' %}disabled{% endif %}>
+                            <span class="ss-btn__idle">Pull</span>
+                            <span class="ss-btn__connecting"><span class="ss-btn-spinner"></span><span>Pulling…</span></span>
+                        </button>
                     </form>
                 {% else %}
                     <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Pull</button>
