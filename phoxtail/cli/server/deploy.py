@@ -141,6 +141,16 @@ def deploy(
                     raise typer.Exit(1)
             console.print(f"  [green]✓[/green] {remote_name} uploaded")
 
+        # phoxtail.toml — always upload so the server stays in sync with local
+        config_file = find_config_file()
+        if config_file:
+            remote_toml = f"{project_dir}/phoxtail.toml"
+            with console.status("  Copying phoxtail.toml..."):
+                if not scp_to(user, ip, config_file, remote_toml):
+                    console.print("  [red]✗[/red] Failed to copy phoxtail.toml")
+                    raise typer.Exit(1)
+            console.print("  [green]✓[/green] phoxtail.toml uploaded")
+
         # ------------------------------------------------------------------
         # 6. GHCR login
         # ------------------------------------------------------------------
