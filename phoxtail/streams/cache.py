@@ -79,6 +79,7 @@ def _clear_local_caches():
     _block_cache.clear()
     _default_variant_cache.clear()
     _template_cache.clear()
+    _shared_block_cache.clear()
     _dynamic_blocks_cache = None
     _shared_blocks_cache = None
     _page_type_blocks_cache = {}
@@ -142,6 +143,7 @@ def get_cached_blocks_for_page_type(content_type_id) -> list:
 
 
 def get_shared_block(block_identifier: str, site, locale):
+    get_cache_generation()  # self-invalidate regardless of render order
     site_id = site.pk if site else None
     locale_id = locale.pk if locale else None
     cache_key = (block_identifier, site_id, locale_id)
@@ -180,5 +182,8 @@ def clear_block_cache(**kwargs):
 
 
 def clear_shared_block_cache(**kwargs):
-    _shared_block_cache.clear()
-    logger.debug("Shared block cache cleared")
+    global _local_generation
+    new_gen = _incr_redis_generation()
+    _clear_local_caches()
+    _local_generation = new_gen
+    logger.debug("Shared block cache cleared (generation %d)", _local_generation)
