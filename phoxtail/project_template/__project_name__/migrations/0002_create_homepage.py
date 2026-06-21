@@ -153,7 +153,7 @@ _HTML = """\
                 </div>
             </a>
 
-            <a href="https://discord.phoxtail.com" target="_blank" rel="noopener" class="phxt-card-filled">
+            <a href="https://community.phoxtail.com" target="_blank" rel="noopener" class="phxt-card-filled">
                 <div class="phxt-card-icon-wrap">
                     {% icon "groups" class="phxt-card-icon" %}
                 </div>
