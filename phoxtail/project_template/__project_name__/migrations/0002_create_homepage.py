@@ -20,77 +20,77 @@ _BLOCK_IDENTIFIER = "hatchling"
 _HTML = """\
 {% load wagtailcore_tags wagtailimages_tags static phoxtail_design_tags %}
 
-<div id="m3-hatch-{{ block.id }}" class="m3-page">
-    <header class="m3-top-bar">
-        <div class="m3-top-bar-inner">
-            <div class="m3-logo">
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="m3-logo-img m3-logo-light" />
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="m3-logo-img m3-logo-dark" />
+<div id="phxt-hatch-{{ block.id }}" class="phxt-page">
+    <header class="phxt-top-bar">
+        <div class="phxt-top-bar-inner">
+            <div class="phxt-logo">
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-light" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-dark" />
             </div>
-            <div class="m3-badge-tonal">
+            <div class="phxt-badge-tonal">
                 v{% phoxtail_version %}
             </div>
         </div>
     </header>
 
-    <div class="m3-embers" data-m3-embers></div>
+    <div class="phxt-embers" data-phxt-embers></div>
 
-    <main class="m3-main-content">
-        <div class="m3-hero">
-            <div class="m3-phoenix-wrap" data-m3-phoenix>
-                <svg class="m3-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <main class="phxt-main-content">
+        <div class="phxt-hero">
+            <div class="phxt-phoenix-wrap" data-phxt-phoenix>
+                <svg class="phxt-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <radialGradient id="m3-body-g-{{ block.id }}" cx="50%" cy="40%" r="60%">
+                        <radialGradient id="phxt-body-g-{{ block.id }}" cx="50%" cy="40%" r="60%">
                             <stop offset="0%" stop-color="rgb(var(--color-accent-50))"/>
                             <stop offset="60%" stop-color="rgb(var(--color-surface-500))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-600))"/>
                         </radialGradient>
-                        <radialGradient id="m3-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                        <radialGradient id="phxt-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0.3"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0"/>
                         </radialGradient>
-                        <radialGradient id="m3-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                        <radialGradient id="phxt-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0.5"/>
                             <stop offset="100%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0"/>
                         </radialGradient>
-                        <linearGradient id="m3-shell-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <linearGradient id="phxt-shell-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-200))"/>
                         </linearGradient>
-                        <filter id="m3-shadow-{{ block.id }}" x="-10%" y="-10%" width="120%" height="120%">
+                        <filter id="phxt-shadow-{{ block.id }}" x="-10%" y="-10%" width="120%" height="120%">
                             <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="rgb(var(--color-surface-900))" flood-opacity="0.12"/>
                         </filter>
                     </defs>
 
-                    <circle cx="100" cy="120" r="90" fill="url(#m3-glow-g-{{ block.id }})"/>
-                    <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#m3-body-g-{{ block.id }})"/>
+                    <circle cx="100" cy="120" r="90" fill="url(#phxt-glow-g-{{ block.id }})"/>
+                    <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#phxt-body-g-{{ block.id }})"/>
 
-                    <path class="m3-wing m3-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-surface-600))"/>
-                    <path class="m3-wing m3-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-surface-600))"/>
+                    <path class="phxt-wing phxt-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-surface-600))"/>
+                    <path class="phxt-wing phxt-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-surface-600))"/>
 
-                    <circle cx="100" cy="88" r="44" fill="url(#m3-body-g-{{ block.id }})"/>
+                    <circle cx="100" cy="88" r="44" fill="url(#phxt-body-g-{{ block.id }})"/>
 
-                    <g class="m3-crest">
+                    <g class="phxt-crest">
                         <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="rgb(var(--color-primary-500))"/>
                         <path d="M100,44 C105,15 120,5 120,5 C115,20 108,35 104,46 Z" fill="rgb(var(--color-surface-500))"/>
                         <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="rgb(var(--color-secondary-300))"/>
                     </g>
 
-                    <circle cx="70" cy="102" r="11" fill="url(#m3-cheek-g-{{ block.id }})"/>
-                    <circle cx="130" cy="102" r="11" fill="url(#m3-cheek-g-{{ block.id }})"/>
+                    <circle cx="70" cy="102" r="11" fill="url(#phxt-cheek-g-{{ block.id }})"/>
+                    <circle cx="130" cy="102" r="11" fill="url(#phxt-cheek-g-{{ block.id }})"/>
 
-                    <g class="m3-eyes-wrap" data-m3-eyes-wrap>
-                        <g class="m3-eye" data-m3-eye="left">
+                    <g class="phxt-eyes-wrap" data-phxt-eyes-wrap>
+                        <g class="phxt-eye" data-phxt-eye="left">
                             <circle cx="78" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                            <g class="m3-pupil-group" data-m3-pupil>
+                            <g class="phxt-pupil-group" data-phxt-pupil>
                                 <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
                                 <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
                                 <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
                             </g>
                         </g>
-                        <g class="m3-eye" data-m3-eye="right">
+                        <g class="phxt-eye" data-phxt-eye="right">
                             <circle cx="122" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                            <g class="m3-pupil-group" data-m3-pupil>
+                            <g class="phxt-pupil-group" data-phxt-pupil>
                                 <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
                                 <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
                                 <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
@@ -99,18 +99,18 @@ _HTML = """\
                     </g>
 
                     <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
-                    <path class="m3-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#m3-shell-g-{{ block.id }})" filter="url(#m3-shadow-{{ block.id }})"/>
+                    <path class="phxt-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#phxt-shell-g-{{ block.id }})" filter="url(#phxt-shadow-{{ block.id }})"/>
                 </svg>
             </div>
 
-            <h1 class="m3-display-title">
+            <h1 class="phxt-display-title">
                 {% if block.value.title %}
                     {{ block.value.title }}
                 {% else %}
                     Your phoenix has hatched
                 {% endif %}
             </h1>
-            <p class="m3-body-subtitle">
+            <p class="phxt-body-subtitle">
                 {% if block.value.subtitle %}
                     {{ block.value.subtitle }}
                 {% else %}
@@ -118,9 +118,9 @@ _HTML = """\
                 {% endif %}
             </p>
 
-            <a href="/admin/" class="m3-btn-filled">
-                {% icon "dashboard" class="m3-btn-icon" %}
-                <span class="m3-btn-label">
+            <a href="/admin/" class="phxt-btn-filled">
+                {% icon "dashboard" class="phxt-btn-icon" %}
+                <span class="phxt-btn-label">
                     {% if block.value.cta_text %}
                         {{ block.value.cta_text }}
                     {% else %}
@@ -131,35 +131,35 @@ _HTML = """\
         </div>
     </main>
 
-    <footer class="m3-cards-section">
-        <div class="m3-cards-container">
-            <a href="https://phoxtail.com" target="_blank" rel="noopener" class="m3-card-filled">
-                <div class="m3-card-icon-wrap">
-                    {% icon "docs" class="m3-card-icon" %}
+    <footer class="phxt-cards-section">
+        <div class="phxt-cards-container">
+            <a href="https://docs.phoxtail.com/" target="_blank" rel="noopener" class="phxt-card-filled">
+                <div class="phxt-card-icon-wrap">
+                    {% icon "docs" class="phxt-card-icon" %}
                 </div>
-                <div class="m3-card-text">
-                    <h2 class="m3-card-title">Documentation</h2>
-                    <p class="m3-card-desc">Get acquainted with Phoxtail's core features.</p>
-                </div>
-            </a>
-
-            <a href="https://github.com/phoxmor/phoxtail" target="_blank" rel="noopener" class="m3-card-filled">
-                <div class="m3-card-icon-wrap">
-                    {% icon "code" class="m3-card-icon" %}
-                </div>
-                <div class="m3-card-text">
-                    <h2 class="m3-card-title">Source Code</h2>
-                    <p class="m3-card-desc">Dig into the code and see how everything works under the hood.</p>
+                <div class="phxt-card-text">
+                    <h2 class="phxt-card-title">Documentation</h2>
+                    <p class="phxt-card-desc">Everything you need to start building with phoxtail.</p>
                 </div>
             </a>
 
-            <a href="https://github.com/phoxmor/phoxtail/discussions" target="_blank" rel="noopener" class="m3-card-filled">
-                <div class="m3-card-icon-wrap">
-                    {% icon "groups" class="m3-card-icon" %}
+            <a href="https://github.com/phoxmor/phoxtail" target="_blank" rel="noopener" class="phxt-card-filled">
+                <div class="phxt-card-icon-wrap">
+                    {% icon "code" class="phxt-card-icon" %}
                 </div>
-                <div class="m3-card-text">
-                    <h2 class="m3-card-title">Join the Community</h2>
-                    <p class="m3-card-desc">Ask questions, share ideas, and connect with other developers.</p>
+                <div class="phxt-card-text">
+                    <h2 class="phxt-card-title">Source code</h2>
+                    <p class="phxt-card-desc">Explore how phoxtail works under the hood.</p>
+                </div>
+            </a>
+
+            <a href="https://discord.phoxtail.com" target="_blank" rel="noopener" class="phxt-card-filled">
+                <div class="phxt-card-icon-wrap">
+                    {% icon "groups" class="phxt-card-icon" %}
+                </div>
+                <div class="phxt-card-text">
+                    <h2 class="phxt-card-title">Join the community</h2>
+                    <p class="phxt-card-desc">Ask questions, share ideas, and connect with the phoxtail community.</p>
                 </div>
             </a>
         </div>
@@ -167,46 +167,46 @@ _HTML = """\
 </div>"""
 
 _CSS = """\
-/* ── Material Design 3 Variables & Scoping ── */
-#m3-hatch-{{ block.id }} {
+/* ── Variables & Scoping ── */
+#phxt-hatch-{{ block.id }} {
     /* Base Colors */
-    --md-sys-color-surface: var(--color-surface-50);
-    --md-sys-color-on-surface: var(--color-surface-900);
-    --md-sys-color-on-surface-variant: var(--color-surface-600);
-    --md-sys-color-outline-variant: var(--color-surface-200);
+    --sys-color-surface: var(--color-surface-50);
+    --sys-color-on-surface: var(--color-surface-900);
+    --sys-color-on-surface-variant: var(--color-surface-600);
+    --sys-color-outline-variant: var(--color-surface-200);
 
     /* Tonal Surfaces */
-    --md-sys-color-surface-container-lowest: 255, 255, 255;
-    --md-sys-color-surface-container-low: var(--color-surface-100);
-    --md-sys-color-surface-container: var(--color-surface-200);
-    --md-sys-color-surface-container-high: var(--color-surface-300);
+    --sys-color-surface-container-lowest: 255, 255, 255;
+    --sys-color-surface-container-low: var(--color-surface-100);
+    --sys-color-surface-container: var(--color-surface-200);
+    --sys-color-surface-container-high: var(--color-surface-300);
 
     /* Primary Colors */
-    --md-sys-color-primary: var(--color-primary-600);
-    --md-sys-color-on-primary: 255, 255, 255;
-    --md-sys-color-primary-container: var(--color-primary-100);
-    --md-sys-color-on-primary-container: var(--color-primary-900);
+    --sys-color-primary: var(--color-primary-600);
+    --sys-color-on-primary: 255, 255, 255;
+    --sys-color-primary-container: var(--color-primary-100);
+    --sys-color-on-primary-container: var(--color-primary-900);
 
     position: relative;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     width: 100%;
-    background-color: rgb(var(--md-sys-color-surface));
-    color: rgb(var(--md-sys-color-on-surface));
+    background-color: rgb(var(--sys-color-surface));
+    color: rgb(var(--sys-color-on-surface));
     font-family: var(--font-body, system-ui, sans-serif);
     overflow: hidden;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-#m3-hatch-{{ block.id }} *,
-#m3-hatch-{{ block.id }} *::before,
-#m3-hatch-{{ block.id }} *::after {
+#phxt-hatch-{{ block.id }} *,
+#phxt-hatch-{{ block.id }} *::before,
+#phxt-hatch-{{ block.id }} *::after {
     box-sizing: border-box;
 }
 
-/* ── Top App Bar (M3 Standard) ── */
-#m3-hatch-{{ block.id }} .m3-top-bar {
+/* ── Top Bar ── */
+#phxt-hatch-{{ block.id }} .phxt-top-bar {
     width: 100%;
     height: 64px;
     padding: 0 1rem;
@@ -219,7 +219,7 @@ _CSS = """\
     background: transparent;
 }
 
-#m3-hatch-{{ block.id }} .m3-top-bar-inner {
+#phxt-hatch-{{ block.id }} .phxt-top-bar-inner {
     max-width: 1280px;
     margin: 0 auto;
     width: 100%;
@@ -228,37 +228,37 @@ _CSS = """\
     align-items: center;
 }
 
-#m3-hatch-{{ block.id }} .m3-logo-img {
+#phxt-hatch-{{ block.id }} .phxt-logo-img {
     height: 1.5rem;
     width: auto;
 }
 
-#m3-hatch-{{ block.id }} .m3-logo-dark {
+#phxt-hatch-{{ block.id }} .phxt-logo-dark {
     display: none;
 }
 
-#m3-hatch-{{ block.id }} .m3-badge-tonal {
+#phxt-hatch-{{ block.id }} .phxt-badge-tonal {
     display: inline-flex;
     align-items: center;
     padding: 0.25rem 0.75rem;
-    border-radius: 8px; /* M3 small shape */
+    border-radius: 8px;
     font-family: var(--font-ui, system-ui, sans-serif);
     font-weight: var(--font-ui-weight-medium, 500);
     font-size: 0.875rem;
-    background-color: rgb(var(--md-sys-color-surface-container-high));
-    color: rgb(var(--md-sys-color-on-surface));
+    background-color: rgb(var(--sys-color-surface-container-high));
+    color: rgb(var(--sys-color-on-surface));
     transition: background-color 0.3s ease;
 }
 
 /* ── Embers Particle System ── */
-#m3-hatch-{{ block.id }} .m3-embers {
+#phxt-hatch-{{ block.id }} .phxt-embers {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 10;
 }
 
-#m3-hatch-{{ block.id }} .m3-ember {
+#phxt-hatch-{{ block.id }} .phxt-ember {
     position: absolute;
     top: 0;
     left: 0;
@@ -267,7 +267,7 @@ _CSS = """\
 }
 
 /* ── Main Content / Hero ── */
-#m3-hatch-{{ block.id }} .m3-main-content {
+#phxt-hatch-{{ block.id }} .phxt-main-content {
     flex-grow: 1;
     position: relative;
     z-index: 15;
@@ -279,7 +279,7 @@ _CSS = """\
     text-align: center;
 }
 
-#m3-hatch-{{ block.id }} .m3-hero {
+#phxt-hatch-{{ block.id }} .phxt-hero {
     max-width: 65ch; /* Prose width for readability */
     display: flex;
     flex-direction: column;
@@ -288,98 +288,98 @@ _CSS = """\
 }
 
 /* ── Phoenix SVG Styles & Animations ── */
-#m3-hatch-{{ block.id }} .m3-phoenix-wrap {
+#phxt-hatch-{{ block.id }} .phxt-phoenix-wrap {
     width: 220px;
     height: 240px;
     margin-bottom: 2rem;
-    animation: m3-breathe-{{ block.id }} 4s ease-in-out infinite;
+    animation: phxt-breathe-{{ block.id }} 4s ease-in-out infinite;
 }
 
-#m3-hatch-{{ block.id }} .m3-phoenix {
+#phxt-hatch-{{ block.id }} .phxt-phoenix {
     width: 100%;
     height: 100%;
     overflow: visible;
 }
 
-@keyframes m3-breathe-{{ block.id }} {
+@keyframes phxt-breathe-{{ block.id }} {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
 }
 
-#m3-hatch-{{ block.id }} .m3-crest {
+#phxt-hatch-{{ block.id }} .phxt-crest {
     transform-origin: 100px 46px;
-    animation: m3-crest-flicker-{{ block.id }} 2.5s ease-in-out infinite;
+    animation: phxt-crest-flicker-{{ block.id }} 2.5s ease-in-out infinite;
 }
 
-@keyframes m3-crest-flicker-{{ block.id }} {
+@keyframes phxt-crest-flicker-{{ block.id }} {
     0%, 100% { transform: rotate(0deg) scaleY(1); }
     50% { transform: rotate(2deg) scaleY(1.05); }
 }
 
-#m3-hatch-{{ block.id }} .m3-wing-l {
+#phxt-hatch-{{ block.id }} .phxt-wing-l {
     transform-origin: 65px 145px;
-    animation: m3-flutter-l-{{ block.id }} 4s ease-in-out infinite;
+    animation: phxt-flutter-l-{{ block.id }} 4s ease-in-out infinite;
 }
 
-#m3-hatch-{{ block.id }} .m3-wing-r {
+#phxt-hatch-{{ block.id }} .phxt-wing-r {
     transform-origin: 135px 145px;
-    animation: m3-flutter-r-{{ block.id }} 4s ease-in-out infinite;
+    animation: phxt-flutter-r-{{ block.id }} 4s ease-in-out infinite;
 }
 
-@keyframes m3-flutter-l-{{ block.id }} {
+@keyframes phxt-flutter-l-{{ block.id }} {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(-6deg); }
 }
 
-@keyframes m3-flutter-r-{{ block.id }} {
+@keyframes phxt-flutter-r-{{ block.id }} {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(6deg); }
 }
 
-#m3-hatch-{{ block.id }} .m3-eyes-wrap {
+#phxt-hatch-{{ block.id }} .phxt-eyes-wrap {
     transform-origin: 100px 88px;
 }
 
-#m3-hatch-{{ block.id }} .m3-eye {
+#phxt-hatch-{{ block.id }} .phxt-eye {
     transform-origin: center;
     transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#m3-hatch-{{ block.id }} .m3-eyes-wrap.is-blinking .m3-eye {
+#phxt-hatch-{{ block.id }} .phxt-eyes-wrap.is-blinking .phxt-eye {
     transform: scaleY(0.1);
 }
 
 /* ── Typography ── */
-#m3-hatch-{{ block.id }} .m3-display-title {
+#phxt-hatch-{{ block.id }} .phxt-display-title {
     font-family: var(--font-heading, inherit);
     font-weight: var(--font-heading-weight-bold, 700);
     font-size: clamp(2rem, 5vw, 3rem);
     line-height: 1.2;
-    color: rgb(var(--md-sys-color-on-surface));
+    color: rgb(var(--sys-color-on-surface));
     margin: 0 0 1rem;
     letter-spacing: -0.02em;
 }
 
-#m3-hatch-{{ block.id }} .m3-body-subtitle {
+#phxt-hatch-{{ block.id }} .phxt-body-subtitle {
     font-family: var(--font-body, inherit);
     font-weight: var(--font-body-weight-regular, 400);
     font-size: clamp(1rem, 3vw, 1.25rem);
     line-height: 1.5;
-    color: rgb(var(--md-sys-color-on-surface-variant));
+    color: rgb(var(--sys-color-on-surface-variant));
     margin: 0 0 2.5rem;
     max-width: 48ch;
 }
 
-/* ── Primary Action Button (M3 FAB/Filled Button) ── */
-#m3-hatch-{{ block.id }} .m3-btn-filled {
+/* ── Primary Action Button ── */
+#phxt-hatch-{{ block.id }} .phxt-btn-filled {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: 48px; /* M3 Touch target size */
+    height: 48px;
     padding: 0 1.5rem 0 1rem;
-    background-color: rgb(var(--md-sys-color-primary));
-    color: rgb(var(--md-sys-color-on-primary));
+    background-color: rgb(var(--sys-color-primary));
+    color: rgb(var(--sys-color-on-primary));
     border-radius: 9999px; /* Pill shape */
     text-decoration: none;
     font-family: var(--font-ui, inherit);
@@ -387,31 +387,29 @@ _CSS = """\
     font-size: 0.875rem;
     letter-spacing: 0.01em;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    /* M3 Elevation Level 1 */
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
 }
 
-#m3-hatch-{{ block.id }} .m3-btn-filled:hover {
+#phxt-hatch-{{ block.id }} .phxt-btn-filled:hover {
     background-color: rgb(var(--color-primary-700));
-    /* M3 Elevation Level 2 */
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
 }
 
-#m3-hatch-{{ block.id }} .m3-btn-icon {
+#phxt-hatch-{{ block.id }} .phxt-btn-icon {
     width: 1.25rem;
     height: 1.25rem;
     fill: currentColor;
 }
 
 /* ── Bottom Cards Section ── */
-#m3-hatch-{{ block.id }} .m3-cards-section {
+#phxt-hatch-{{ block.id }} .phxt-cards-section {
     width: 100%;
     padding: 2rem 1rem 3rem;
     position: relative;
     z-index: 15;
 }
 
-#m3-hatch-{{ block.id }} .m3-cards-container {
+#phxt-hatch-{{ block.id }} .phxt-cards-container {
     max-width: 1024px; /* Narrow container */
     margin: 0 auto;
     display: grid;
@@ -420,108 +418,108 @@ _CSS = """\
 }
 
 @media (min-width: 768px) {
-    #m3-hatch-{{ block.id }} .m3-cards-container {
+    #phxt-hatch-{{ block.id }} .phxt-cards-container {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
 }
 
-/* M3 Filled Card */
-#m3-hatch-{{ block.id }} .m3-card-filled {
+/* ── Card ── */
+#phxt-hatch-{{ block.id }} .phxt-card-filled {
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    background-color: rgb(var(--md-sys-color-surface-container-low));
-    border-radius: 24px; /* M3 Large Shape */
+    background-color: rgb(var(--sys-color-surface-container-low));
+    border-radius: 24px;
     text-decoration: none;
     transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
     border: 1px solid transparent;
 }
 
-#m3-hatch-{{ block.id }} .m3-card-filled:hover {
-    background-color: rgb(var(--md-sys-color-surface-container-low));
-    border-color: rgb(var(--md-sys-color-primary));
+#phxt-hatch-{{ block.id }} .phxt-card-filled:hover {
+    background-color: rgb(var(--sys-color-surface-container-low));
+    border-color: rgb(var(--sys-color-primary));
     transform: translateY(-2px);
 }
 
-#m3-hatch-{{ block.id }} .m3-card-icon-wrap {
+#phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 3rem;
     height: 3rem;
-    border-radius: 12px; /* M3 Medium Shape for icons */
-    background-color: rgb(var(--md-sys-color-primary-container));
-    color: rgb(var(--md-sys-color-on-primary-container));
+    border-radius: 12px;
+    background-color: rgb(var(--sys-color-primary-container));
+    color: rgb(var(--sys-color-on-primary-container));
     margin-bottom: 1.25rem;
 }
 
-#m3-hatch-{{ block.id }} .m3-card-icon {
+#phxt-hatch-{{ block.id }} .phxt-card-icon {
     width: 1.5rem;
     height: 1.5rem;
 }
 
-#m3-hatch-{{ block.id }} .m3-card-title {
+#phxt-hatch-{{ block.id }} .phxt-card-title {
     font-family: var(--font-heading, inherit);
     font-size: 1.125rem;
     font-weight: var(--font-heading-weight-medium, 500);
-    color: rgb(var(--md-sys-color-on-surface));
+    color: rgb(var(--sys-color-on-surface));
     margin: 0 0 0.5rem;
     line-height: 1.4;
 }
 
-#m3-hatch-{{ block.id }} .m3-card-desc {
+#phxt-hatch-{{ block.id }} .phxt-card-desc {
     font-family: var(--font-body, inherit);
     font-size: 0.875rem;
     line-height: 1.5;
-    color: rgb(var(--md-sys-color-on-surface-variant));
+    color: rgb(var(--sys-color-on-surface-variant));
     margin: 0;
 }
 
-/* ── Dark Mode (Material 3 Dynamic Mappings) ── */
+/* ── Dark Mode ── */
 @media (prefers-color-scheme: dark) {
-    #m3-hatch-{{ block.id }} {
-        --md-sys-color-surface: var(--color-surface-900);
-        --md-sys-color-on-surface: var(--color-surface-100);
-        --md-sys-color-on-surface-variant: var(--color-surface-300);
-        --md-sys-color-outline-variant: var(--color-surface-700);
+    #phxt-hatch-{{ block.id }} {
+        --sys-color-surface: var(--color-surface-900);
+        --sys-color-on-surface: var(--color-surface-100);
+        --sys-color-on-surface-variant: var(--color-surface-300);
+        --sys-color-outline-variant: var(--color-surface-700);
 
-        --md-sys-color-surface-container-lowest: var(--color-surface-950);
-        --md-sys-color-surface-container-low: var(--color-surface-800);
-        --md-sys-color-surface-container: var(--color-surface-700);
-        --md-sys-color-surface-container-high: var(--color-surface-600);
+        --sys-color-surface-container-lowest: var(--color-surface-950);
+        --sys-color-surface-container-low: var(--color-surface-800);
+        --sys-color-surface-container: var(--color-surface-700);
+        --sys-color-surface-container-high: var(--color-surface-600);
 
-        --md-sys-color-primary: var(--color-primary-400);
-        --md-sys-color-on-primary: var(--color-surface-900);
-        --md-sys-color-primary-container: var(--color-primary-400);
-        --md-sys-color-on-primary-container: var(--color-primary-100);
+        --sys-color-primary: var(--color-primary-400);
+        --sys-color-on-primary: var(--color-surface-900);
+        --sys-color-primary-container: var(--color-primary-400);
+        --sys-color-on-primary-container: var(--color-primary-100);
     }
 
-    #m3-hatch-{{ block.id }} .m3-logo-light {
+    #phxt-hatch-{{ block.id }} .phxt-logo-light {
         display: none;
     }
 
-    #m3-hatch-{{ block.id }} .m3-logo-dark {
+    #phxt-hatch-{{ block.id }} .phxt-logo-dark {
         display: inline;
     }
 
-    #m3-hatch-{{ block.id }} .m3-btn-filled:hover {
+    #phxt-hatch-{{ block.id }} .phxt-btn-filled:hover {
         background-color: rgb(var(--color-primary-300));
     }
 
-    #m3-hatch-{{ block.id }} .m3-card-icon-wrap {
+    #phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
         background-color: rgb(var(--color-primary-400) / 0.15);
     }
 }"""
 
 _JS = """\
 (function () {
-    var root = document.getElementById("m3-hatch-{{ block.id }}");
+    var root = document.getElementById("phxt-hatch-{{ block.id }}");
     if (!root) return;
 
     /* ── Advanced Eye Tracking (Bounded) ── */
-    var phoenixWrap = root.querySelector("[data-m3-phoenix]");
-    var pupils = root.querySelectorAll("[data-m3-pupil]");
+    var phoenixWrap = root.querySelector("[data-phxt-phoenix]");
+    var pupils = root.querySelectorAll("[data-phxt-pupil]");
 
     if (phoenixWrap && pupils.length) {
         var MAX_OFFSET = 3.5;
@@ -567,7 +565,7 @@ _JS = """\
     }
 
     /* ── Hardware Accelerated Blinking ── */
-    var eyesWrap = root.querySelector("[data-m3-eyes-wrap]");
+    var eyesWrap = root.querySelector("[data-phxt-eyes-wrap]");
     if (eyesWrap) {
         function triggerBlink() {
             eyesWrap.classList.add("is-blinking");
@@ -580,7 +578,7 @@ _JS = """\
     }
 
     /* ── Free-Floating Embers (Now with Gravitational Repel) ── */
-    var embersEl = root.querySelector("[data-m3-embers]");
+    var embersEl = root.querySelector("[data-phxt-embers]");
     if (embersEl) {
         var EMBER_COUNT = 45;
         var colors = [
@@ -606,7 +604,7 @@ _JS = """\
 
         function createParticle() {
             var el = document.createElement("span");
-            el.className = "m3-ember";
+            el.className = "phxt-ember";
             var size = 2 + Math.random() * 5;
             el.style.width = size + "px";
             el.style.height = size + "px";
@@ -693,7 +691,8 @@ def _create_homepage(apps, schema_editor):
         defaults={
             "name": "Hatchling",
             "description": "The first page a freshly hatched Phoxtail project displays. A phoenix emerging from its egg — celebrating the birth of a new project.",
-            "icon": "home",
+            "icon": "egg",
+            "group": "System",
         },
     )
 
