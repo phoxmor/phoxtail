@@ -297,6 +297,20 @@ def release_cmd() -> None:
         raise typer.Exit(1)
     base, sha = result
 
+    console.print("\n  [bold cyan]→[/bold cyan] Updating lockfile")
+    lock_result = subprocess.run(
+        ["uv", "lock", "--upgrade-package", "phoxtail"],
+        capture_output=True,
+        text=True,
+    )
+    if lock_result.returncode != 0:
+        console.print(
+            f"  [yellow]Warning:[/yellow] uv lock failed — building with existing lockfile\n"
+            f"  {lock_result.stderr.strip()}"
+        )
+    else:
+        console.print("  [green]✓[/green] Lockfile updated")
+
     sha_label = sha or "no git SHA"
     console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
     rc = _build_image(base, sha)
