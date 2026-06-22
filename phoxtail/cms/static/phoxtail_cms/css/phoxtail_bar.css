@@ -387,12 +387,7 @@ html.phoxtail-bar-active {
     outline-offset: -1px;
 }
 button.phoxtail-bar-actions-item { background: none; border: none; font: inherit; width: 100%; text-align: left; }
-.phoxtail-bar-actions-item-ext {
-    width: 0.75rem;
-    height: 0.75rem;
-    color: rgb(var(--color-surface-300, 212 212 216));
-    flex-shrink: 0;
-}
+
 
 /* ── Block wrapper (in page.html) ── */
 .phoxtail-block {
@@ -567,7 +562,6 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
         outline-color: rgb(var(--color-primary-700, 67 56 202));
     }
-    .phoxtail-bar-actions-item-ext { color: rgb(var(--color-surface-600, 82 82 91)); }
 
     .phoxtail-bar-highlight-corner--tl,
     .phoxtail-bar-highlight-corner--tr,
