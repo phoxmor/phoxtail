@@ -1,7 +1,7 @@
 """MCP tools for session-based variant editing.
 
 Sessions are filesystem working copies stored at
-``~/.phoxtail/projects/<project-key>/sessions/<session-id>/``.
+``.phoxtail/studio/sessions/<session-id>/`` under the project root.
 An agent opens a session to get local file paths, uses its native
 Read/Edit tools for surgical changes, then commits the session to
 push the result back to the database.  This is faster and more

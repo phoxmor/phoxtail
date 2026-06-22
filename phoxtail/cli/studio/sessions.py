@@ -30,8 +30,8 @@ def sessions_start(
 ) -> None:
     """Start a new editing session on a variant.
 
-    Creates a working copy under ``.phoxtail/studio/<session-id>/`` with
-    the variant's HTML, CSS, and JavaScript as editable files, plus a
+    Creates a working copy under ``.phoxtail/studio/sessions/<session-id>/``
+    with the variant's HTML, CSS, and JavaScript as editable files, plus a
     rendered context briefing as ``context.md``.
     """
     from pathlib import Path

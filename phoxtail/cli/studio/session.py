@@ -1,7 +1,8 @@
 """Host-side session management for Phoxtail Studio editing sessions.
 
-Sessions are working copies stored at ``.phoxtail/studio/<session-id>/``
-relative to the project root (the directory containing ``phoxtail.toml``).
+Sessions are working copies stored at
+``.phoxtail/studio/sessions/<session-id>/`` under the project root
+(the directory containing ``phoxtail.toml``).
 
 This module handles all filesystem operations for sessions. It never
 imports Django, httpx, or any API concern — it only reads and writes
@@ -33,18 +34,8 @@ def _project_root() -> Path:
     return config.parent
 
 
-def _project_key() -> str:
-    """Derive a filesystem-safe key from the absolute project root path.
-
-    Strips the leading slash and replaces all remaining slashes with dashes,
-    matching the same convention used by Claude Code for project-scoped state.
-    Example: /home/user/work/mysite -> home-user-work-mysite
-    """
-    return str(_project_root()).lstrip("/").replace("/", "-")
-
-
 def sessions_root() -> Path:
-    return Path.home() / ".phoxtail" / "projects" / _project_key() / "sessions"
+    return _project_root() / ".phoxtail" / "studio" / "sessions"
 
 
 def session_dir(session_id: str) -> Path:
