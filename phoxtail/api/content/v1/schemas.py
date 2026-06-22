@@ -10,7 +10,7 @@ here because the set of page types is extensible.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from ninja import Schema
 
@@ -275,6 +275,32 @@ class InternalLinkCreate(Schema):
 class InternalLinkPatch(Schema):
     label: str | None = None
     url_name: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Page move
+# ---------------------------------------------------------------------------
+
+MovePosition = Literal["last-child", "first-child", "left", "right"]
+
+
+class PageMove(Schema):
+    """Request body for ``POST /pages/{id}/move/``.
+
+    ``target`` is the page ID the move is relative to. The meaning
+    depends on ``position``:
+
+    * ``"last-child"`` / ``"first-child"`` — target becomes the new
+      parent; the page is inserted as its last or first child.
+    * ``"left"`` / ``"right"`` — target is a sibling reference; the page
+      is inserted immediately before or after it (sharing the same parent).
+
+    ``"last-child"`` is the default and matches the Wagtail admin's
+    "Move under" action.
+    """
+
+    target: int
+    position: MovePosition = "last-child"
 
 
 # ---------------------------------------------------------------------------

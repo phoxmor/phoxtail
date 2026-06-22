@@ -242,6 +242,42 @@ def create_page(
 
 
 @mcp_server.tool(
+    name="phoxtail_pages_move_page",
+    description=(
+        "Move a page to a new position in the Wagtail page tree. "
+        "Use this when the user says 'move X under Y' or 'move X before/after Y'. "
+        "\n\nposition controls how target is interpreted:\n"
+        "  'last-child'  — move page as last child of target (default; use for 'move under')\n"
+        "  'first-child' — move page as first child of target\n"
+        "  'left'        — insert page immediately before target (sibling)\n"
+        "  'right'       — insert page immediately after target (sibling)\n"
+        "\nWagtail enforces parent_page_types and subpage_types constraints — if the "
+        "move violates them the tool returns a 400 with the allowed parent types so "
+        "you can explain to the user why it was rejected. "
+        "Requires etag from a prior phoxtail_pages_get_page call."
+    ),
+)
+def move_page(
+    page_id: int,
+    target: int,
+    etag: str,
+    position: str = "last-child",
+) -> str:
+    resp = request(
+        "POST",
+        f"/pages/{page_id}/move/",
+        json_body={"target": target, "position": position},
+        headers={"If-Match": etag},
+    )
+    envelope = _write_error_envelope(resp)
+    if envelope is not None:
+        return envelope
+    data = resp.json()
+    data["_etag"] = resp.headers.get("ETag", "")
+    return json.dumps(data, indent=2)
+
+
+@mcp_server.tool(
     name="phoxtail_pages_delete_page",
     description=(
         "Permanently delete a page. Requires the ETag from a prior "

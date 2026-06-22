@@ -309,6 +309,50 @@ def contribution_as_dict(contrib: PageSchemaContribution) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Move validation — decomposes can_move_to() into distinct 400 reasons
+# ---------------------------------------------------------------------------
+
+
+def _check_move_constraints(specific_page, parent_after) -> None:
+    """Raise HttpError(400) with an accurate reason if the move is forbidden.
+
+    Mirrors the three rejection branches inside Page.can_move_to() so each
+    failure produces a distinct, actionable message rather than the generic
+    "cannot be placed under" line that can_move_to()'s boolean return hides.
+    """
+    from ninja.errors import HttpError
+
+    # 1. Locale-section mismatch (non-root parents must share the locale).
+    parent_is_root = parent_after.depth == 1
+    if not parent_is_root and getattr(parent_after, "locale_id", None) != getattr(specific_page, "locale_id", None):
+        page_locale = getattr(getattr(specific_page, "locale", None), "language_code", "?")
+        parent_locale = getattr(getattr(parent_after, "locale", None), "language_code", "?")
+        raise HttpError(
+            400,
+            f"Cannot move across language sections: page is '{page_locale}', target parent is '{parent_locale}'.",
+        )
+
+    # 2. parent_page_types / subpage_types violation.
+    if not specific_page.can_exist_under(parent_after):
+        page_type = f"{specific_page._meta.app_label}.{specific_page.__class__.__name__}"
+        parent_type = f"{parent_after.specific_class._meta.app_label}.{parent_after.specific_class.__name__}"
+        allowed = [f"{m._meta.app_label}.{m.__name__}" for m in specific_page.__class__.allowed_parent_page_models()]
+        hint = f" Allowed parent types: {', '.join(allowed)}." if allowed else ""
+        raise HttpError(400, f"'{page_type}' cannot be placed under '{parent_type}'.{hint}")
+
+    # 3. max_count_per_parent exceeded at the destination.
+    max_cpp = getattr(specific_page, "max_count_per_parent", None)
+    if max_cpp is not None:
+        existing = parent_after.get_children().type(specific_page.__class__).not_page(specific_page).count()
+        if existing >= max_cpp:
+            page_type = f"{specific_page._meta.app_label}.{specific_page.__class__.__name__}"
+            raise HttpError(
+                400,
+                f"Target already contains the maximum number of '{page_type}' pages ({max_cpp} allowed).",
+            )
+
+
+# ---------------------------------------------------------------------------
 # Small utility: parse ?type=phoxtail_blog.BlogPostPage filter
 # ---------------------------------------------------------------------------
 

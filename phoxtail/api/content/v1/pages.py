@@ -8,6 +8,7 @@ Endpoints:
 - ``DELETE /{page_id}/``          — delete (rejected if has children unless ?force=true)
 - ``POST   /{page_id}/publish/``  — publish the latest draft revision
 - ``POST   /{page_id}/unpublish/``— take the page offline
+- ``POST   /{page_id}/move/``     — move page to a new position in the tree
 
 Per-page-type scalar fields are applied via
 ``PageSchemaContribution.apply_patch``. The core endpoint only knows
@@ -23,6 +24,7 @@ from ninja.errors import HttpError
 from wagtail.models import Page
 
 from phoxtail.api.content.v1._helpers import (
+    _check_move_constraints,
     apply_common_patch,
     apply_contributed_patch,
     filter_by_content_type,
@@ -43,6 +45,7 @@ from phoxtail.api.content.v1.schemas import (
     PageCreate,
     PageDetail,
     PageList,
+    PageMove,
     PagePatch,
 )
 
@@ -369,6 +372,59 @@ def copy_page_for_translation(
     fresh = resolve_page(translated_page.pk)
     response["ETag"] = page_etag(fresh)
     return 201, serialize_page_detail(fresh)
+
+
+@router.post(
+    "/{page_id}/move/",
+    response={200: PageDetail, 400: Error, 403: Error, 404: Error, 412: Error, 428: Error},
+    summary="Move a page to a new position in the tree",
+)
+def move_page(
+    request: HttpRequest,
+    response: HttpResponse,
+    page_id: int,
+    payload: PageMove,
+):
+    from treebeard.exceptions import InvalidMoveToDescendant
+    from wagtail.actions.move_page import MovePageAction, MovePagePermissionError
+
+    page = resolve_page(page_id)
+    require_if_match(request, page)
+
+    if payload.target == page_id:
+        raise HttpError(400, "A page cannot be moved relative to itself.")
+
+    try:
+        target = Page.objects.get(pk=payload.target)
+    except Page.DoesNotExist as exc:
+        raise HttpError(404, f"Target page {payload.target} not found.") from exc
+
+    if target.is_root():
+        raise HttpError(400, "Cannot move a page onto the Wagtail root node.")
+
+    # Determine parent_after so we can validate type constraints before
+    # handing off to MovePageAction (which conflates type violations and
+    # permission errors into a single MovePagePermissionError/403).
+    child_positions = {"first-child", "last-child", "sorted-child"}
+    parent_after = target if payload.position in child_positions else target.get_parent()
+
+    _check_move_constraints(page.specific, parent_after)
+
+    action = MovePageAction(page=page.specific, target=target, pos=payload.position, user=request.auth)
+    try:
+        with transaction.atomic():
+            action.execute()
+    except MovePagePermissionError as exc:
+        raise HttpError(403, str(exc)) from exc
+    except InvalidMoveToDescendant:
+        raise HttpError(400, "Cannot move a page under itself or one of its descendants.")
+
+    # Re-fetch from the live row — MovePageAction rewrites url_path on the
+    # live row but does not create a revision, so resolve_page_for_read
+    # would return a stale pre-move URL from the revision snapshot.
+    fresh = resolve_page(page_id)
+    response["ETag"] = page_etag(fresh)
+    return serialize_page_detail(fresh)
 
 
 @router.delete(
