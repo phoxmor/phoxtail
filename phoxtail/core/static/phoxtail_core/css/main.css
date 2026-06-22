@@ -216,6 +216,6 @@ body {
     }
 
     body {
-        background-color: rgb(var(--color-surface-900));
+        background-color: rgb(var(--color-surface-950));
     }
 }
