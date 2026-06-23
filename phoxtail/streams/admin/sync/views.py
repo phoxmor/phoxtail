@@ -18,6 +18,7 @@ from django.urls import reverse
 
 from phoxtail.api.streams.v1._helpers import (
     canonical_content_parts,
+    schema_fingerprint,
     variant_content_hash,
 )
 from phoxtail.core.utils import page_range_entries
@@ -75,8 +76,10 @@ def _mode_field(mode: str):
     return form["sync_toggle"]
 
 
-def _variant_differs(local_v, remote_variant_data: dict) -> bool:
+def _variant_differs(local_v, remote_variant_data: dict, remote_block_data: dict) -> bool:
     """Binary content diff between a local variant and a remote pull-envelope dict."""
+    local_schema_json = schema_fingerprint(local_v.block.schema.get_prep_value())
+    remote_schema_json = schema_fingerprint(remote_block_data.get("schema_json") or [])
     local_parts = canonical_content_parts(
         local_v.name,
         local_v.description,
@@ -84,6 +87,7 @@ def _variant_differs(local_v, remote_variant_data: dict) -> bool:
         local_v.html,
         local_v.css,
         local_v.javascript,
+        local_schema_json,
     )
     remote_parts = canonical_content_parts(
         remote_variant_data.get("name") or "",
@@ -92,6 +96,7 @@ def _variant_differs(local_v, remote_variant_data: dict) -> bool:
         remote_variant_data.get("html") or "",
         remote_variant_data.get("css") or "",
         remote_variant_data.get("js") or "",
+        remote_schema_json,
     )
     return local_parts != remote_parts
 
@@ -560,8 +565,10 @@ def admin_sync_variant_detail(request):
                     follow_redirects=True,
                 )
                 if pull_resp.is_success:
-                    remote_variant_data = pull_resp.json().get("install", {}).get("variant") or {}
-                    sync_state = "differs" if _variant_differs(v, remote_variant_data) else "in_sync"
+                    remote_install = pull_resp.json().get("install") or {}
+                    remote_variant_data = remote_install.get("variant") or {}
+                    remote_block_data = remote_install.get("block") or {}
+                    sync_state = "differs" if _variant_differs(v, remote_variant_data, remote_block_data) else "in_sync"
                 else:
                     sync_state = "unknown"
         except Exception:
@@ -637,7 +644,7 @@ def admin_sync_variant_detail(request):
         local_variant_id = None
     else:
         local_variant_id = local_v.pk
-        sync_state = "differs" if _variant_differs(local_v, variant_data) else "in_sync"
+        sync_state = "differs" if _variant_differs(local_v, variant_data, block_data) else "in_sync"
 
     return render(
         request,

@@ -83,6 +83,8 @@ def build_variant_envelope(v: BlockVariant) -> dict:
             "name": b.name,
             "identifier": b.identifier,
             "description": b.description,
+            "icon": b.icon,
+            "group": b.group,
             "is_shared": b.is_shared,
             "source_app": b.source_app,
             "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
@@ -201,6 +203,25 @@ def block_detail(b: Block) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def _strip_schema_ids(value):
+    """Recursively remove auto-generated 'id' keys from StreamField prep-value structures.
+
+    StreamField assigns a random UUID to every block item at save time. Stripping
+    them lets us compare schema *structure* across independently-populated projects
+    without false "differs" from UUID mismatches.
+    """
+    if isinstance(value, list):
+        return [_strip_schema_ids(item) for item in value]
+    if isinstance(value, dict):
+        return {k: _strip_schema_ids(v) for k, v in value.items() if k != "id"}
+    return value
+
+
+def schema_fingerprint(schema_prep_value) -> str:
+    """Stable cross-server structural fingerprint for a block schema."""
+    return json.dumps(_strip_schema_ids(schema_prep_value), sort_keys=True)
+
+
 def canonical_content_parts(
     name: str,
     description: str,
@@ -208,6 +229,7 @@ def canonical_content_parts(
     html: str,
     css: str,
     javascript: str,
+    block_schema_json: str = "",
 ) -> tuple[str, ...]:
     """Single definition of what constitutes variant content for sync comparison.
 
@@ -222,13 +244,17 @@ def canonical_content_parts(
         html or "",
         css or "",
         javascript or "",
+        block_schema_json or "",
     )
 
 
 def variant_content_hash(v: BlockVariant) -> str:
     """Compact cross-server fingerprint for sync state detection on list cards."""
     h = hashlib.sha256()
-    for part in canonical_content_parts(v.name, v.description, v.is_default, v.html, v.css, v.javascript):
+    block_schema_json = schema_fingerprint(v.block.schema.get_prep_value())
+    for part in canonical_content_parts(
+        v.name, v.description, v.is_default, v.html, v.css, v.javascript, block_schema_json
+    ):
         h.update(part.encode("utf-8"))
         h.update(b"\x00")
     return h.hexdigest()[:32]

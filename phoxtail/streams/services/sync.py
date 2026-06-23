@@ -77,11 +77,13 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
                 defaults={"name": collection_data.get("name", collection_data["identifier"])},
             )
 
-        block, block_created = Block.objects.get_or_create(
+        block, block_created = Block.objects.update_or_create(
             identifier=block_data["identifier"],
             defaults={
                 "name": block_data["name"],
                 "description": block_data.get("description", ""),
+                "icon": block_data.get("icon", ""),
+                "group": block_data.get("group", ""),
                 "is_shared": block_data.get("is_shared", False),
                 "source_app": block_data.get("source_app", ""),
                 "schema": block_data.get("schema_json") or [],
