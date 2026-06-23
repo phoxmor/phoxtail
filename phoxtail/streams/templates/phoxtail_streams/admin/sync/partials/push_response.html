@@ -2,6 +2,7 @@
     <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
 {% endif %}
 {% if success %}
+    <span id="sync-badge-{{ card_variant_id }}" class="ss-card__synced-badge ss-card__synced-badge--synced" hx-swap-oob="true">Synced</span>
     {% if variant_name %}<h3 id="sync-card-title-{{ card_variant_id }}" class="ss-card__title" hx-swap-oob="true">{{ variant_name }}</h3>{% endif %}
     <div id="variant-sync-footer" class="ss-drawer__footer" hx-swap-oob="true">
         <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>

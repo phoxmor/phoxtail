@@ -113,6 +113,7 @@ def variant_summary(v: BlockVariant) -> dict:
         "name": v.name,
         "description": v.description,
         "is_default": v.is_default,
+        "content_hash": variant_content_hash(v),
         "block": {
             "id": v.block.id,
             "identifier": v.block.identifier,
@@ -198,6 +199,39 @@ def block_detail(b: Block) -> dict:
 # ---------------------------------------------------------------------------
 # ETags
 # ---------------------------------------------------------------------------
+
+
+def canonical_content_parts(
+    name: str,
+    description: str,
+    is_default: bool,
+    html: str,
+    css: str,
+    javascript: str,
+) -> tuple[str, ...]:
+    """Single definition of what constitutes variant content for sync comparison.
+
+    Both variant_content_hash and _variant_differs in the sync views build from
+    this so adding a field is a one-line change in one place.
+    Normalization: None → "".
+    """
+    return (
+        name or "",
+        description or "",
+        str(is_default),
+        html or "",
+        css or "",
+        javascript or "",
+    )
+
+
+def variant_content_hash(v: BlockVariant) -> str:
+    """Compact cross-server fingerprint for sync state detection on list cards."""
+    h = hashlib.sha256()
+    for part in canonical_content_parts(v.name, v.description, v.is_default, v.html, v.css, v.javascript):
+        h.update(part.encode("utf-8"))
+        h.update(b"\x00")
+    return h.hexdigest()[:32]
 
 
 def variant_etag(v: BlockVariant) -> str:

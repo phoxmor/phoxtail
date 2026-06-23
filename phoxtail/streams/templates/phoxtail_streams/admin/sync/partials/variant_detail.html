@@ -145,8 +145,8 @@
                         <input type="hidden" name="mode" value="{{ mode }}">
                         <button type="submit"
                                 id="streams-push-btn"
-                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                {% if sync_state == 'in_sync' %}disabled{% endif %}>
+                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' or sync_state == 'unknown' %} ss-btn--muted{% endif %}"
+                                {% if sync_state == 'in_sync' or sync_state == 'unknown' %}disabled{% endif %}>
                             <span class="ss-btn__idle">Push</span>
                             <span class="ss-btn__connecting"><span class="ss-btn-spinner"></span><span>Pushing…</span></span>
                         </button>

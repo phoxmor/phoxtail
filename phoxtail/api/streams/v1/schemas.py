@@ -54,6 +54,7 @@ class VariantSummary(Schema):
     preview_tablet_dark_url: str = ""
     preview_mobile_light_url: str = ""
     preview_mobile_dark_url: str = ""
+    content_hash: str = ""
 
 
 class Variant(VariantSummary):

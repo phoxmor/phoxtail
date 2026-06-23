@@ -1,4 +1,5 @@
 {% url 'streams-sync:variant_detail' as variant_detail_url %}
+{% if remote_warning %}<div class="ss-remote-warning">{{ remote_warning }}</div>{% endif %}
 {% if error %}
     <div class="ss-error-banner">{{ error }}</div>
 {% elif not items %}
@@ -11,6 +12,10 @@
         {% for item in items %}
             <div class="ss-card">
                 <div class="ss-card__preview">
+                    {% if item.sync_state == 'differs' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--unsynced">Unsynced</span>
+                    {% elif item.sync_state == 'not_local' or item.sync_state == 'not_remote' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--new">New</span>
+                    {% elif item.sync_state == 'in_sync' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--synced">Synced</span>
+                    {% else %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge"></span>{% endif %}
                     {% if item.preview_desktop_light_url or item.preview_desktop_dark_url %}
                         <picture>
                             {% if item.preview_desktop_dark_url %}
@@ -43,7 +48,6 @@
                         {% endif %}
                         <h3 id="sync-card-title-{{ item.id }}" class="ss-card__title">{{ item.title }}</h3>
                     </div>
-                    <span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge">{% if item.installed %}Installed{% endif %}</span>
                 </div>
                 <button class="ss-card__open-btn"
                         type="button"

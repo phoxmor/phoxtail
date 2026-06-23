@@ -16,6 +16,10 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
+from phoxtail.api.streams.v1._helpers import (
+    canonical_content_parts,
+    variant_content_hash,
+)
 from phoxtail.core.utils import page_range_entries
 from phoxtail.remotes.models import Remote
 from phoxtail.remotes.permissions import remotes_permission_required
@@ -72,18 +76,24 @@ def _mode_field(mode: str):
 
 
 def _variant_differs(local_v, remote_variant_data: dict) -> bool:
-    """Binary content diff between a local variant and a remote data dict.
-
-    remote_variant_data must use the pull envelope format ('js' key for javascript).
-    """
-    return (
-        (local_v.html or "") != (remote_variant_data.get("html") or "")
-        or (local_v.css or "") != (remote_variant_data.get("css") or "")
-        or (local_v.javascript or "") != (remote_variant_data.get("js") or "")
-        or (local_v.description or "") != (remote_variant_data.get("description") or "")
-        or local_v.name != (remote_variant_data.get("name") or "")
-        or local_v.is_default != bool(remote_variant_data.get("is_default", False))
+    """Binary content diff between a local variant and a remote pull-envelope dict."""
+    local_parts = canonical_content_parts(
+        local_v.name,
+        local_v.description,
+        local_v.is_default,
+        local_v.html,
+        local_v.css,
+        local_v.javascript,
     )
+    remote_parts = canonical_content_parts(
+        remote_variant_data.get("name") or "",
+        remote_variant_data.get("description") or "",
+        bool(remote_variant_data.get("is_default", False)),
+        remote_variant_data.get("html") or "",
+        remote_variant_data.get("css") or "",
+        remote_variant_data.get("js") or "",
+    )
+    return local_parts != remote_parts
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -193,17 +203,58 @@ def admin_sync_streams(request):
         ).all()
         if q:
             qs = get_search_backend().autocomplete(q, qs)
-        all_items = [
-            {
-                "id": v.id,
-                "title": v.name,
-                "block_name": v.block.name,
-                "installed": False,
-                "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
-                "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
-            }
-            for v in qs
-        ]
+
+        # When a remote is selected, fetch its variant list once to build a
+        # hash map for card-level sync state — zero per-card calls.
+        remote_hash_map: dict = {}
+        remote_error = None
+        if remote_id:
+            try:
+                remote = get_object_or_404(Remote, pk=remote_id)
+                rresp = httpx.get(
+                    f"{remote.base_url}/api/streams/v1/variants/",
+                    headers={"Authorization": f"Bearer {remote.token}"},
+                    timeout=15,
+                    follow_redirects=True,
+                )
+                if rresp.is_success:
+                    for rv in rresp.json().get("variants", []):
+                        rb = rv["block"]
+                        rc = rv.get("collection") or {}
+                        rkey = (rb["identifier"], rc.get("identifier"), rv["identifier"])
+                        remote_hash_map[rkey] = rv.get("content_hash") or ""
+                else:
+                    remote_error = "Could not reach remote — sync states unavailable."
+            except Exception:
+                remote_error = "Could not reach remote — sync states unavailable."
+
+        all_items = []
+        for v in qs:
+            key = (v.block.identifier, v.collection.identifier if v.collection_id else None, v.identifier)
+            if not remote_id or remote_error:
+                sync_state = None
+            else:
+                remote_hash = remote_hash_map.get(key)
+                local_hash = variant_content_hash(v)
+                if key not in remote_hash_map:
+                    sync_state = "not_remote"
+                elif remote_hash and local_hash == remote_hash:
+                    sync_state = "in_sync"
+                elif remote_hash:
+                    sync_state = "differs"
+                else:
+                    sync_state = None
+            all_items.append(
+                {
+                    "id": v.id,
+                    "title": v.name,
+                    "block_name": v.block.name,
+                    "sync_state": sync_state,
+                    "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
+                    "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
+                }
+            )
+
         total = len(all_items)
         items = all_items[offset : offset + limit]
         return render(
@@ -217,7 +268,7 @@ def admin_sync_streams(request):
                 "remote_id": remote_id or "",
                 "q": q,
                 "mode": "local",
-                "error": None,
+                "remote_warning": remote_error,
                 "paginator_ctx": _build_streams_paginator_ctx(offset, limit, total, remote_id or "", q, mode="local"),
             },
         )
@@ -255,7 +306,12 @@ def admin_sync_streams(request):
 
     data = resp.json()
     local_app_labels = {ac.label for ac in django_apps.get_app_configs()}
-    installed = set(BlockVariant.objects.values_list("block__identifier", "collection__identifier", "identifier"))
+    local_hash_map = {
+        (v.block.identifier, v.collection.identifier if v.collection_id else None, v.identifier): variant_content_hash(
+            v
+        )
+        for v in BlockVariant.objects.select_related("block", "collection").all()
+    }
     all_items = []
     for v in data.get("variants", []):
         block = v["block"]
@@ -267,12 +323,22 @@ def admin_sync_streams(request):
             continue
         coll = v.get("collection") or {}
         key = (block["identifier"], coll.get("identifier"), v["identifier"])
+        local_hash = local_hash_map.get(key)
+        remote_hash = v.get("content_hash")
+        if local_hash is None:
+            sync_state = "not_local"
+        elif remote_hash and local_hash == remote_hash:
+            sync_state = "in_sync"
+        elif remote_hash:
+            sync_state = "differs"
+        else:
+            sync_state = None
         all_items.append(
             {
                 "id": v["id"],
                 "title": v["name"],
                 "block_name": block["name"],
-                "installed": key in installed,
+                "sync_state": sync_state,
                 "preview_desktop_light_url": v.get("preview_desktop_light_url") or "",
                 "preview_desktop_dark_url": v.get("preview_desktop_dark_url") or "",
             }
@@ -483,8 +549,10 @@ def admin_sync_variant_detail(request):
                     if rv["identifier"] == v.identifier:
                         remote_variant_id = rv["id"]
                         break
+            else:
+                sync_state = "unknown"
 
-            if remote_variant_id is not None:
+            if remote_variant_id is not None and sync_state != "unknown":
                 pull_resp = httpx.get(
                     f"{remote.base_url}/api/streams/v1/variants/{remote_variant_id}/pull/",
                     headers={"Authorization": f"Bearer {remote.token}"},
@@ -494,6 +562,8 @@ def admin_sync_variant_detail(request):
                 if pull_resp.is_success:
                     remote_variant_data = pull_resp.json().get("install", {}).get("variant") or {}
                     sync_state = "differs" if _variant_differs(v, remote_variant_data) else "in_sync"
+                else:
+                    sync_state = "unknown"
         except Exception:
             sync_state = "unknown"
             remote_variant_id = None

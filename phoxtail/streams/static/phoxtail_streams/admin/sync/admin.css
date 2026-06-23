@@ -691,20 +691,35 @@
 }
 
 .ss-card__synced-badge {
-    flex-shrink: 0;
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+    z-index: 11;
     padding: 0.125rem 0.625rem;
     border-radius: 9999px;
-    background: rgb(var(--color-primary-50));
-    border: 1px solid rgb(var(--color-primary-200));
+    background: rgb(var(--color-surface-50) / 0.9);
+    border: 1px solid rgb(var(--color-surface-300));
     font-size: 0.6875rem;
     font-weight: 600;
-    color: rgb(var(--color-primary-600));
+    color: rgb(var(--color-surface-600));
     pointer-events: none;
     white-space: nowrap;
+    backdrop-filter: blur(4px);
 }
 
-.ss-card__synced-badge:empty {
-    display: none;
+.ss-card__synced-badge:empty { display: none; }
+
+.ss-card__synced-badge--new,
+.ss-card__synced-badge--synced {
+    background: rgb(var(--color-primary-50) / 0.95);
+    border-color: rgb(var(--color-primary-200));
+    color: rgb(var(--color-primary-700));
+}
+
+.ss-card__synced-badge--unsynced {
+    background: rgb(255 251 235 / 0.95);
+    border-color: rgb(253 230 138);
+    color: rgb(161 98 7);
 }
 
 .ss-card__preview {
@@ -1184,6 +1199,16 @@
     background: rgb(254 242 242);
     color: rgb(153 27 27);
     font-size: 0.875rem;
+}
+
+.ss-remote-warning {
+    padding: 0.625rem 1rem;
+    border: 1px solid rgb(253 230 138);
+    border-radius: 0.5rem;
+    background: rgb(255 251 235);
+    color: rgb(161 98 7);
+    font-size: 0.8125rem;
+    margin-bottom: 0.75rem;
 }
 
 /* ── Remote cards (Settings list) ── */
@@ -1938,9 +1963,22 @@
     }
 
     .ss-card__synced-badge {
+        background: rgb(var(--color-surface-800) / 0.85);
+        border-color: rgb(var(--color-surface-600));
+        color: rgb(var(--color-surface-300));
+    }
+
+    .ss-card__synced-badge--new,
+    .ss-card__synced-badge--synced {
         background: rgb(var(--color-primary-900) / 0.4);
         border-color: rgb(var(--color-primary-700));
         color: rgb(var(--color-primary-300));
+    }
+
+    .ss-card__synced-badge--unsynced {
+        background: rgb(161 98 7 / 0.2);
+        border-color: rgb(161 98 7 / 0.5);
+        color: rgb(253 211 77 / 0.95);
     }
 
     .ss-tag {
@@ -2034,6 +2072,12 @@
         background: rgb(var(--color-destructive-900) / 0.4);
         border-color: rgb(var(--color-destructive-700));
         color: rgb(248 113 113);
+    }
+
+    .ss-remote-warning {
+        background: rgb(161 98 7 / 0.15);
+        border-color: rgb(161 98 7 / 0.4);
+        color: rgb(253 211 77 / 0.9);
     }
 
     /* ── Page header ── */
