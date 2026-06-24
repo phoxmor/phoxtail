@@ -17,8 +17,16 @@ from __future__ import annotations
 import importlib
 import sys
 from importlib.metadata import entry_points
+from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
+
+# In dev mode the project root is bind-mounted read-write at /app, so mkdir
+# here propagates to the host. Guard with is_dir() so this is a no-op on the
+# host (local imports, tests) where /app doesn't exist.
+_container_root = Path("/app")
+if _container_root.is_dir():
+    (_container_root / ".phoxtail" / "mcp" / "uploads").mkdir(parents=True, exist_ok=True)
 
 mcp_server = FastMCP(
     "phoxtail",

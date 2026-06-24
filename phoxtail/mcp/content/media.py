@@ -3,12 +3,36 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from mcp.server.fastmcp import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.content._http import request
 from phoxtail.mcp.content.pages import _write_error_envelope
+
+# The MCP server runs inside the Docker container (WORKDIR /app), but agents
+# run on the host. In dev mode the project root is bind-mounted at /app, so a
+# path relative to the project root resolves identically on both sides.
+# Agents should stage upload files under .phoxtail/mcp/uploads/ and pass the
+# relative path; this helper falls back to /app/<path> when the literal path
+# doesn't exist (i.e. the agent passed a host-relative path from inside the container).
+_CONTAINER_ROOT = Path("/app")
+
+
+_UPLOAD_HINT = "Stage the file under .phoxtail/mcp/uploads/ and pass the relative path."
+
+
+def _resolve_upload_path(file_path: str) -> Path:
+    p = Path(file_path)
+    if p.exists():
+        return p
+    # Try resolving as a path relative to the container project root.
+    candidate = _CONTAINER_ROOT / p
+    if candidate.exists():
+        return candidate
+    return p  # let the caller produce the "not found" error
+
 
 # ---------------------------------------------------------------------------
 # Images
@@ -53,6 +77,9 @@ def list_images(
     name="phoxtail_images_upload",
     description=(
         "Upload a new image to the media library from a local file path. "
+        "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
+        "first copy it into the project's .phoxtail/mcp/uploads/ directory, then pass "
+        "the relative path, e.g. '.phoxtail/mcp/uploads/photo.jpg'. "
         "collection_id: optional collection to place the image in "
         "(use phoxtail_collections_list to find ids). "
         "Returns {id, title, description, collection_id, file_url} "
@@ -61,16 +88,15 @@ def list_images(
 )
 def upload_image(file_path: str, title: str, collection_id: int | None = None) -> str:
     import mimetypes
-    from pathlib import Path
 
     import httpx
 
     from phoxtail.cli.utils.credentials import resolve_token
     from phoxtail.mcp._http import api_base_url, url
 
-    path = Path(file_path)
+    path = _resolve_upload_path(file_path)
     if not path.exists():
-        return json.dumps({"error": f"File not found: {file_path}"})
+        return json.dumps({"error": f"File not found: {file_path}. {_UPLOAD_HINT}"})
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
@@ -246,6 +272,9 @@ def get_document(document_id: int) -> str:
     name="phoxtail_documents_upload",
     description=(
         "Upload a new document to the media library from a local file path. "
+        "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
+        "first copy it into the project's .phoxtail/mcp/uploads/ directory, then pass "
+        "the relative path, e.g. '.phoxtail/mcp/uploads/report.pdf'. "
         "description: optional free-text description of the document. "
         "collection_id: optional collection to place the document in. "
         "Returns {id, title, description, filename, file_extension, "
@@ -259,16 +288,15 @@ def upload_document(
     collection_id: int | None = None,
 ) -> str:
     import mimetypes
-    from pathlib import Path
 
     import httpx
 
     from phoxtail.cli.utils.credentials import resolve_token
     from phoxtail.mcp._http import api_base_url, url
 
-    path = Path(file_path)
+    path = _resolve_upload_path(file_path)
     if not path.exists():
-        return json.dumps({"error": f"File not found: {file_path}"})
+        return json.dumps({"error": f"File not found: {file_path}. {_UPLOAD_HINT}"})
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
@@ -399,6 +427,9 @@ def get_video(video_id: int) -> str:
     name="phoxtail_videos_upload",
     description=(
         "Upload a new video to the media library from a local file path. "
+        "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
+        "first copy it into the project's .phoxtail/mcp/uploads/ directory, then pass "
+        "the relative path, e.g. '.phoxtail/mcp/uploads/clip.mp4'. "
         "`duration` is in seconds (float). `width` and `height` are pixel dimensions "
         "and are optional but recommended. "
         "Returns {id, title, duration, width, height, file_url} of the created video."
@@ -414,16 +445,15 @@ def upload_video(
     collection_id: int | None = None,
 ) -> str:
     import mimetypes
-    from pathlib import Path
 
     import httpx
 
     from phoxtail.cli.utils.credentials import resolve_token
     from phoxtail.mcp._http import api_base_url, url
 
-    path = Path(file_path)
+    path = _resolve_upload_path(file_path)
     if not path.exists():
-        return json.dumps({"error": f"File not found: {file_path}"})
+        return json.dumps({"error": f"File not found: {file_path}. {_UPLOAD_HINT}"})
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
@@ -564,6 +594,9 @@ def get_audio(audio_id: int) -> str:
     name="phoxtail_audio_upload",
     description=(
         "Upload a new audio file to the media library from a local file path. "
+        "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
+        "first copy it into the project's .phoxtail/mcp/uploads/ directory, then pass "
+        "the relative path, e.g. '.phoxtail/mcp/uploads/track.mp3'. "
         "`duration` is in seconds (float). "
         "Returns {id, title, duration, file_url} of the created audio file."
     ),
@@ -576,16 +609,15 @@ def upload_audio(
     collection_id: int | None = None,
 ) -> str:
     import mimetypes
-    from pathlib import Path
 
     import httpx
 
     from phoxtail.cli.utils.credentials import resolve_token
     from phoxtail.mcp._http import api_base_url, url
 
-    path = Path(file_path)
+    path = _resolve_upload_path(file_path)
     if not path.exists():
-        return json.dumps({"error": f"File not found: {file_path}"})
+        return json.dumps({"error": f"File not found: {file_path}. {_UPLOAD_HINT}"})
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
