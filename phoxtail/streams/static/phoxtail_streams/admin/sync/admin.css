@@ -709,11 +709,16 @@
 
 .ss-card__synced-badge:empty { display: none; }
 
-.ss-card__synced-badge--new,
-.ss-card__synced-badge--synced {
+.ss-card__synced-badge--new {
     background: rgb(var(--color-primary-50) / 0.95);
     border-color: rgb(var(--color-primary-200));
     color: rgb(var(--color-primary-700));
+}
+
+.ss-card__synced-badge--synced {
+    background: rgb(var(--color-surface-100) / 0.95);
+    border-color: rgb(var(--color-surface-300));
+    color: rgb(var(--color-surface-700));
 }
 
 .ss-card__synced-badge--unsynced {
@@ -1968,11 +1973,16 @@
         color: rgb(var(--color-surface-300));
     }
 
-    .ss-card__synced-badge--new,
-    .ss-card__synced-badge--synced {
+    .ss-card__synced-badge--new {
         background: rgb(var(--color-primary-900) / 0.4);
         border-color: rgb(var(--color-primary-700));
         color: rgb(var(--color-primary-300));
+    }
+
+    .ss-card__synced-badge--synced {
+        background: rgb(var(--color-surface-800) / 0.7);
+        border-color: rgb(var(--color-surface-600));
+        color: rgb(var(--color-surface-300));
     }
 
     .ss-card__synced-badge--unsynced {
