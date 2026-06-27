@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
 from rich.prompt import Confirm
 
-from phoxtail.cli.server.utils import _SSH_MUX
+from phoxtail.cli.server.utils import _SSH_MUX, read_deploy_env, verify_server_identity
 from phoxtail.cli.utils.config import get_project_name, slugify
 
 app = typer.Typer()
@@ -117,6 +117,8 @@ def pull(
     Exports media from the running web container via docker compose cp,
     then rsyncs it locally. Works for both volume and bind-mount deployments.
     """
+    verify_server_identity(user, ip)
+
     local_media_dir = Path.cwd() / "media"
     local_media_dir.mkdir(parents=True, exist_ok=True)
 
@@ -208,13 +210,17 @@ def push(
     it into the running web container via docker compose cp. Works for
     both volume and bind-mount deployments.
     """
+    verify_server_identity(user, ip)
+
     local_media_dir = Path.cwd() / "media"
     if not local_media_dir.exists() or not any(local_media_dir.iterdir()):
         console.print("[yellow]No local media files found.[/yellow]")
         raise typer.Exit(0)
 
+    domain = read_deploy_env("DOMAIN")
     if not dry_run and not Confirm.ask(
-        "This will overwrite media on the server with your local files. Continue?",
+        f"This will overwrite [bold]{get_project_name()}[/bold] media on "
+        f"[bold]{ip}[/bold]{f' ({domain})' if domain else ''}. Continue?",
         default=False,
     ):
         raise typer.Exit(0)

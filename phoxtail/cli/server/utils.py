@@ -4,7 +4,11 @@ import subprocess
 import time
 from pathlib import Path
 
+import typer
+from rich.console import Console
+
 from phoxtail.cli.server.providers.base import SSHKey
+from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.templates import render_template
 
 # ------------------------------------------------------------------
@@ -46,6 +50,61 @@ def read_deploy_env(key: str) -> str | None:
         if line.startswith(f"{key}="):
             return line[len(key) + 1 :].strip()
     return None
+
+
+_SERVER_SENTINEL = "~/.phoxtail-project"
+
+
+def verify_server_identity(
+    user: str,
+    ip: str,
+    *,
+    write_sentinel: bool = False,
+    console: Console | None = None,
+) -> None:
+    """Abort if the target server doesn't match this project's recorded identity.
+
+    Guard 1 (local): reads SERVER_IP from .phoxtail/deploy/.env — fails if
+    absent or mismatched (requires no SSH).
+    Guard 2 (server): reads ~/.phoxtail-project on the remote — fails if the
+    sentinel records a different project slug. Writes the sentinel on first
+    deploy when write_sentinel=True.
+    """
+    _con = console or Console()
+
+    # Guard 1 — local pre-flight (no SSH needed)
+    if _DEPLOY_ENV.exists():
+        recorded_ip = read_deploy_env("SERVER_IP")
+        if recorded_ip is None:
+            _con.print(
+                "[red]Error:[/red] SERVER_IP is missing from .phoxtail/deploy/.env\n"
+                f"  Add [bold]SERVER_IP={ip}[/bold] to that file and re-run."
+            )
+            raise typer.Exit(1)
+        if recorded_ip != ip:
+            _con.print(
+                f"[red]IP mismatch:[/red] This project is configured for "
+                f"[bold]{recorded_ip}[/bold] but you passed [bold]{ip}[/bold].\n"
+                "  Check the IP or delete .phoxtail/deploy/.env to reconfigure for a new server."
+            )
+            raise typer.Exit(1)
+
+    # Guard 2 — server-side sentinel (keyed on project slug, not IP)
+    local_slug = slugify(get_project_name())
+    result = ssh_run(user, ip, f"cat {_SERVER_SENTINEL} 2>/dev/null")
+    sentinel_slug = result.stdout.strip()
+
+    if sentinel_slug and sentinel_slug != local_slug:
+        _con.print(
+            f"[red]Server identity mismatch:[/red] Server at [bold]{ip}[/bold] "
+            f"belongs to project [bold]{sentinel_slug}[/bold], "
+            f"not [bold]{local_slug}[/bold].\n"
+            "  You may be targeting the wrong server."
+        )
+        raise typer.Exit(1)
+
+    if write_sentinel and not sentinel_slug:
+        ssh_run(user, ip, f"printf '%s' {local_slug} > {_SERVER_SENTINEL}")
 
 
 # ------------------------------------------------------------------

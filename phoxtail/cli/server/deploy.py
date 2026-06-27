@@ -15,6 +15,7 @@ from phoxtail.cli.server.utils import (
     ssh_check,
     ssh_live,
     ssh_run,
+    verify_server_identity,
 )
 from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
 
@@ -89,6 +90,8 @@ def deploy(
                 console.print(f"[red]Cannot connect to {user}@{ip}.[/red]")
                 raise typer.Exit(1)
         console.print(f"  [green]✓[/green] Connected to {user}@{ip}")
+
+        verify_server_identity(user, ip, write_sentinel=True, console=console)
 
         # ------------------------------------------------------------------
         # 2. Docker check — only prerequisite on the server
@@ -192,7 +195,21 @@ def deploy(
             console.print("  [green]✓[/green] GHCR login successful")
 
         # ------------------------------------------------------------------
-        # 7. Pull image and start containers (always runs)
+        # 7. Confirm before deploying
+        # ------------------------------------------------------------------
+        domain = read_deploy_env("DOMAIN")
+        console.print(
+            f"\n  [dim]Project:[/dim]  {get_project_name()}\n"
+            f"  [dim]Server:[/dim]   {ip}\n"
+            f"  [dim]Domain:[/dim]   {domain or 'not configured'}"
+        )
+        confirmed = questionary.confirm("Deploy?", default=False).ask()
+        if not confirmed:
+            console.print("[dim]Cancelled.[/dim]")
+            raise typer.Exit(0)
+
+        # ------------------------------------------------------------------
+        # 8. Pull image and start containers (always runs)
         # ------------------------------------------------------------------
         console.print("\n  [bold cyan]→[/bold cyan] Pulling image and starting containers")
         rc = ssh_live(
@@ -208,7 +225,6 @@ def deploy(
         # ------------------------------------------------------------------
         # Done
         # ------------------------------------------------------------------
-        domain = read_deploy_env("DOMAIN")
         ssl_active = bool(
             domain
             and ssh_check(

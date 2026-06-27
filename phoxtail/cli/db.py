@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm
 
-from phoxtail.cli.server.utils import _SCP_OPTS, _SSH_MUX, read_deploy_env
+from phoxtail.cli.server.utils import _SCP_OPTS, _SSH_MUX, read_deploy_env, verify_server_identity
 from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.docker import docker_db, docker_env, docker_manage
 from phoxtail.cli.utils.env import read_env_value
@@ -40,11 +40,14 @@ def pull(
     local_dump_path = backups_dir / DUMP_FILENAME
     local_domain = read_env_value("DOMAIN") or "localhost"
 
+    verify_server_identity(user, ip)
+
     remote_host = f"{user}@{ip}"
     project_dir = f"~/{slugify(get_project_name())}"
 
     if not Confirm.ask(
-        f"This will replace the local database with the one from [bold]{ip}[/bold]. Continue?",
+        f"This will replace the local [bold]{get_project_name()}[/bold] database "
+        f"with the one from [bold]{ip}[/bold]. Continue?",
         default=False,
     ):
         raise typer.Exit(0)
@@ -220,6 +223,8 @@ def push(
     then restores the local dump on the server. Rewrites Wagtail site
     hostnames to the production domain from .phoxtail/deploy/.env.
     """
+    verify_server_identity(user, ip)
+
     remote_domain = read_deploy_env("DOMAIN")
     if not remote_domain:
         console.print(
@@ -229,7 +234,8 @@ def push(
         raise typer.Exit(1)
 
     if not Confirm.ask(
-        f"This will REPLACE the database on [bold]{ip}[/bold] ({remote_domain}) with your local database. Continue?",
+        f"This will REPLACE the [bold]{get_project_name()}[/bold] database on "
+        f"[bold]{ip}[/bold] ({remote_domain}) with your local database. Continue?",
         default=False,
     ):
         raise typer.Exit(0)

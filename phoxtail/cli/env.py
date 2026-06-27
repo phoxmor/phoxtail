@@ -115,6 +115,7 @@ def _prompt_production_env(output_file: Path, server_ip: str | None = None) -> N
             "domain_email": domain_email,
             "allowed_hosts": allowed_hosts,
             "csrf_origins": csrf_origins,
+            "server_ip": server_ip or "",
         }
     )
 
