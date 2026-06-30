@@ -2,18 +2,22 @@
 
 import httpx
 
-from .base import Image, Location, Provider, Server, ServerSpec, ServerType, SSHKey
+from .base import Image, Location, Provider, ProviderError, Server, ServerSpec, ServerType, SSHKey
 
 BASE_URL = "https://api.hetzner.cloud/v1"
 
 
-class HetznerError(Exception):
+class HetznerError(ProviderError):
     def __init__(self, code: str, message: str) -> None:
-        self.code = code
-        super().__init__(f"Hetzner API [{code}]: {message}")
+        super().__init__(code, f"Hetzner API [{code}]: {message}")
 
 
 class HetznerProvider(Provider):
+    display_name = "Hetzner Cloud"
+    currency = "€"
+    token_env_var = "HETZNER_TOKEN"
+    architectures = ("x86", "arm")
+
     def __init__(self, token: str) -> None:
         self._client = httpx.Client(
             base_url=BASE_URL,

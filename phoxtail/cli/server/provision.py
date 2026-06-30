@@ -1,7 +1,6 @@
-"""server provision — interactively provision a new server on Hetzner Cloud."""
+"""server provision — interactively provision a new server on a cloud provider."""
 
 import os
-import re
 import time
 
 import questionary
@@ -13,14 +12,14 @@ from rich.panel import Panel
 from phoxtail.cli.server.providers.base import (
     Image,
     Location,
+    Provider,
+    ProviderError,
     ServerSpec,
     ServerType,
     SSHKey,
 )
-from phoxtail.cli.server.providers.hetzner import (
-    HetznerError,
-    HetznerProvider,
-)
+from phoxtail.cli.server.providers.hetzner import HetznerProvider
+from phoxtail.cli.server.providers.linode import LinodeProvider
 from phoxtail.cli.server.utils import (
     fmt_memory,
     fmt_price,
@@ -37,6 +36,9 @@ _ARCH_LABELS = {
     "arm": "arm64 (Ampere)   — lower cost on some types",
 }
 
+# Provider registry — order determines display order in the picker
+_PROVIDERS: list[type[Provider]] = [HetznerProvider, LinodeProvider]
+
 # OS flavours to show (in display order); others are still available but listed after
 _PREFERRED_FLAVOURS = ["ubuntu", "debian", "fedora", "centos", "rocky", "alma"]
 
@@ -48,6 +50,7 @@ _PREFERRED_FLAVOURS = ["ubuntu", "debian", "fedora", "centos", "rocky", "alma"]
 
 def _summary_panel(
     *,
+    provider_name: str | None = None,
     architecture: str | None = None,
     location: Location | None = None,
     server_type: ServerType | None = None,
@@ -55,10 +58,13 @@ def _summary_panel(
     ssh_keys: list[SSHKey] | None = None,
     name: str | None = None,
     deploy_user: str | None = None,
+    currency: str = "$",
 ) -> Panel:
     """Build a panel showing current wizard selections."""
     rows = []
 
+    if provider_name:
+        rows.append(f"  [dim]Provider:[/dim]      {provider_name}")
     if architecture:
         rows.append(f"  [dim]Architecture:[/dim]  {architecture}")
     if location:
@@ -71,7 +77,7 @@ def _summary_panel(
             f"  •  {server_type.cores} vCPU"
             f"  •  {fmt_memory(server_type.memory)}"
             f"  •  {server_type.disk} GB SSD"
-            f"  •  {fmt_price(server_type.price_monthly)}"
+            f"  •  {fmt_price(server_type.price_monthly, currency)}"
         )
     if image:
         rows.append(f"  [dim]OS image:[/dim]      {image.os_flavor} {image.os_version or ''}")
@@ -107,35 +113,42 @@ def _clear_and_show(**kwargs: object) -> None:
 # ------------------------------------------------------------------
 
 
-def _ask_architecture() -> str | None:
+def _ask_provider() -> type[Provider] | None:
+    choices = [questionary.Choice(title=cls.display_name, value=cls) for cls in _PROVIDERS]
+    return questionary.select("Cloud provider:", choices=choices).ask()
+
+
+def _ask_architecture(architectures: tuple[str, ...]) -> str | None:
+    choices = [
+        questionary.Choice(title=_ARCH_LABELS[arch], value=arch) for arch in architectures if arch in _ARCH_LABELS
+    ]
     return questionary.select(
         "Architecture:",
-        choices=[questionary.Choice(title=label, value=arch) for arch, label in _ARCH_LABELS.items()],
-        default="x86",
+        choices=choices,
+        default=architectures[0],
     ).ask()
 
 
 def _ask_location(locations: list[Location]) -> Location | None:
-    sorted_locs = sorted(
-        locations,
-        key=lambda loc: (loc.country, loc.city),
-    )
+    sorted_locs = sorted(locations, key=lambda loc: (loc.country, loc.city))
 
     choices = [
         questionary.Choice(
-            title=(f"{loc.name:<6}  {loc.description:<24}  {loc.city}, {loc.country}"),
+            title=(f"{loc.name:<10}  {loc.description:<28}  {loc.city}, {loc.country}"),
             value=loc,
         )
         for loc in sorted_locs
     ]
 
-    return questionary.select(
-        "Location:",
-        choices=choices,
-    ).ask()
+    return questionary.select("Location:", choices=choices).ask()
 
 
-def _ask_server_type(server_types: list[ServerType], location_name: str) -> ServerType | None:
+def _ask_server_type(
+    server_types: list[ServerType],
+    location_name: str,
+    *,
+    currency: str = "$",
+) -> ServerType | None:
     shared = sorted(
         [st for st in server_types if st.cpu_type == "shared"],
         key=lambda t: price_key(t.price_monthly),
@@ -152,11 +165,11 @@ def _ask_server_type(server_types: list[ServerType], location_name: str) -> Serv
             choices.append(
                 questionary.Choice(
                     title=(
-                        f"{st.name:<8}  "
+                        f"{st.name:<12}  "
                         f"{st.cores:>2} vCPU  "
-                        f"{fmt_memory(st.memory):<7}  "
+                        f"{fmt_memory(st.memory):<8}  "
                         f"{st.disk:>4} GB SSD  "
-                        f"{fmt_price(st.price_monthly):>12}"
+                        f"{fmt_price(st.price_monthly, currency):>12}"
                     ),
                     value=st,
                 )
@@ -167,11 +180,11 @@ def _ask_server_type(server_types: list[ServerType], location_name: str) -> Serv
             choices.append(
                 questionary.Choice(
                     title=(
-                        f"{st.name:<8}  "
+                        f"{st.name:<12}  "
                         f"{st.cores:>2} vCPU  "
-                        f"{fmt_memory(st.memory):<7}  "
+                        f"{fmt_memory(st.memory):<8}  "
                         f"{st.disk:>4} GB SSD  "
-                        f"{fmt_price(st.price_monthly):>12}"
+                        f"{fmt_price(st.price_monthly, currency):>12}"
                     ),
                     value=st,
                 )
@@ -181,11 +194,8 @@ def _ask_server_type(server_types: list[ServerType], location_name: str) -> Serv
         console.print(f"[red]No server types available at {location_name}.[/red]")
         return None
 
-    # Default to CX22/CPX22 or cheapest
-    default = next(
-        (st for st in shared if st.name.lower() in ("cx22", "cpx22")),
-        shared[0] if shared else (dedicated[0] if dedicated else None),
-    )
+    # Default to cheapest shared option
+    default = shared[0] if shared else (dedicated[0] if dedicated else None)
 
     return questionary.select("Server type:", choices=choices, default=default).ask()
 
@@ -225,14 +235,14 @@ def _ask_image(images: list[Image]) -> Image | None:
 def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:
     if not ssh_keys:
         console.print(
-            "  [yellow]No SSH keys found in this Hetzner project.[/yellow]\n"
+            "  [yellow]No SSH keys found in this cloud account.[/yellow]\n"
             "  [dim]A root password will be provided after server creation.[/dim]\n"
         )
         return []
 
     choices = [
         questionary.Choice(
-            title=f"{key.name:<30}  {key.fingerprint[:32]}…",
+            title=f"{key.name:<30}  {key.fingerprint[:32]}…" if key.fingerprint else key.name,
             value=key,
         )
         for key in ssh_keys
@@ -243,22 +253,11 @@ def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:
     ).ask()
 
 
-_SERVER_NAME_RE = re.compile(r"^[a-z0-9]([a-z0-9.\-]*[a-z0-9])?$")
-
-
-def _ask_server_name(default: str) -> str | None:
-    def _validate(v: str) -> bool | str:
-        v = v.strip()
-        if not v:
-            return "Server name cannot be empty."
-        if not _SERVER_NAME_RE.match(v):
-            return "Name must contain only lowercase letters, digits, hyphens, and dots (no underscores)."
-        return True
-
+def _ask_server_name(default: str, validator: object) -> str | None:
     return questionary.text(
         "Server name:",
         default=default,
-        validate=_validate,
+        validate=validator,
     ).ask()
 
 
@@ -276,15 +275,15 @@ def _ask_deploy_user() -> str | None:
 # ------------------------------------------------------------------
 
 
-def _resolve_token(token: str | None) -> str | None:
+def _resolve_token(token: str | None, *, token_env_var: str, provider_name: str) -> str | None:
     if token:
         return token
-    env = os.environ.get("HETZNER_TOKEN")
+    env = os.environ.get(token_env_var)
     if env:
         return env
     console.print()
-    console.print("  [dim]Tip: set [bold]HETZNER_TOKEN[/bold] to skip this prompt.[/dim]\n")
-    return questionary.password("Hetzner API token:").ask()
+    console.print(f"  [dim]Tip: set [bold]{token_env_var}[/bold] to skip this prompt.[/dim]\n")
+    return questionary.password(f"{provider_name} API token:").ask()
 
 
 def _default_server_name() -> str:
@@ -309,8 +308,7 @@ def provision(
     token: str | None = typer.Option(
         None,
         "--token",
-        envvar="HETZNER_TOKEN",
-        help="Hetzner API token. Defaults to HETZNER_TOKEN env var.",
+        help="Cloud provider API token. Defaults to HETZNER_TOKEN or LINODE_TOKEN env var.",
         show_default=False,
     ),
     dry_run: bool = typer.Option(
@@ -319,45 +317,61 @@ def provision(
         help="Show the configuration that would be used without creating anything.",
     ),
 ) -> None:
-    """Interactively provision a new server on Hetzner Cloud.
+    """Interactively provision a new server on Hetzner Cloud or Linode.
 
-    Walks through location, server type, OS image, and SSH key selection —
-    mirroring the Hetzner Cloud Console experience — then creates the server
-    and waits for it to be ready.
+    Walks through provider, location, server type, OS image, and SSH key
+    selection, then creates the server and waits for it to be ready.
 
     Examples:
         phoxtail server provision
         phoxtail server provision --token <token>
         phoxtail server provision --dry-run
     """
-    api_token = _resolve_token(token)
-    if not api_token:
-        console.print("[red]Error:[/red] No API token provided.")
-        raise typer.Exit(1)
-
-    provider = HetznerProvider(api_token)
-
-    # Validate token + fetch data that doesn't depend on location/arch
     try:
-        with console.status("[bold cyan]Connecting to Hetzner Cloud...[/bold cyan]"):
-            locations = provider.list_locations()
-            ssh_keys = provider.list_ssh_keys()
-    except HetznerError as e:
-        console.print(f"[red]Error:[/red] {escape(str(e))}")
-        raise typer.Exit(1)
-    except Exception as e:
-        console.print(f"[red]Connection error:[/red] {e}")
-        raise typer.Exit(1)
-
-    console.print()
-
-    try:
-        # --- Architecture ---
-        architecture = _ask_architecture()
-        if architecture is None:
+        # --- Provider ---
+        provider_class = _ask_provider()
+        if provider_class is None:
             raise typer.Exit(0)
 
-        _clear_and_show(architecture=architecture)
+        api_token = _resolve_token(
+            token,
+            token_env_var=provider_class.token_env_var,
+            provider_name=provider_class.display_name,
+        )
+        if not api_token:
+            console.print("[red]Error:[/red] No API token provided.")
+            raise typer.Exit(1)
+
+        provider = provider_class(api_token)
+        currency = provider_class.currency
+
+        # Validate token + fetch data that doesn't depend on location/arch
+        try:
+            with console.status("[bold cyan]Connecting...[/bold cyan]"):
+                locations = provider.list_locations()
+                ssh_keys = provider.list_ssh_keys()
+        except ProviderError as e:
+            console.print(f"[red]Error:[/red] {escape(str(e))}")
+            raise typer.Exit(1)
+        except Exception as e:
+            console.print(f"[red]Connection error:[/red] {e}")
+            raise typer.Exit(1)
+
+        console.print()
+
+        # --- Architecture (skip when provider only offers one) ---
+        if len(provider_class.architectures) > 1:
+            architecture = _ask_architecture(provider_class.architectures)
+            if architecture is None:
+                raise typer.Exit(0)
+        else:
+            architecture = provider_class.architectures[0]
+
+        _clear_and_show(
+            provider_name=provider_class.display_name,
+            architecture=architecture,
+            currency=currency,
+        )
 
         # --- Location ---
         location = _ask_location(locations)
@@ -365,38 +379,38 @@ def provision(
             raise typer.Exit(0)
 
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
+            currency=currency,
         )
 
         # --- Server types (fetched after location is known) ---
         try:
             with console.status("[bold cyan]Fetching server types...[/bold cyan]"):
-                all_types = provider.list_server_types(
-                    location=location.name,
-                )
-        except HetznerError as e:
+                all_types = provider.list_server_types(location=location.name)
+        except ProviderError as e:
             console.print(f"[red]Error:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
         arch_types = [st for st in all_types if st.architecture == architecture]
-        server_type = _ask_server_type(arch_types, location.name)
+        server_type = _ask_server_type(arch_types, location.name, currency=currency)
         if server_type is None:
             raise typer.Exit(0)
 
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
             server_type=server_type,
+            currency=currency,
         )
 
         # --- OS Images (fetched after arch is known) ---
         try:
             with console.status("[bold cyan]Fetching OS images...[/bold cyan]"):
-                images = provider.list_images(
-                    architecture=architecture,
-                )
-        except HetznerError as e:
+                images = provider.list_images(architecture=architecture)
+        except ProviderError as e:
             console.print(f"[red]Error:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
@@ -404,11 +418,26 @@ def provision(
         if image is None:
             raise typer.Exit(0)
 
+        # --- Cloud-init gating ---
+        # Bootstrap requires both the location to support the metadata service
+        # AND the image to have cloud-init installed. Warn loudly when either
+        # is missing so the user isn't surprised by a bare server.
+        can_bootstrap = location.metadata_support and image.cloud_init
+        if not can_bootstrap:
+            console.print()
+            console.print(
+                "  [yellow]Warning:[/yellow] This location/image combination does not support\n"
+                "  cloud-init. Docker and security hardening will [bold]not[/bold] be\n"
+                "  applied automatically — you will need to set up the server manually.\n"
+            )
+
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
             server_type=server_type,
             image=image,
+            currency=currency,
         )
 
         # --- SSH Keys ---
@@ -417,11 +446,13 @@ def provision(
             raise typer.Exit(0)
 
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
             server_type=server_type,
             image=image,
             ssh_keys=selected_keys,
+            currency=currency,
         )
 
         # --- Deploy username ---
@@ -431,23 +462,26 @@ def provision(
         deploy_user = deploy_user.strip()
 
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
             server_type=server_type,
             image=image,
             ssh_keys=selected_keys,
             deploy_user=deploy_user,
+            currency=currency,
         )
 
         # --- Server name ---
         default_name = _default_server_name()
-        server_name = _ask_server_name(default_name)
+        server_name = _ask_server_name(default_name, provider.validate_server_name)
         if server_name is None:
             raise typer.Exit(0)
         server_name = server_name.strip()
 
         # --- Final summary ---
         _clear_and_show(
+            provider_name=provider_class.display_name,
             architecture=architecture,
             location=location,
             server_type=server_type,
@@ -455,6 +489,7 @@ def provision(
             ssh_keys=selected_keys,
             deploy_user=deploy_user,
             name=server_name,
+            currency=currency,
         )
 
         if dry_run:
@@ -471,10 +506,14 @@ def provision(
             console.print("[dim]Cancelled.[/dim]")
             raise typer.Exit(0)
 
-        # Render cloud-init bootstrap (Docker + uv + phoxtail + hardening)
+        # Render cloud-init bootstrap (Docker + uv + hardening)
         user_data: str | None = None
-        if selected_keys:
+        if selected_keys and can_bootstrap:
             user_data = render_bootstrap(deploy_user, selected_keys)
+        elif selected_keys and not can_bootstrap:
+            console.print(
+                "  [yellow]Warning:[/yellow] Skipping cloud-init bootstrap (not supported by this location/image).\n"
+            )
         else:
             console.print(
                 "  [yellow]Warning:[/yellow] No SSH keys selected"
@@ -490,6 +529,7 @@ def provision(
             image=image.name,
             location=location.name,
             ssh_key_ids=[k.id for k in selected_keys],
+            ssh_public_keys=[k.public_key for k in selected_keys if k.public_key],
             user_data=user_data,
         )
 
@@ -497,11 +537,11 @@ def provision(
         try:
             with console.status("[bold cyan]Creating server...[/bold cyan]"):
                 server = provider.create_server(spec)
-        except HetznerError as e:
+        except ProviderError as e:
             console.print(f"[red]Error creating server:[/red] {escape(str(e))}")
             raise typer.Exit(1)
 
-        # --- Wait for Hetzner action (server OS installed and running) ---
+        # --- Wait for action (server OS installed and running) ---
         if server.action_id:
             with console.status("[bold cyan]Waiting for server to be ready...[/bold cyan]"):
                 provisioned = False
@@ -509,7 +549,7 @@ def provision(
                     time.sleep(2)
                     try:
                         status = provider.get_action_status(server.action_id)
-                    except HetznerError:
+                    except ProviderError:
                         continue  # transient — keep polling
                     if status == "success":
                         provisioned = True
@@ -520,17 +560,15 @@ def provision(
                 if not provisioned:
                     console.print(
                         "[yellow]Warning:[/yellow] Timed out "
-                        "waiting for server action. "
+                        "waiting for server to be ready. "
                         "The server may still be provisioning.\n"
-                        "  Check: https://console.hetzner.cloud"
+                        "  Check your cloud provider's console."
                     )
 
         # --- Wait for cloud-init bootstrap ---
         if user_data and server.ipv4:
             console.print()
-            console.print(
-                "[bold cyan]Waiting for cloud-init to finish (Docker, uv, phoxtail, hardening)...[/bold cyan]\n"
-            )
+            console.print("[bold cyan]Waiting for cloud-init to finish (Docker, uv, hardening)...[/bold cyan]\n")
             cloud_init_ok = wait_for_cloud_init(deploy_user, server.ipv4)
             console.print()
 
@@ -556,6 +594,14 @@ def provision(
         else:
             bootstrap_note = ""
 
+        # Root password note (shown when no SSH keys were provided)
+        root_pass_note = ""
+        if server.root_password:
+            root_pass_note = (
+                f"\n\n  [dim]Root password:[/dim]  [bold]{server.root_password}[/bold]"
+                "\n  [dim](save this — it will not be shown again)[/dim]"
+            )
+
         # --- Done ---
         console.print(
             Panel(
@@ -564,7 +610,7 @@ def provision(
                 f"  [dim]IPv4:[/dim]  "
                 f"[bold]{server.ipv4 or 'N/A'}[/bold]\n"
                 f"  [dim]IPv6:[/dim]  "
-                f"[bold]{server.ipv6 or 'N/A'}[/bold]" + bootstrap_note,
+                f"[bold]{server.ipv6 or 'N/A'}[/bold]" + root_pass_note + bootstrap_note,
                 border_style="green",
                 expand=False,
             )

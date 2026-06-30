@@ -20,9 +20,9 @@ def fmt_memory(gb: float) -> str:
     return f"{int(gb)} GB" if gb == int(gb) else f"{gb} GB"
 
 
-def fmt_price(price_str: str) -> str:
+def fmt_price(price_str: str, currency: str = "€") -> str:
     try:
-        return f"€{float(price_str):.2f}/mo"
+        return f"{currency}{float(price_str):.2f}/mo"
     except (ValueError, TypeError):
         return price_str
 
@@ -198,6 +198,15 @@ def wait_for_cloud_init(
         ["ssh", *_SSH_MUX, f"{user}@{ip}", tail_cmd],
         timeout=timeout,
     ).returncode
+
+    # Close the ControlMaster so the next SSH command (e.g. deploy) opens a
+    # fresh session with updated group memberships (docker, etc.) applied by
+    # cloud-init's runcmd — those only take effect on new logins.
+    subprocess.run(
+        ["ssh", "-O", "exit", "-o", "ControlPath=/tmp/phoxtail-ssh-%r@%h", f"{user}@{ip}"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
 
     return rc == 0
 

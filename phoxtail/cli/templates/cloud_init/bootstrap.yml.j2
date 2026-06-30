@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------
 # Phoxtail server bootstrap
 # Runs once on first boot. By the time cloud-init finishes, the server
-# has a hardened non-root user, Docker, uv, and the phoxtail CLI ready.
+# has a hardened non-root user, Docker, and uv ready.
 # -----------------------------------------------------------------------
 
 # Create the deploy user with sudo and Docker access
@@ -70,9 +70,6 @@ runcmd:
 
   # Install uv (Python package manager) as the deploy user
   - su - {{ deploy_user }} -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
-  # Install phoxtail CLI from PyPI and symlink it system-wide
-  - su - {{ deploy_user }} -c "/home/{{ deploy_user }}/.local/bin/uv tool install phoxtail"
-  - ln -sf /home/{{ deploy_user }}/.local/bin/phoxtail /usr/local/bin/phoxtail
 
   # Enable services
   - systemctl enable fail2ban
