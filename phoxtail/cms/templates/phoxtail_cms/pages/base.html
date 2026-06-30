@@ -1,8 +1,9 @@
 {% load static wagtailcore_tags wagtailimages_tags wagtailsettings_tags django_htmx %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ page.locale.language_code }}">
     <head>
         <meta charset="utf-8" />
+        {% wagtail_site as current_site %}
         {% if settings.phoxtail_cms.SiteSetting.favicon %}
             {% image settings.phoxtail_cms.SiteSetting.favicon max-32x32 as favicon_img %}
             <link rel="icon"
@@ -19,19 +20,9 @@
         {% endif %}
         {% if settings.phoxtail_cms.SiteSetting.og_image %}
             {% image settings.phoxtail_cms.SiteSetting.og_image width-1200 as og_img %}
-            <meta property="og:image"
-                  content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}"
-                  media="(prefers-color-scheme: light)" />
+            <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}" />
             <meta property="og:image:width" content="1200" />
             <meta property="og:image:height" content="{{ og_img.height }}" />
-        {% endif %}
-        {% if settings.phoxtail_cms.SiteSetting.og_image_dark %}
-            {% image settings.phoxtail_cms.SiteSetting.og_image_dark width-1200 as og_dark_img %}
-            <meta property="og:image"
-                  content="{{ request.scheme }}://{{ request.get_host }}{{ og_dark_img.url }}"
-                  media="(prefers-color-scheme: dark)" />
-            <meta property="og:image:width" content="1200" />
-            <meta property="og:image:height" content="{{ og_dark_img.height }}" />
         {% endif %}
         <title>
             {% block title %}
@@ -42,11 +33,14 @@
                 {% endif %}
             {% endblock %}
             {% block title_suffix %}
-                {% wagtail_site as current_site %}
                 {% if current_site and current_site.site_name %}- {{ current_site.site_name }}{% endif %}
             {% endblock %}
         </title>
+        <link rel="canonical" href="{{ page.full_url }}" />
         {% if page.search_description %}<meta name="description" content="{{ page.search_description }}" />{% endif %}
+        <meta property="og:title" content="{{ page.seo_title|default:page.title }}" />
+        {% if page.search_description %}<meta property="og:description" content="{{ page.search_description }}" />{% endif %}
+        {% if current_site.site_name %}<meta property="og:site_name" content="{{ current_site.site_name }}" />{% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <!-- Global App Stylesheets -->
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
