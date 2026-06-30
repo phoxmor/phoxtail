@@ -120,7 +120,7 @@ def _prompt_production_env(output_file: Path, server_ip: str | None = None) -> N
     )
 
     console.print("\n[bold]Email Configuration:[/bold]")
-    use_smtp = Confirm.ask("Use SMTP email backend?", default=True)
+    use_smtp = Confirm.ask("Use SMTP email backend?", default=False)
     context["use_smtp"] = use_smtp
 
     if use_smtp:
