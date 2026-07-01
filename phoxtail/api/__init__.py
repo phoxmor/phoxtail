@@ -24,6 +24,7 @@ from __future__ import annotations
 import importlib
 
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI
 from ninja.security import SessionAuth
 
@@ -63,6 +64,20 @@ api.add_router("/design/v1/", design_v1_router, tags=["design/v1"])
 @api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
 def ping(request):
     return {"ok": True}
+
+
+@api.exception_handler(DjangoValidationError)
+def handle_django_validation_error(request, exc: DjangoValidationError):
+    """Translate service-layer ``ValidationError`` into a 422 response.
+
+    The service layer pattern (``services/admin/operations/*.py`` across
+    every Phoxtail app) raises Django's ``ValidationError`` for business-rule
+    violations — a convention built around Django forms/views, which convert
+    it to form errors automatically. Ninja has no such conversion built in,
+    so left uncaught this becomes an unhandled 500. Registered on the shared
+    ``api`` instance, this applies to every contributed router automatically.
+    """
+    return api.create_response(request, {"detail": exc.messages}, status=422)
 
 
 # Core router short labels — contributors cannot reuse these, or they
