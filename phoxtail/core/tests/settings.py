@@ -1,6 +1,12 @@
 """Minimal Django settings for running phoxtail.core tests."""
 
+import tempfile
+
 SECRET_KEY = "test-secret-key-not-for-production"
+
+# Without MEDIA_ROOT, FileField uploads resolve against the process cwd and
+# leak into whatever repo the tests run from.
+MEDIA_ROOT = tempfile.mkdtemp(prefix="phoxtail-test-media-")
 
 DATABASES = {
     "default": {
