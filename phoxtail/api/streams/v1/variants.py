@@ -179,12 +179,16 @@ def update_variant_by_id(
             "ETag mismatch: the variant has changed since you last read it. Re-fetch and retry.",
         )
 
+    collection_id_set = "collection_id" in payload.model_fields_set
     new_collection = v.collection
-    if payload.collection_id is not None:
-        try:
-            new_collection = VariantCollection.objects.get(pk=payload.collection_id)
-        except VariantCollection.DoesNotExist:
-            raise HttpError(404, f"Collection {payload.collection_id} not found.")
+    if collection_id_set:
+        if payload.collection_id is None:
+            new_collection = None
+        else:
+            try:
+                new_collection = VariantCollection.objects.get(pk=payload.collection_id)
+            except VariantCollection.DoesNotExist:
+                raise HttpError(404, f"Collection {payload.collection_id} not found.")
         v.collection = new_collection
 
     new_identifier = payload.identifier if payload.identifier is not None else v.identifier
@@ -192,7 +196,7 @@ def update_variant_by_id(
         v.identifier = payload.identifier
 
     # Check uniqueness of (block, collection, identifier) if either changed.
-    if payload.identifier is not None or payload.collection_id is not None:
+    if payload.identifier is not None or collection_id_set:
         collision = (
             BlockVariant.objects.filter(
                 block=v.block,

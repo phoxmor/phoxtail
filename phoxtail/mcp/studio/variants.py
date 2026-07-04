@@ -222,9 +222,10 @@ def update_variant(
     description=(
         "Create a new block variant. Requires an identifier (unique within "
         "the block+collection pair), a human-readable name, and the numeric "
-        "IDs of an existing block and collection. Pass `block_id` from "
-        "phoxtail_studio_list_blocks and `collection_id` from "
-        "phoxtail_studio_list_collections. "
+        "ID of an existing block. Pass `block_id` from "
+        "phoxtail_studio_list_blocks. `collection_id` is optional — pass it "
+        "from phoxtail_studio_list_collections to scope the variant to a "
+        "collection, or omit it to leave the variant uncollected. "
         "Content fields (html, css, javascript) default to empty strings. "
         "Set is_default=true to mark as the block's default variant "
         "(only one default per block is allowed). "
@@ -235,7 +236,7 @@ def create_variant(
     identifier: str,
     name: str,
     block_id: int,
-    collection_id: int,
+    collection_id: int | None = None,
     description: str = "",
     html: str = "",
     css: str = "",
