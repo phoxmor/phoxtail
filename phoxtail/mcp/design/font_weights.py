@@ -14,6 +14,26 @@ from phoxtail.mcp._http import api_base_url, url
 from phoxtail.mcp.design._error import error_envelope
 from phoxtail.mcp.design._http import request
 
+# The MCP server runs inside the Docker container (WORKDIR /app), but agents
+# run on the host. In dev mode the project root is bind-mounted at /app, so a
+# path relative to the project root resolves identically on both sides.
+# Agents should stage upload files under .phoxtail/mcp/uploads/ and pass the
+# relative path; this helper falls back to /app/<path> when the literal path
+# doesn't exist (i.e. the agent passed a host-relative path from inside the container).
+_CONTAINER_ROOT = Path("/app")
+
+_UPLOAD_HINT = "Stage the file under .phoxtail/mcp/uploads/ and pass the relative path."
+
+
+def _resolve_upload_path(file_path: str) -> Path:
+    p = Path(file_path)
+    if p.exists():
+        return p
+    candidate = _CONTAINER_ROOT / p
+    if candidate.exists():
+        return candidate
+    return p  # let the caller produce the "not found" error
+
 
 def _auth_headers() -> dict:
     token = resolve_token(api_base_url())
@@ -57,6 +77,9 @@ def font_weights_get(weight_id: int) -> str:
     name="phoxtail_font_weights_upload",
     description=(
         "Upload a font weight file (WOFF2, TTF, or OTF) for a font family. "
+        "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
+        "first copy it into the project's .phoxtail/mcp/uploads/ directory, then pass "
+        "the relative path, e.g. '.phoxtail/mcp/uploads/font.woff2'. "
         "TTF and OTF files are automatically converted to WOFF2 on the server. "
         "`weight` must be a multiple of 100 between 100 and 900 "
         "(100=Thin, 300=Light, 400=Regular, 700=Bold, 900=Black). "
@@ -70,9 +93,9 @@ def font_weights_upload(
     weight: int,
     style: str = "normal",
 ) -> str:
-    path = Path(file_path)
+    path = _resolve_upload_path(file_path)
     if not path.exists():
-        return json.dumps({"error": f"File not found: {file_path}"})
+        return json.dumps({"error": f"File not found: {file_path}. {_UPLOAD_HINT}"})
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
 
