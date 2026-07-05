@@ -10,17 +10,18 @@ def paginate_queryset(queryset, request, search_query="", objects_per_page=OBJEC
     return paginator.get_page(page), search_query
 
 
-def page_range_entries(current, num_pages, url_fn):
+def page_range_entries(current, num_pages, url_fn, window=2):
     """Build a windowed page-range list for the shared paginator partial.
 
     Returns a list of dicts: {num, url, active, ellipsis}.
-    Always shows first/last page and a window of 2 around the current page,
-    inserting ellipsis dicts for gaps.
+    Always shows first/last page and a window of ``window`` pages around the
+    current page (default 2, matching prior behavior), inserting ellipsis
+    dicts for gaps.
     """
     if num_pages <= 1:
         return []
     in_range = {1, num_pages}
-    for p in range(max(1, current - 2), min(num_pages + 1, current + 3)):
+    for p in range(max(1, current - window), min(num_pages + 1, current + window + 1)):
         in_range.add(p)
     result = []
     prev = None
