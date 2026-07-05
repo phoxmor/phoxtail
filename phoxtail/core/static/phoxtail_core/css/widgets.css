@@ -51,7 +51,9 @@
     font-size: 0.625rem;
     font-weight: 500;
     color: rgb(var(--color-surface-500));
-    background-color: rgb(var(--color-surface-100));
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
     border: 1px solid rgb(var(--color-surface-300));
     border-radius: 50%;
     cursor: help;
@@ -145,7 +147,9 @@ textarea.fw-input {
     width: 1.25rem !important;
     height: 1.25rem !important;
     border: 2px solid rgb(var(--color-surface-300)) !important;
-    background-color: rgb(var(--color-surface-50)) !important;
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88) !important;
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
     cursor: pointer;
     outline: none;
     transition: background-color 150ms, border-color 150ms;
@@ -158,11 +162,11 @@ textarea.fw-input {
 }
 
 .fw-choice-input--checkbox {
-    border-radius: 0.25rem !important;
+    border-radius: 50% !important;
 }
 
 .fw-choice-input--radio {
-    border-radius: 0.25rem !important;
+    border-radius: 50% !important;
 }
 
 .fw-choice-input:checked {
@@ -200,9 +204,11 @@ textarea.fw-input {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    border-radius: 0.5rem;
+    border-radius: 999px;
     border: 1px solid rgb(var(--color-surface-200));
-    background-color: rgb(var(--color-surface-50));
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
     cursor: pointer;
     min-width: 0;
     transition: background-color 150ms;
@@ -251,21 +257,48 @@ textarea.fw-input {
 
 /* ── Choice Grid ── */
 
+/* Column count adapts to the grid's own rendered width, not the viewport —
+   this widget gets mounted in containers of wildly different widths (a full
+   page, a narrow modal drawer, a sidebar panel) that have no relation to the
+   viewport size a fixed media-query breakpoint would key off of. Falls back
+   to viewport-based breakpoints for browsers without container query
+   support (behavior identical to the previous implementation).
+   Containment lives on the .fw-field wrapper, not the grid itself — a
+   container query can't size an element against a containment context the
+   element itself establishes, it only sees ancestor containers. */
+.fw-field:has(.fw-checkbox-grid) {
+    container-type: inline-size;
+}
+
 .fw-checkbox-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.5rem;
 }
 
-@media (min-width: 640px) {
+@container (min-width: 400px) {
     .fw-checkbox-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (min-width: 1024px) {
+@container (min-width: 640px) {
     .fw-checkbox-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@supports not (container-type: inline-size) {
+    @media (min-width: 640px) {
+        .fw-checkbox-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .fw-checkbox-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
     }
 }
 
@@ -362,25 +395,35 @@ textarea.fw-input {
 
 /* ── Toggle ── */
 
+/* Padding/border match .fw-choice-label exactly (0.5rem padding, 1px border)
+   so this pill is the same height as an .fw-choice-label option — the track
+   below is sized to fit that same 1.25rem content-row height. */
 .fw-toggle-label {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid rgb(var(--color-surface-200));
+    border-radius: 999px;
+    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
+    backdrop-filter: blur(28px) saturate(1.6);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
     cursor: pointer;
-    transition: border-color 300ms;
+    transition: background-color 150ms;
 }
 
 .fw-toggle-label:hover {
+    background-color: rgb(var(--color-surface-100));
+}
+
+.fw-toggle-label:has(.fw-toggle-input:checked) {
     border-color: rgb(var(--color-primary-400));
+    background-color: rgb(var(--color-primary-50));
 }
 
 .fw-toggle-name {
     font-size: 0.875rem;
-    font-weight: 500;
     color: rgb(var(--color-surface-700));
 }
 
@@ -401,8 +444,8 @@ textarea.fw-input {
 
 .fw-toggle-track {
     position: relative;
-    width: 2.75rem;
-    height: 1.5rem;
+    width: 2.25rem;
+    height: 1.25rem;
     border-radius: 9999px;
     background-color: rgb(var(--color-surface-300));
     transition: background-color 300ms;
@@ -413,8 +456,8 @@ textarea.fw-input {
     position: absolute;
     top: 0.125rem;
     left: 0.125rem;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1rem;
+    height: 1rem;
     background-color: rgb(255 255 255);
     border-radius: 9999px;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -426,7 +469,7 @@ textarea.fw-input {
 }
 
 .fw-toggle-input:checked + .fw-toggle-track::before {
-    transform: translateX(1.25rem);
+    transform: translateX(1rem);
 }
 
 /* ── Search Widget — Shared (single select search + multi select chips) ── */
@@ -937,7 +980,7 @@ textarea.fw-input {
 
     .fw-help-btn {
         color: rgb(var(--color-surface-400));
-        background-color: rgb(var(--color-surface-700));
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
         border-color: rgb(var(--color-surface-600));
     }
 
@@ -971,7 +1014,7 @@ textarea.fw-input {
 
     .fw-choice-input {
         border-color: rgb(var(--color-surface-600)) !important;
-        background-color: rgb(var(--color-surface-700)) !important;
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88) !important;
     }
 
     .fw-choice-label:has(.fw-choice-input:checked) {
@@ -981,7 +1024,7 @@ textarea.fw-input {
 
     .fw-choice-label {
         border-color: rgb(var(--color-surface-700));
-        background-color: rgb(var(--color-surface-800) / 0.5);
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
     }
 
     .fw-choice-label:hover {
@@ -1003,11 +1046,17 @@ textarea.fw-input {
 
     /* Toggle */
     .fw-toggle-label {
-        border-color: rgb(var(--color-surface-600));
+        border-color: rgb(var(--color-surface-700));
+        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
     }
 
     .fw-toggle-label:hover {
+        background-color: rgb(var(--color-surface-800));
+    }
+
+    .fw-toggle-label:has(.fw-toggle-input:checked) {
         border-color: rgb(var(--color-primary-500));
+        background-color: rgb(var(--color-primary-900) / 0.3);
     }
 
     .fw-toggle-name {
