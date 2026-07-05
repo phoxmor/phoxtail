@@ -42,6 +42,7 @@
     </div>
 </nav>
 <!-- Mobile Off-Canvas Drawer -->
+<div id="drawer-backdrop" class="dash-mobile-backdrop"></div>
 <div id="drawer" class="dash-mobile-sidebar">
     <div class="dash-mobile-sidebar__header">
         <div class="dash-mobile-sidebar__logo-row">
@@ -73,7 +74,7 @@
             </div>
         </div>
         <button id="close-drawer"
-                class="dash-icon-btn"
+                class="dash-icon-btn dash-icon-btn--close"
                 aria-label="Close Menu"
                 type="button">
             <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
@@ -147,7 +148,9 @@
         var backdrop = document.getElementById('drawer-backdrop');
         var closeBtn = document.getElementById('close-drawer');
 
-    /* Smart scroll behavior — scroll happens inside .dash-content, not window */
+    /* Hide the topbar when scrolling down past a threshold; reveal it again
+       on any upward scroll (or near the top). Scroll happens inside
+       .dash-content, not window. */
         var scrollContainer = document.querySelector('.dash-content');
         var lastScrollY = scrollContainer ? scrollContainer.scrollTop : 0;
         var ticking = false;
@@ -165,7 +168,7 @@
             ticking = false;
         }
 
-        if (scrollContainer) {
+        if (scrollContainer && topbar) {
             scrollContainer.addEventListener('scroll', function () {
                 if (!ticking) {
                     window.requestAnimationFrame(updateTopbar);
