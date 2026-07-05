@@ -1,4 +1,17 @@
 <div class="fw-field">
+    {% if show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-label-row">
+            <span class="fw-label"></span>
+            <!-- Not inside the <label> below: clicking a descendant of a
+                 <label> still forwards an activation click to its labeled
+                 control even with preventDefault/stopPropagation on the
+                 descendant, so the help button has to live outside it. -->
+            <span class="fw-help-wrapper">
+                <button type="button" class="fw-help-btn" tabindex="0">?</button>
+                <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
+            </span>
+        </div>
+    {% endif %}
     {% if show_label != False %}
         <label class="fw-toggle-label">
             <span class="fw-toggle-name">{{ label|default:field.label }}</span>
