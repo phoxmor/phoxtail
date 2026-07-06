@@ -380,6 +380,22 @@ textarea.fw-input {
     display: none;
 }
 
+/* Visually hidden but still focusable/participates in layout flow enough for
+   native constraint validation — unlike display:none, this lets a `required`
+   select still be validated and (if invalid) focused by the browser on
+   submit instead of throwing "not focusable" and silently blocking it. */
+.fw-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* ── Widget Container (complex HTMX widgets) ── */
 
 .fw-widget-container {
@@ -601,6 +617,25 @@ textarea.fw-input {
     background: rgb(var(--md-sys-color-on-surface) / 0.06);
 }
 
+/* Choice dropdown: the currently selected option is excluded from its own
+   panel (there's nothing useful about being able to "pick" what's already
+   picked) rather than just highlighted. Removing it can leave a dangling
+   divider on either side, depending on whether it was the first item (no
+   leading divider to begin with — hide the one trailing it instead) or a
+   middle/last item (hide its own leading divider, keep the trailing one as
+   the separator for its former neighbors). */
+.fw-cdd-panel .fw-search-item[aria-selected="true"] {
+    display: none;
+}
+
+.fw-cdd-panel .fw-search-divider:has(+ .fw-search-item[aria-selected="true"]) {
+    display: none;
+}
+
+.fw-cdd-panel .fw-search-item[aria-selected="true"]:first-child + .fw-search-divider {
+    display: none;
+}
+
 .fw-search-item-icon {
     display: none;
 }
@@ -751,6 +786,27 @@ textarea.fw-input {
     border-radius: 12px;
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
     overflow: hidden;
+}
+
+/* Choice dropdown panel — no search bar, so it's sized to its longest option
+   rather than a fixed min-width, and hangs off the trigger's right edge
+   (top-right corner of the panel meets the bottom-right corner of the
+   trigger) instead of the left-aligned single-select-search panel. */
+.fw-cdd-panel {
+    left: auto;
+    right: 0;
+    min-width: 0;
+    max-width: 16rem;
+    width: max-content;
+}
+
+/* Choice dropdown uses only neutral surface colors, no primary accent — this
+   is a plain option picker, not a call to action. Reassigning the primary
+   token (rather than overriding each rule that reads it) keeps the trigger's
+   focus/expanded state in sync with whatever on-surface-variant already
+   resolves to in light/dark. */
+.fw-cdd {
+    --md-sys-color-primary: var(--md-sys-color-on-surface-variant);
 }
 
 /* Search bar inside panel */

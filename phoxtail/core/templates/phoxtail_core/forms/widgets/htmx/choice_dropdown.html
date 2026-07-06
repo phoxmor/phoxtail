@@ -1,0 +1,150 @@
+{% load phoxtail_design_tags %}
+{% comment %}
+Choice Dropdown Widget
+======================
+Same pill-trigger + floating panel look as single_select_search, minus the
+search bar — for a plain ChoiceField/TypedChoiceField with a small, static
+set of options (not a remote-search queryset).
+
+Required context:
+    - field: bound ChoiceField/TypedChoiceField
+
+Optional context:
+    - hx_get/hx_target/hx_swap/hx_trigger/hx_include/hx_vals: forwarded to the
+      underlying (visually hidden) <select>, exactly like
+      phoxtail_core/forms/widgets/htmx/select.html
+    - show_label/show_help_text, label, help_text, show_required, required:
+      same as select.html
+{% endcomment %}
+{% with wid=field.id_for_label %}
+    <div class="fw-field">
+        {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
+            <div class="fw-label-row">
+                {% if show_label != False %}
+                    <label for="{{ wid }}" class="fw-label">
+                        {{ label|default:field.label }}
+                        {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+                    </label>
+                {% else %}
+                    <span class="fw-label"></span>
+                {% endif %}
+                {% if show_help_text != False and help_text|default:field.help_text %}
+                    <span class="fw-help-wrapper">
+                        <button type="button" class="fw-help-btn" tabindex="0">?</button>
+                        <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
+                    </span>
+                {% endif %}
+            </div>
+        {% endif %}
+        <div class="fw-sss-input fw-cdd" id="{{ wid }}-cdd">
+            {% with choices=field.field.choices|default:field.field.widget.choices %}
+                <select name="{{ field.html_name }}"
+                        id="{{ wid }}"
+                        class="fw-sr-only"
+                        tabindex="-1"
+                        {% if field.field.required %}required{% endif %}
+                        {% if field.field.disabled %}disabled{% endif %}
+                        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                        {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="innerHTML"{% endif %}
+                        {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+                        {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+                        {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
+                    {% for value, choice_label in choices %}
+                        <option value="{{ value }}"
+                                {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                            {{ choice_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <button type="button"
+                        class="fw-sss-trigger"
+                        id="{{ wid }}-trigger"
+                        aria-expanded="false"
+                        aria-controls="{{ wid }}-panel"
+                        aria-haspopup="listbox"
+                        {% if field.field.disabled %}disabled{% endif %}>
+                    <span class="fw-sss-trigger-label" id="{{ wid }}-trigger-label"></span>
+                    {% icon "chevron_down" class="fw-sss-chevron" %}
+                </button>
+
+                <div id="{{ wid }}-panel" class="fw-sss-panel fw-cdd-panel fw-hidden" role="listbox">
+                    <div class="fw-sss-results">
+                        {% for value, choice_label in choices %}
+                            {% if not forloop.first %}<div class="fw-search-divider"></div>{% endif %}
+                            <button type="button"
+                                    class="fw-search-item"
+                                    role="option"
+                                    data-value="{{ value }}"
+                                    aria-selected="{% if field.value|stringformat:"s" == value|stringformat:"s" %}true{% else %}false{% endif %}">
+                                <span class="fw-search-item-text">{{ choice_label }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+        {% if field.errors %}
+            {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+    (function () {
+        var root    = document.getElementById('{{ wid }}-cdd');
+        var select  = document.getElementById('{{ wid }}');
+        var trigger = document.getElementById('{{ wid }}-trigger');
+        var label   = document.getElementById('{{ wid }}-trigger-label');
+        var panel   = document.getElementById('{{ wid }}-panel');
+        if (!root || !select || !trigger || !panel) return;
+
+        function syncLabel() {
+            var opt = select.querySelector('option[selected]') || select.options[select.selectedIndex];
+            label.textContent = opt ? opt.textContent.trim() : '';
+        }
+        syncLabel();
+
+        function open() {
+            panel.classList.remove('fw-hidden');
+            trigger.setAttribute('aria-expanded', 'true');
+        }
+
+        function close() {
+            panel.classList.add('fw-hidden');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+
+        trigger.addEventListener('click', function () {
+            trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
+        });
+
+        trigger.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
+            }
+        });
+
+        panel.querySelectorAll('.fw-search-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                select.value = item.dataset.value;
+                panel.querySelectorAll('.fw-search-item').forEach(function (el) {
+                    el.setAttribute('aria-selected', el === item ? 'true' : 'false');
+                });
+                syncLabel();
+                close();
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!root.contains(e.target)) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
+    })();
+    </script>
+{% endwith %}
