@@ -5,6 +5,12 @@
    ======================================== */
 .dash-body {
     margin: 0;
+    /* The shell (.dash-layout) is pinned to 100vh and every pane scrolls
+       internally (.dash-content, .dash-sidebar__nav, etc.) — the document
+       itself must never scroll, otherwise off-canvas position:fixed panels
+       (open or closed) can leak into documentElement's scrollable overflow
+       and produce a phantom scrollbar/blank space past the viewport. */
+    overflow: hidden;
     font-family: var(--font-body), var(--font-family);
     background-color: rgb(var(--color-surface-50));
     color: rgb(var(--color-surface-800));
@@ -23,6 +29,7 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
 }
 
 .dash-content {
@@ -674,13 +681,19 @@
     transform: translateY(calc(100% + 0.5rem));
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.25s ease, opacity 0.25s ease;
+    /* visibility (rather than relying on the transform alone) fully suppresses
+       the box while closed — a translated but still-visible fixed element
+       still counts toward the document's scrollable overflow, which was
+       adding phantom height/scrollbars below the viewport. */
+    visibility: hidden;
+    transition: transform 0.25s ease, opacity 0.25s ease, visibility 0.25s ease;
 }
 
 .dash-dock-sheet--open {
     transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
+    visibility: visible;
 }
 
 @media (min-width: 1280px) {
