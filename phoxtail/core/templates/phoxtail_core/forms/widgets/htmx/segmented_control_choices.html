@@ -1,0 +1,60 @@
+{% comment %}
+Segmented Control (choices)
+===========================
+Generic N-segment sibling of segmented_control.html: one segment per choice
+of a ChoiceField/TypedChoiceField instead of the fixed remote/local pair.
+The slider is pure CSS (`:has()` + nth-of-type), sized off --fw-seg-count;
+styles cover up to five segments. Sized to the shared MD3 field height
+(56dp) so it can sit in a form row next to outlined fields. Label/help/
+errors follow the MD3 standard (group label + supporting text).
+
+Required context:
+    - field: bound ChoiceField/TypedChoiceField (its choices become the segments)
+
+Optional context:
+    - hx_get/hx_target/hx_swap/hx_trigger/hx_include/hx_indicator: forwarded to
+      every radio, exactly like segmented_control.html. The triggering radio
+      submits its own name/value, so no hx-vals is needed.
+    - locked: render disabled
+    - show_label/show_help_text, label, help_text, show_required, required:
+      same as the other MD3 widgets (pass label="" to render no label at all)
+{% endcomment %}
+{% with choices=field.field.choices %}
+    <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+        {% if show_label != False and label|default:field.label %}
+            <span class="fw-md3-group-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </span>
+        {% endif %}
+        <div class="fw-segmented-control fw-segmented-control--choices{% if locked %} fw-segmented-control--locked{% endif %}"
+             style="--fw-seg-count: {{ choices|length }}">
+            <div class="fw-segmented-track">
+                {% for value, choice_label in choices %}
+                    <input type="radio"
+                           name="{{ field.html_name }}"
+                           id="{{ field.id_for_label }}_{{ forloop.counter }}"
+                           value="{{ value }}"
+                           {% if field.value|stringformat:"s" == value|stringformat:"s" or not field.value and forloop.first %}checked{% endif %}
+                           class="fw-segmented-radio"
+                           {% if locked %}disabled{% else %}
+                           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+                           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+                           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+                           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+                           {% endif %}>
+                    <label for="{{ field.id_for_label }}_{{ forloop.counter }}" class="fw-segmented-label">{{ choice_label }}</label>
+                {% endfor %}
+                <div class="fw-segmented-slider"></div>
+            </div>
+        </div>
+        {% if field.errors %}
+            <div class="fw-md3-supporting">
+                {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+        {% elif show_help_text != False and help_text|default:field.help_text %}
+            <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
+        {% endif %}
+    </div>
+{% endwith %}

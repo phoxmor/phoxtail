@@ -864,6 +864,58 @@
     cursor: default !important;
 }
 
+/* ── Segmented Control (choices variant: one segment per choice, up to 5) ── */
+
+.fw-segmented-control--choices {
+    width: auto !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-label {
+    padding: 0 16px !important;
+    white-space: nowrap !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-slider {
+    width: calc(100% / var(--fw-seg-count, 2)) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-radio:checked + .fw-segmented-label {
+    color: rgb(var(--md-sys-color-primary)) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(1):checked) .fw-segmented-slider {
+    transform: translateX(0) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(2):checked) .fw-segmented-slider {
+    transform: translateX(100%) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(3):checked) .fw-segmented-slider {
+    transform: translateX(200%) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(4):checked) .fw-segmented-slider {
+    transform: translateX(300%) !important;
+}
+
+.fw-segmented-control--choices .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(5):checked) .fw-segmented-slider {
+    transform: translateX(400%) !important;
+}
+
+.fw-segmented-control--locked.fw-segmented-control--choices .fw-segmented-label {
+    opacity: 0.38 !important;
+    cursor: default !important;
+}
+
+/* The choices variant disables every segment when locked, so it takes the
+   full MD3 disabled-field outline (the on/off pair keeps one live segment
+   and therefore the regular border). */
+.fw-segmented-control--locked.fw-segmented-control--choices,
+.fw-segmented-control--locked.fw-segmented-control--choices:hover {
+    border-color: rgb(var(--md-sys-color-on-surface) / 0.12) !important;
+}
+
 /* ── MD3 Outlined Field (pilot: select widget) ──
    Tokens are scoped to .fw-md3 for now, mirroring the .fw-search-wrap /
    .fw-sss-input pattern; hoist to :root once the remaining widgets migrate.
