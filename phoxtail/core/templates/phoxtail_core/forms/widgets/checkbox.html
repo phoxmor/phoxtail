@@ -1,4 +1,9 @@
-<div class="fw-field">
+{% comment %}
+MD3 checkbox row: 18dp rounded-square control (styled in widgets.css) with
+body-large label and optional supporting text under it, list-item style —
+no pill container. Errors render as MD3 supporting text below the row.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <label for="{{ field.id_for_label }}"
            class="fw-choice-label fw-checkbox-label">
         <input type="checkbox"
@@ -6,6 +11,7 @@
                id="{{ field.id_for_label }}"
                {% if field.value %}checked{% endif %}
                class="fw-choice-input fw-choice-input--checkbox"
+               {% if field.errors %}aria-invalid="true"{% endif %}
                {% if field.field.required %}required{% endif %}
                {% if field.field.disabled %}disabled{% endif %}>
         <div class="fw-choice-text">
@@ -19,6 +25,8 @@
         </div>
     </label>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
     {% endif %}
 </div>

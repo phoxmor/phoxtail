@@ -1,30 +1,42 @@
-<div class="fw-field">
-    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            {% if show_label != False %}
-                <label for="{{ field.id_for_label }}" class="fw-label">
-                    {{ label|default:field.label }}
-                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                </label>
-            {% else %}
-                <span class="fw-label"></span>
-            {% endif %}
-            {% if show_help_text != False and help_text|default:field.help_text %}
-                <span class="fw-help-wrapper">
-                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                </span>
-            {% endif %}
-        </div>
-    {% endif %}
-    <input type="{{ input_type|default:field.field.widget.input_type }}"
-           name="{{ field.html_name }}"
-           id="{{ field.id_for_label }}"
-           value="{% if field.value.year %}{{ field.value|date:'Y-m-d' }}{% else %}{{ field.value|default:'' }}{% endif %}"
-           class="fw-input"
-           {% if field.field.required %}required{% endif %}
-           {% if field.field.disabled %}disabled{% endif %}>
+{% comment %}
+MD3 outlined text field, date variant. Native date inputs never match
+:placeholder-shown, so the label is permanently floated — correct, since the
+browser always renders the mm/dd/yyyy scaffold. The native picker indicator
+is hidden in CSS; the MD3 trailing calendar icon opens the picker instead.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div class="fw-md3-outlined">
+        <input type="{{ input_type|default:field.field.widget.input_type }}"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               value="{% if field.value.year %}{{ field.value|date:'Y-m-d' }}{% else %}{{ field.value|default:'' }}{% endif %}"
+               class="fw-md3-control"
+               {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
+               {% if field.errors %}aria-invalid="true"{% endif %}
+               {% if field.field.required %}required{% endif %}
+               {% if field.field.disabled %}disabled{% endif %}>
+        {% if show_label != False and label != "" %}
+            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </label>
+        {% endif %}
+        <fieldset class="fw-md3-outline" aria-hidden="true">
+            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+            </legend>
+        </fieldset>
+        {% if not field.field.disabled %}
+            <button type="button" class="fw-md3-trailing-btn" tabindex="-1" aria-hidden="true"
+                    onclick="var c = this.parentElement.querySelector('.fw-md3-control'); try { c.showPicker(); } catch (e) { c.focus(); }">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+            </button>
+        {% endif %}
+    </div>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

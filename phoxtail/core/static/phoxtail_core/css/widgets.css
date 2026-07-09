@@ -8,151 +8,28 @@
     display: block;
 }
 
-/* ── Label Row ── */
-
-.fw-label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.375rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(var(--color-surface-700));
-    margin-bottom: 0.375rem;
-}
-
-.fw-label {
-    flex: 1;
-}
+/* ── Required Marker ── */
 
 .fw-required {
     color: rgb(var(--color-destructive-500));
 }
 
-/* ── Help Tooltip ── */
-
-.fw-help-wrapper {
-    position: relative;
-    display: inline-flex;
-}
-
-.fw-help-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1rem;
-    height: 1rem;
-    padding: 0;
-    margin: 0;
-    min-width: 0;
-    min-height: 0;
-    box-sizing: border-box;
-    line-height: 1;
-    font-size: 0.625rem;
-    font-weight: 500;
-    color: rgb(var(--color-surface-500));
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 50%;
-    cursor: help;
-    outline: none;
-    transition: background-color 150ms, color 150ms;
-}
-
-.fw-help-btn:hover,
-.fw-help-btn:focus {
-    background-color: rgb(var(--color-surface-200));
-    color: rgb(var(--color-surface-700));
-}
-
-.fw-help-btn:focus-visible {
-    outline: 2px solid rgb(var(--color-primary-500));
-    outline-offset: 1px;
-}
-
-.fw-help-tooltip {
-    opacity: 0;
-    transform: scale(0.95);
-    position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.5rem);
-    width: 12rem;
-    padding: 0.375rem 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 400;
-    color: rgb(var(--color-surface-700));
-    background-color: rgb(var(--color-surface-50));
-    border: 1px solid rgb(var(--color-surface-200));
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    pointer-events: none;
-    z-index: 50;
-    transition: opacity 150ms, transform 150ms;
-}
-
-.fw-help-wrapper:hover .fw-help-tooltip,
-.fw-help-wrapper:focus-within .fw-help-tooltip {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* ── Input (text, date, time, datetime, number, textarea, select) ── */
-
-.fw-input {
-    display: block;
-    width: 100% !important;
-    padding: 0.5rem 0.75rem !important;
-    border: 1px solid rgb(var(--color-surface-300)) !important;
-    border-radius: 0.5rem !important;
-    background-color: rgb(var(--color-surface-50)) !important;
-    color: rgb(var(--color-surface-900)) !important;
-    font-size: 1rem !important;
-    outline: none !important;
-    transition: border-color 150ms, box-shadow 150ms;
-    box-sizing: border-box;
-}
-
-input.fw-input,
-select.fw-input {
-    height: 2.75rem !important;
-}
-
-select.fw-input {
-    cursor: pointer;
-    line-height: 1.75rem;
-}
-
-textarea.fw-input {
-    resize: vertical;
-}
-
-.fw-input:focus {
-    border-color: rgb(var(--color-primary-500)) !important;
-    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.25) !important;
-}
-
-.fw-input option {
-    background-color: rgb(var(--color-surface-50));
-    color: rgb(var(--color-surface-900));
-}
-
-/* ── Choice Input (custom checkbox / radio appearance) ── */
+/* ── Choice Input (MD3 checkbox / radio) ──
+   Checkbox: 18dp container, 2dp corner radius, 2dp outline border; checked
+   fills with primary and shows an on-primary checkmark. Radio: 20dp ring;
+   selected shows a primary ring with a primary inner dot (radial gradient —
+   ::before/::after are reserved/reset for third-party interop below). */
 
 .fw-choice-input {
     appearance: none !important;
     -webkit-appearance: none !important;
     flex-shrink: 0;
-    width: 1.25rem !important;
-    height: 1.25rem !important;
-    border: 2px solid rgb(var(--color-surface-300)) !important;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88) !important;
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    border: 2px solid rgb(var(--md-sys-color-on-surface-variant)) !important;
+    background-color: transparent !important;
     cursor: pointer;
     outline: none;
-    transition: background-color 150ms, border-color 150ms;
+    transition: background-color 150ms var(--md-sys-motion-easing-standard),
+                border-color 150ms var(--md-sys-motion-easing-standard);
 }
 
 .fw-choice-input::before,
@@ -162,65 +39,65 @@ textarea.fw-input {
 }
 
 .fw-choice-input--checkbox {
-    border-radius: 50% !important;
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+    border-radius: 2px !important;
 }
 
 .fw-choice-input--radio {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
     border-radius: 50% !important;
 }
 
-.fw-choice-input:checked {
-    background-color: rgb(var(--color-primary-600)) !important;
-    border-color: rgb(var(--color-primary-600)) !important;
-}
-
-.fw-choice-input--radio:checked {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 0.75rem !important;
-}
-
 .fw-choice-input--checkbox:checked {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
+    background-color: rgb(var(--md-sys-color-primary)) !important;
+    border-color: rgb(var(--md-sys-color-primary)) !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='3' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
     background-size: 0.75rem !important;
+}
+
+/* Selected radio: primary ring + centered primary dot (10dp of the 20dp). */
+.fw-choice-input--radio:checked {
+    border-color: rgb(var(--md-sys-color-primary)) !important;
+    background: radial-gradient(circle,
+        rgb(var(--md-sys-color-primary)) 0 31%,
+        transparent 34%) !important;
 }
 
 .fw-choice-input:focus-visible {
-    box-shadow: 0 0 0 2px rgb(var(--color-primary-500) / 0.4);
+    outline: 2px solid rgb(var(--md-sys-color-primary));
+    outline-offset: 2px;
 }
 
-.fw-choice-label:has(.fw-choice-input:checked) {
-    border-color: rgb(var(--color-primary-400));
-    background-color: rgb(var(--color-primary-50));
+.fw-choice-input:disabled {
+    border-color: rgb(var(--md-sys-color-on-surface) / 0.38) !important;
+    cursor: default;
 }
 
-/* ── Choice Option Label (shared by single checkbox, multi-checkbox, radio) ── */
+/* ── Choice Option Label (shared by single checkbox, multi-checkbox, radio) ──
+   Plain MD3 list rows — the control and a body-large label, state layer on
+   hover, no pill/glass container. */
 
 .fw-choice-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border-radius: 999px;
-    border: 1px solid rgb(var(--color-surface-200));
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--md-sys-shape-corner-extra-small, 4px);
     cursor: pointer;
     min-width: 0;
-    transition: background-color 150ms;
+    transition: background-color 150ms var(--md-sys-motion-easing-standard);
 }
 
 .fw-choice-label:hover {
-    background-color: rgb(var(--color-surface-100));
+    background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
-/* Larger gap and padding for standalone single-checkbox */
+/* Larger padding for standalone single-checkbox */
 .fw-checkbox-label {
-    gap: 0.75rem;
     padding: 0.75rem;
 }
 
@@ -230,8 +107,15 @@ textarea.fw-input {
 }
 
 .fw-choice-text {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-700));
+    font-size: 1rem;
+    color: rgb(var(--md-sys-color-on-surface));
+}
+
+/* Tighter rows inside grids so narrow cells (e.g. the 7-column weekday
+   picker) don't clip their labels. */
+.fw-checkbox-grid .fw-choice-label {
+    padding: 0.375rem 0.375rem;
+    gap: 0.5rem;
 }
 
 /* Truncate text when inside a grid (multi-choice context) */
@@ -243,16 +127,16 @@ textarea.fw-input {
 
 .fw-choice-name {
     display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(var(--color-surface-700));
+    font-size: 1rem;
+    color: rgb(var(--md-sys-color-on-surface));
 }
 
 .fw-choice-help {
     display: block;
     margin-top: 0.125rem;
     font-size: 0.75rem;
-    color: rgb(var(--color-surface-500));
+    line-height: 1rem;
+    color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
 /* ── Choice Grid ── */
@@ -314,44 +198,10 @@ textarea.fw-input {
     }
 }
 
-/* ── Password ── */
-
-.fw-password-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.fw-password-input {
-    padding-right: 2.75rem !important;
-}
-
-.fw-password-toggle {
-    position: absolute;
-    right: 0.625rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    color: rgb(var(--color-surface-400));
-    background: none;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    outline: none;
-    transition: color 150ms;
-    flex-shrink: 0;
-}
-
-.fw-password-toggle:hover {
-    color: rgb(var(--color-surface-600));
-}
-
-.fw-password-toggle:focus-visible {
-    outline: 2px solid rgb(var(--color-primary-500));
-    outline-offset: 1px;
-}
+/* ── Password ──
+   .fw-password-wrap / .fw-password-input remain in the markup purely as JS
+   hooks for fwTogglePassword; the field chrome is the shared fw-md3 outlined
+   anatomy and the toggle button is a .fw-md3-trailing-btn. */
 
 .fw-password-eye {
     display: flex;
@@ -364,14 +214,6 @@ textarea.fw-input {
 .fw-password-eye svg {
     width: 1.25rem;
     height: 1.25rem;
-}
-
-/* ── Error Messages ── */
-
-.fw-error {
-    margin-top: 0.25rem;
-    font-size: 0.875rem;
-    color: rgb(var(--color-destructive-600));
 }
 
 /* ── Hidden Utility ── */
@@ -409,38 +251,23 @@ textarea.fw-input {
     transition: opacity 300ms;
 }
 
-/* ── Toggle ── */
+/* ── Toggle (MD3 switch) ──
+   52x32dp track. Unselected: surface-container-highest fill, 2dp outline
+   border, 16dp on-surface-variant handle. Selected: primary fill, handle
+   grows to 24dp in on-primary and slides right. Plain label row, no pill. */
 
-/* Padding/border match .fw-choice-label exactly (0.5rem padding, 1px border)
-   so this pill is the same height as an .fw-choice-label option — the track
-   below is sized to fit that same 1.25rem content-row height. */
 .fw-toggle-label {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border: 1px solid rgb(var(--color-surface-200));
-    border-radius: 999px;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
     cursor: pointer;
-    transition: background-color 150ms;
-}
-
-.fw-toggle-label:hover {
-    background-color: rgb(var(--color-surface-100));
-}
-
-.fw-toggle-label:has(.fw-toggle-input:checked) {
-    border-color: rgb(var(--color-primary-400));
-    background-color: rgb(var(--color-primary-50));
 }
 
 .fw-toggle-name {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-700));
+    font-size: 1rem;
+    color: rgb(var(--md-sys-color-on-surface));
 }
 
 .fw-toggle-wrapper {
@@ -460,32 +287,48 @@ textarea.fw-input {
 
 .fw-toggle-track {
     position: relative;
-    width: 2.25rem;
-    height: 1.25rem;
+    width: 3.25rem;
+    height: 2rem;
+    box-sizing: border-box;
     border-radius: 9999px;
-    background-color: rgb(var(--color-surface-300));
-    transition: background-color 300ms;
+    border: 2px solid rgb(var(--md-sys-color-outline));
+    background-color: rgb(var(--md-sys-color-surface-container-highest));
+    transition: background-color 200ms var(--md-sys-motion-easing-standard),
+                border-color 200ms var(--md-sys-motion-easing-standard);
 }
 
 .fw-toggle-track::before {
     content: '';
     position: absolute;
-    top: 0.125rem;
-    left: 0.125rem;
+    top: 50%;
+    left: 0.375rem;
     width: 1rem;
     height: 1rem;
-    background-color: rgb(255 255 255);
+    background-color: rgb(var(--md-sys-color-on-surface-variant));
     border-radius: 9999px;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    transition: transform 300ms;
+    transform: translateY(-50%);
+    transition: transform 200ms var(--md-sys-motion-easing-standard),
+                width 200ms var(--md-sys-motion-easing-standard),
+                height 200ms var(--md-sys-motion-easing-standard),
+                background-color 200ms var(--md-sys-motion-easing-standard);
 }
 
 .fw-toggle-input:checked + .fw-toggle-track {
-    background-color: rgb(var(--color-primary-500));
+    background-color: rgb(var(--md-sys-color-primary));
+    border-color: rgb(var(--md-sys-color-primary));
 }
 
+/* 24dp handle, 4dp from the track's right inner edge. */
 .fw-toggle-input:checked + .fw-toggle-track::before {
-    transform: translateX(1rem);
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: rgb(var(--md-sys-color-on-primary));
+    transform: translate(0.875rem, -50%);
+}
+
+.fw-toggle-input:focus-visible + .fw-toggle-track {
+    outline: 2px solid rgb(var(--md-sys-color-primary));
+    outline-offset: 2px;
 }
 
 /* ── Search Widget — Shared (single select search + multi select chips) ── */
@@ -680,37 +523,12 @@ textarea.fw-input {
     }
 }
 
-/* Trigger pill button */
+/* Trigger — a bare flex row; all field chrome (background, outline, focus
+   and open states) comes from the shared .fw-md3-control / .fw-md3-outline
+   anatomy, never from the trigger itself. */
 .fw-sss-trigger {
-    display: flex !important;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0 1rem 0 1.25rem;
-    height: 38px;
-    border-radius: 9999px !important;
-    border: 1px solid rgb(var(--md-sys-color-outline-variant)) !important;
-    background: rgb(var(--md-sys-color-surface-container-low)) !important;
-    color: rgb(var(--md-sys-color-on-surface-variant)) !important;
-    font-size: 0.9375rem !important;
-    font-weight: 500;
-    font-family: inherit !important;
-    line-height: 1.5;
-    cursor: pointer;
     white-space: nowrap;
-    transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
     outline: none !important;
-    box-shadow: none !important;
-}
-
-.fw-sss-trigger:hover {
-    border-color: rgb(var(--md-sys-color-on-surface) / 0.2) !important;
-    color: rgb(var(--md-sys-color-on-surface)) !important;
-}
-
-.fw-sss-trigger[aria-expanded="true"] {
-    border-color: rgb(var(--md-sys-color-primary)) !important;
-    box-shadow: 0 0 0 3px rgb(var(--md-sys-color-primary) / 0.15) !important;
-    color: rgb(var(--md-sys-color-on-surface)) !important;
 }
 
 .fw-sss-trigger:disabled {
@@ -731,6 +549,7 @@ textarea.fw-input {
 .fw-sss-chevron {
     width: 1rem !important;
     height: 1rem !important;
+    color: rgb(var(--md-sys-color-on-surface-variant));
     flex-shrink: 0 !important;
     transition: transform 0.2s ease;
     display: block !important;
@@ -788,25 +607,13 @@ textarea.fw-input {
     overflow: hidden;
 }
 
-/* Choice dropdown panel — no search bar, so it's sized to its longest option
-   rather than a fixed min-width, and hangs off the trigger's right edge
-   (top-right corner of the panel meets the bottom-right corner of the
-   trigger) instead of the left-aligned single-select-search panel. */
+/* Choice dropdown panel — no search bar. Per MD3 exposed dropdowns the menu
+   is at least as wide as its field and left-aligned to it; max-content lets
+   a long option stretch it a bit further. */
 .fw-cdd-panel {
-    left: auto;
-    right: 0;
-    min-width: 0;
-    max-width: 16rem;
+    min-width: 100%;
+    max-width: 22rem;
     width: max-content;
-}
-
-/* Choice dropdown uses only neutral surface colors, no primary accent — this
-   is a plain option picker, not a call to action. Reassigning the primary
-   token (rather than overriding each rule that reads it) keeps the trigger's
-   focus/expanded state in sync with whatever on-surface-variant already
-   resolves to in light/dark. */
-.fw-cdd {
-    --md-sys-color-primary: var(--md-sys-color-on-surface-variant);
 }
 
 /* Search bar inside panel */
@@ -871,28 +678,36 @@ textarea.fw-input {
     position: relative;
 }
 
+/* MD3 input chips: 32dp tall, 8dp corners, 1dp outline, label-large text
+   with a remove icon — wrapping inline instead of the old full-width rows. */
 .fw-msc-chips {
     margin-top: 0.75rem;
-    overflow: hidden;
-}
-
-.fw-msc-chip-divider {
-    border-top: 1px solid rgb(var(--color-surface-200));
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .fw-msc-chip {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    width: 100%;
-    padding: 0.625rem 0.75rem;
+    width: auto;
+    height: 2rem;
+    margin: 0;
+    padding: 0 1rem 0 0.5rem;
     text-align: left;
     font-size: 0.875rem;
-    color: rgb(var(--color-surface-700));
-    background: none;
-    border: none;
+    font-weight: 500;
+    color: rgb(var(--md-sys-color-on-surface));
+    background: transparent;
+    border: 1px solid rgb(var(--md-sys-color-outline));
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 150ms;
+    transition: background-color 150ms var(--md-sys-motion-easing-standard);
+}
+
+.fw-msc-chip:hover {
+    background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
 .fw-msc-chip-icon {
@@ -900,47 +715,64 @@ textarea.fw-input {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 1.25rem;
-    height: 1.25rem;
-    margin-right: 0.125rem;
-    color: rgb(var(--color-surface-600));
-    background-color: rgb(var(--color-surface-100));
-    border: 1px solid rgb(var(--color-surface-300));
-    border-radius: 50%;
-    transition: background-color 150ms;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    background: none;
+    border: none;
+    border-radius: 0;
+    transition: color 150ms var(--md-sys-motion-easing-standard);
 }
 
 .fw-msc-chip-icon svg {
-    width: 0.625rem;
-    height: 0.625rem;
+    width: 1.125rem;
+    height: 1.125rem;
 }
 
 .fw-msc-chip:hover .fw-msc-chip-icon {
-    background-color: rgb(var(--color-surface-200));
+    color: rgb(var(--md-sys-color-on-surface));
 }
 
 .fw-msc-chip-text {
-    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
+    max-width: 18rem;
 }
 
-/* ── Segmented Control ── */
+/* ── Segmented Control ──
+   Keeps the original sliding-thumb design (a deliberate departure from MD3
+   segmented buttons, by design decision) but dressed as an outlined field:
+   same 56px height, same outline token/hover/error border treatment and 4px
+   corners as .fw-md3-outline, transparent track. The thumb is glassy — a
+   low-alpha primary tint over a backdrop blur with a primary hairline —
+   and the selected label carries the primary accent. */
 
 .fw-segmented-control {
     position: relative !important;
     display: inline-flex !important;
-    height: 38px !important;
+    height: 3.5rem !important;
     width: 180px !important;
     flex-shrink: 0 !important;
-    border-radius: 9999px !important;
-    border: 1px solid #dcdcdc !important;
-    background: #eaeaeb !important;
-    padding: 3px !important;
+    border-radius: var(--md-sys-shape-corner-extra-small, 4px) !important;
+    border: 1px solid rgb(var(--md-sys-color-outline)) !important;
+    background: transparent !important;
+    padding: 4px !important;
     box-sizing: border-box !important;
     user-select: none !important;
+    transition: border-color 200ms var(--md-sys-motion-easing-standard);
+}
+
+/* Hover/error borders mirror .fw-md3-outline so the control never stands out
+   from the outlined fields sharing its row. */
+.fw-segmented-control:hover {
+    border-color: rgb(var(--md-sys-color-on-surface)) !important;
+}
+
+.fw-md3--error .fw-segmented-control,
+.fw-md3--error .fw-segmented-control:hover {
+    border-color: rgb(var(--md-sys-color-error)) !important;
 }
 
 .fw-segmented-radio {
@@ -972,11 +804,18 @@ textarea.fw-input {
     left: 0 !important;
     width: 50% !important;
     height: 100% !important;
-    border-radius: 9999px !important;
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.05) !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    /* Container radius minus its 4px padding would be negative; a hair of
+       rounding keeps the thumb from looking sharper than the outline. */
+    border-radius: calc(var(--md-sys-shape-corner-extra-small, 4px) - 2px) !important;
+    /* Glass thumb: a whisper of primary over a backdrop blur, edged with a
+       primary hairline. Safe over any surface — including glass panels —
+       because nothing here is opaque. */
+    background: rgb(var(--md-sys-color-primary) / 0.08) !important;
+    border: 1px solid rgb(var(--md-sys-color-primary) / 0.25) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(1.3) !important;
+    backdrop-filter: blur(8px) saturate(1.3) !important;
+    box-shadow: none !important;
+    transition: transform 0.2s var(--md-sys-motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1)) !important;
     z-index: 1 !important;
     box-sizing: border-box !important;
 }
@@ -990,9 +829,9 @@ textarea.fw-input {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 0.8125rem !important;
+    font-size: 0.875rem !important;
     font-weight: 600 !important;
-    color: #6c6c70 !important;
+    color: rgb(var(--md-sys-color-on-surface-variant)) !important;
     cursor: pointer !important;
     z-index: 2 !important;
     transition: color 0.15s ease !important;
@@ -1014,169 +853,498 @@ textarea.fw-input {
     transform: translateX(100%) !important;
 }
 
-.fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-label--remote {
-    color: #111111 !important;
-}
-
+/* Neutral surface thumb; the selection is voiced by the primary label. */
+.fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-label--remote,
 .fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-label--local {
-    color: #111111 !important;
+    color: rgb(var(--md-sys-color-primary)) !important;
 }
 
 .fw-segmented-control--locked .fw-segmented-label--remote {
-    opacity: 0.35 !important;
+    opacity: 0.38 !important;
     cursor: default !important;
+}
+
+/* ── MD3 Outlined Field (pilot: select widget) ──
+   Tokens are scoped to .fw-md3 for now, mirroring the .fw-search-wrap /
+   .fw-sss-input pattern; hoist to :root once the remaining widgets migrate.
+   The outline is a fieldset/legend so the label notch is a real border gap —
+   no background patch behind the label, safe over glass surfaces. */
+
+.fw-md3 {
+    --md-sys-color-primary: var(--color-primary-600);
+    --md-sys-color-on-primary: 255 255 255;
+    --md-sys-color-error: var(--color-destructive-600);
+    --md-sys-color-on-surface: var(--color-surface-900);
+    --md-sys-color-on-surface-variant: var(--color-surface-600);
+    --md-sys-color-outline: var(--color-surface-400);
+    /* Approximations of the secondary-container pair from the phoxtail
+       palette (no dedicated secondary hue exists yet). */
+    --md-sys-color-secondary-container: var(--color-primary-100);
+    --md-sys-color-on-secondary-container: var(--color-primary-900);
+    --md-sys-color-surface-container-highest: var(--color-surface-200);
+    --md-sys-color-surface-container-low: var(--color-surface-100);
+    --md-sys-color-outline-variant: var(--color-surface-200);
+    --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+    --md-sys-shape-corner-extra-small: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .fw-md3 {
+        --md-sys-color-primary: var(--color-primary-400);
+        --md-sys-color-on-primary: var(--color-primary-950, 0 0 0);
+        --md-sys-color-error: var(--color-destructive-400);
+        --md-sys-color-on-surface: var(--color-surface-100);
+        --md-sys-color-on-surface-variant: var(--color-surface-400);
+        --md-sys-color-outline: var(--color-surface-600);
+        --md-sys-color-secondary-container: var(--color-primary-900);
+        --md-sys-color-on-secondary-container: var(--color-primary-100);
+        --md-sys-color-surface-container-highest: var(--color-surface-700);
+        --md-sys-color-surface-container-low: var(--color-surface-800);
+        --md-sys-color-outline-variant: var(--color-surface-700);
+    }
+}
+
+.fw-md3-outlined {
+    position: relative;
+    display: flex;
+    align-items: center;
+    /* MD3 default field height is 56dp; drop to 40px if a -2 density is
+       preferred for dense forms. */
+    height: 56px;
+}
+
+/* Structural props carry !important as armor against host-app admin CSS
+   (Wagtail restyles input/select/textarea/label/legend/fieldset globally,
+   sometimes with attribute selectors that out-rank a single class). State
+   rules (focus, error, disabled) target the sibling outline/label, so they
+   are unaffected by these. */
+.fw-md3-control {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 100% !important;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 1rem !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    font-size: 1rem !important;
+    font-family: inherit !important;
+    font-weight: 400 !important;
+    line-height: normal;
+    color: rgb(var(--md-sys-color-on-surface)) !important;
+    border-radius: var(--md-sys-shape-corner-extra-small) !important;
+    box-sizing: border-box !important;
+}
+
+select.fw-md3-control {
+    cursor: pointer;
+}
+
+/* MD3 fields don't show native number spinners; the trailing area stays clean. */
+input.fw-md3-control[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input.fw-md3-control[type="number"]::-webkit-outer-spin-button,
+input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Reserve room for the trailing icon (24dp icon + 12dp inset per spec). */
+.fw-md3-outlined:has(.fw-md3-trailing, .fw-md3-trailing-btn) .fw-md3-control {
+    padding-right: 3rem !important;
+}
+
+/* A caller-supplied placeholder must not fight the resting label for the
+   same spot: per MD3 it only shows once the label has floated (focus). The
+   single-space float-driver placeholder is unaffected — it has no glyphs. */
+.fw-md3-control:not(:focus)::placeholder {
+    color: transparent;
+}
+
+.fw-md3-control:focus::placeholder {
+    color: rgb(var(--md-sys-color-on-surface-variant));
+}
+
+/* Multiline variant: the container grows with the textarea and the resting
+   label pins to the first text line instead of the vertical center. */
+.fw-md3-outlined--textarea {
+    height: auto;
+    min-height: 56px;
+}
+
+textarea.fw-md3-control {
+    padding: 1rem !important;
+    resize: vertical;
+    line-height: 1.5rem;
+    min-height: 56px;
+}
+
+.fw-md3-outlined--textarea .fw-md3-label {
+    top: 1.75rem;
+}
+
+.fw-md3-control:focus ~ .fw-md3-label,
+.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-label {
+    /* Repeated after the --textarea override so floating wins there too. */
+    top: 0;
+}
+
+/* Interactive trailing slot (password visibility, date/time pickers):
+   24dp icon centered in a 40dp round target, 4dp from the field edge so the
+   icon itself sits at the spec's 12dp inset. */
+.fw-md3-trailing-btn {
+    position: absolute;
+    right: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    cursor: pointer;
+    transition: background-color 150ms var(--md-sys-motion-easing-standard);
+}
+
+.fw-md3-trailing-btn:hover {
+    background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
+}
+
+.fw-md3-trailing-btn:focus-visible {
+    outline: 2px solid rgb(var(--md-sys-color-primary));
+    outline-offset: 1px;
+}
+
+.fw-md3-trailing-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: block;
+}
+
+/* Native pickers get our trailing button instead of the browser's inline
+   indicator. Unscoped from :has() and !important-ed: Wagtail admin ships its
+   own date-input chrome, which otherwise leaves two calendar icons side by
+   side. background-image is re-asserted for the same reason — some admin
+   skins paint an icon onto the input itself. */
+.fw-md3 input.fw-md3-control::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fw-md3 input.fw-md3-control,
+.fw-md3 select.fw-md3-control {
+    background-image: none !important;
+}
+
+/* Firefox exposes no pseudo-element for its native date-picker icon, which
+   it paints just inside the input's right padding edge. Shrink the right
+   padding so the icon lands entirely within the trailing-button strip, then
+   clip that strip away — our trailing button is a sibling, so it is not
+   clipped and remains the single visible calendar icon. Scoped to Firefox
+   via @supports; in Chromium the indicator is hidden by the rule above. */
+@supports (-moz-appearance: none) {
+    .fw-md3-outlined:has(.fw-md3-trailing-btn) input.fw-md3-control {
+        padding-right: 0.5rem !important;
+        clip-path: inset(0 2.75rem 0 0);
+    }
+}
+
+/* Group label for checkbox/radio groups: styled like a floated field label,
+   since these controls have no container to notch it into. */
+.fw-md3-group-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+}
+
+.fw-md3--error .fw-md3-group-label {
+    color: rgb(var(--md-sys-color-error));
+}
+
+/* ── MD3 anatomy for the search-family widgets ──
+   (single_select_search, choice_dropdown). The pill trigger becomes the
+   outlined field's control; label/outline live outside the HTMX swap target,
+   so float state is driven by :has() — a hidden input exists only while
+   something is selected, and aria-expanded flags an open panel. */
+
+/* The outlined wrapper is a flex row; without explicit sizes the swap
+   container shrinks to its content (an empty trigger label), leaving only a
+   small clickable square — force the control chain to fill the field. */
+.fw-sss-outlined .fw-widget-container,
+.fw-sss-outlined .fw-sss-input {
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+}
+
+.fw-sss-trigger.fw-md3-control {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-align: left;
+    /* Rich item templates can render multi-line content taller than the
+       56px field — clip instead of spilling over the outline. */
+    overflow: hidden;
+}
+
+/* Optional trigger placeholder: hidden while closed (the resting label
+   occupies that spot), revealed while the panel is open — MD3 placeholder
+   semantics. */
+.fw-sss-placeholder {
+    opacity: 0;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    transition: opacity 150ms var(--md-sys-motion-easing-standard);
+}
+
+.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-sss-placeholder {
+    opacity: 1;
+}
+
+/* Float the label / open the notch when: always-floated variant (choice
+   dropdown), something is selected (hidden input present), or panel open. */
+.fw-md3-outlined--floated .fw-md3-label,
+.fw-sss-outlined:has(input[type="hidden"]) .fw-md3-label,
+.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-label {
+    top: 0;
+    font-size: 0.75rem;
+}
+
+.fw-md3-outlined--floated .fw-md3-notch,
+.fw-sss-outlined:has(input[type="hidden"]) .fw-md3-notch,
+.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-notch {
+    padding: 0 0.25rem;
+    max-width: 100%;
+}
+
+/* Open/keyboard-focused trigger mirrors the control focus state. */
+.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-outline,
+.fw-sss-outlined:has(.fw-sss-trigger:focus-visible) .fw-md3-outline {
+    border-width: 2px;
+    border-color: rgb(var(--md-sys-color-primary));
+}
+
+.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-label {
+    color: rgb(var(--md-sys-color-primary));
+}
+
+/* Error keeps the whole field in error color, beating the open-state primary
+   (same specificity, later in the cascade). */
+.fw-md3--error .fw-sss-outlined .fw-md3-outline {
+    border-color: rgb(var(--md-sys-color-error));
+}
+
+.fw-md3--error .fw-sss-outlined .fw-md3-label {
+    color: rgb(var(--md-sys-color-error));
+}
+
+.fw-md3-control option {
+    background-color: rgb(var(--color-surface-50));
+    color: rgb(var(--color-surface-900));
+}
+
+@media (prefers-color-scheme: dark) {
+    .fw-md3-control option {
+        background-color: rgb(var(--color-surface-800));
+        color: rgb(var(--color-surface-100));
+    }
+}
+
+/* Label rests inside the field (body-large, vertically centered) and floats
+   into the outline notch (body-small) on focus or when populated. "Populated"
+   is :not(:placeholder-shown): text/number controls carry a single-space
+   placeholder for exactly this, and a <select> can never match
+   :placeholder-shown, so its label is permanently floated — correct, since a
+   native select always renders a selection. */
+.fw-md3-label {
+    position: absolute !important;
+    top: 50%;
+    left: 1rem !important;
+    transform: translateY(-50%);
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 1rem;
+    font-weight: 400 !important;
+    line-height: 1 !important;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    pointer-events: none;
+    cursor: default;
+    transition: top 150ms var(--md-sys-motion-easing-standard),
+                font-size 150ms var(--md-sys-motion-easing-standard),
+                color 150ms var(--md-sys-motion-easing-standard);
+}
+
+.fw-md3-control:focus ~ .fw-md3-label,
+.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-label {
+    top: 0;
+    font-size: 0.75rem;
+}
+
+/* The outline itself. Top inset compensates for the legend's line box so the
+   border-top aligns with the visual top of the field. */
+.fw-md3-outline {
+    position: absolute !important;
+    inset: -0.375rem 0 0 0 !important;
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    /* 12px + the notch's 4px side padding = legend text starts at 16px,
+       exactly under the floated label. */
+    padding: 0 0.75rem !important;
+    border: 1px solid rgb(var(--md-sys-color-outline));
+    border-radius: var(--md-sys-shape-corner-extra-small) !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    pointer-events: none;
+    transition: border-color 200ms var(--md-sys-motion-easing-standard);
+}
+
+/* The border itself stays un-!important-ed (focus/error swap width/color),
+   but everything that lets the legend cut its notch gap is armored:
+   Wagtail's admin CSS floats legends inline at 16.67% width, which silently
+   disables the fieldset notch. */
+.fw-md3-notch,
+fieldset.fw-md3-outline > legend.fw-md3-notch {
+    float: none !important;
+    display: block !important;
+    position: static !important;
+    width: auto !important;
+    margin: 0 !important;
+    border: 0 !important;
+    height: auto !important;
+    visibility: visible !important;
+}
+
+/* The notch is collapsed while the label rests inside the field and opens
+   (4dp padding each side, per spec) when the label floats. */
+.fw-md3-notch {
+    padding: 0;
+    max-width: 0;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    line-height: 0.75rem;
+    max-height: 0.75rem;
+    transition: max-width 150ms var(--md-sys-motion-easing-standard),
+                padding 150ms var(--md-sys-motion-easing-standard);
+}
+
+.fw-md3-control:focus ~ .fw-md3-outline .fw-md3-notch,
+.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-outline .fw-md3-notch {
+    padding: 0 0.25rem;
+    max-width: 100%;
+}
+
+/* Invisible twin of the label text — only there to size the border gap. */
+.fw-md3-notch > span {
+    visibility: hidden;
+}
+
+/* Explicitly label-less fields must never open a gap in the top border —
+   !important so the focus/populated notch-opening states can't override. */
+.fw-md3-notch--empty {
+    padding: 0 !important;
+    max-width: 0 !important;
+    width: 0 !important;
+}
+
+/* An empty legend has no line box, so the fieldset would draw its top border
+   at the fieldset's own top edge — 6px above the field — instead of pushing
+   it down through the legend's middle like labeled fields do. A zero-width
+   space restores the line box without opening a notch. */
+.fw-md3-notch--empty::before {
+    content: "\200B";
+}
+
+.fw-md3-trailing {
+    position: absolute;
+    right: 0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+    pointer-events: none;
+    transition: color 200ms var(--md-sys-motion-easing-standard);
+}
+
+/* States: hover darkens the outline, focus thickens it to 2px in primary —
+   no glow/box-shadow halo, per MD3. */
+.fw-md3-outlined:hover .fw-md3-outline {
+    border-color: rgb(var(--md-sys-color-on-surface));
+}
+
+.fw-md3-control:focus ~ .fw-md3-outline {
+    border-width: 2px;
+    border-color: rgb(var(--md-sys-color-primary));
+}
+
+.fw-md3-control:focus ~ .fw-md3-label {
+    color: rgb(var(--md-sys-color-primary));
+}
+
+/* Error state colors the whole field, not just the message. */
+.fw-md3--error .fw-md3-outline,
+.fw-md3--error .fw-md3-outlined:hover .fw-md3-outline,
+.fw-md3--error .fw-md3-control:focus ~ .fw-md3-outline {
+    border-color: rgb(var(--md-sys-color-error));
+}
+
+.fw-md3--error .fw-md3-label,
+.fw-md3--error .fw-md3-control:focus ~ .fw-md3-label,
+.fw-md3--error .fw-md3-supporting {
+    color: rgb(var(--md-sys-color-error));
+}
+
+/* Disabled: MD3 uses on-surface at 38% for content, 12% for the outline. */
+.fw-md3-control:disabled {
+    color: rgb(var(--md-sys-color-on-surface) / 0.38);
+    cursor: default;
+}
+
+.fw-md3-control:disabled ~ .fw-md3-outline {
+    border-color: rgb(var(--md-sys-color-on-surface) / 0.12);
+}
+
+.fw-md3-control:disabled ~ .fw-md3-label,
+.fw-md3-control:disabled ~ .fw-md3-trailing {
+    color: rgb(var(--md-sys-color-on-surface) / 0.38);
+}
+
+/* Supporting text replaces the hover help tooltip; also hosts errors. */
+.fw-md3-supporting {
+    margin: 0.25rem 0 0 !important;
+    padding: 0 1rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 400 !important;
+    line-height: 1rem !important;
+    color: rgb(var(--md-sys-color-on-surface-variant));
+}
+
+.fw-md3-supporting span {
+    display: block;
 }
 
 /* ── Dark Mode ── */
 
 @media (prefers-color-scheme: dark) {
-    .fw-label-row {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .fw-help-btn {
-        color: rgb(var(--color-surface-400));
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-        border-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-help-btn:hover,
-    .fw-help-btn:focus {
-        background-color: rgb(var(--color-surface-600));
-        color: rgb(var(--color-surface-200));
-    }
-
-    .fw-help-tooltip {
-        color: rgb(var(--color-surface-200));
-        background-color: rgb(var(--color-surface-800));
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .fw-input {
-        border-color: rgb(var(--color-surface-700)) !important;
-        background-color: rgb(var(--color-surface-800) / 0.5) !important;
-        color: rgb(var(--color-surface-100)) !important;
-    }
-
-    .fw-input option {
-        background-color: rgb(var(--color-surface-800));
-        color: rgb(var(--color-surface-100));
-    }
-
-    .fw-input:focus {
-        border-color: rgb(var(--color-primary-600)) !important;
-        box-shadow: 0 0 0 2px rgb(var(--color-primary-600) / 0.25) !important;
-    }
-
-    .fw-choice-input {
-        border-color: rgb(var(--color-surface-600)) !important;
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88) !important;
-    }
-
-    .fw-choice-label:has(.fw-choice-input:checked) {
-        border-color: rgb(var(--color-primary-500));
-        background-color: rgb(var(--color-primary-900) / 0.3);
-    }
-
-    .fw-choice-label {
-        border-color: rgb(var(--color-surface-700));
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-    }
-
-    .fw-choice-label:hover {
-        background-color: rgb(var(--color-surface-800));
-    }
-
-    .fw-choice-text,
-    .fw-choice-name {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .fw-choice-help {
-        color: rgb(var(--color-surface-400));
-    }
-
-    .fw-error {
-        color: rgb(var(--color-destructive-400));
-    }
-
-    /* Toggle */
-    .fw-toggle-label {
-        border-color: rgb(var(--color-surface-700));
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-    }
-
-    .fw-toggle-label:hover {
-        background-color: rgb(var(--color-surface-800));
-    }
-
-    .fw-toggle-label:has(.fw-toggle-input:checked) {
-        border-color: rgb(var(--color-primary-500));
-        background-color: rgb(var(--color-primary-900) / 0.3);
-    }
-
-    .fw-toggle-name {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .fw-toggle-track {
-        background-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-toggle-track::before {
-        background-color: rgb(var(--color-surface-100));
-    }
-
-    .fw-toggle-input:checked + .fw-toggle-track {
-        background-color: rgb(var(--color-primary-600));
-    }
+    /* Choice, toggle, and segmented widgets are dark-mode-aware through the
+       .fw-md3 token block — no per-rule overrides needed here. */
 
     /* Search — dark mode tokens are handled by .fw-sss-input media query above */
 
-    /* Multi Select Chips */
-    .fw-msc-chip {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .fw-msc-chip-divider {
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .fw-msc-chip-icon {
-        color: rgb(var(--color-surface-300));
-        background-color: rgb(var(--color-surface-700));
-        border-color: rgb(var(--color-surface-600));
-    }
-
-    .fw-msc-chip:hover .fw-msc-chip-icon {
-        background-color: rgb(var(--color-surface-600));
-    }
-
-    /* Segmented Control */
-    .fw-segmented-control {
-        background: #141416 !important;
-        border-color: #2a2a2d !important;
-    }
-
-    .fw-segmented-slider {
-        background: #2a2a2d !important;
-        border-color: rgba(255, 255, 255, 0.08) !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-    }
-
-    .fw-segmented-label {
-        color: #9a9a9f !important;
-    }
-
-    .fw-segmented-radio--remote:checked ~ .fw-segmented-track .fw-segmented-label--remote {
-        color: #ffffff !important;
-    }
-
-    .fw-segmented-radio--local:checked ~ .fw-segmented-track .fw-segmented-label--local {
-        color: #ffffff !important;
-    }
-
-    .fw-segmented-control--locked .fw-segmented-label--remote {
-        opacity: 0.2 !important;
-    }
+    /* Multi Select Chips and Segmented Control — dark mode handled by the
+       .fw-md3 token block. */
 }

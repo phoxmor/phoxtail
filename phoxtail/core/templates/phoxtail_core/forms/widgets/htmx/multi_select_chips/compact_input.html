@@ -24,8 +24,7 @@
                    hx-target="#{{ wid }}-results"
                    hx-swap="innerHTML"
                    hx-trigger="input changed delay:300ms"
-                   onfocus="document.getElementById('{{ wid }}-dropdown').classList.remove('fw-hidden')"
-                   onblur="setTimeout(function(){document.getElementById('{{ wid }}-dropdown').classList.add('fw-hidden')}, 150)">
+                   onfocus="document.getElementById('{{ wid }}-dropdown').classList.remove('fw-hidden')">
         </div>
         {# Results container - only this swaps during search #}
         <div id="{{ wid }}-results">
@@ -35,7 +34,6 @@
         {% if selected_items and is_active != False %}
             <div class="fw-msc-chips">
                 {% for item in selected_items %}
-                    {% if not forloop.first %}<div class="fw-msc-chip-divider"></div>{% endif %}
                     <button type="button"
                             class="fw-msc-chip"
                             hx-get="{{ search_url }}"
@@ -54,4 +52,33 @@
             </div>
         {% endif %}
     </div>
+
+    <script>
+    (function () {
+        /* Close the dropdown on any click outside the whole widget (search
+           bar AND dropdown) — the old onblur-with-timeout on the input only
+           reacted to the input losing focus. Listeners are keyed on window
+           and replaced on every HTMX re-render so swaps don't stack them.
+           Capture phase on purpose: modal drawers stopPropagation() on inner
+           clicks, which would otherwise never reach the document. */
+        var clickKey = 'fwMscClick-{{ wid }}';
+        var keyKey = 'fwMscKey-{{ wid }}';
+
+        function dropdown() { return document.getElementById('{{ wid }}-dropdown'); }
+
+        if (window[clickKey]) document.removeEventListener('click', window[clickKey], true);
+        if (window[keyKey]) document.removeEventListener('keydown', window[keyKey]);
+        window[clickKey] = function (e) {
+            var root = document.getElementById('{{ wid }}-compact-input');
+            var dd = dropdown();
+            if (root && dd && !root.contains(e.target)) dd.classList.add('fw-hidden');
+        };
+        window[keyKey] = function (e) {
+            var dd = dropdown();
+            if (e.key === 'Escape' && dd) dd.classList.add('fw-hidden');
+        };
+        document.addEventListener('click', window[clickKey], true);
+        document.addEventListener('keydown', window[keyKey]);
+    })();
+    </script>
 {% endwith %}

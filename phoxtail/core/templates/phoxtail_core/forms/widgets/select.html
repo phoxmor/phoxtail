@@ -1,37 +1,49 @@
-<div class="fw-field">
-    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            {% if show_label != False %}
-                <label for="{{ field.id_for_label }}" class="fw-label">
-                    {{ label|default:field.label }}
-                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                </label>
-            {% else %}
-                <span class="fw-label"></span>
-            {% endif %}
-            {% if show_help_text != False and help_text|default:field.help_text %}
-                <span class="fw-help-wrapper">
-                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                </span>
-            {% endif %}
-        </div>
-    {% endif %}
-    <select name="{{ field.html_name }}"
-            id="{{ field.id_for_label }}"
-            class="fw-input"
-            {% if field.field.required %}required{% endif %}
-            {% if field.field.disabled %}disabled{% endif %}>
-        {% with choices=field.field.choices|default:field.field.widget.choices %}
-            {% for value, label in choices %}
-                <option value="{{ value }}"
-                        {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                    {{ label }}
-                </option>
-            {% endfor %}
-        {% endwith %}
-    </select>
+{% comment %}
+MD3 outlined "exposed dropdown menu" field (pilot widget for the MD3 pass).
+The outline is a real <fieldset>/<legend> so the label notch is a true gap in
+the border — works over any background (glass drawers included) with no
+background-color patch behind the label. A native <select> always renders a
+selection, so the label is permanently floated into the notch; there is no
+resting/floating animation to manage. The legend holds an invisible copy of
+the label text purely to size the notch.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div class="fw-md3-outlined">
+        <select name="{{ field.html_name }}"
+                id="{{ field.id_for_label }}"
+                class="fw-md3-control"
+                {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
+                {% if field.errors %}aria-invalid="true"{% endif %}
+                {% if field.field.required %}required{% endif %}
+                {% if field.field.disabled %}disabled{% endif %}>
+            {% with choices=field.field.choices|default:field.field.widget.choices %}
+                {% for value, label in choices %}
+                    <option value="{{ value }}"
+                            {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            {% endwith %}
+        </select>
+        {% if show_label != False and label != "" %}
+            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </label>
+        {% endif %}
+        <fieldset class="fw-md3-outline" aria-hidden="true">
+            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+            </legend>
+        </fieldset>
+        <svg class="fw-md3-trailing" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7 10l5 5 5-5z"/>
+        </svg>
+    </div>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

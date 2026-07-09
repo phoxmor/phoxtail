@@ -1,8 +1,10 @@
 {% load i18n %}
 {% comment %}
-Multi-Select Chips Widget
-=========================
-A compact multi-select with search dropdown and chips display.
+Multi-Select Chips Widget (MD3: search bar + menu + input chips)
+================================================================
+A compact multi-select. The pill search input is kept — it is MD3's search
+bar component — while the group label, supporting text (replacing the hover
+help tooltip), errors, and the chips themselves follow the MD3 standard.
 
 Required context:
     - field: The form field (MultiSelectChipsField or ModelMultipleChoiceField)
@@ -14,6 +16,7 @@ Optional context:
     - widget_id: Unique identifier (default: field.html_name)
     - hx_include: Selector for additional form fields to include in requests
     - show_label/show_help_text: Whether to show label/help (default: True)
+    - label: Custom label text; pass "" to render no label at all
     - item_template: Path to template for rich dropdown item rendering (default: uses __str__)
     - is_active: Whether the widget is interactive (default: active; pass False to deactivate)
     - search_placeholder: Placeholder text for search input
@@ -21,34 +24,39 @@ Optional context:
 {% endcomment %}
 {# Derive widget_id and item lists from field if not provided #}
 {% with widget_id=widget_id|default:field.html_name selected_items=selected_items|default:field.selected_items available_items=available_items|default:field.available_items %}
-    <div id="{{ widget_id }}-widget" class="fw-msc-widget">
-        {# Label and Help Text #}
-        {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-            <div class="fw-label-row">
-                {% if show_label != False %}
-                    <span class="fw-label">
-                        {{ label|default:field.label }}
-                        {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                    </span>
-                {% else %}
-                    <span class="fw-label"></span>
-                {% endif %}
-                {% if show_help_text != False and help_text|default:field.help_text %}
-                    <span class="fw-help-wrapper">
-                        <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                        <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                    </span>
-                {% endif %}
-            </div>
+    <div id="{{ widget_id }}-widget" class="fw-msc-widget fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+        {% if show_label != False and label != "" %}
+            <span class="fw-md3-group-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </span>
         {% endif %}
         {# Compact Widget Container #}
         <div id="{{ widget_id }}-container"
              class="fw-widget-container{% if is_active == False or field.field.disabled %} fw-widget-container--inactive{% endif %}">
             {% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html' %}
         </div>
-        {# Field Errors #}
         {% if field.errors %}
-            {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+            <div class="fw-md3-supporting" id="{{ widget_id }}-errors">
+                {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+            <script>
+            (function () {
+                /* Errors live outside the HTMX swap target, so clear them by
+                   hand once the user changes the selection. Search typing only
+                   swaps the results list — leave errors up for that. */
+                var container = document.getElementById('{{ widget_id }}-container');
+                if (!container) return;
+                container.addEventListener('htmx:afterSwap', function (e) {
+                    if (e.detail.target.id === '{{ widget_id }}-results') return;
+                    var widget = document.getElementById('{{ widget_id }}-widget');
+                    if (widget) widget.classList.remove('fw-md3--error');
+                    var errors = document.getElementById('{{ widget_id }}-errors');
+                    if (errors) errors.remove();
+                });
+            })();
+            </script>
+        {% elif show_help_text != False and help_text|default:field.help_text %}
+            <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
         {% endif %}
     </div>
 {% endwith %}

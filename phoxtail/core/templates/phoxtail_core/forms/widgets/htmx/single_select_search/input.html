@@ -1,8 +1,13 @@
 {% load i18n phoxtail_design_tags %}
-{# Single select: pill trigger opens a panel with search bar + items inside #}
+{# Single select: MD3-field trigger opens a panel with search bar + items inside. #}
+{# The floating label and outline live in the parent template (outside this   #}
+{# swap target); the empty trigger shows nothing while closed — the resting    #}
+{# label communicates the field. trigger_placeholder, when given, is only      #}
+{# revealed while the panel is open (CSS), replacing the old hardcoded         #}
+{# "Select remote" default.                                                    #}
 {% with wid=widget_id|default:field.html_name %}
     <div id="{{ wid }}-input" class="fw-sss-input">
-        {# Hidden input for form submission #}
+        {# Hidden input for form submission — its presence also drives the label float (CSS :has) #}
         <div id="{{ wid }}-selected-value" class="fw-hidden">
             {% if selected_item and is_active != False %}
                 <input type="hidden"
@@ -11,8 +16,8 @@
             {% endif %}
         </div>
 
-        {# Pill trigger — div so the clear button can nest inside without invalid HTML #}
-        <div class="fw-sss-trigger"
+        {# Field-shaped trigger — div so the clear button can nest inside without invalid HTML #}
+        <div class="fw-sss-trigger fw-md3-control"
              id="{{ wid }}-trigger"
              role="button"
              tabindex="{% if is_active == False %}-1{% else %}0{% endif %}"
@@ -26,8 +31,8 @@
                     {% else %}
                         {{ selected_item }}
                     {% endif %}
-                {% else %}
-                    {{ trigger_placeholder|default:_("Select remote") }}
+                {% elif trigger_placeholder %}
+                    <span class="fw-sss-placeholder">{{ trigger_placeholder }}</span>
                 {% endif %}
             </span>
             {% if selected_item and is_active != False %}
@@ -102,13 +107,24 @@
             }
         });
 
-        document.addEventListener('click', function (e) {
+        /* Document-level listeners are keyed on window and replaced on every
+           HTMX re-render — otherwise each swap would stack another listener
+           holding the previous DOM. Closes on any click outside the widget
+           (trigger AND panel) and on Escape. Capture phase on purpose:
+           modal drawers stopPropagation() on inner clicks, which would
+           otherwise keep bubbling clicks from ever reaching the document. */
+        var clickKey = 'fwSssClick-{{ wid }}';
+        var keyKey = 'fwSssKey-{{ wid }}';
+        if (window[clickKey]) document.removeEventListener('click', window[clickKey], true);
+        if (window[keyKey]) document.removeEventListener('keydown', window[keyKey]);
+        window[clickKey] = function (e) {
             if (container && !container.contains(e.target)) close();
-        });
-
-        document.addEventListener('keydown', function (e) {
+        };
+        window[keyKey] = function (e) {
             if (e.key === 'Escape') close();
-        });
+        };
+        document.addEventListener('click', window[clickKey], true);
+        document.addEventListener('keydown', window[keyKey]);
     })();
     </script>
 {% endwith %}

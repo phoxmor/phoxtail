@@ -1,10 +1,12 @@
 {% load phoxtail_design_tags %}
 {% comment %}
-Choice Dropdown Widget
-======================
-Same pill-trigger + floating panel look as single_select_search, minus the
-search bar — for a plain ChoiceField/TypedChoiceField with a small, static
-set of options (not a remote-search queryset).
+Choice Dropdown Widget (MD3 outlined field + menu panel)
+========================================================
+Exposed dropdown for a plain ChoiceField/TypedChoiceField with a small,
+static set of options (not a remote-search queryset) — the same outlined
+anatomy as single_select_search, minus the search bar. A choice dropdown
+always renders a selection, so the label is permanently floated
+(fw-md3-outlined--floated) like a native select's.
 
 Required context:
     - field: bound ChoiceField/TypedChoiceField
@@ -14,79 +16,79 @@ Optional context:
       underlying (visually hidden) <select>, exactly like
       phoxtail_core/forms/widgets/htmx/select.html
     - show_label/show_help_text, label, help_text, show_required, required:
-      same as select.html
+      same as select.html (pass label="" to render no label at all)
 {% endcomment %}
 {% with wid=field.id_for_label %}
-    <div class="fw-field">
-        {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-            <div class="fw-label-row">
-                {% if show_label != False %}
-                    <label for="{{ wid }}" class="fw-label">
-                        {{ label|default:field.label }}
-                        {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                    </label>
-                {% else %}
-                    <span class="fw-label"></span>
-                {% endif %}
-                {% if show_help_text != False and help_text|default:field.help_text %}
-                    <span class="fw-help-wrapper">
-                        <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                        <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                    </span>
-                {% endif %}
-            </div>
-        {% endif %}
-        <div class="fw-sss-input fw-cdd" id="{{ wid }}-cdd">
-            {% with choices=field.field.choices|default:field.field.widget.choices %}
-                <select name="{{ field.html_name }}"
-                        id="{{ wid }}"
-                        class="fw-sr-only"
-                        tabindex="-1"
-                        {% if field.field.required %}required{% endif %}
-                        {% if field.field.disabled %}disabled{% endif %}
-                        {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-                        {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-                        {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="innerHTML"{% endif %}
-                        {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-                        {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-                        {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
-                    {% for value, choice_label in choices %}
-                        <option value="{{ value }}"
-                                {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                            {{ choice_label }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <button type="button"
-                        class="fw-sss-trigger"
-                        id="{{ wid }}-trigger"
-                        aria-expanded="false"
-                        aria-controls="{{ wid }}-panel"
-                        aria-haspopup="listbox"
-                        {% if field.field.disabled %}disabled{% endif %}>
-                    <span class="fw-sss-trigger-label" id="{{ wid }}-trigger-label"></span>
-                    {% icon "chevron_down" class="fw-sss-chevron" %}
-                </button>
-
-                <div id="{{ wid }}-panel" class="fw-sss-panel fw-cdd-panel fw-hidden" role="listbox">
-                    <div class="fw-sss-results">
+    <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+        <div class="fw-md3-outlined fw-md3-outlined--floated fw-sss-outlined">
+            <div class="fw-sss-input fw-cdd" id="{{ wid }}-cdd">
+                {% with choices=field.field.choices|default:field.field.widget.choices %}
+                    <select name="{{ field.html_name }}"
+                            id="{{ wid }}"
+                            class="fw-sr-only"
+                            tabindex="-1"
+                            {% if field.field.required %}required{% endif %}
+                            {% if field.field.disabled %}disabled{% endif %}
+                            {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+                            {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+                            {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="innerHTML"{% endif %}
+                            {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+                            {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+                            {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
                         {% for value, choice_label in choices %}
-                            {% if not forloop.first %}<div class="fw-search-divider"></div>{% endif %}
-                            <button type="button"
-                                    class="fw-search-item"
-                                    role="option"
-                                    data-value="{{ value }}"
-                                    aria-selected="{% if field.value|stringformat:"s" == value|stringformat:"s" %}true{% else %}false{% endif %}">
-                                <span class="fw-search-item-text">{{ choice_label }}</span>
-                            </button>
+                            <option value="{{ value }}"
+                                    {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                {{ choice_label }}
+                            </option>
                         {% endfor %}
+                    </select>
+
+                    <button type="button"
+                            class="fw-sss-trigger fw-md3-control"
+                            id="{{ wid }}-trigger"
+                            aria-expanded="false"
+                            aria-controls="{{ wid }}-panel"
+                            aria-haspopup="listbox"
+                            {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ wid }}_supporting"{% endif %}
+                            {% if field.errors %}aria-invalid="true"{% endif %}
+                            {% if field.field.disabled %}disabled{% endif %}>
+                        <span class="fw-sss-trigger-label" id="{{ wid }}-trigger-label"></span>
+                        {% icon "chevron_down" class="fw-sss-chevron" %}
+                    </button>
+
+                    <div id="{{ wid }}-panel" class="fw-sss-panel fw-cdd-panel fw-hidden" role="listbox">
+                        <div class="fw-sss-results">
+                            {% for value, choice_label in choices %}
+                                {% if not forloop.first %}<div class="fw-search-divider"></div>{% endif %}
+                                <button type="button"
+                                        class="fw-search-item"
+                                        role="option"
+                                        data-value="{{ value }}"
+                                        aria-selected="{% if field.value|stringformat:"s" == value|stringformat:"s" %}true{% else %}false{% endif %}">
+                                    <span class="fw-search-item-text">{{ choice_label }}</span>
+                                </button>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
-            {% endwith %}
+                {% endwith %}
+            </div>
+            {% if show_label != False and label != "" %}
+                <label class="fw-md3-label">
+                    {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+                </label>
+            {% endif %}
+            <fieldset class="fw-md3-outline" aria-hidden="true">
+                <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                    {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+                </legend>
+            </fieldset>
         </div>
         {% if field.errors %}
-            {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+            <div class="fw-md3-supporting" id="{{ wid }}_supporting">
+                {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+        {% elif show_help_text != False and help_text|default:field.help_text %}
+            <div class="fw-md3-supporting" id="{{ wid }}_supporting">{{ help_text|default:field.help_text }}</div>
         {% endif %}
     </div>
 
@@ -100,7 +102,7 @@ Optional context:
         if (!root || !select || !trigger || !panel) return;
 
         function syncLabel() {
-            var opt = select.querySelector('option[selected]') || select.options[select.selectedIndex];
+            var opt = select.options[select.selectedIndex] || select.querySelector('option[selected]');
             label.textContent = opt ? opt.textContent.trim() : '';
         }
         syncLabel();
@@ -138,13 +140,21 @@ Optional context:
             });
         });
 
-        document.addEventListener('click', function (e) {
+        /* Keyed on window so re-renders replace rather than stack listeners;
+           capture phase so drawer stopPropagation() can't swallow outside
+           clicks before they reach the document. */
+        var clickKey = 'fwCddClick-{{ wid }}';
+        var keyKey = 'fwCddKey-{{ wid }}';
+        if (window[clickKey]) document.removeEventListener('click', window[clickKey], true);
+        if (window[keyKey]) document.removeEventListener('keydown', window[keyKey]);
+        window[clickKey] = function (e) {
             if (!root.contains(e.target)) close();
-        });
-
-        document.addEventListener('keydown', function (e) {
+        };
+        window[keyKey] = function (e) {
             if (e.key === 'Escape') close();
-        });
+        };
+        document.addEventListener('click', window[clickKey], true);
+        document.addEventListener('keydown', window[keyKey]);
     })();
     </script>
 {% endwith %}

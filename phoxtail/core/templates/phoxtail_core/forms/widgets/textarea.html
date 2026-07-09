@@ -1,29 +1,35 @@
-<div class="fw-field">
-    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            {% if show_label != False %}
-                <label for="{{ field.id_for_label }}" class="fw-label">
-                    {{ label|default:field.label }}
-                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                </label>
-            {% else %}
-                <span class="fw-label"></span>
-            {% endif %}
-            {% if show_help_text != False and help_text|default:field.help_text %}
-                <span class="fw-help-wrapper">
-                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                </span>
-            {% endif %}
-        </div>
-    {% endif %}
-    <textarea name="{{ field.html_name }}"
-              id="{{ field.id_for_label }}"
-              {% if field.field.required %}required{% endif %}
-              {% if field.field.disabled %}disabled{% endif %}
-              class="fw-input"
-              rows="2">{{ field.value|default:'' }}</textarea>
+{% comment %}
+MD3 outlined text field, multiline variant. Same anatomy as input.html; the
+--textarea modifier lets the container grow with the content and pins the
+resting label to the first text line instead of the vertical center.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div class="fw-md3-outlined fw-md3-outlined--textarea">
+        <textarea name="{{ field.html_name }}"
+                  id="{{ field.id_for_label }}"
+                  placeholder=" "
+                  class="fw-md3-control"
+                  rows="{{ rows|default:2 }}"
+                  {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
+                  {% if field.errors %}aria-invalid="true"{% endif %}
+                  {% if field.field.required %}required{% endif %}
+                  {% if field.field.disabled %}disabled{% endif %}>{{ field.value|default:'' }}</textarea>
+        {% if show_label != False and label != "" %}
+            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </label>
+        {% endif %}
+        <fieldset class="fw-md3-outline" aria-hidden="true">
+            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+            </legend>
+        </fieldset>
+    </div>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

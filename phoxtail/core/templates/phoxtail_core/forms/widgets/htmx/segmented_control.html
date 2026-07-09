@@ -1,38 +1,71 @@
-<div class="fw-segmented-control{% if locked %} fw-segmented-control--locked{% endif %}">
-    <input type="radio"
-           name="{{ field.html_name }}"
-           id="{{ field.id_for_label }}_remote"
-           value=""
-           {% if not field.value %}checked{% endif %}
-           class="fw-segmented-radio fw-segmented-radio--remote"
-           {% if locked %}disabled{% endif %}
-           {% if not locked %}
-           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
-           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-           hx-vals='{"mode": "remote"}'
-           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
-           {% endif %}>
+{% comment %}
+Segmented Control (on/off pair)
+===============================
+Two-segment sliding-thumb control bound to a BooleanField: the "off" segment
+submits mode=remote, the "on" segment mode=local. Sized to the shared MD3
+field height (56dp) so it can sit in a form row next to outlined fields.
+Label/help/errors follow the MD3 standard (group label + supporting text).
 
-    <input type="radio"
-           name="{{ field.html_name }}"
-           id="{{ field.id_for_label }}_local"
-           value="on"
-           {% if field.value %}checked{% endif %}
-           class="fw-segmented-radio fw-segmented-radio--local"
-           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
-           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-           hx-vals='{"mode": "local"}'
-           {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+Required context:
+    - field: bound BooleanField
 
-    <div class="fw-segmented-track">
-        <label for="{{ field.id_for_label }}_remote" class="fw-segmented-label fw-segmented-label--remote">{{ label_off|default:"Off" }}</label>
-        <label for="{{ field.id_for_label }}_local" class="fw-segmented-label fw-segmented-label--local">{{ label_on|default:"On" }}</label>
-        <div class="fw-segmented-slider"></div>
+Optional context:
+    - label_off/label_on: segment captions (default "Off"/"On")
+    - hx_get/hx_target/hx_swap/hx_trigger/hx_include/hx_indicator: forwarded
+      to both radios
+    - locked: render the "off" segment disabled
+    - show_label/show_help_text, label, help_text, show_required, required:
+      same as the other MD3 widgets (pass label="" to render no label at all)
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    {% if show_label != False and label|default:field.label %}
+        <span class="fw-md3-group-label">
+            {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+        </span>
+    {% endif %}
+    <div class="fw-segmented-control{% if locked %} fw-segmented-control--locked{% endif %}">
+        <input type="radio"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}_remote"
+               value=""
+               {% if not field.value %}checked{% endif %}
+               class="fw-segmented-radio fw-segmented-radio--remote"
+               {% if locked %}disabled{% endif %}
+               {% if not locked %}
+               {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+               {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+               {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+               {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+               {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+               hx-vals='{"mode": "remote"}'
+               {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+               {% endif %}>
+
+        <input type="radio"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}_local"
+               value="on"
+               {% if field.value %}checked{% endif %}
+               class="fw-segmented-radio fw-segmented-radio--local"
+               {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+               {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+               {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
+               {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+               {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+               hx-vals='{"mode": "local"}'
+               {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+
+        <div class="fw-segmented-track">
+            <label for="{{ field.id_for_label }}_remote" class="fw-segmented-label fw-segmented-label--remote">{{ label_off|default:"Off" }}</label>
+            <label for="{{ field.id_for_label }}_local" class="fw-segmented-label fw-segmented-label--local">{{ label_on|default:"On" }}</label>
+            <div class="fw-segmented-slider"></div>
+        </div>
     </div>
+    {% if field.errors %}
+        <div class="fw-md3-supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
+    {% endif %}
 </div>

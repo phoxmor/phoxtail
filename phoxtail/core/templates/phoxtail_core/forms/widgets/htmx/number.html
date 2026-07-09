@@ -1,39 +1,45 @@
-<div class="fw-field">
-    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            {% if show_label != False %}
-                <label for="{{ field.id_for_label }}" class="fw-label">
-                    {{ label|default:field.label }}
-                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                </label>
-            {% else %}
-                <span class="fw-label"></span>
-            {% endif %}
-            {% if show_help_text != False and help_text|default:field.help_text %}
-                <span class="fw-help-wrapper">
-                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                </span>
-            {% endif %}
-        </div>
-    {% endif %}
-    <input type="number"
-           name="{{ field.html_name }}"
-           id="{{ field.id_for_label }}"
-           value="{{ field.value|default:0 }}"
-           class="fw-input"
-           {% if field.field.required %}required{% endif %}
-           {% if field.field.widget.attrs.min is not None %}min="{{ field.field.widget.attrs.min }}"{% endif %}
-           {% if field.field.widget.attrs.max is not None %}max="{{ field.field.widget.attrs.max }}"{% endif %}
-           {% if field.field.widget.attrs.step is not None %}step="{{ field.field.widget.attrs.step }}"{% endif %}
-           {% if field.field.disabled %}disabled{% endif %}
-           {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-           {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-           {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="innerHTML"{% endif %}
-           {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-           {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-           {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
+{% comment %}
+MD3 outlined text field, HTMX variant of ../number.html — identical anatomy,
+plus the hx-* passthrough attributes on the control.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div class="fw-md3-outlined">
+        <input type="number"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               {# emptiness is None, not falsiness: 0 must render, and an empty nullable field must stay empty, not become 0 #}
+               value="{% if field.value is not None %}{{ field.value }}{% endif %}"
+               placeholder=" "
+               class="fw-md3-control"
+               {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
+               {% if field.errors %}aria-invalid="true"{% endif %}
+               {% if field.field.required %}required{% endif %}
+               {% if field.field.widget.attrs.min is not None %}min="{{ field.field.widget.attrs.min }}"{% endif %}
+               {% if field.field.widget.attrs.max is not None %}max="{{ field.field.widget.attrs.max }}"{% endif %}
+               {% if field.field.widget.attrs.step is not None %}step="{{ field.field.widget.attrs.step }}"{% endif %}
+               {% if field.field.disabled %}disabled{% endif %}
+               {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+               {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+               {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="innerHTML"{% endif %}
+               {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
+               {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
+               {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
+        {% if show_label != False and label != "" %}
+            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+                {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+            </label>
+        {% endif %}
+        <fieldset class="fw-md3-outline" aria-hidden="true">
+            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+            </legend>
+        </fieldset>
+    </div>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

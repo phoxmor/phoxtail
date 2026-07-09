@@ -1,18 +1,10 @@
-<div class="fw-field">
-    {% if show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            <span class="fw-label"></span>
-            <!-- Not inside the <label> below: clicking a descendant of a
-                 <label> still forwards an activation click to its labeled
-                 control even with preventDefault/stopPropagation on the
-                 descendant, so the help button has to live outside it. -->
-            <span class="fw-help-wrapper">
-                <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-            </span>
-        </div>
-    {% endif %}
-    {% if show_label != False %}
+{% comment %}
+MD3 switch (styled in widgets.css: 52x32dp track, growing handle) in a plain
+label row — no pill container. Help text and errors render as MD3 supporting
+text below instead of the hover tooltip.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    {% if show_label != False and label != "" %}
         <label class="fw-toggle-label">
             <span class="fw-toggle-name">{{ label|default:field.label }}</span>
             <!-- Toggle Switch -->
@@ -47,11 +39,16 @@
                    {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
                    {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
                    {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
-                   {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}>
+                   {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
+                   {% if field.field.disabled %}disabled{% endif %}>
             <div class="fw-toggle-track"></div>
         </div>
     {% endif %}
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

@@ -1,21 +1,13 @@
-<div class="fw-field">
-    {% if show_label != False or show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-label-row">
-            {% if show_label != False %}
-                <span class="fw-label">
-                    {{ label|default:field.label }}
-                    {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
-                </span>
-            {% else %}
-                <span class="fw-label"></span>
-            {% endif %}
-            {% if show_help_text != False and help_text|default:field.help_text %}
-                <span class="fw-help-wrapper">
-                    <button type="button" class="fw-help-btn" tabindex="0">?</button>
-                    <span class="fw-help-tooltip">{{ help_text|default:field.help_text }}</span>
-                </span>
-            {% endif %}
-        </div>
+{% comment %}
+MD3 radio group: a body-small group label above a grid of radio rows (20dp
+ring-and-dot controls, list-item style — no pill containers). Help text and
+errors render as MD3 supporting text instead of the hover tooltip.
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    {% if show_label != False and label != "" %}
+        <span class="fw-md3-group-label">
+            {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+        </span>
     {% endif %}
     <div class="fw-checkbox-grid {{ grid_modifier }}">
         {% for radio in field %}
@@ -32,6 +24,10 @@
         {% endfor %}
     </div>
     {% if field.errors %}
-        {% for error in field.errors %}<p class="fw-error">{{ error }}</p>{% endfor %}
+        <div class="fw-md3-supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>
