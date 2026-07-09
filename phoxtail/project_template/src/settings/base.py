@@ -84,6 +84,11 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+# Dashboard modals embed same-origin files (e.g. wagtail-served documents) in
+# <object>/<iframe>; Django's DENY default blocks even that. SAMEORIGIN keeps
+# cross-site clickjacking protection intact.
+X_FRAME_OPTIONS = "SAMEORIGIN"
+
 # Authentication (django-allauth)
 ACCOUNT_ADAPTER = "phoxtail.users.adapters.AccountAdapter"
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
