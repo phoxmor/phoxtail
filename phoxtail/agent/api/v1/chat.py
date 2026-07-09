@@ -79,10 +79,22 @@ _BLOCK_WRITE_TOOLS = {
 
 
 async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, artifact_pk: int) -> None:
-    conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
-    artifact = await sync_to_async(ModelArtifact.objects.select_related("provider").get)(pk=artifact_pk)
-    history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
-    agent = get_agent(artifact)
+    # Setup (fetching the conversation/artifact, building the agent) happens
+    # outside the try/finally below that guarantees `out` gets a sentinel. If
+    # it raises here — e.g. a misconfigured provider — the consumer in
+    # _stream_turn_sync would otherwise block on out.get() forever, since no
+    # sentinel would ever arrive. Catch, surface as an SSE error, and re-raise
+    # so it still propagates to the server logs via future.result().
+    try:
+        conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
+        artifact = await sync_to_async(ModelArtifact.objects.select_related("provider").get)(pk=artifact_pk)
+        history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
+        agent = get_agent(artifact)
+    except Exception:
+        out.put(_sse("error", {"message": "An error occurred. Please try again."}))
+        out.put(_SENTINEL)
+        raise
+
     aq: asyncio.Queue[Any] = asyncio.Queue()
     text_sent = False
     # Stash tool-call args keyed by tool_call_id so we can extract page_id on result.
@@ -97,7 +109,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                 _pending_args[event.tool_call_id] = event.part.args_as_dict()
                 await aq.put(("tool_start", event.part.tool_name))
             elif isinstance(event, FunctionToolResultEvent):
-                tool_name = event.result.tool_name
+                tool_name = event.part.tool_name
                 kind = _BLOCK_WRITE_TOOLS.get(tool_name)
                 if kind is not None:
                     args = _pending_args.get(event.tool_call_id, {})
@@ -107,7 +119,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                             # No per-block UUIDs — full-body refresh.
                             # Only emit if the publish succeeded (no error envelope).
                             try:
-                                result_content = str(event.result.content) if hasattr(event.result, "content") else ""
+                                result_content = str(event.part.content) if hasattr(event.part, "content") else ""
                                 if "error" not in json.loads(result_content):
                                     await aq.put(("blocks_changed", int(page_id), [], kind))
                             except (
@@ -122,7 +134,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                             # ToolReturnPart.content is the raw return value; our
                             # tools always return a JSON string.
                             try:
-                                result_content = str(event.result.content) if hasattr(event.result, "content") else ""
+                                result_content = str(event.part.content) if hasattr(event.part, "content") else ""
                                 changed = json.loads(result_content).get("_changed_blocks")
                                 if changed:
                                     await aq.put(("blocks_changed", int(page_id), changed, kind))
