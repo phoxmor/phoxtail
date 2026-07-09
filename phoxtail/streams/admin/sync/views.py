@@ -168,6 +168,7 @@ def admin_sync_remote_select(request):
         "search_url": reverse("streams-sync:remote_select"),
         "search_value": search_value,
         "search_placeholder": "Search remotes",
+        "trigger_placeholder": "Select remote",
         "selected_remote": selected_item,
         "mode_field": _mode_field("remote" if selected_item else "local"),
         "locked_local": not bool(selected_item),

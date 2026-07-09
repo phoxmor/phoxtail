@@ -44,9 +44,7 @@
                 </div>
             </div>
             {% if remotes %}
-                <div id="remote-container" class="ss-remote-select">
-                    {% include 'phoxtail_core/forms/widgets/htmx/single_select_search/input.html' with field=remote_select_field widget_id="remote" selected_item=remote_select_field.selected_item available_items=remote_select_field.available_items search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" %}
-                </div>
+                {% include 'phoxtail_core/forms/widgets/htmx/single_select_search.html' with field=remote_select_field widget_id="remote" search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" %}
             {% endif %}
             <script>
                 (function () {

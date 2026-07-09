@@ -148,16 +148,10 @@
     flex-shrink: 0;
 }
 
-/* ── Registry Select ── */
+/* ── Registry select layout (widget keeps its own default appearance) ── */
 
-.ss-remote-select {
+#remote-widget {
     width: 220px;
-    min-width: 0;
-}
-
-.ss-remote-select .fw-sss-input,
-.ss-remote-select .fw-sss-trigger {
-    width: 100%;
     min-width: 0;
 }
 
@@ -1327,14 +1321,8 @@
         width: 100% !important;
     }
 
-    .ss-remote-select {
+    #remote-widget {
         order: 2;
-        width: 100%;
-        min-width: 0;
-    }
-
-    .ss-remote-select .fw-sss-input,
-    .ss-remote-select .fw-sss-trigger {
         width: 100%;
         min-width: 0;
     }
