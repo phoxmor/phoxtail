@@ -30,7 +30,6 @@
     var modelSearchIcon  = document.getElementById('phoxtail-model-search-icon');
     var chatbotBtn = document.getElementById('phoxtail-bar-chatbot-btn');
     var chatbotDrawer = document.getElementById('phoxtail-chatbot-drawer');
-    var chatbotCloseBtn = document.getElementById('phoxtail-chatbot-drawer-close');
     var chatbotHistoryBtn = document.getElementById('phoxtail-chatbot-history-btn');
     var chatbotForm = document.getElementById('phoxtail-chatbot-form');
     var chatbotInput = document.getElementById('phoxtail-chatbot-input');
@@ -400,7 +399,12 @@
         chatbotBtn.addEventListener('click', function () {
             chat.isOpen() ? chat.close() : chat.open();
         });
-        chatbotCloseBtn.addEventListener('click', function () { chat.close(); });
+        // Delegated: these buttons sit inside the messages container,
+        // which is recreated from the empty-state snapshot on new/load chat.
+        chatbotDrawer.addEventListener('click', function (e) {
+            if (e.target.closest('#phoxtail-chatbot-drawer-close')) chat.close();
+            else if (e.target.closest('#phoxtail-chatbot-expand-btn')) _toggleChatExpand();
+        });
     }
 
     if (chatbotStopBtn) {
@@ -408,6 +412,114 @@
             if (_abortController) _abortController.abort();
         });
     }
+
+    // ── Resizable drawer width ───────────────────────────────────────────────
+    // The drag sets --phoxtail-chatbot-width (the user's DESIRED width); the
+    // CSS clamp computes the effective width, including the max-width lane
+    // reserved while a left-edge drawer (media picker / history) is open. The
+    // JS clamp below only keeps the handle under the cursor during the drag.
+
+    var _LS_WIDTH = 'phoxtail.chatbot.width';
+
+    // Expand toggle: "expanded" simply means a desired width of 9999px — the
+    // CSS clamp caps it at the CURRENT max, so an expanded drawer narrows by
+    // itself while a left picker is open and re-stretches when it closes.
+    var _chatExpanded = false;
+    var _preExpandWidth = null;
+
+    function _applyExpandState() {
+        var btn = document.getElementById('phoxtail-chatbot-expand-btn');
+        if (btn) btn.classList.toggle('phoxtail-bar-btn--active', _chatExpanded);
+    }
+
+    function _toggleChatExpand() {
+        if (!chatbotDrawer) return;
+        if (_chatExpanded) {
+            _chatExpanded = false;
+            if (_preExpandWidth > 0) {
+                chatbotDrawer.style.setProperty('--phoxtail-chatbot-width', _preExpandWidth + 'px');
+                try { localStorage.setItem(_LS_WIDTH, String(_preExpandWidth)); } catch (_) {}
+            } else {
+                chatbotDrawer.style.removeProperty('--phoxtail-chatbot-width');
+                try { localStorage.removeItem(_LS_WIDTH); } catch (_) {}
+            }
+        } else {
+            _chatExpanded = true;
+            _preExpandWidth = Math.round(chatbotDrawer.getBoundingClientRect().width);
+            chatbotDrawer.style.setProperty('--phoxtail-chatbot-width', '9999px');
+            try { localStorage.setItem(_LS_WIDTH, 'max'); } catch (_) {}
+        }
+        _applyExpandState();
+    }
+
+    (function () {
+        var handle = document.getElementById('phoxtail-chatbot-resize-handle');
+        if (!handle || !chatbotDrawer) return;
+
+        try {
+            var stored = localStorage.getItem(_LS_WIDTH);
+            if (stored === 'max') {
+                _chatExpanded = true;
+                chatbotDrawer.style.setProperty('--phoxtail-chatbot-width', '9999px');
+                _applyExpandState();
+            } else if (parseFloat(stored) > 0) {
+                chatbotDrawer.style.setProperty('--phoxtail-chatbot-width', parseFloat(stored) + 'px');
+            }
+        } catch (_) {}
+
+        function remPx() {
+            return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        }
+
+        function maxWidth() {
+            var leftDrawerOpen =
+                document.body.classList.contains('phoxtail-media-picker-open') ||
+                document.body.classList.contains('phoxtail-chat-history-open');
+            // clientWidth, not innerWidth: the fixed drawers are laid out
+            // against the viewport excluding the page scrollbar. With no
+            // picker open the drawer may stretch to the far screen edge.
+            return document.documentElement.clientWidth - (leftDrawerOpen ? 27.5 : 0) * remPx();
+        }
+
+        var startX = 0;
+        var startWidth = 0;
+
+        function onMove(e) {
+            var w = Math.min(Math.max(startWidth + (startX - e.clientX), 27.5 * remPx()), maxWidth());
+            chatbotDrawer.style.setProperty('--phoxtail-chatbot-width', Math.round(w) + 'px');
+        }
+
+        handle.addEventListener('pointerdown', function (e) {
+            e.preventDefault();
+            // A manual drag leaves the expanded state; its width wins.
+            _chatExpanded = false;
+            _applyExpandState();
+            startX = e.clientX;
+            startWidth = chatbotDrawer.getBoundingClientRect().width;
+            try { handle.setPointerCapture(e.pointerId); } catch (_) {}
+            document.body.classList.add('phoxtail-chatbot-resizing');
+            handle.addEventListener('pointermove', onMove);
+            var onUp = function () {
+                handle.removeEventListener('pointermove', onMove);
+                handle.removeEventListener('pointerup', onUp);
+                handle.removeEventListener('pointercancel', onUp);
+                document.body.classList.remove('phoxtail-chatbot-resizing');
+                try {
+                    localStorage.setItem(_LS_WIDTH, String(Math.round(chatbotDrawer.getBoundingClientRect().width)));
+                } catch (_) {}
+            };
+            handle.addEventListener('pointerup', onUp);
+            handle.addEventListener('pointercancel', onUp);
+        });
+
+        handle.addEventListener('dblclick', function () {
+            _chatExpanded = false;
+            _preExpandWidth = null;
+            _applyExpandState();
+            chatbotDrawer.style.removeProperty('--phoxtail-chatbot-width');
+            try { localStorage.removeItem(_LS_WIDTH); } catch (_) {}
+        });
+    })();
 
     // ── Click-outside: close any open panel ─────────────────────────────────
 
@@ -523,6 +635,11 @@
         if ((e.key === 'f' || e.key === 'F') && chatbotInput && chat.isOpen()) {
             e.preventDefault();
             chatbotInput.focus();
+        }
+        // Only when the chat drawer is open — otherwise 'e' is the page-actions
+        // edit shortcut below (guarded on the actions menu being open).
+        if ((e.key === 'e' || e.key === 'E') && chat.isOpen() && !(menu && menu.isOpen())) {
+            _toggleChatExpand();
         }
         if ((e.key === 'a' || e.key === 'A') && menu) {
             menu.isOpen() ? menu.close() : (closeOthers(menu), menu.open());
@@ -929,6 +1046,7 @@
         _restorePersistedArtifact();
         if (chatbotMessages) {
             chatbotMessages.innerHTML = _emptyStateHTML;
+            _applyExpandState(); // expand button was recreated from the snapshot
         }
     }
 
@@ -974,6 +1092,7 @@
         try { localStorage.setItem(_LS_KEY, uuid); } catch (_) {}
         if (chatbotMessages) {
             chatbotMessages.innerHTML = _emptyStateHTML;
+            _applyExpandState(); // expand button was recreated from the snapshot
         }
         _rehydrate(uuid);
     }

@@ -112,32 +112,44 @@
      data-media-picker-modal-url="{{ chat_history_modal_url }}"
      data-chat-history-url="{{ chat_history_url }}"
      data-model-picker-url="{{ model_picker_url }}">
+    <div class="phoxtail-chatbot-resize-handle"
+         id="phoxtail-chatbot-resize-handle"
+         title="Drag to resize — double-click to reset"></div>
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
+        {# In-flow topbar: scrolls away with the conversation instead of floating #}
+        <div class="phoxtail-chatbot-topbar">
+            <div class="phoxtail-chatbot-topbar-left">
+                <button type="button"
+                        id="phoxtail-chatbot-history-btn"
+                        class="phoxtail-chatbot-topbar-history"
+                        title="Chat history (H)"
+                        onclick="window.phoxtailChat && window.phoxtailChat.toggleHistory()">
+                    {% icon "menu" class="phoxtail-bar-btn-icon" %}
+                </button>
+                <button type="button"
+                        id="phoxtail-chatbot-newchat-btn"
+                        class="phoxtail-chatbot-topbar-history"
+                        title="New chat (N)"
+                        onclick="window.phoxtailChat && window.phoxtailChat.newChat();">
+                    {% icon "plus" class="phoxtail-bar-btn-icon" %}
+                </button>
+            </div>
+            <div class="phoxtail-chatbot-topbar-left">
+                <button type="button"
+                        id="phoxtail-chatbot-expand-btn"
+                        class="phoxtail-chatbot-topbar-history"
+                        title="Expand (E)">
+                    {% icon "open_in_full" class="phoxtail-bar-btn-icon" %}
+                </button>
+                <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
+                    {% icon "close" class="phoxtail-bar-btn-icon" %}
+                </button>
+            </div>
+        </div>
         <div class="phoxtail-chatbot-empty-state" id="phoxtail-chatbot-empty">
             <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-light.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--light" alt="Phoxtail">
             <img src="{% static 'phoxtail_core/phoxtail/logo/symbol-dark.png' %}" class="phoxtail-chatbot-empty-logo phoxtail-chatbot-empty-logo--dark" alt="Phoxtail">
         </div>
-    </div>
-    <div class="phoxtail-chatbot-topbar">
-        <div class="phoxtail-chatbot-topbar-left">
-            <button type="button"
-                    id="phoxtail-chatbot-history-btn"
-                    class="phoxtail-chatbot-topbar-history"
-                    title="Chat history (H)"
-                    onclick="window.phoxtailChat && window.phoxtailChat.toggleHistory()">
-                {% icon "menu" class="phoxtail-bar-btn-icon" %}
-            </button>
-            <button type="button"
-                    id="phoxtail-chatbot-newchat-btn"
-                    class="phoxtail-chatbot-topbar-history"
-                    title="New chat (N)"
-                    onclick="window.phoxtailChat && window.phoxtailChat.newChat();">
-                {% icon "plus" class="phoxtail-bar-btn-icon" %}
-            </button>
-        </div>
-        <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
-            {% icon "close" class="phoxtail-bar-btn-icon" %}
-        </button>
     </div>
     <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
         <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel phoxtail-chatbot-model-panel" id="phoxtail-model-picker-panel">

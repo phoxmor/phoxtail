@@ -6,9 +6,16 @@ function _closeModalGeneric(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('closing');
-        modal.addEventListener('animationend', () => {
+        // animationend bubbles: a shorter animation ending anywhere inside
+        // the content would remove the modal early and truncate the exit.
+        // Only the modal's own closing animation (fadeOut on the shell)
+        // may trigger removal.
+        const onEnd = (e) => {
+            if (e.target !== modal) return;
+            modal.removeEventListener('animationend', onEnd);
             modal.remove();
-        }, { once: true });
+        };
+        modal.addEventListener('animationend', onEnd);
     }
 }
 
