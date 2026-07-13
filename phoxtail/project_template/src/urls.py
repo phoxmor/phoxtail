@@ -4,8 +4,10 @@ from django.contrib import admin
 from django.urls import include, path
 from wagtail import urls as wagtail_urls
 from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.contrib.sitemaps.views import sitemap
 from wagtail.documents import urls as wagtaildocs_urls
 
+from phoxtail.cms.sitemaps import PageSitemap
 from phoxtail.core.wiring import collect_url_patterns
 from phoxtail.users.views import redirect_to_allauth_login
 
@@ -14,6 +16,7 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("django-admin/", admin.site.urls),
     path("documents/", include(wagtaildocs_urls)),
+    path("sitemap.xml", sitemap, {"sitemaps": {"pages": PageSitemap}}, name="sitemap"),
     path("api/", include("phoxtail.api.urls")),
     path("phoxtail_core/", include("phoxtail.core.urls")),
     path("users/", include("phoxtail.users.urls")),
