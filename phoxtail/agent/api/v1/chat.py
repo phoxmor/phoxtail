@@ -11,28 +11,14 @@ import threading
 import time
 import uuid
 from collections.abc import AsyncIterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
 from ninja import Router, Schema
-from pydantic_ai import (
-    FunctionToolCallEvent,
-    FunctionToolResultEvent,
-    PartDeltaEvent,
-    PartStartEvent,
-    RunContext,
-    TextPartDelta,
-)
-from pydantic_ai.messages import (
-    ModelMessagesTypeAdapter,
-    ModelRequest,
-    ModelResponse,
-    TextPart,
-    ToolCallPart,
-    ToolCallPartDelta,
-    UserPromptPart,
-)
+
+if TYPE_CHECKING:
+    from pydantic_ai import RunContext
 
 from phoxtail.agent.chat_blocks import (
     CHAT_BLOCK_TOOLS,
@@ -91,6 +77,32 @@ _BLOCK_WRITE_TOOLS = {
 
 
 async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, artifact_pk: int) -> None:
+    # pydantic_ai is imported per-call (see llm.py) so processes that never
+    # serve a chat turn never pay its ~50MB import cost. First chat call in a
+    # process imports it once; afterwards these are sys.modules lookups.
+    from pydantic_ai import (
+        FunctionToolCallEvent,
+        FunctionToolResultEvent,
+        PartDeltaEvent,
+        PartStartEvent,
+        TextPartDelta,
+    )
+    from pydantic_ai.messages import (
+        ModelMessagesTypeAdapter,
+        ModelRequest,
+        ModelResponse,
+        TextPart,
+        ToolCallPart,
+        ToolCallPartDelta,
+        UserPromptPart,
+    )
+
+    # handler()'s ``ctx: RunContext`` annotation is a string (future
+    # annotations); bind the name into module globals so it resolves if
+    # pydantic_ai ever introspects the handler via get_type_hints().
+    global RunContext
+    from pydantic_ai import RunContext
+
     # Setup (fetching the conversation/artifact, building the agent) happens
     # outside the try/finally below that guarantees `out` gets a sentinel. If
     # it raises here — e.g. a misconfigured provider — the consumer in
@@ -412,6 +424,14 @@ class StreamRequest(Schema):
 @router.get("/conversations/{uuid}/", tags=["agent/v1"])
 def get_conversation(request, uuid: str):
     from ninja.errors import HttpError
+    from pydantic_ai.messages import (
+        ModelMessagesTypeAdapter,
+        ModelRequest,
+        ModelResponse,
+        TextPart,
+        ToolCallPart,
+        UserPromptPart,
+    )
 
     user = request.auth
     if not user or not agent_permission_policy.user_has_permission(user, "access_chatbot"):

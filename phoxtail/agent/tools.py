@@ -2,9 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from pydantic_ai import RunContext, Tool, ToolDefinition
+if TYPE_CHECKING:
+    from pydantic_ai import RunContext, Tool, ToolDefinition
+
+
+def _import_pydantic_ai() -> None:
+    """Bind pydantic_ai names into module globals on first use.
+
+    Deferred because this module loads at django.setup() via the chat router,
+    and pydantic_ai costs ~50MB RSS per process. The names must land in
+    globals (not function locals) because Tool() resolves the tool functions'
+    string annotations (e.g. ``RunContext[None]``) against this module's
+    namespace via get_type_hints().
+    """
+    global RunContext, Tool, ToolDefinition
+    from pydantic_ai import RunContext, Tool, ToolDefinition
 
 
 def _get_mcp_tools() -> dict:
@@ -38,4 +52,5 @@ def _make_tool(mcp_tool) -> Tool:
 
 
 def get_tools() -> list[Tool]:
+    _import_pydantic_ai()
     return [_make_tool(t) for t in _get_mcp_tools().values()]

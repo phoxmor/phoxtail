@@ -1,15 +1,17 @@
 """PydanticAI agent factory for the Phoxtail chatbot."""
 
+from __future__ import annotations
+
 import os
 from functools import lru_cache
-
-from pydantic_ai import Agent
-from pydantic_ai.models.openai import OpenAIChatModel
-from pydantic_ai.providers.openai import OpenAIProvider
+from typing import TYPE_CHECKING
 
 from .chat_blocks import get_chat_block_tools
 from .models import ModelArtifact
 from .tools import get_tools
+
+if TYPE_CHECKING:
+    from pydantic_ai import Agent
 
 
 @lru_cache(maxsize=16)
@@ -20,6 +22,13 @@ def _build_agent(
     api_key_env_var: str | None,
     cache_key: str,  # updated_at timestamps — forces rebuild after admin edits
 ) -> Agent:
+    # Imported here, not at module level: this module loads at django.setup()
+    # via the chat router, and pydantic_ai costs ~50MB RSS per process. Only
+    # a process that actually runs a chat turn should pay that.
+    from pydantic_ai import Agent
+    from pydantic_ai.models.openai import OpenAIChatModel
+    from pydantic_ai.providers.openai import OpenAIProvider
+
     api_key = os.environ.get(api_key_env_var) if api_key_env_var else None
 
     if base_url:
