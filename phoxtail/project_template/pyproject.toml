@@ -3,13 +3,21 @@ name = "{{ phoxtail_project_name }}"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "phoxtail[dev]",
+    "phoxtail[engine,dashboard,chatbot]",
     "django-environ",
     "babel",
     "psycopg[binary]",
     "redis",
     "gunicorn",
     "python-dateutil",
+]
+
+# Installed by `uv sync` locally (dev groups are on by default), excluded from
+# the production image by `uv sync --no-dev` in the Dockerfile's production
+# builder stage.
+[dependency-groups]
+dev = [
+    "phoxtail[dev-tools]",
     "django-browser-reload",
     "django-extensions",
     "factory-boy",

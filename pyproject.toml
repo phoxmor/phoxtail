@@ -60,7 +60,10 @@ chatbot = [
     # Chat prose markdown -> HTML (also arrives transitively via rich)
     "markdown-it-py>=3.0",
 ]
-dev = [
+# Test/lint toolchain only — no feature extras. Projects put this in their
+# PEP 735 dev dependency group so production builds can exclude it wholesale
+# (uv sync --no-dev in the Dockerfile's production builder stage).
+dev-tools = [
     "pip-tools>=7.0.0",
     "pytest>=8.0.0",
     "pytest-django>=4.8.0",
@@ -71,7 +74,12 @@ dev = [
     "factory-boy>=3.3",
     "freezegun>=1.2",
     "ipython>=8.0",
-    "phoxtail[engine,dashboard,chatbot]",
+]
+# Deprecated alias: "everything for local development". Projects hatched
+# before the dependency-groups split depend on this as a runtime dependency;
+# keep it until they are retrofitted to explicit feature extras + a dev group.
+dev = [
+    "phoxtail[dev-tools,engine,dashboard,chatbot]",
 ]
 
 [project.urls]
