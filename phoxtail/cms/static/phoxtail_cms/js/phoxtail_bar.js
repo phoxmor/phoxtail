@@ -1014,15 +1014,199 @@
         return el;
     }
 
-    function _appendToolIndicator(name) {
+    function _blockShell(streamId) {
+        var el = null;
+        if (streamId) {
+            try {
+                el = chatbotMessages.querySelector('[data-stream-id="' + CSS.escape(streamId) + '"]');
+            } catch (_) {}
+        }
+        if (!el) {
+            var emptyState = document.getElementById('phoxtail-chatbot-empty');
+            if (emptyState) emptyState.style.display = 'none';
+            el = document.createElement('div');
+            el.className = 'phoxtail-chatbot-message phoxtail-chatbot-message--assistant phoxtail-chatbot-message--block';
+            if (streamId) el.setAttribute('data-stream-id', streamId);
+            chatbotMessages.appendChild(el);
+        }
+        return el;
+    }
+
+    // Assistant prose arrives as server-rendered markdown HTML (message_html
+    // events): throttled partial renders and the final render upsert the
+    // same bubble via stream_id, exactly like block partials. The frontend
+    // never parses markdown itself.
+    function _upsertAssistantHtml(data) {
+        var el = null;
+        if (data.stream_id) {
+            try {
+                el = chatbotMessages.querySelector('[data-stream-id="' + CSS.escape(data.stream_id) + '"]');
+            } catch (_) {}
+        }
+        if (!el) {
+            el = _appendMessage('phoxtail-chatbot-message--assistant', '');
+            if (data.stream_id) el.setAttribute('data-stream-id', data.stream_id);
+        }
+        el.innerHTML = data.html || '';
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return el;
+    }
+
+    // Variants carry page-section spacing on their root (padding + margins
+    // for page rhythm) — wasted space in the chat pane, where the messages
+    // container already provides the gutter and gap. Strip it so the block
+    // itself (which brings its own card padding) gets the full width.
+    function _stripBlockRootSpacing(container) {
+        Array.prototype.forEach.call(container.children, function (root) {
+            if (root.tagName === 'STYLE' || root.tagName === 'SCRIPT') return;
+            root.style.setProperty('padding', '0', 'important');
+            root.style.setProperty('margin', '0', 'important');
+        });
+    }
+
+    // Lane A: server-rendered block HTML from the site's own DB-authored
+    // variant templates — it renders in the light DOM at natural height,
+    // like on a page. The shell is a container-query context, so variants
+    // adapt via @container rules.
+    // Partial payloads stream in and replace the same shell; the final
+    // payload re-runs the variant's scripts, inert when set via innerHTML.
+    function _upsertBlockHtml(data) {
+        var el = _blockShell(data.stream_id);
+        el.innerHTML = data.html;
+        if (!data.partial) {
+            Array.prototype.forEach.call(el.querySelectorAll('script'), function (inert) {
+                var script = document.createElement('script');
+                if (inert.src) script.src = inert.src;
+                script.textContent = inert.textContent;
+                inert.parentNode.replaceChild(script, inert);
+            });
+        }
+        _stripBlockRootSpacing(el);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return el;
+    }
+
+    // Agent-designed one-off components render in the light DOM like any
+    // block: natural height, native scrolling, page design tokens inherited.
+    // The agent is instructed to self-scope its CSS under a unique root
+    // class, the same convention DB-authored variants follow.
+    function _appendCustomBlock(data) {
+        var el = _blockShell(data.stream_id);
+        el.innerHTML = '';
+        if (data.css) {
+            var style = document.createElement('style');
+            style.textContent = data.css;
+            el.appendChild(style);
+        }
+        var body = document.createElement('div');
+        body.innerHTML = data.html || '';
+        el.appendChild(body);
+        if (data.javascript) {
+            var script = document.createElement('script');
+            script.textContent = data.javascript;
+            el.appendChild(script);
+        }
+        _stripBlockRootSpacing(body);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return el;
+    }
+
+    // ── Waiting-for-response indicator ───────────────────────────────────────
+    // Three bouncing dots shown while nothing else signals progress: from
+    // submit until the first token/block/tool event, and again between a
+    // tool finishing and the next event. appendChild moves it to the bottom
+    // when it already exists.
+
+    var _thinkingEl = null;
+
+    function _showThinking() {
+        var emptyState = document.getElementById('phoxtail-chatbot-empty');
+        if (emptyState) emptyState.style.display = 'none';
+        if (!_thinkingEl || !_thinkingEl.isConnected) {
+            _thinkingEl = document.createElement('div');
+            _thinkingEl.className = 'phoxtail-chatbot-thinking';
+            _thinkingEl.innerHTML = '<span></span><span></span><span></span>';
+        }
+        chatbotMessages.appendChild(_thinkingEl);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    function _hideThinking() {
+        if (_thinkingEl && _thinkingEl.parentNode) _thinkingEl.parentNode.removeChild(_thinkingEl);
+    }
+
+    // ── Tool-call activity group ─────────────────────────────────────────────
+    // Consecutive tool calls share one compact row: a ticker label animates
+    // each new tool name in (replacing the previous), a badge counts them,
+    // and clicking expands the full list. When prose resumes (or the turn
+    // ends) the group collapses to a "N tool calls" summary. The same
+    // machinery renders the persisted trail on conversation reload.
+
+    var _toolGroup = null;
+
+    function _openToolGroup() {
         var emptyState = document.getElementById('phoxtail-chatbot-empty');
         if (emptyState) emptyState.style.display = 'none';
         var el = document.createElement('div');
-        el.className = 'phoxtail-chatbot-tool-call';
-        el.textContent = name + '…';
+        el.className = 'phoxtail-chatbot-toolgroup phoxtail-chatbot-toolgroup--running';
+        var head = document.createElement('button');
+        head.type = 'button';
+        head.className = 'phoxtail-chatbot-toolgroup-head';
+        head.innerHTML =
+            '<span class="phoxtail-chatbot-toolgroup-spinner"></span>' +
+            '<span class="phoxtail-chatbot-toolgroup-label"></span>' +
+            '<span class="phoxtail-chatbot-toolgroup-count"></span>' +
+            '<span class="phoxtail-chatbot-toolgroup-chevron"></span>';
+        var list = document.createElement('div');
+        list.className = 'phoxtail-chatbot-toolgroup-list';
+        list.hidden = true;
+        head.addEventListener('click', function () {
+            list.hidden = !list.hidden;
+            el.classList.toggle('phoxtail-chatbot-toolgroup--open', !list.hidden);
+        });
+        el.appendChild(head);
+        el.appendChild(list);
         chatbotMessages.appendChild(el);
+        return {
+            el: el,
+            label: head.querySelector('.phoxtail-chatbot-toolgroup-label'),
+            count: head.querySelector('.phoxtail-chatbot-toolgroup-count'),
+            list: list,
+            names: [],
+        };
+    }
+
+    function _toolGroupStart(name) {
+        if (!_toolGroup || !_toolGroup.el.isConnected) _toolGroup = _openToolGroup();
+        _toolGroup.names.push(name);
+        _toolGroup.label.textContent = name;
+        // Restart the slide-in animation for each new name.
+        _toolGroup.label.classList.remove('phoxtail-chatbot-toolgroup-label--tick');
+        void _toolGroup.label.offsetWidth;
+        _toolGroup.label.classList.add('phoxtail-chatbot-toolgroup-label--tick');
+        _toolGroup.count.textContent = _toolGroup.names.length > 1 ? String(_toolGroup.names.length) : '';
+        var row = document.createElement('div');
+        row.className = 'phoxtail-chatbot-toolgroup-item phoxtail-chatbot-toolgroup-item--running';
+        row.textContent = name;
+        _toolGroup.list.appendChild(row);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        return el;
+    }
+
+    function _toolGroupEnd() {
+        if (!_toolGroup) return;
+        var running = _toolGroup.list.querySelector('.phoxtail-chatbot-toolgroup-item--running');
+        if (running) running.classList.remove('phoxtail-chatbot-toolgroup-item--running');
+    }
+
+    function _finalizeToolGroup() {
+        if (!_toolGroup) return;
+        _toolGroupEnd();
+        _toolGroup.el.classList.remove('phoxtail-chatbot-toolgroup--running');
+        var n = _toolGroup.names.length;
+        _toolGroup.label.classList.remove('phoxtail-chatbot-toolgroup-label--tick');
+        _toolGroup.label.textContent = n === 1 ? _toolGroup.names[0] : n + ' tool calls';
+        _toolGroup.count.textContent = '';
+        _toolGroup = null;
     }
 
     function _syncSendBtnState() {
@@ -1044,6 +1228,7 @@
         _clearContextBlocks();
         try { localStorage.removeItem(_LS_KEY); } catch (_) {}
         _restorePersistedArtifact();
+        _toolGroup = null;
         if (chatbotMessages) {
             chatbotMessages.innerHTML = _emptyStateHTML;
             _applyExpandState(); // expand button was recreated from the snapshot
@@ -1072,15 +1257,29 @@
             var emptyState = document.getElementById('phoxtail-chatbot-empty');
             if (emptyState) emptyState.style.display = 'none';
             data.messages.forEach(function (msg) {
+                // Consecutive tool items share one activity group, exactly
+                // like they did while streaming.
+                if (msg.role === 'tool') {
+                    _toolGroupStart(msg.name);
+                    _toolGroupEnd();
+                    return;
+                }
+                _finalizeToolGroup();
                 if (msg.role === 'user') {
                     _appendMessage('phoxtail-chatbot-message--user', msg.content);
                 } else if (msg.role === 'assistant') {
-                    _appendMessage('phoxtail-chatbot-message--assistant', msg.content);
-                } else if (msg.role === 'tool') {
-                    var ind = _appendToolIndicator(msg.name);
-                    ind.classList.add('phoxtail-chatbot-tool-call--done');
+                    if (msg.type === 'block_html') {
+                        _upsertBlockHtml({ html: msg.html });
+                    } else if (msg.type === 'block_custom') {
+                        _appendCustomBlock(msg);
+                    } else if (msg.type === 'message_html') {
+                        _upsertAssistantHtml({ html: msg.html });
+                    } else {
+                        _appendMessage('phoxtail-chatbot-message--assistant', msg.content);
+                    }
                 }
             });
+            _finalizeToolGroup();
         }).catch(function () {});
     }
 
@@ -1090,6 +1289,7 @@
         _contextBlocks = [];
         _syncChipsUI();
         try { localStorage.setItem(_LS_KEY, uuid); } catch (_) {}
+        _toolGroup = null;
         if (chatbotMessages) {
             chatbotMessages.innerHTML = _emptyStateHTML;
             _applyExpandState(); // expand button was recreated from the snapshot
@@ -1366,13 +1566,11 @@
             _syncSendBtnState();
             _clearContextBlocks();
             _setSending(true);
+            _showThinking();
 
             var body = { message: fullMessage };
             if (_conversationUuid) body.conversation_uuid = _conversationUuid;
             if (_selectedArtifactId !== null) body.artifact_id = _selectedArtifactId;
-
-            var assistantEl = null;
-            var toolIndicators = [];
 
             _abortController = new AbortController();
             fetch('/api/agent/v1/chat/stream/', {
@@ -1385,6 +1583,7 @@
                 signal: _abortController.signal,
             }).then(function (res) {
                 if (!res.ok) {
+                    _hideThinking();
                     var status = res.status;
                     res.json().then(function (data) {
                         var msg = (data && data.detail) ? data.detail : 'Error ' + status + '. Please try again.';
@@ -1402,7 +1601,7 @@
 
                 function processChunk() {
                     reader.read().then(function (chunk) {
-                        if (chunk.done) { _setSending(false); return; }
+                        if (chunk.done) { _hideThinking(); _finalizeToolGroup(); _setSending(false); return; }
                         buffer += decoder.decode(chunk.value, { stream: true });
                         var parts = buffer.split('\n\n');
                         buffer = parts.pop();
@@ -1416,24 +1615,46 @@
                             try { data = JSON.parse(dataMatch[1]); } catch (_) { return; }
 
                             if (evt === 'tool_start') {
-                                var ind = _appendToolIndicator(data.name);
-                                toolIndicators.push(ind);
+                                _hideThinking();
+                                _toolGroupStart(data.name);
                             } else if (evt === 'tool_end') {
-                                var last = toolIndicators.pop();
-                                if (last) last.classList.add('phoxtail-chatbot-tool-call--done');
+                                _toolGroupEnd();
+                                // Nothing visibly streams between a tool
+                                // finishing and the next event — show the
+                                // dots again until it arrives.
+                                if (_busy) _showThinking();
                             } else if (evt === 'blocks_changed') {
                                 _handleBlocksChanged(data);
-                            } else if (evt === 'token') {
-                                if (!assistantEl) {
-                                    assistantEl = _appendMessage('phoxtail-chatbot-message--assistant', '');
+                            } else if (evt === 'block_html') {
+                                _hideThinking();
+                                _finalizeToolGroup();
+                                _upsertBlockHtml(data);
+                            } else if (evt === 'block_gone') {
+                                // The block tool errored after a speculative
+                                // preview streamed in — drop the stale shell.
+                                if (data.stream_id) {
+                                    try {
+                                        var stale = chatbotMessages.querySelector('[data-stream-id="' + CSS.escape(data.stream_id) + '"]');
+                                        if (stale) stale.parentNode.removeChild(stale);
+                                    } catch (_) {}
                                 }
-                                assistantEl.textContent += data.text;
-                                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+                            } else if (evt === 'block_custom') {
+                                _hideThinking();
+                                _finalizeToolGroup();
+                                _appendCustomBlock(data);
+                            } else if (evt === 'message_html') {
+                                _hideThinking();
+                                _finalizeToolGroup();
+                                _upsertAssistantHtml(data);
                             } else if (evt === 'done') {
+                                _hideThinking();
+                                _finalizeToolGroup();
                                 _conversationUuid = data.conversation_uuid;
                                 try { localStorage.setItem(_LS_KEY, _conversationUuid); } catch (_) {}
                                 _setSending(false);
                             } else if (evt === 'error') {
+                                _hideThinking();
+                                _finalizeToolGroup();
                                 var errMsg = (data && data.message) ? data.message : 'An error occurred. Please try again.';
                                 _appendMessage('phoxtail-chatbot-message--assistant', errMsg);
                                 _setSending(false);
@@ -1441,6 +1662,8 @@
                         });
                         processChunk();
                     }).catch(function (err) {
+                        _hideThinking();
+                        _finalizeToolGroup();
                         // AbortError is user-initiated — suppress the error message
                         if (err && err.name === 'AbortError') { _setSending(false); return; }
                         _setSending(false);
@@ -1448,6 +1671,8 @@
                 }
                 processChunk();
             }).catch(function (err) {
+                _hideThinking();
+                _finalizeToolGroup();
                 if (err && err.name === 'AbortError') { _setSending(false); return; }
                 _appendMessage('phoxtail-chatbot-message--assistant', 'Network error. Please try again.');
                 _setSending(false);

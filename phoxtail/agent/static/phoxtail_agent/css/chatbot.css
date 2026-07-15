@@ -310,27 +310,24 @@ body.phoxtail-chatbot-resizing {
 }
 .phoxtail-chatbot-topbar-close .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
 
-/* Messages area — full height, scrollable, with padding for floating bars */
+/* Messages area — full height, scrollable (topbar scrolls as its first item).
+   Side padding grows into a gutter once the drawer is wider than the 48rem
+   reading column (matching the compose bar's cap below), so flex-end/
+   flex-start aligned bubbles form a centered column instead of splaying out
+   to the pane's outer edges on an expanded drawer. */
 .phoxtail-chatbot-drawer-messages {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 4rem 1rem 1.5rem;
+    padding: 0.75rem max(1rem, calc((100% - 48rem) / 2)) 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.875rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(0 0 0 / 0.12) transparent;
+    /* Hide the messages box's own scrollbar (it stays scrollable) — the
+       pane reads as one surface, without a scrollbar splitting its edge. */
+    scrollbar-width: none;
 }
-.phoxtail-chatbot-drawer-messages::-webkit-scrollbar { width: 4px; }
-.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-track { background: transparent; }
-.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb {
-    background-color: rgb(0 0 0 / 0.12);
-    border-radius: 100px;
-}
-.phoxtail-chatbot-drawer-messages::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(0 0 0 / 0.2);
-}
+.phoxtail-chatbot-drawer-messages::-webkit-scrollbar { display: none; }
 
 /* Empty state — centered logo */
 .phoxtail-chatbot-empty-state {
@@ -354,9 +351,11 @@ body.phoxtail-chatbot-resizing {
     .phoxtail-chatbot-empty-logo--dark  { display: block; }
 }
 
-/* Individual messages */
+/* Individual messages — capped at the same 48rem container width as the
+   compose bar, so bubbles and the input stay aligned on an expanded drawer
+   (blocks override to full width) */
 .phoxtail-chatbot-message {
-    max-width: 88%;
+    max-width: min(88%, 48rem);
     padding: 0.625rem 0.875rem;
     border-radius: 1rem;
     font-size: 0.8125rem;
@@ -371,24 +370,197 @@ body.phoxtail-chatbot-resizing {
     border: 1px solid rgb(0 0 0 / 0.06);
     border-bottom-left-radius: 0.25rem;
 }
+/* Chat-emitted stream blocks: the block brings its own styling, so drop
+   the bubble chrome and give it the full pane width. The shell is a
+   container-query context (same as .phoxtail-block on pages), so variant
+   CSS written with @container rules adapts to the pane's width. */
+.phoxtail-chatbot-message--block {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: none;
+    /* Natural height, native scrolling; only sideways bleed from variants
+       not yet migrated to @container rules is clipped. */
+    overflow-x: clip;
+    container-type: inline-size;
+    container-name: phoxtail-block;
+}
 .phoxtail-chatbot-message--user {
     align-self: flex-end;
-    background-color: rgb(var(--color-primary-500, 99 102 241));
-    color: white;
+    /* The system-wide active-chip recipe (media picker tabs, compose chips,
+       send button), glassed with a blur — the primary-tinted sibling of the
+       assistant bubble's translucent fill + hairline border. */
+    background-color: rgb(var(--color-primary-50, 238 242 255) / 0.75);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid rgb(var(--color-primary-200, 199 210 254));
+    color: rgb(var(--color-surface-800, 24 24 27));
     border-bottom-right-radius: 0.25rem;
 }
-.phoxtail-chatbot-tool-call {
+/* Markdown elements inside assistant prose bubbles (server-rendered HTML) */
+.phoxtail-chatbot-message--assistant h1,
+.phoxtail-chatbot-message--assistant h2,
+.phoxtail-chatbot-message--assistant h3 {
+    margin: 0.625rem 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 650;
+    line-height: 1.3;
+}
+.phoxtail-chatbot-message--assistant h4,
+.phoxtail-chatbot-message--assistant h5,
+.phoxtail-chatbot-message--assistant h6 {
+    margin: 0.5rem 0 0.25rem;
+    font-size: 0.8125rem;
+    font-weight: 650;
+    line-height: 1.3;
+}
+.phoxtail-chatbot-message--assistant ul,
+.phoxtail-chatbot-message--assistant ol {
+    margin: 0.25rem 0;
+    padding-left: 1.125rem;
+}
+.phoxtail-chatbot-message--assistant li { margin: 0.125rem 0; }
+.phoxtail-chatbot-message--assistant li > p { margin: 0; }
+.phoxtail-chatbot-message--assistant code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    background-color: rgb(0 0 0 / 0.06);
+    padding: 0.1em 0.35em;
+    border-radius: 0.3em;
+}
+.phoxtail-chatbot-message--assistant pre {
+    margin: 0.375rem 0;
+    padding: 0.5rem 0.625rem;
+    background-color: rgb(0 0 0 / 0.05);
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+.phoxtail-chatbot-message--assistant pre code { background: none; padding: 0; }
+.phoxtail-chatbot-message--assistant a {
+    color: rgb(var(--color-primary-600, 79 70 229));
+    text-decoration: underline;
+}
+.phoxtail-chatbot-message--assistant blockquote {
+    margin: 0.375rem 0;
+    padding: 0.125rem 0 0.125rem 0.625rem;
+    border-left: 2px solid rgb(0 0 0 / 0.15);
+    color: rgb(var(--color-surface-600, 82 82 91));
+}
+.phoxtail-chatbot-message--assistant hr {
+    border: none;
+    border-top: 1px solid rgb(0 0 0 / 0.1);
+    margin: 0.5rem 0;
+}
+.phoxtail-chatbot-message--assistant table {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    margin: 0.375rem 0;
+    font-size: 0.75rem;
+}
+.phoxtail-chatbot-message--assistant th,
+.phoxtail-chatbot-message--assistant td {
+    border: 1px solid rgb(0 0 0 / 0.1);
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+}
+.phoxtail-chatbot-message--assistant > :first-child { margin-top: 0; }
+.phoxtail-chatbot-message--assistant > :last-child { margin-bottom: 0; }
+
+/* Waiting-for-response indicator — three bouncing dots */
+.phoxtail-chatbot-thinking {
     align-self: flex-start;
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.625rem 0.25rem;
+}
+.phoxtail-chatbot-thinking span {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background-color: rgb(var(--color-surface-400, 161 161 170));
+    animation: phoxtail-chatbot-thinking-bounce 1.2s ease-in-out infinite;
+}
+.phoxtail-chatbot-thinking span:nth-child(2) { animation-delay: 0.15s; }
+.phoxtail-chatbot-thinking span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes phoxtail-chatbot-thinking-bounce {
+    0%, 60%, 100% { transform: none; opacity: 0.4; }
+    30% { transform: translateY(-0.25rem); opacity: 1; }
+}
+
+/* Tool-call activity group — one compact row per run of tool calls: a
+   spinner + ticker label that animates each new tool name in, a count
+   badge, and a click-to-expand list. Collapses to a summary when prose
+   resumes. */
+.phoxtail-chatbot-toolgroup {
+    align-self: flex-start;
+    max-width: min(88%, 48rem);
+}
+.phoxtail-chatbot-toolgroup-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.45rem;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    font: inherit;
     font-size: 0.75rem;
     color: rgb(var(--color-surface-500, 113 113 122));
-    padding: 0.25rem 0.5rem;
-    border-left: 2px solid rgb(var(--color-primary-300, 165 180 252));
-    margin-left: 0.25rem;
+    cursor: pointer;
 }
-.phoxtail-chatbot-tool-call--done {
-    opacity: 0.5;
-    text-decoration: line-through;
+.phoxtail-chatbot-toolgroup-head:hover { background-color: rgb(0 0 0 / 0.04); }
+.phoxtail-chatbot-toolgroup-spinner {
+    display: none;
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 1.5px solid rgb(var(--color-primary-400, 129 140 248));
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: phoxtail-chatbot-toolgroup-spin 0.8s linear infinite;
 }
+.phoxtail-chatbot-toolgroup--running .phoxtail-chatbot-toolgroup-spinner { display: inline-block; }
+@keyframes phoxtail-chatbot-toolgroup-spin { to { transform: rotate(360deg); } }
+.phoxtail-chatbot-toolgroup-label { display: inline-block; }
+.phoxtail-chatbot-toolgroup-label--tick {
+    animation: phoxtail-chatbot-toolgroup-tick 200ms ease-out;
+}
+@keyframes phoxtail-chatbot-toolgroup-tick {
+    from { transform: translateY(0.5em); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+.phoxtail-chatbot-toolgroup-count {
+    font-size: 0.6875rem;
+    background-color: rgb(0 0 0 / 0.06);
+    padding: 0 0.35rem;
+    border-radius: 999px;
+}
+.phoxtail-chatbot-toolgroup-count:empty { display: none; }
+.phoxtail-chatbot-toolgroup-chevron {
+    width: 0.4em;
+    height: 0.4em;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg) translateY(-0.1em);
+    opacity: 0.6;
+    transition: transform 150ms ease;
+}
+.phoxtail-chatbot-toolgroup--open .phoxtail-chatbot-toolgroup-chevron {
+    transform: rotate(-135deg) translateY(-0.1em);
+}
+.phoxtail-chatbot-toolgroup-list[hidden] { display: none; }
+.phoxtail-chatbot-toolgroup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0.25rem 0 0 0.6rem;
+    padding-left: 0.6rem;
+    border-left: 2px solid rgb(var(--color-primary-300, 165 180 252) / 0.5);
+    font-size: 0.75rem;
+    color: rgb(var(--color-surface-500, 113 113 122));
+}
+.phoxtail-chatbot-toolgroup-item--running { color: rgb(var(--color-surface-700, 63 63 70)); }
 
 /* Floating compose bar — glassy rounded bar anchored to the bottom */
 .phoxtail-chatbot-compose {
@@ -635,6 +807,33 @@ body.phoxtail-chatbot-resizing {
         background-color: rgb(255 255 255 / 0.05);
         border-color: rgb(255 255 255 / 0.08);
     }
+    /* Re-drop the bubble chrome the --assistant dark rule above just
+       re-applied: emitted blocks bring their own styling. */
+    .phoxtail-chatbot-message--block {
+        background: none;
+        border: none;
+    }
+    .phoxtail-chatbot-message--user {
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
+        border-color: rgb(var(--color-primary-700, 67 56 202));
+        color: white;
+    }
+    .phoxtail-chatbot-message--assistant code { background-color: rgb(255 255 255 / 0.08); }
+    .phoxtail-chatbot-message--assistant pre { background-color: rgb(255 255 255 / 0.06); }
+    .phoxtail-chatbot-message--assistant pre code { background: none; }
+    .phoxtail-chatbot-message--assistant a { color: rgb(var(--color-primary-300, 165 180 252)); }
+    .phoxtail-chatbot-message--assistant blockquote {
+        border-left-color: rgb(255 255 255 / 0.2);
+        color: rgb(var(--color-surface-400, 161 161 170));
+    }
+    .phoxtail-chatbot-message--assistant hr { border-top-color: rgb(255 255 255 / 0.1); }
+    .phoxtail-chatbot-message--assistant th,
+    .phoxtail-chatbot-message--assistant td { border-color: rgb(255 255 255 / 0.12); }
+    .phoxtail-chatbot-thinking span { background-color: rgb(var(--color-surface-500, 113 113 122)); }
+    .phoxtail-chatbot-toolgroup-head:hover { background-color: rgb(255 255 255 / 0.06); }
+    .phoxtail-chatbot-toolgroup-count { background-color: rgb(255 255 255 / 0.08); }
+    .phoxtail-chatbot-toolgroup-item--running { color: rgb(var(--color-surface-300, 212 212 216)); }
+    .phoxtail-chatbot-resize-handle::after { background-color: rgb(255 255 255 / 0.25); }
     .phoxtail-chatbot-compose {
         background-color: rgb(var(--color-surface-950, 12 12 16) / 0.82);
         border-color: rgb(255 255 255 / 0.1);
@@ -933,10 +1132,6 @@ body.phoxtail-chatbot-resizing {
         background-color: rgb(255 255 255 / 0.08);
         color: white;
     }
-    .phoxtail-chat-history-list { scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
-    .phoxtail-chat-history-list::-webkit-scrollbar-thumb {
-        background-color: rgb(255 255 255 / 0.12);
-    }
     .phoxtail-chat-history-search-input {
         border-color: rgb(255 255 255 / 0.08);
         background: rgb(255 255 255 / 0.04);
@@ -945,6 +1140,10 @@ body.phoxtail-chatbot-resizing {
     .phoxtail-chat-history-search-input:focus { background: rgb(255 255 255 / 0.06); }
     .phoxtail-chat-history-item:hover { background: rgb(255 255 255 / 0.05); }
     .phoxtail-chat-history-item-title { color: rgb(var(--color-surface-100, 244 244 245)); }
+    .phoxtail-chat-history-list { scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
+    .phoxtail-chat-history-list::-webkit-scrollbar-thumb {
+        background-color: rgb(255 255 255 / 0.12);
+    }
     .phoxtail-chat-history-clear:hover {
         background: rgb(255 255 255 / 0.08);
         color: rgb(var(--color-surface-300, 212 212 216));

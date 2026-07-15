@@ -8,6 +8,8 @@ import os
 import queue
 import re
 import threading
+import time
+import uuid
 from collections.abc import AsyncIterable
 from typing import Any
 
@@ -27,10 +29,20 @@ from pydantic_ai.messages import (
     ModelRequest,
     ModelResponse,
     TextPart,
+    ToolCallPart,
+    ToolCallPartDelta,
     UserPromptPart,
 )
 
+from phoxtail.agent.chat_blocks import (
+    CHAT_BLOCK_TOOLS,
+    pop_pending,
+    render_chat_block,
+    render_history_tool_call,
+    try_parse_partial_json,
+)
 from phoxtail.agent.llm import get_agent
+from phoxtail.agent.markdown import render_chat_markdown
 from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_policy
 
@@ -101,9 +113,53 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
     _pending_args: dict[str, dict[str, Any]] = {}
     # Accumulates streamed text so we can persist a partial response on cancellation.
     _partial_text: list[str] = []
+    # Speculative chat-block streaming: render_block tool-call args accumulate
+    # here (keyed by part index) and are best-effort rendered as they grow.
+    _block_streams: dict[Any, dict[str, Any]] = {}
+    # The currently-streaming prose part. Accumulated raw markdown is
+    # re-rendered server-side on a throttle and upserted into one bubble via
+    # its stream_id; the part is flushed (final, unthrottled render) when the
+    # next part starts or the model response ends.
+    _open_text: dict[str, Any] | None = None
+
+    async def _emit_text(state: dict[str, Any], final: bool) -> None:
+        now = time.monotonic()
+        if not final and now - state["last_render"] < 0.15:
+            return
+        state["last_render"] = now
+        text = "".join(state["buf"])
+        if not text.strip():
+            return
+        await aq.put(("message_html", state["stream_id"], render_chat_markdown(text), not final))
+
+    async def _flush_text() -> None:
+        nonlocal _open_text
+        if _open_text is not None:
+            await _emit_text(_open_text, final=True)
+            _open_text = None
+
+    async def _render_partial_block(state: dict[str, Any]) -> None:
+        """Throttled best-effort render of a partially-streamed render_block call."""
+        now = time.monotonic()
+        if now - state["last_render"] < 0.15:
+            return
+        state["last_render"] = now
+        parsed = try_parse_partial_json("".join(state["buf"]))
+        if not parsed or not parsed.get("identifier") or not isinstance(parsed.get("value"), dict):
+            return
+        try:
+            html = await sync_to_async(render_chat_block)(
+                parsed["identifier"],
+                parsed["value"],
+                state["dom_id"],
+                validate=False,
+            )
+        except Exception:
+            return  # incomplete value shapes are expected mid-stream
+        await aq.put(("chat_block_partial", state["stream_id"], html))
 
     async def handler(ctx: RunContext, events: AsyncIterable) -> None:
-        nonlocal text_sent
+        nonlocal text_sent, _open_text
         async for event in events:
             if isinstance(event, FunctionToolCallEvent):
                 _pending_args[event.tool_call_id] = event.part.args_as_dict()
@@ -145,17 +201,72 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                                 ValueError,
                             ):
                                 pass
+                if tool_name in CHAT_BLOCK_TOOLS:
+                    # The tool stashed its rendered payload keyed by the
+                    # chat_block_id in its result JSON. Pop it and push it to
+                    # the browser; on error results there is nothing to pop.
+                    try:
+                        result_content = str(event.part.content) if hasattr(event.part, "content") else ""
+                        chat_block_id = json.loads(result_content).get("chat_block_id")
+                    except (json.JSONDecodeError, AttributeError, TypeError, ValueError):
+                        chat_block_id = None
+                    payload = pop_pending(chat_block_id) if chat_block_id else None
+                    # Close this call's speculative preview shell: the final
+                    # render must reuse its stream_id to replace it in place.
+                    # The stream_id can be an index-based fallback when the
+                    # provider omitted tool_call_id at part start, so match by
+                    # id first, else claim the only open stream.
+                    partial_stream_id = None
+                    for index, state in list(_block_streams.items()):
+                        if state["stream_id"] == event.tool_call_id or len(_block_streams) == 1:
+                            partial_stream_id = state["stream_id"]
+                            del _block_streams[index]
+                            break
+                    if payload:
+                        kind = payload.pop("kind")
+                        await aq.put(("chat_block", kind, payload, partial_stream_id or event.tool_call_id))
+                    elif partial_stream_id:
+                        # Tool errored — remove the half-rendered preview.
+                        await aq.put(("chat_block_gone", partial_stream_id))
                 await aq.put(("tool_end", tool_name))
+            elif isinstance(event, PartStartEvent) and isinstance(event.part, ToolCallPart):
+                await _flush_text()
+                # Begin speculative streaming for render_block calls.
+                if event.part.tool_name == "render_block":
+                    initial = event.part.args if isinstance(event.part.args, str) else ""
+                    _block_streams[event.index] = {
+                        "buf": [initial],
+                        "stream_id": event.part.tool_call_id or f"idx-{event.index}",
+                        "dom_id": f"chat-stream-{event.index}",
+                        "last_render": 0.0,
+                    }
+            elif isinstance(event, PartDeltaEvent) and isinstance(event.delta, ToolCallPartDelta):
+                state = _block_streams.get(event.index)
+                if state is not None and isinstance(event.delta.args_delta, str):
+                    state["buf"].append(event.delta.args_delta)
+                    try:
+                        await _render_partial_block(state)
+                    except Exception:
+                        pass  # streaming preview is best-effort, never fatal
             elif isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
+                await _flush_text()
+                _open_text = {
+                    "buf": [event.part.content or ""],
+                    "stream_id": f"txt-{uuid.uuid4().hex[:12]}",
+                    "last_render": 0.0,
+                }
                 if event.part.content:
                     text_sent = True
                     _partial_text.append(event.part.content)
-                    await aq.put(("token", event.part.content))
+                    await _emit_text(_open_text, final=False)
             elif isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
-                if event.delta.content_delta:
+                if event.delta.content_delta and _open_text is not None:
                     text_sent = True
                     _partial_text.append(event.delta.content_delta)
-                    await aq.put(("token", event.delta.content_delta))
+                    _open_text["buf"].append(event.delta.content_delta)
+                    await _emit_text(_open_text, final=False)
+        # Model response finished streaming — final authoritative render.
+        await _flush_text()
 
     async def produce() -> None:
         nonlocal text_sent
@@ -165,10 +276,11 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                 message_history=history,
                 event_stream_handler=handler,
             )
-            # Fallback: if no token events fired, emit the full output now
+            # Fallback: if no text streamed, emit the full output now
             if not text_sent and result.output:
                 _partial_text.append(str(result.output))
-                await aq.put(("token", str(result.output)))
+                html = render_chat_markdown(str(result.output))
+                await aq.put(("message_html", f"txt-{uuid.uuid4().hex[:12]}", html, False))
 
             updated = history + list(result.new_messages())
             conversation.message_history = ModelMessagesTypeAdapter.dump_python(updated, mode="json")
@@ -213,12 +325,23 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
             if item is _SENTINEL:
                 break
             kind, *rest = item
-            if kind == "token":
-                out.put(_sse("token", {"text": rest[0]}))
+            if kind == "message_html":
+                stream_id, html, partial = rest
+                out.put(_sse("message_html", {"html": html, "stream_id": stream_id, "partial": partial}))
             elif kind == "tool_start":
                 out.put(_sse("tool_start", {"name": rest[0]}))
             elif kind == "tool_end":
                 out.put(_sse("tool_end", {"name": rest[0]}))
+            elif kind == "chat_block_partial":
+                stream_id, html = rest
+                out.put(_sse("block_html", {"html": html, "stream_id": stream_id, "partial": True}))
+            elif kind == "chat_block_gone":
+                out.put(_sse("block_gone", {"stream_id": rest[0]}))
+            elif kind == "chat_block":
+                block_kind, payload, stream_id = rest
+                data = dict(payload)
+                data["stream_id"] = stream_id
+                out.put(_sse(block_kind, data))
             elif kind == "blocks_changed":
                 page_id, uuids, change_kind = rest
                 out.put(
@@ -306,9 +429,39 @@ def get_conversation(request, uuid: str):
                 if isinstance(part, UserPromptPart) and isinstance(part.content, str):
                     messages.append({"role": "user", "content": part.content})
         elif isinstance(msg, ModelResponse):
-            text = " ".join(p.content for p in msg.parts if isinstance(p, TextPart))
-            if text:
-                messages.append({"role": "assistant", "content": text})
+            # Walk parts in order so chat blocks interleave with prose the
+            # same way they streamed. Blocks re-render deterministically from
+            # the tool-call args stored in the history — the same way page
+            # bodies re-render from stored JSON.
+            text_buf: list[str] = []
+
+            def _flush(buf=None):
+                buf = text_buf if buf is None else buf
+                joined = " ".join(t for t in buf if t).strip()
+                if joined:
+                    # Same renderer as the live stream, so replayed prose is
+                    # bit-identical to what streamed.
+                    messages.append({"role": "assistant", "type": "message_html", "html": render_chat_markdown(joined)})
+                buf.clear()
+
+            for part in msg.parts:
+                if isinstance(part, TextPart):
+                    if part.content:
+                        text_buf.append(part.content)
+                elif isinstance(part, ToolCallPart):
+                    _flush()
+                    # Every tool call joins the replayed activity trail, so a
+                    # reloaded conversation shows the same work the live
+                    # stream showed (the pane groups consecutive ones).
+                    messages.append({"role": "tool", "name": part.tool_name})
+                    if part.tool_name in CHAT_BLOCK_TOOLS:
+                        try:
+                            item = render_history_tool_call(part.tool_name, part.args_as_dict())
+                        except Exception:
+                            item = None
+                        if item:
+                            messages.append(item)
+            _flush()
 
     last_artifact = None
     if conversation.last_artifact_used_id:

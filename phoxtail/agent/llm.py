@@ -7,6 +7,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
+from .chat_blocks import get_chat_block_tools
 from .models import ModelArtifact
 from .tools import get_tools
 
@@ -30,7 +31,10 @@ def _build_agent(
         # pydantic-ai accepts "<prefix>:<identifier>" model strings directly.
         model = f"{model_prefix}:{identifier}" if model_prefix else identifier
 
-    return Agent(model=model, tools=get_tools())
+    return Agent(
+        model=model,
+        tools=get_tools() + get_chat_block_tools(),
+    )
 
 
 def get_agent(artifact: ModelArtifact) -> Agent:

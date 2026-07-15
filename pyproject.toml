@@ -57,6 +57,8 @@ dashboard = [
 chatbot = [
     "phoxtail[engine]",
     "pydantic-ai>=1.89",
+    # Chat prose markdown -> HTML (also arrives transitively via rich)
+    "markdown-it-py>=3.0",
 ]
 dev = [
     "pip-tools>=7.0.0",

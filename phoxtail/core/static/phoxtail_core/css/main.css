@@ -219,3 +219,11 @@ body {
         background-color: rgb(var(--color-surface-950));
     }
 }
+
+/* Every block wrapper is a container-query context: variant CSS written
+   with @container rules adapts to the actual space a block lives in
+   (page column, chat pane, ...) instead of the browser viewport. */
+.phoxtail-block {
+    container-type: inline-size;
+    container-name: phoxtail-block;
+}
