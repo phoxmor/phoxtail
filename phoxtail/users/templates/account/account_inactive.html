@@ -1,19 +1,25 @@
-{% extends "allauth/layouts/entrance.html" %}
+{% extends "account/base_entrance.html" %}
 {% load static i18n %}
 {% load allauth %}
 {% block head_title %}
     {% translate "Account Inactive" %}
 {% endblock head_title %}
-{% block content %}
-    <div class="py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-6 text-center">
-            <div class="shadow-md p-8 bg-white">
-                <h1 class="text-3xl font-extrabold">{% translate "Account Inactive" %}</h1>
-                <p class="mt-4 text-sm">{% translate "This account is inactive." %}</p>
-                <div class="mt-6">
-                    <a href="/" class="text-red-500 hover:text-red-400 text-sm font-medium">{% translate "Go back to homepage" %}</a>
+{% block body %}
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header">
+                    <h1 class="auth-heading">{% translate "Account Inactive" %}</h1>
+                    <p class="auth-subtitle">{% translate "This account is inactive." %}</p>
+                </div>
+                <div class="auth-text-center auth-mt-6">
+                    <a href="/" class="auth-link" tags="link">{% translate "Go back to homepage" %}</a>
                 </div>
             </div>
         </div>
     </div>
-{% endblock content %}
+{% endblock body %}
