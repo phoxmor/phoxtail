@@ -33,7 +33,10 @@ mcp_server = FastMCP(
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
-        "(Wagtail page read/write + body editing, sites, locales). Optional "
+        "(Wagtail page read/write + body editing, sites, locales), users "
+        "(user + gender management, bulk user import, email verification — "
+        "every "
+        "phoxtail_users_* tool requires a superuser token/session). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
         "Always fetch a resource before updating it to get the current "
@@ -79,6 +82,10 @@ def _register_core_tools() -> None:
     import phoxtail.mcp.studio.sessions  # noqa: F401
     import phoxtail.mcp.studio.shared_blocks  # noqa: F401
     import phoxtail.mcp.studio.variants  # noqa: F401
+
+    # Vertical-slice core tools living inside their app package.
+    import phoxtail.users.mcp.genders  # noqa: F401
+    import phoxtail.users.mcp.users  # noqa: F401
 
 
 def _register_contributed_tools() -> None:

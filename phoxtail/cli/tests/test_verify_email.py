@@ -76,10 +76,13 @@ def _load_command():
     return mod.Command
 
 
-def _make_user(email="admin@example.com", is_superuser=False):
+def _make_user(email="admin@example.com", is_superuser=False, status="verified"):
     user = MagicMock()
     user.email = email
     user.is_superuser = is_superuser
+    # The command delegates the allauth record work to the service layer
+    # (UserService.admin.verify_email) and only renders its status.
+    user.service.admin.verify_email.return_value = status
     return user
 
 
@@ -91,15 +94,12 @@ class TestVerifyEmailDirect:
         user = _make_user("test@example.com")
         User = _stub_django.get_user_model.return_value
         User.objects.get.return_value = user
-        _stub_django.EmailAddress.objects.get_or_create.return_value = (
-            MagicMock(verified=False),
-            True,
-        )
 
         cmd = Command()
         cmd.handle(email="test@example.com", all_superusers=False)
 
         User.objects.get.assert_called_once_with(email="test@example.com")
+        user.service.admin.verify_email.assert_called_once_with()
         assert "Verified: test@example.com" in cmd.stdout.getvalue()
 
     def test_user_not_found_exits(self, _stub_django):
@@ -118,37 +118,14 @@ class TestVerifyEmailDirect:
 
     def test_already_verified_reports_status(self, _stub_django):
         Command = _load_command()
-        user = _make_user("admin@example.com")
+        user = _make_user("admin@example.com", status="already_verified")
         User = _stub_django.get_user_model.return_value
         User.objects.get.return_value = user
-        _stub_django.EmailAddress.objects.get_or_create.return_value = (
-            MagicMock(verified=True),
-            False,
-        )
 
         cmd = Command()
         cmd.handle(email="admin@example.com", all_superusers=False)
 
         assert "Already verified: admin@example.com" in cmd.stdout.getvalue()
-
-    def test_unverified_existing_record_gets_verified(self, _stub_django):
-        Command = _load_command()
-        user = _make_user("admin@example.com")
-        User = _stub_django.get_user_model.return_value
-        User.objects.get.return_value = user
-        email_obj = MagicMock(verified=False)
-        _stub_django.EmailAddress.objects.get_or_create.return_value = (
-            email_obj,
-            False,
-        )
-
-        cmd = Command()
-        cmd.handle(email="admin@example.com", all_superusers=False)
-
-        assert email_obj.verified is True
-        assert email_obj.primary is True
-        email_obj.save.assert_called_once_with(update_fields=["verified", "primary"])
-        assert "Verified: admin@example.com" in cmd.stdout.getvalue()
 
     def test_no_email_no_flag_exits(self, _stub_django):
         Command = _load_command()
@@ -175,16 +152,13 @@ class TestVerifyEmailAllSuperusers:
         qs.exists.return_value = True
         qs.__iter__ = lambda self: iter(users)
 
-        _stub_django.EmailAddress.objects.get_or_create.return_value = (
-            MagicMock(verified=False),
-            True,
-        )
-
         cmd = Command()
         cmd.handle(email=None, all_superusers=True)
 
-        assert "admin1@example.com" in cmd.stdout.getvalue()
-        assert "admin2@example.com" in cmd.stdout.getvalue()
+        for user in users:
+            user.service.admin.verify_email.assert_called_once_with()
+        assert "Verified: admin1@example.com" in cmd.stdout.getvalue()
+        assert "Verified: admin2@example.com" in cmd.stdout.getvalue()
 
     def test_no_superusers_warns(self, _stub_django):
         Command = _load_command()

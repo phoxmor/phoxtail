@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "django_htmx",
+    "allauth",
+    "allauth.account",
     "taggit",
     "modelcluster",
     "wagtail",
@@ -51,7 +53,17 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
+
+# Authentication (django-allauth) — mirrors the project template so the
+# users service layer (adapter + EmailAddress orchestration) is exercised
+# with production wiring.
+ACCOUNT_ADAPTER = "phoxtail.users.adapters.AccountAdapter"
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_UNIQUE_EMAIL = True
+PHOXTAIL_ALLOW_SIGNUP = False
 
 TEMPLATES = [
     {

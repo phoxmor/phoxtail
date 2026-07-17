@@ -2,7 +2,6 @@
 
 import sys
 
-from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
@@ -56,17 +55,8 @@ class Command(BaseCommand):
 
     def _verify_user(self, user):
         """Verify a single user's email address."""
-        email_address, created = EmailAddress.objects.get_or_create(
-            user=user,
-            email=user.email,
-            defaults={"verified": True, "primary": True},
-        )
-        if not created and not email_address.verified:
-            email_address.verified = True
-            email_address.primary = True
-            email_address.save(update_fields=["verified", "primary"])
-            self.stdout.write(self.style.SUCCESS(f"Verified: {user.email}"))
-        elif created:
+        status = user.service.admin.verify_email()
+        if status == "verified":
             self.stdout.write(self.style.SUCCESS(f"Verified: {user.email}"))
         else:
             self.stdout.write(f"Already verified: {user.email}")

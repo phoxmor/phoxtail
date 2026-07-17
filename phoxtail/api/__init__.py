@@ -28,10 +28,12 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI
 from ninja.security import SessionAuth
 
+from phoxtail.api.auth import Authorize, is_superuser
 from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.api.design.v1 import router as design_v1_router
 from phoxtail.api.streams.v1 import router as streams_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
+from phoxtail.users.api.v1 import router as users_v1_router
 
 # Swagger UI and the OpenAPI schema are development conveniences only; in
 # production they leak the endpoint surface with no runtime consumer, so we
@@ -60,6 +62,21 @@ api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])
 api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
 api.add_router("/design/v1/", design_v1_router, tags=["design/v1"])
 
+# The users surface is superuser-only until scoped tokens land: the same
+# authenticators as everywhere else, wrapped with an authorization predicate.
+# Reads included — loosening reads later is a deliberate decision, not a
+# default.
+_superuser_detail = "The users API requires an active superuser account."
+api.add_router(
+    "/users/v1/",
+    users_v1_router,
+    auth=[
+        Authorize(PhoxtailTokenAuth(), is_superuser, detail=_superuser_detail),
+        Authorize(SessionAuth(), is_superuser, detail=_superuser_detail),
+    ],
+    tags=["users/v1"],
+)
+
 
 @api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
 def ping(request):
@@ -82,7 +99,7 @@ def handle_django_validation_error(request, exc: DjangoValidationError):
 
 # Core router short labels — contributors cannot reuse these, or they
 # would shadow a core domain.
-_CORE_SHORT_LABELS = frozenset({"streams", "content", "design", "pages"})
+_CORE_SHORT_LABELS = frozenset({"streams", "content", "design", "pages", "users"})
 
 
 def _short_label(config) -> str:

@@ -15,8 +15,9 @@ class UserServiceAdminUpdate:
     """Admin domain operation for user updates.
 
     Orchestrates field changes + allauth EmailAddress sync when email changes.
-    Validation is handled by the form (ModelForm's validate_unique covers
-    email uniqueness).
+    ``full_clean()`` enforces model rules (email uniqueness, phone/country
+    formats, birth-date validity) regardless of the caller — forms validate
+    earlier too, API callers rely on this pass alone.
     """
 
     def __init__(self, service: "UserService") -> None:
@@ -36,15 +37,27 @@ class UserServiceAdminUpdate:
 
         user = self.service.user
         old_email = user.email
+        adapter = get_adapter(request)
+
+        if "email" in data:
+            # Mirror the create path — otherwise case-variant domains slip
+            # past the unique check and produce near-duplicate accounts.
+            data["email"] = type(user).objects.normalize_email(data["email"])
+        if "username" in data:
+            # allauth's own validation; shallow skips the uniqueness lookup,
+            # which would match the user being updated — the model's unique
+            # constraint still guards via full_clean().
+            data["username"] = adapter.clean_username(data["username"], shallow=True)
 
         with transaction.atomic():
             for field, value in data.items():
                 setattr(user, field, value)
 
+            user.full_clean()
+
             new_email = data.get("email", old_email)
 
             if new_email != old_email:
-                adapter = get_adapter(request)
                 adapter.populate_username(request, user)
 
                 EmailAddress.objects.filter(user=user, email=old_email).update(email=new_email)
