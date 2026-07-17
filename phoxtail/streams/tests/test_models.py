@@ -31,8 +31,7 @@ class TestVariantCollection:
 
 class TestBlockVariant:
     def test_str(self, variant):
-        expected = f"{variant.block.name} | {variant.name} ({variant.collection.name})"
-        assert str(variant) == expected
+        assert str(variant) == variant.name
 
     def test_unique_block_collection_identifier(self, block, collection):
         BlockVariantFactory(block=block, collection=collection, identifier="same_id")

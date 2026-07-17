@@ -136,7 +136,7 @@ SSH_KEYS_RESPONSE = {
         {
             "id": 1001,
             "label": "my-laptop",
-            "ssh_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKeyForPhoxtail u@l",
+            "ssh_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4f u@l",
             "created": "2024-01-01T00:00:00",
         }
     ],

@@ -22,16 +22,26 @@ def _completed(returncode=0, stdout="", stderr=""):
 # ---------------------------------------------------------------------------
 
 
-class TestPull:
-    """Tests for the db pull command."""
+def _pull():
+    return pull(ip="203.0.113.5", user="phoxtail")
 
+
+class TestPull:
+    """Tests for the db pull command.
+
+    Every test patches ``verify_server_identity`` (network) and
+    ``Confirm.ask`` (interactive gate) so ``pull`` runs through.
+    """
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
     @patch("phoxtail.cli.db.typer.prompt", return_value="secret")
     def test_happy_path_with_superusers(
-        self, mock_prompt, mock_run, mock_env, mock_docker_db, mock_manage, project_dir
+        self, mock_prompt, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
     ):
         """Full pull: dump, download, backup, restore, hostnames, passwords."""
         mock_run.return_value = _completed()
@@ -46,12 +56,15 @@ class TestPull:
         backups_dir.mkdir()
         dump_path.write_text("-- SQL dump")
 
-        pull(remote_host="user@host", remote_dir="/srv/app")
+        _pull()
+
+        # Server identity was checked before anything ran
+        mock_verify.assert_called_once_with("phoxtail", "203.0.113.5")
 
         # SSH dump command
         ssh_call = mock_run.call_args_list[0]
         assert ssh_call[0][0][0] == "ssh"
-        assert "pg_dump" in ssh_call[0][0][2]
+        assert "pg_dump" in ssh_call[0][0][-1]
 
         # SCP download
         scp_call = mock_run.call_args_list[1]
@@ -59,7 +72,7 @@ class TestPull:
 
         # Remote cleanup
         cleanup_call = mock_run.call_args_list[2]
-        assert "rm -f" in cleanup_call[0][0][2]
+        assert "rm -f" in cleanup_call[0][0][-1]
 
         # Restore via stdin
         restore_call = mock_run.call_args_list[3]
@@ -76,11 +89,25 @@ class TestPull:
         # Dump file cleaned up
         assert not dump_path.exists()
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=False)
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_declining_confirmation_aborts(self, mock_run, mock_verify, mock_confirm, project_dir):
+        """Answering no at the confirmation gate exits cleanly, touching nothing."""
+        with pytest.raises(typer.Exit) as exc_info:
+            _pull()
+        assert exc_info.value.exit_code == 0
+        mock_run.assert_not_called()
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_no_superusers_found(self, mock_run, mock_env, mock_docker_db, mock_manage, project_dir):
+    def test_no_superusers_found(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
         """When no superusers exist, skip password prompt."""
         mock_run.return_value = _completed()
         mock_manage.return_value = _completed(stdout="__SUPERUSERS__:")
@@ -89,15 +116,19 @@ class TestPull:
         backups_dir.mkdir()
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
-        pull(remote_host="user@host", remote_dir="/srv/app")
+        _pull()
 
         # No prompt should have been triggered (would error if typer.prompt called)
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value=None)
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_domain_defaults_to_localhost(self, mock_run, mock_env, mock_docker_db, mock_manage, project_dir):
+    def test_domain_defaults_to_localhost(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
         """When DOMAIN env var is unset, defaults to 'localhost'."""
         mock_run.return_value = _completed()
         mock_manage.return_value = _completed(stdout="__SUPERUSERS__:")
@@ -106,28 +137,34 @@ class TestPull:
         backups_dir.mkdir()
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
-        pull(remote_host="user@host", remote_dir="/srv/app")
+        _pull()
 
         # Hostname update should use 'localhost'
         hostname_call = [c for c in mock_docker_db.call_args_list if "UPDATE wagtailcore_site" in str(c)]
         assert len(hostname_call) == 1
         assert "localhost" in str(hostname_call[0])
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_ssh_failure_exits(self, mock_run, mock_env, mock_docker_db, project_dir):
+    def test_ssh_failure_exits(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """SSH failure raises typer.Exit."""
         mock_run.side_effect = subprocess.CalledProcessError(1, "ssh", stderr="Connection refused")
 
         with pytest.raises(typer.Exit):
-            pull(remote_host="user@host", remote_dir="/srv/app")
+            _pull()
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_safety_backup_failure_non_fatal(self, mock_run, mock_env, mock_docker_db, mock_manage, project_dir):
+    def test_safety_backup_failure_non_fatal(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
         """Safety backup failure doesn't abort the pull."""
         mock_run.return_value = _completed()
         mock_manage.return_value = _completed(stdout="__SUPERUSERS__:")
@@ -143,12 +180,14 @@ class TestPull:
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
         # Should not raise
-        pull(remote_host="user@host", remote_dir="/srv/app")
+        _pull()
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_restore_failure_exits(self, mock_run, mock_env, mock_docker_db, project_dir):
+    def test_restore_failure_exits(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """Restore failure raises typer.Exit."""
         # SSH + SCP + cleanup succeed, restore fails
         mock_run.side_effect = [
@@ -163,12 +202,14 @@ class TestPull:
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
         with pytest.raises(typer.Exit):
-            pull(remote_host="user@host", remote_dir="/srv/app")
+            _pull()
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_dump_cleanup_on_failure(self, mock_run, mock_env, mock_docker_db, project_dir):
+    def test_dump_cleanup_on_failure(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """Dump file is cleaned up even when pull fails."""
         mock_run.side_effect = [
             _completed(),  # ssh dump
@@ -183,15 +224,19 @@ class TestPull:
         dump_path.write_text("-- SQL")
 
         with pytest.raises(typer.Exit):
-            pull(remote_host="user@host", remote_dir="/srv/app")
+            _pull()
 
         assert not dump_path.exists()
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="mysite.local")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_custom_domain(self, mock_run, mock_env, mock_docker_db, mock_manage, project_dir):
+    def test_custom_domain(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
         """Custom DOMAIN value is used for hostname update."""
         mock_run.return_value = _completed()
         mock_manage.return_value = _completed(stdout="__SUPERUSERS__:")
@@ -200,16 +245,20 @@ class TestPull:
         backups_dir.mkdir()
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
-        pull(remote_host="user@host", remote_dir="/srv/app")
+        _pull()
 
         hostname_call = [c for c in mock_docker_db.call_args_list if "UPDATE wagtailcore_site" in str(c)]
         assert "mysite.local" in str(hostname_call[0])
 
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_superuser_marker_ignores_noise(self, mock_run, mock_env, mock_docker_db, mock_manage, project_dir):
+    def test_superuser_marker_ignores_noise(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
         """Superuser parsing ignores Django shell startup noise."""
         mock_run.return_value = _completed()
         mock_manage.return_value = _completed(stdout="Python 3.11.0\nType 'help'...\n__SUPERUSERS__:admin@test.com")
@@ -219,7 +268,7 @@ class TestPull:
         (backups_dir / "remote_pull.sql").write_text("-- SQL")
 
         with patch("phoxtail.cli.db.typer.prompt", return_value="pw"):
-            pull(remote_host="user@host", remote_dir="/srv/app")
+            _pull()
 
         # Password set command was issued
         assert mock_manage.call_count == 2  # discovery + password set

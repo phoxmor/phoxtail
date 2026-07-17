@@ -46,13 +46,15 @@ class TestBootstrapTemplate:
         assert "get.docker.com" in output
         assert "usermod -aG docker" in output
 
-    def test_phoxtail_cli_is_installed(self):
+    def test_uv_is_installed_as_deploy_user(self):
         output = _render()
-        assert "uv tool install phoxtail" in output
-        assert "/usr/local/bin/phoxtail" in output
-        # uv and phoxtail installed as deploy user, not root
+        assert "astral.sh/uv/install.sh" in output
+        # uv installed as deploy user, not root
         assert "su - phoxtail" in output
         assert "/root" not in output
+        # The phoxtail CLI is deliberately not installed on the server —
+        # deploys drive the server over SSH from the operator's machine.
+        assert "uv tool install phoxtail" not in output
 
     def test_ufw_opens_http_https_ssh(self):
         output = _render()
