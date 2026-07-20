@@ -671,9 +671,9 @@ body.phoxtail-chatbot-resizing {
 }
 .phoxtail-chatbot-chip--inert {
     padding: 0.125rem 0.4375rem;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: rgba(255, 255, 255, 0.92);
+    background-color: rgb(var(--color-primary-100, 224 231 255) / 0.6);
+    border-color: rgb(var(--color-primary-300, 165 180 252) / 0.5);
+    color: rgb(var(--color-primary-800, 55 48 163));
 }
 
 /* ── Drag ghost ── */
@@ -817,6 +817,11 @@ body.phoxtail-chatbot-resizing {
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
         color: white;
+    }
+    .phoxtail-chatbot-chip--inert {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.92);
     }
     .phoxtail-chatbot-message--assistant code { background-color: rgb(255 255 255 / 0.08); }
     .phoxtail-chatbot-message--assistant pre { background-color: rgb(255 255 255 / 0.06); }
