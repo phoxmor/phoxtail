@@ -316,7 +316,7 @@ def render_body_fragment(request, page_id: int) -> HttpResponse:
 
     html = render_to_string(
         "phoxtail_cms/partials/body_container_inner.html",
-        {"stream_value": stream_value, "page_id": page_id},
+        {"stream_value": stream_value, "page_id": page_id, "page": draft},
         request=request,
     )
     return HttpResponse(html, content_type="text/html")
