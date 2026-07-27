@@ -2,7 +2,6 @@
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 
 from phoxtail.cli import (
     auth,
@@ -16,6 +15,7 @@ from phoxtail.cli import (
     manage,
     mcp,
     media,
+    net,
     nginx,
     requirements,
     server,
@@ -24,7 +24,7 @@ from phoxtail.cli import (
     test,
     upgrade,
 )
-from phoxtail.cli.utils.config import find_config_file
+from phoxtail.cli.utils.config import require_project
 
 app = typer.Typer(
     name="phoxtail",
@@ -35,7 +35,7 @@ app = typer.Typer(
 console = Console()
 
 # Commands that don't require a phoxtail project.
-NO_PROJECT_COMMANDS = {"version", "hatch", "server", "mcp", "auth"}
+NO_PROJECT_COMMANDS = {"version", "hatch", "server", "mcp", "auth", "net"}
 
 
 @app.callback(invoke_without_command=True)
@@ -48,17 +48,7 @@ def main(ctx: typer.Context):
     if ctx.invoked_subcommand in NO_PROJECT_COMMANDS or ctx.resilient_parsing:
         return
 
-    if find_config_file() is None:
-        console.print(
-            Panel(
-                "No [bold]phoxtail.toml[/bold] found in this directory or any parent.\n"
-                "Run this command from the root of a Phoxtail project.",
-                title="[red]Not a Phoxtail project[/red]",
-                border_style="red",
-                expand=False,
-            )
-        )
-        raise typer.Exit(code=1)
+    require_project()
 
 
 # Command groups
@@ -66,6 +56,7 @@ app.add_typer(docker.app, name="docker", help="Docker lifecycle and configuratio
 app.add_typer(db.app, name="db", help="Database operations")
 app.add_typer(media.app, name="media", help="Media file management")
 app.add_typer(nginx.app, name="nginx", help="Nginx configuration")
+app.add_typer(net.app, name="net", help="Shared local network for multiple projects")
 app.add_typer(env.app, name="env", help="Environment configuration")
 app.add_typer(requirements.app, name="requirements", help="Python requirements")
 app.add_typer(server.app, name="server", help="Remote server management")

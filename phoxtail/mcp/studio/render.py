@@ -9,7 +9,7 @@ from typing import Any
 from mcp.server.fastmcp import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp._http import api_base_url
+from phoxtail.mcp._http import api_base_url, outbound_token
 
 _VIEWPORTS: dict[str, dict] = {
     "desktop": {"width": 1440, "height": 810},
@@ -61,11 +61,11 @@ async def render_block(
             {"error": ("Playwright is not installed. Run: uv add playwright && playwright install chromium")}
         )
 
-    from phoxtail.cli.utils.credentials import resolve_token
-
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if not token:
-        return json.dumps({"error": "No bearer token found. Run: phoxtail auth login"})
+        return json.dumps(
+            {"error": "No bearer token. Local: run phoxtail auth login. Remote: send an Authorization header."}
+        )
 
     base = api_base_url().rstrip("/")
     screenshot_url = f"{base}/phoxtail-agent/screenshot/{page_id}/{block_uuid}/?token={token}"
@@ -155,11 +155,11 @@ async def screenshot_page(
     if viewport not in _VIEWPORTS:
         return json.dumps({"error": f"Unknown viewport '{viewport}'. Use: desktop, tablet, mobile"})
 
-    from phoxtail.cli.utils.credentials import resolve_token
-
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if not token:
-        return json.dumps({"error": "No bearer token found. Run: phoxtail auth login"})
+        return json.dumps(
+            {"error": "No bearer token. Local: run phoxtail auth login. Remote: send an Authorization header."}
+        )
 
     base = api_base_url().rstrip("/")
     screenshot_url = f"{base}/phoxtail-agent/screenshot/{page_id}/?token={token}"

@@ -8,9 +8,8 @@ from pathlib import Path
 
 import httpx
 
-from phoxtail.cli.utils.credentials import resolve_token
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp._http import api_base_url, url
+from phoxtail.mcp._http import outbound_token, url
 from phoxtail.mcp.design._error import error_envelope
 from phoxtail.mcp.design._http import request
 
@@ -36,7 +35,7 @@ def _resolve_upload_path(file_path: str) -> Path:
 
 
 def _auth_headers() -> dict:
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     return {"Authorization": f"Bearer {token}"} if token else {}
 
 

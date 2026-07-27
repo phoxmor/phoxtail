@@ -31,6 +31,40 @@ services:
       - db
       - redis
 
+{% if environment == "development" %}
+  # The project's always-on MCP server: the same tool registry the terminal
+  # and chatbot use, served over HTTP so any MCP client (Claude Code from
+  # anywhere on this machine, sibling projects on the shared net) can run
+  # this project's tools in this project's environment. It holds no
+  # credentials of its own — each request's Bearer is forwarded to the web
+  # API, which is the sole authority.
+  #
+  # Standalone, it publishes port 8001 on loopback only
+  # (http://localhost:8001/mcp — nothing here should be reachable from the
+  # LAN). On `phoxtail net attach` the net fragment releases the port and
+  # the server moves to http://mcp.<slug>.localhost/mcp instead.
+  #
+  # Reuses the image `web` builds; runs phoxtail from its site-packages.
+  mcp:
+    image: {{ image_name }}
+    restart: unless-stopped
+    command: phoxtail mcp serve --http --host 0.0.0.0 --port 80
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    environment:
+      # Inside this container, `http://localhost` is this MCP server
+      # itself, not Django — the API lives in the `web` container, one
+      # service-name hop away on the project's default network.
+      PHOXTAIL_API_URL: http://web
+    ports:
+      - "127.0.0.1:8001:80"
+    depends_on:
+      - web
+
+{% endif %}
   redis:
     image: redis:7-alpine
     restart: always

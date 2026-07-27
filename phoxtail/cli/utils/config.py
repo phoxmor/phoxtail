@@ -2,12 +2,18 @@
 
 import copy
 import keyword
+import os
 import tomllib
 from functools import lru_cache
 from importlib.util import find_spec
 from pathlib import Path
 
+import typer
+from rich.console import Console
+from rich.panel import Panel
+
 CONFIG_FILENAME = "phoxtail.toml"
+console = Console()
 
 # Defaults used when phoxtail.toml is missing or incomplete.
 DEFAULTS = {
@@ -29,6 +35,26 @@ def find_config_file() -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def require_project() -> None:
+    """Exit with the standard "not a Phoxtail project" panel if no phoxtail.toml is in scope.
+
+    Shared by the main callback's project-context gate and any command
+    group (e.g. `proxy attach`/`detach`) that's exempt from that gate at
+    the group level but still needs the check on specific subcommands.
+    """
+    if find_config_file() is None:
+        console.print(
+            Panel(
+                "No [bold]phoxtail.toml[/bold] found in this directory or any parent.\n"
+                "Run this command from the root of a Phoxtail project.",
+                title="[red]Not a Phoxtail project[/red]",
+                border_style="red",
+                expand=False,
+            )
+        )
+        raise typer.Exit(code=1)
 
 
 @lru_cache(maxsize=1)
@@ -78,12 +104,20 @@ DEFAULT_API_BASE_URL = "http://localhost"
 def get_api_base_url() -> str:
     """Return the project's API base URL, without trailing slash.
 
-    Reads ``[studio] api_url`` from ``phoxtail.toml``; falls back to
-    :data:`DEFAULT_API_BASE_URL` when no project is in scope, the file
-    cannot be loaded, or the key is absent. Used by the Studio CLI
-    client, the MCP client, and ``phoxtail auth`` so they all agree on
-    where the API lives and which host key indexes stored credentials.
+    The ``PHOXTAIL_API_URL`` environment variable wins over everything:
+    it exists for processes whose network position differs from the
+    host's — the ``mcp`` container sets it to ``http://web``, because
+    inside that container ``http://localhost`` is the MCP server itself,
+    not Django. Otherwise reads ``[studio] api_url`` from
+    ``phoxtail.toml``; falls back to :data:`DEFAULT_API_BASE_URL` when no
+    project is in scope, the file cannot be loaded, or the key is absent.
+    Used by the Studio CLI client, the MCP client, and ``phoxtail auth``
+    so they all agree on where the API lives and which host key indexes
+    stored credentials.
     """
+    env_url = os.environ.get("PHOXTAIL_API_URL")
+    if env_url:
+        return env_url.rstrip("/")
     if find_config_file() is None:
         return DEFAULT_API_BASE_URL
     try:

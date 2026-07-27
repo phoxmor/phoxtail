@@ -71,6 +71,7 @@ def _register_core_tools() -> None:
     import phoxtail.mcp.design.palette_roles  # noqa: F401
     import phoxtail.mcp.design.palette_sets  # noqa: F401
     import phoxtail.mcp.design.palettes  # noqa: F401
+    import phoxtail.mcp.peers  # noqa: F401
     import phoxtail.mcp.studio.block_categories  # noqa: F401
     import phoxtail.mcp.studio.blocks  # noqa: F401
     import phoxtail.mcp.studio.capture_previews  # noqa: F401

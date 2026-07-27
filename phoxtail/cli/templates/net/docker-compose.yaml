@@ -1,0 +1,27 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --api.dashboard=true
+    ports:
+      # Loopback only: the fabric behind this proxy — every attached
+      # project's web and mcp — is for this machine, not the LAN. Anyone
+      # on the network could otherwise reach any project with a forged
+      # Host header, and the dashboard is unauthenticated.
+      - "127.0.0.1:80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - {{ network }}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik-dashboard.service=api@internal
+
+networks:
+  {{ network }}:
+    external: true

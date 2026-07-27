@@ -88,6 +88,21 @@ class TestApiBaseUrl:
         load_config.cache_clear()
         assert get_api_base_url() == DEFAULT_API_BASE_URL
 
+    def test_env_override_wins_over_config(self, tmp_path, monkeypatch):
+        """PHOXTAIL_API_URL exists for processes whose network position
+        differs from the host's — the mcp container reaches Django as
+        `http://web`, because its own `localhost` is the MCP server."""
+        toml = tmp_path / "phoxtail.toml"
+        toml.write_text('[project]\nname = "t"\n\n[studio]\napi_url = "http://t.localhost"\n')
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("PHOXTAIL_API_URL", "http://web/")
+        load_config.cache_clear()
+        assert get_api_base_url() == "http://web"
+
+    def test_empty_env_override_is_ignored(self, monkeypatch):
+        monkeypatch.setenv("PHOXTAIL_API_URL", "")
+        assert get_api_base_url() == DEFAULT_API_BASE_URL
+
 
 class TestAccessors:
     def test_get_project_name(self):

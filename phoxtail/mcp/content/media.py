@@ -91,8 +91,7 @@ def upload_image(file_path: str, title: str, collection_id: int | None = None) -
 
     import httpx
 
-    from phoxtail.cli.utils.credentials import resolve_token
-    from phoxtail.mcp._http import api_base_url, url
+    from phoxtail.mcp._http import outbound_token, url
 
     path = _resolve_upload_path(file_path)
     if not path.exists():
@@ -100,7 +99,7 @@ def upload_image(file_path: str, title: str, collection_id: int | None = None) -
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -291,8 +290,7 @@ def upload_document(
 
     import httpx
 
-    from phoxtail.cli.utils.credentials import resolve_token
-    from phoxtail.mcp._http import api_base_url, url
+    from phoxtail.mcp._http import outbound_token, url
 
     path = _resolve_upload_path(file_path)
     if not path.exists():
@@ -300,7 +298,7 @@ def upload_document(
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -448,8 +446,7 @@ def upload_video(
 
     import httpx
 
-    from phoxtail.cli.utils.credentials import resolve_token
-    from phoxtail.mcp._http import api_base_url, url
+    from phoxtail.mcp._http import outbound_token, url
 
     path = _resolve_upload_path(file_path)
     if not path.exists():
@@ -457,7 +454,7 @@ def upload_video(
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -612,8 +609,7 @@ def upload_audio(
 
     import httpx
 
-    from phoxtail.cli.utils.credentials import resolve_token
-    from phoxtail.mcp._http import api_base_url, url
+    from phoxtail.mcp._http import outbound_token, url
 
     path = _resolve_upload_path(file_path)
     if not path.exists():
@@ -621,7 +617,7 @@ def upload_audio(
 
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     headers = {}
-    token = resolve_token(api_base_url())
+    token = outbound_token()
     if token:
         headers["Authorization"] = f"Bearer {token}"
 

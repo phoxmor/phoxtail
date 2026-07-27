@@ -1,0 +1,61 @@
+{# Traefik's own label templating also uses {{ }}, but none is used below,
+   so Jinja2's default delimiters don't collide with it here. #}
+services:
+  web:
+    ports: !reset []
+    networks:
+      # `default` must stay listed explicitly. The base compose file gives
+      # `web` no `networks:` key at all, so it joins `default` implicitly —
+      # but the moment this fragment declares any network, that implicit
+      # membership is replaced, cutting `web` off from `db` and `redis`.
+      default: {}
+      {{ network }}:
+        aliases:
+          # East-west addressing: sibling projects reach this one by slug.
+          # Compose's own container names (<project>-web-1) collide across
+          # projects and contain characters Django rejects in a Host header.
+          #
+          # `<slug>.localhost` is the canonical address: it is the only form
+          # that works from the host too (loopback → Traefik → routed by Host
+          # header), so one name serves browser, CLI and peer calls alike —
+          # and one name means one credential key, since tokens are stored
+          # per URL host. The bare slug resolves container-side only.
+          #
+          # Callers must confirm a peer exists before addressing it: Docker's
+          # DNS answers an *unclaimed* `*.localhost` with loopback rather than
+          # NXDOMAIN, so an unknown name silently reaches the caller itself.
+          # (`curl` is also the wrong tool for testing this — it routes
+          # `*.localhost` to loopback itself, ignoring DNS entirely.)
+          - {{ slug }}
+          - {{ slug }}.localhost
+    labels:
+      - {{ slug_label }}={{ slug }}
+      - traefik.enable=true
+      - traefik.docker.network={{ network }}
+      - traefik.http.routers.{{ slug }}.rule=Host(`{{ slug }}.localhost`)
+      - traefik.http.services.{{ slug }}.loadbalancer.server.port=80
+
+  # The MCP server itself is a core service in the base compose file; this
+  # fragment only re-addresses it, exactly as it does for `web`: release the
+  # standalone port (8001), claim `mcp.<slug>.localhost` — one name for both
+  # paths, Traefik routing it from the host, the alias answering siblings,
+  # the server on container port 80 so no port differs between the two.
+  mcp:
+    ports: !reset []
+    networks:
+      default: {}
+      {{ network }}:
+        aliases:
+          - mcp.{{ slug }}.localhost
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network={{ network }}
+      - traefik.http.routers.{{ slug }}-mcp.rule=Host(`mcp.{{ slug }}.localhost`)
+      - traefik.http.services.{{ slug }}-mcp.loadbalancer.server.port=80
+
+  db:
+    ports: !reset []
+
+networks:
+  {{ network }}:
+    external: true

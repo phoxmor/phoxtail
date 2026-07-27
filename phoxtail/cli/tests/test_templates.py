@@ -119,6 +119,24 @@ class TestComposeTemplate:
         result = self._render("production")
         assert "${HOME}/.phoxtail:/home/app/.phoxtail:ro" in result
 
+    def test_dev_mcp_service_shape(self):
+        """The always-on MCP server: loopback-only publish (nothing here is
+        for the LAN), API addressed as `http://web` (its own localhost is
+        the MCP server itself), and no credentials mounted — identity is
+        pass-through, each caller's Bearer is forwarded to the API."""
+        import yaml
+
+        mcp = yaml.safe_load(self._render("development"))["services"]["mcp"]
+        assert mcp["ports"] == ["127.0.0.1:8001:80"]
+        assert mcp["environment"]["PHOXTAIL_API_URL"] == "http://web"
+        assert all(".phoxtail" not in volume for volume in mcp["volumes"])
+        assert "phoxtail mcp serve --http" in mcp["command"]
+
+    def test_prod_has_no_mcp_service(self):
+        import yaml
+
+        assert "mcp" not in yaml.safe_load(self._render("production"))["services"]
+
     def test_image_name_rendered(self):
         result = self._render("development")
         assert "phoxmor/test:latest" in result
@@ -197,6 +215,9 @@ class TestEnvDevelopmentTemplate:
             },
         )
         assert "DJANGO_ENV=development" in result
+        # `web` alongside localhost: the mcp service reaches the API by its
+        # compose service name, and Django matches ALLOWED_HOSTS exactly.
+        assert "ALLOWED_HOSTS=localhost,web" in result
         assert "SECRET_KEY=test-secret" in result
         assert "SITE_NAME=My Site" in result
         assert "POSTGRES_DB=mydb" in result

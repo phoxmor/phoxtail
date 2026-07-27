@@ -32,6 +32,74 @@ def api_base_url() -> str:
     return get_api_base_url()
 
 
+def _inbound_http_request():
+    """The underlying HTTP request for the MCP call being served, if any.
+
+    The SDK sets its per-request context for *every* transport, not just
+    HTTP — ``request_ctx.get()`` alone cannot tell stdio from HTTP. But
+    ``RequestContext.request`` defaults to ``None`` and is only populated
+    by the streamable-http transport, so probing that field is the actual
+    signal. ``LookupError`` covers a tool being called completely outside
+    a request (e.g. directly in a test).
+    """
+    try:
+        from mcp.server.lowlevel.server import request_ctx
+
+        return request_ctx.get().request
+    except LookupError:
+        return None
+
+
+def serving_over_http() -> bool:
+    """Whether this MCP call arrived over the streamable-http transport.
+
+    Callers use this to decide whether ambient, operator-owned
+    credentials (``resolve_token``) are safe to fall back on. Over stdio
+    they are (the process already runs as whoever launched it); over
+    HTTP they are not (anyone reachable on the network is "whoever
+    launched it" otherwise), so the caller's own Bearer, or nothing, is
+    all that fallback should ever produce there.
+    """
+    return _inbound_http_request() is not None
+
+
+def caller_bearer() -> str | None:
+    """The Bearer token of the MCP request currently being served, if any.
+
+    Returns ``None`` both when there is no ``Authorization`` header and
+    when this call isn't over HTTP at all (stdio) — callers that need to
+    tell those apart should check :func:`serving_over_http` first. The
+    MCP layer never validates this token — tools forward it to the API,
+    which is the sole authority, so a caller acts on this project exactly
+    as far as this project's Django lets that token act. Reads the SDK's
+    per-request context, which is set around each tool invocation, so
+    concurrent sessions cannot see each other's identity.
+    """
+    http_request = _inbound_http_request()
+    if http_request is None:
+        return None
+    auth = http_request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip() or None
+    return None
+
+
+def outbound_token(ambient_url: str | None = None) -> str | None:
+    """The token to send with an outbound API call — the one gate every
+    tool must go through, not just ``request()``.
+
+    Over HTTP the caller's own Bearer is the only source: falling back to
+    this process's stored token would let anyone reachable on the network
+    act as whoever is logged in on this machine. Over stdio there is no
+    caller to forward, and the process already runs as the operator, so
+    the ambient token for *ambient_url* (defaulting to this project's own
+    API) is exactly right.
+    """
+    if serving_over_http():
+        return caller_bearer()
+    return resolve_token(ambient_url or api_base_url())
+
+
 def url(path: str) -> str:
     """Build a full URL for the given API path.
 
@@ -60,7 +128,7 @@ def request(
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     final_headers = dict(headers or {})
     if "Authorization" not in final_headers:
-        token = resolve_token(api_base_url())
+        token = outbound_token()
         if token:
             final_headers["Authorization"] = f"Bearer {token}"
     resp = httpx.request(
