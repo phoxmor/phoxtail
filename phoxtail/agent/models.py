@@ -106,4 +106,4 @@ class AgentSiteSetting(BaseSiteSetting):
     panels = [FieldPanel("default_artifact")]
 
     class Meta:
-        verbose_name = _("Agent")
+        verbose_name = _("Inference")
