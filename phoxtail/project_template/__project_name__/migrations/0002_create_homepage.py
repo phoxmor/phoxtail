@@ -479,7 +479,7 @@ _CSS = """\
 /* ── Dark Mode ── */
 @media (prefers-color-scheme: dark) {
     #phxt-hatch-{{ block.id }} {
-        --sys-color-surface: var(--color-surface-900);
+        --sys-color-surface: var(--color-surface-950);
         --sys-color-on-surface: var(--color-surface-100);
         --sys-color-on-surface-variant: var(--color-surface-300);
         --sys-color-outline-variant: var(--color-surface-700);
