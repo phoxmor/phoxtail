@@ -114,6 +114,7 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 testpaths = [
+    "phoxtail/agent/api/tests",
     "phoxtail/cli/tests",
     "phoxtail/core/tests",
     "phoxtail/dashboard/tests",

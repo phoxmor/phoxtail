@@ -36,7 +36,9 @@ mcp_server = FastMCP(
         "(Wagtail page read/write + body editing, sites, locales), users "
         "(user + gender management, bulk user import, email verification — "
         "every "
-        "phoxtail_users_* tool requires a superuser token/session). Optional "
+        "phoxtail_users_* tool requires a superuser token/session), agent "
+        "(the chatbot's inference providers, selectable models and per-site "
+        "default model). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
         "Always fetch a resource before updating it to get the current "
@@ -53,7 +55,14 @@ mcp_server = FastMCP(
 
 
 def _register_core_tools() -> None:
-    """Import core domain modules to trigger tool/resource/prompt registration."""
+    """Import core domain modules to trigger tool/resource/prompt registration.
+
+    Some domains keep their tools under ``phoxtail/mcp/<domain>/``, others
+    (agent, users) inside their own app package as a vertical slice.
+    """
+    import phoxtail.agent.mcp.artifacts  # noqa: F401
+    import phoxtail.agent.mcp.providers  # noqa: F401
+    import phoxtail.agent.mcp.settings  # noqa: F401
     import phoxtail.mcp.cms.site_setting_fonts  # noqa: F401
     import phoxtail.mcp.cms.site_setting_palettes  # noqa: F401
     import phoxtail.mcp.cms.site_settings  # noqa: F401
@@ -83,8 +92,6 @@ def _register_core_tools() -> None:
     import phoxtail.mcp.studio.sessions  # noqa: F401
     import phoxtail.mcp.studio.shared_blocks  # noqa: F401
     import phoxtail.mcp.studio.variants  # noqa: F401
-
-    # Vertical-slice core tools living inside their app package.
     import phoxtail.users.mcp.genders  # noqa: F401
     import phoxtail.users.mcp.users  # noqa: F401
 
