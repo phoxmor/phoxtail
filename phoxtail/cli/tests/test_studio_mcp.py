@@ -824,6 +824,30 @@ class TestOpenVariant:
         assert "javascript" in result["files"]
         assert "next_steps" in result
 
+    def test_paths_are_relative_to_the_project_root(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
+        """The MCP server may run in a container where the project root is
+        /app — only a project-root-relative path is valid for the agent."""
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/variants/1/"),
+            json=SAMPLE_VARIANT_DETAIL,
+            headers={"ETag": 'W/"abc123"'},
+        )
+        httpx_mock.add_response(
+            url=url("/api/streams/v1/context/"),
+            status_code=500,
+            json={"detail": "unavailable"},
+        )
+        # Resolved: _rel anchors on Path.cwd(), which resolves symlinks —
+        # an unresolved tmp_path would not be relative to it where /tmp is one.
+        monkeypatch.setattr(
+            "phoxtail.cli.studio.session.sessions_root",
+            lambda: tmp_path.resolve() / ".phoxtail-sessions",
+        )
+        result = json.loads(open_variant(1))
+        assert result["path"] == ".phoxtail-sessions/1"
+        assert result["files"]["css"] == ".phoxtail-sessions/1/style.css"
+        assert not any(p.startswith("/") for p in result["files"].values())
+
     def test_idempotent_when_already_open(self, httpx_mock: HTTPXMock, tmp_path, monkeypatch):
         httpx_mock.add_response(
             url=url("/api/streams/v1/variants/1/"),
@@ -956,7 +980,7 @@ class TestListSessions:
     def test_with_sessions(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
             "phoxtail.cli.studio.session.sessions_root",
-            lambda: tmp_path / ".phoxtail-sessions",
+            lambda: tmp_path.resolve() / ".phoxtail-sessions",
         )
         from phoxtail.cli.studio import session as _sess
 
@@ -970,6 +994,7 @@ class TestListSessions:
         result = json.loads(list_sessions())
         assert result["total"] == 1
         assert result["sessions"][0]["session_id"] == "1"
+        assert result["sessions"][0]["path"] == ".phoxtail-sessions/1"
 
 
 class TestRefreshSession:

@@ -7,6 +7,13 @@ Read/Edit tools for surgical changes, then commits the session to
 push the result back to the database.  This is faster and more
 token-efficient than the direct get/update route because Edit only
 sends the changed lines rather than the full content of every field.
+
+Paths leave this module relative to the project root.  The MCP server
+runs inside the Docker container (WORKDIR ``/app``) but agents run on
+the host; in dev mode the project root is bind-mounted at ``/app``, so
+only a project-root-relative path resolves identically on both sides.
+An absolute ``/app/...`` path is meaningless to the agent that receives
+it.  Same convention as the media upload tools and ``.phoxtail/vision``.
 """
 
 from __future__ import annotations
@@ -19,7 +26,10 @@ from phoxtail.mcp import mcp_server
 from phoxtail.mcp.studio._http import request
 
 _NEXT_STEPS = (
-    "Use your filesystem Read and Edit tools on the paths in `files` to make "
+    "Paths in `files` are relative to the project root — the MCP server runs "
+    "inside Docker, so resolve them from the project root on your host, not "
+    "from `/`. "
+    "Use your filesystem Read and Edit tools on those paths to make "
     "changes. Do NOT call phoxtail_studio_get_variant to reload content — "
     "the files on disk are the working copy. When finished, call "
     "phoxtail_studio_commit_variant to write the changes back to the database. "
@@ -30,12 +40,29 @@ _NEXT_STEPS = (
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
 
 
+def _rel(path: Path | str) -> str:
+    """Render a session path relative to the project root.
+
+    Falls back to the path as given when there is no project root to
+    anchor on, or when the path lies outside it.
+    """
+    from phoxtail.cli.utils.config import find_config_file
+
+    config = find_config_file()
+    if config is None:
+        return str(path)
+    try:
+        return str(Path(path).relative_to(config.parent))
+    except ValueError:
+        return str(path)
+
+
 def _file_paths(sdir: Path) -> dict:
     return {
-        "html": str(sdir / _session.SESSION_HTML),
-        "css": str(sdir / _session.SESSION_CSS),
-        "javascript": str(sdir / _session.SESSION_JS),
-        "context": str(sdir / _session.SESSION_CONTEXT),
+        "html": _rel(sdir / _session.SESSION_HTML),
+        "css": _rel(sdir / _session.SESSION_CSS),
+        "javascript": _rel(sdir / _session.SESSION_JS),
+        "context": _rel(sdir / _session.SESSION_CONTEXT),
     }
 
 
@@ -81,8 +108,12 @@ def _resolve(session_id: str | None) -> str | dict:
     description=(
         "Open a variant for session-based editing. Fetches the variant from the "
         "database, writes its HTML, CSS, and JavaScript to local files, and "
-        "returns the absolute paths of those files plus a context briefing. "
-        "IMPORTANT: after calling this, use your filesystem Read and Edit tools "
+        "returns the paths of those files plus a context briefing. "
+        "IMPORTANT: The MCP server runs inside Docker, so `path` and `files` "
+        "are relative to the project root, e.g. "
+        "'.phoxtail/studio/sessions/1/style.css' — resolve them from the "
+        "project root on your host, not from '/'. "
+        "After calling this, use your filesystem Read and Edit tools "
         "on the returned `files` paths to make changes — do NOT call "
         "phoxtail_studio_get_variant to reload content. Edit shows a surgical "
         "diff per change which is more token-efficient and gives you a preview "
@@ -106,7 +137,7 @@ def open_variant(variant_id: int) -> str:
         return json.dumps(
             {
                 "session_id": session_id,
-                "path": str(sdir),
+                "path": _rel(sdir),
                 "status": "already_open",
                 "files": _file_paths(sdir),
                 "variant": existing_meta["variant"],
@@ -128,7 +159,7 @@ def open_variant(variant_id: int) -> str:
     return json.dumps(
         {
             "session_id": session_id,
-            "path": str(sdir),
+            "path": _rel(sdir),
             "status": "opened",
             "files": _file_paths(sdir),
             "variant": {
@@ -296,13 +327,17 @@ def discard_variant(session_id: str | None = None) -> str:
     name="phoxtail_studio_list_sessions",
     description=(
         "List all open editing sessions for the current project. "
-        "Returns session ID, variant, block, collection, and started timestamp "
-        "for each active session. Use this to discover sessions left open from "
+        "Returns session ID, variant, block, collection, started timestamp, and "
+        "the session `path` (relative to the project root) for each active "
+        "session. Use this to discover sessions left open from "
         "previous conversations before starting new work."
     ),
 )
 def list_sessions() -> str:
     sessions = _session.list_sessions()
+    for meta in sessions:
+        if "path" in meta:
+            meta["path"] = _rel(meta["path"])
     return json.dumps({"sessions": sessions, "total": len(sessions)}, indent=2)
 
 
