@@ -61,6 +61,21 @@ class TestUp:
         assert cmd[-2:] == ["up", "-d"]
         assert (tmp_path / "net" / "docker-compose.yaml").exists()
 
+    def test_stack_declares_its_compose_project_name(self, tmp_path, monkeypatch):
+        """Left implicit, the project name would be the directory's ("net"),
+        naming the router `net-traefik-1` after nothing recognisable."""
+        monkeypatch.setattr(net, "NET_DIR", tmp_path / "net")
+        monkeypatch.setattr(net, "NET_COMPOSE_FILE", tmp_path / "net" / "docker-compose.yaml")
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0),
+        ):
+            runner.invoke(net_app, ["up"])
+
+        stack = yaml.safe_load((tmp_path / "net" / "docker-compose.yaml").read_text())
+        assert stack["name"] == NETWORK_NAME
+        assert "traefik" in stack["services"]
+
 
 class TestDown:
     def test_noop_when_not_set_up(self, tmp_path, monkeypatch):

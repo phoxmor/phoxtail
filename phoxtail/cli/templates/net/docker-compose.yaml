@@ -1,3 +1,10 @@
+# Without this, Compose names the project after the directory holding the
+# file (~/.phoxtail/net), so the router surfaces as `net-traefik-1` — a name
+# that says nothing about what owns it. Declared here rather than passed as
+# `-p` so every command reading this file (up, down, ps) agrees on the name
+# for free.
+name: {{ network }}
+
 services:
   traefik:
     image: traefik:v3.1
