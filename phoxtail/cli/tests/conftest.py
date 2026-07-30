@@ -2,6 +2,7 @@
 
 import pytest
 
+from phoxtail.cli.utils import net as net_utils
 from phoxtail.cli.utils.config import load_config
 
 SAMPLE_TOML = """\
@@ -36,6 +37,26 @@ def project_dir(tmp_path, monkeypatch):
     load_config.cache_clear()
     yield tmp_path
     load_config.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def isolated_net_dir(tmp_path, monkeypatch):
+    """Keep the shared net's host-side state out of the developer's real home.
+
+    ``net attach`` writes the members file, so without this a test run would
+    edit the actual ``~/.phoxtail/net/members.json`` and leave temp-dir
+    projects in it. Redirecting ``NET_DIR`` is enough because
+    :func:`~phoxtail.cli.utils.net.members_file` resolves it per call.
+
+    The empty members file matters as much as the redirect: absent one,
+    ``read_members`` falls back to recovering membership from container
+    labels, which shells out to the developer's real Docker and would make
+    any test touching ``peers``/``up``/``down`` depend on host state.
+    """
+    net_dir = tmp_path / "phoxtail-home" / "net"
+    monkeypatch.setattr(net_utils, "NET_DIR", net_dir)
+    net_dir.mkdir(parents=True, exist_ok=True)
+    (net_dir / "members.json").write_text('{"projects": []}\n')
 
 
 @pytest.fixture

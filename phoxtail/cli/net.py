@@ -27,13 +27,18 @@ from phoxtail.cli.utils.net import (
     NETWORK_NAME,
     PROJECT_NET_FILE,
     SLUG_LABEL,
+    Member,
+    add_member,
     check_compose_version,
     ensure_network,
+    is_wired,
     list_peers,
     net_stack_running,
     network_exists,
+    read_members,
     remove_env_key,
     remove_env_list_value,
+    remove_member,
     set_api_url,
     slug_in_use_elsewhere,
     upsert_env_list,
@@ -57,9 +62,73 @@ def _project_root() -> Path:
     return config_path.parent
 
 
+def _project_compose(member: Member, args: list[str]) -> int:
+    """Run a compose command inside a member project, as typing it there would.
+
+    ``cwd`` rather than ``--project-directory``: the project's ``.env`` (which
+    carries ``COMPOSE_FILE``), its relative build contexts and its derived
+    project name all resolve from the working directory, so running there
+    reproduces the user's own invocation instead of approximating it.
+
+    ``COMPOSE_FILE``/``COMPOSE_PROJECT_NAME`` are dropped from the inherited
+    environment because a real environment variable outranks the ``.env``
+    file. Exported in the caller's shell they describe *one* project, and
+    would then be imposed on every other one here — overriding the very
+    ``COMPOSE_FILE`` :func:`is_wired` just checked, or worse, starting each
+    project's services under a single shared project name.
+    """
+    env = {k: v for k, v in docker_env().items() if k not in ("COMPOSE_FILE", "COMPOSE_PROJECT_NAME")}
+    return subprocess.call(["docker", "compose", *args], cwd=str(member.root), env=env)
+
+
+def _fan_out(args: list[str], *, require_wiring: bool, when_empty: str) -> bool:
+    """Run one compose command in every attached project. True if all succeeded.
+
+    Never aborts on the first failure: one project with a broken build must
+    not strand the other five, so every member is attempted and the outcome
+    is reported at the end.
+    """
+    members = read_members()
+    if not members:
+        console.print(when_empty)
+        return True
+
+    failures: list[str] = []
+    skipped: list[str] = []
+    for member in members:
+        # Only starting is gated. A project whose .env lost COMPOSE_FILE would
+        # come up from the base file alone, publish its own port 80 and fight
+        # Traefik for it — worse than not starting. Stopping one is harmless.
+        if require_wiring and not is_wired(member.root):
+            console.print(
+                f"  [yellow]skipped[/yellow] {member.slug} — .env no longer loads {PROJECT_NET_FILE}; "
+                f"run [bold]phoxtail net attach[/bold] in {member.root}"
+            )
+            skipped.append(member.slug)
+            continue
+
+        console.print(f"  [dim]{member.slug}[/dim]")
+        if _project_compose(member, args) != 0:
+            console.print(f"  [red]failed[/red] {member.slug}")
+            failures.append(member.slug)
+
+    if skipped:
+        console.print(f"  [yellow]skipped {len(skipped)} of {len(members)}:[/yellow] {', '.join(skipped)}")
+    if failures:
+        console.print(f"  [red]failed {len(failures)} of {len(members)}:[/red] {', '.join(failures)}")
+
+    # Only real failures set the exit code. A skip is a standing config fault
+    # that would otherwise make every future `net up` exit non-zero, long
+    # after the router and every other project came up fine — loud in the
+    # output is the right volume for it, not a failed command.
+    return not failures
+
+
 @app.command()
-def up() -> None:
-    """Start the shared local network (creates it on first run) and its Traefik router."""
+def up(
+    projects: bool = typer.Option(True, "--projects/--no-projects", help="Also start every attached project."),
+) -> None:
+    """Start the shared local network, its Traefik router, and every attached project."""
     try:
         ensure_network()
     except (RuntimeError, FileNotFoundError) as exc:
@@ -74,15 +143,48 @@ def up() -> None:
         sys.exit(rc)
     console.print(f"[green]✓[/green] Shared net up on [bold]{NETWORK_NAME}[/bold]")
 
+    if not projects:
+        return
+
+    # Router before projects: a project starting first would be routable only
+    # once Traefik catches up, and no `--build` here — matching what the user
+    # types by hand, rather than turning a first `net up` into a long build.
+    console.print("\n[bold]Starting attached projects[/bold]")
+    if not _fan_out(
+        ["up", "-d"],
+        require_wiring=True,
+        when_empty="[dim]  none yet — run [/dim][bold]phoxtail net attach[/bold][dim] in a project.[/dim]",
+    ):
+        sys.exit(1)
+
 
 @app.command()
-def down() -> None:
-    """Stop the shared Traefik router. Leaves the network itself in place."""
+def down(
+    projects: bool = typer.Option(True, "--projects/--no-projects", help="Also stop every attached project."),
+    remove: bool = typer.Option(
+        False, "--remove", help="Remove the projects' containers instead of only stopping them."
+    ),
+) -> None:
+    """Stop every attached project, then the Traefik router. Leaves the network in place."""
+    ok = True
+    if projects:
+        console.print("[bold]Stopping attached projects[/bold]")
+        # Projects first: taking the router down ahead of them would leave
+        # every running project up but unroutable — the worst intermediate
+        # state, and the one a user is most likely to hit Ctrl-C in.
+        ok = _fan_out(
+            ["down"] if remove else ["stop"],
+            require_wiring=False,
+            when_empty="[dim]  none attached[/dim]",
+        )
+
     if not NET_COMPOSE_FILE.exists():
-        console.print("[dim]The shared net is not set up — nothing to stop.[/dim]")
-        return
+        console.print("[dim]The shared net is not set up — nothing more to stop.[/dim]")
+        sys.exit(0 if ok else 1)
+
     cmd = ["docker", "compose", "-f", str(NET_COMPOSE_FILE), "down"]
-    sys.exit(subprocess.call(cmd, env=docker_env()))
+    rc = subprocess.call(cmd, env=docker_env())
+    sys.exit(rc if rc != 0 else (0 if ok else 1))
 
 
 @app.command()
@@ -105,11 +207,7 @@ def status() -> None:
     net_file = root / PROJECT_NET_FILE
     net_file_state = "[green]present[/green]" if net_file.exists() else "[dim]absent[/dim]"
 
-    env_file = root / ".env"
-    compose_file_wired = env_file.exists() and any(
-        line.startswith("COMPOSE_FILE=") and PROJECT_NET_FILE in line for line in env_file.read_text().splitlines()
-    )
-    wired_state = "[green]wired[/green]" if compose_file_wired else "[dim]not wired[/dim]"
+    wired_state = "[green]wired[/green]" if is_wired(root) else "[dim]not wired[/dim]"
 
     console.print(f"\n[bold]This project[/bold] (slug: {slug})")
     console.print(f"  {PROJECT_NET_FILE}: {net_file_state}")
@@ -128,7 +226,35 @@ def peers(
     json_output: bool = typer.Option(False, "--json", help="Print peers as a JSON array, for scripting."),
 ) -> None:
     """List every project attached to the shared net, and how to reach it."""
-    found = list_peers()
+    # Two sources answering two questions: the members file says who is attached,
+    # Docker says who is reachable. Merged only here, for display — merging
+    # them in `list_peers` would let `resolve_peer` hand out an address that
+    # silently loops back to the caller.
+    members = read_members()
+    live = {peer.slug: peer for peer in list_peers()}
+
+    # slug, state, path, attached, address
+    rows: list[tuple[str, str, Path | None, bool, str]] = []
+    for member in members:
+        peer = live.get(member.slug)
+        if peer is None:
+            state = "not created"
+        elif peer.running:
+            state = "running"
+        else:
+            state = "stopped"
+        rows.append((member.slug, state, member.root, True, member.address))
+
+    # A container can carry the slug label while its project is no longer
+    # attached: `detach` edits files, and the label was stamped at container
+    # creation. Showing it as detached explains a name that would otherwise
+    # look like an unexplained peer — and it really is still routable while
+    # it runs, which is why it cannot simply be hidden.
+    attached_slugs = {member.slug for member in members}
+    for slug, peer in sorted(live.items()):
+        if slug not in attached_slugs:
+            state = "detached" if peer.running else "detached, stopped"
+            rows.append((slug, state, peer.working_dir, False, peer.address))
 
     if json_output:
         # Plain echo, not console.print: Rich fold-wraps long unbroken
@@ -138,18 +264,19 @@ def peers(
             json.dumps(
                 [
                     {
-                        "slug": peer.slug,
-                        "address": peer.address,
-                        "running": peer.running,
-                        "working_dir": str(peer.working_dir) if peer.working_dir else None,
+                        "slug": slug,
+                        "address": address,
+                        "attached": attached,
+                        "running": slug in live and live[slug].running,
+                        "working_dir": str(root) if root else None,
                     }
-                    for peer in found
+                    for slug, _state, root, attached, address in rows
                 ]
             )
         )
         return
 
-    if not found:
+    if not rows:
         console.print("[dim]No projects attached yet — run [bold]phoxtail net attach[/bold] in one.[/dim]")
         return
 
@@ -158,24 +285,39 @@ def peers(
     # No `address` column: it is always http://<slug>.localhost, so a column
     # would spend the terminal's width restating the first one — and it was
     # that width pressure truncating the slugs, the part you actually copy.
+    # The slug carries the address as a terminal hyperlink instead, which
+    # buys the click without the width; terminals without OSC 8 support just
+    # render the slug, which is what the column said anyway.
     table = Table(box=box.SIMPLE, header_style="bold")
     table.add_column("slug", no_wrap=True)
     table.add_column("state", no_wrap=True)
     table.add_column("path", overflow="fold", style="dim")
 
-    for peer in found:
-        here_marker = " [dim](this project)[/dim]" if peer.slug == here else ""
+    styles = {
+        "running": "[green]running[/green]",
+        "stopped": "[yellow]stopped[/yellow]",
+        "not created": "[dim]not created[/dim]",
+    }
+    for slug, state, root, attached, address in rows:
+        here_marker = " [dim](this project)[/dim]" if slug == here else ""
+        slug_cell = f"[bold][link={address}]{slug}[/link][/bold]{here_marker}"
         table.add_row(
-            f"[bold]{peer.slug}[/bold]{here_marker}",
-            "[green]running[/green]" if peer.running else "[yellow]stopped[/yellow]",
-            str(peer.working_dir) if peer.working_dir else "unknown",
+            slug_cell if attached else f"[dim]{slug}[/dim]{here_marker}",
+            styles.get(state, f"[dim]{state}[/dim]"),
+            str(root) if root else "unknown",
         )
 
     console.print(table)
     console.print(
         "[dim]Reachable at [/dim][bold]http://<slug>.localhost[/bold][dim] "
-        "from the host and from inside any attached container.[/dim]"
+        "from the host and from inside any attached container — "
+        "click a slug above to open it.[/dim]"
     )
+    if any(not row[3] for row in rows):
+        console.print(
+            "[dim]Rows marked [/dim]detached[dim] are containers still carrying the net label from "
+            "before they were detached; they clear on the next [/dim][bold]docker compose up -d[/bold][dim].[/dim]"
+        )
 
 
 @app.command()
@@ -287,6 +429,12 @@ def attach() -> None:
             with gitignore.open("a") as f:
                 f.write(f"{PROJECT_NET_FILE}\n")
 
+    # Recorded last, once nothing left can fail. `net up` fans out over this
+    # file, so an entry must never outlive an attach the user was told did
+    # not succeed — a project reported as failed that then starts anyway is
+    # worse than one that has to be attached twice.
+    add_member(root, slug)
+
     message = (
         f"[green]✓[/green] Attached — restart with [bold]docker compose up -d[/bold], "
         f"then visit [bold]http://{hostname}[/bold]"
@@ -312,6 +460,12 @@ def detach() -> None:
     net_file = root / PROJECT_NET_FILE
     if net_file.exists():
         net_file.unlink()
+
+    # Membership ends here, not when the container is recreated. The slug
+    # label lives on the existing container until the next `up`, so Docker
+    # goes on reporting this project until then — the members file is what
+    # makes `peers` and `net up` agree with the user's intent immediately.
+    remove_member(root)
 
     env_file = root / ".env"
     remove_env_key(env_file, "COMPOSE_FILE")

@@ -11,7 +11,7 @@ from typer.testing import CliRunner
 from phoxtail.cli import net
 from phoxtail.cli.net import app as net_app
 from phoxtail.cli.utils.config import DEFAULT_API_BASE_URL, get_api_base_url, load_config
-from phoxtail.cli.utils.net import NETWORK_NAME, SLUG_LABEL, Peer
+from phoxtail.cli.utils.net import NETWORK_NAME, SLUG_LABEL, Member, Peer, read_members
 
 runner = CliRunner()
 
@@ -549,6 +549,16 @@ class TestRequiresProject:
         assert "Not a Phoxtail project" in result.output
 
 
+def _members(*peers: Peer) -> list[Member]:
+    """Members mirroring the given peers, for the ordinary all-attached case.
+
+    `peers` merges two sources, so a test that patches only `list_peers`
+    describes a project that is running but NOT attached — a real state, but
+    not the one most of these tests are about.
+    """
+    return [Member(peer.working_dir or Path(f"/home/me/{peer.slug}"), peer.slug) for peer in peers]
+
+
 class TestPeers:
     def test_lists_attached_projects_and_marks_this_one(self, tmp_path):
         _use_custom_project_name(tmp_path)
@@ -556,7 +566,10 @@ class TestPeers:
             Peer("alphasite", Path("/home/me/alphasite"), True),
             Peer("invoices-site", Path("/home/me/invoices"), False),
         ]
-        with patch("phoxtail.cli.net.list_peers", return_value=peers):
+        with (
+            patch("phoxtail.cli.net.list_peers", return_value=peers),
+            patch("phoxtail.cli.net.read_members", return_value=_members(*peers)),
+        ):
             result = runner.invoke(net_app, ["peers"])
 
         assert result.exit_code == 0, result.output
@@ -578,7 +591,11 @@ class TestPeers:
             Peer("alphasite", Path("/home/me/alphasite"), True),
             Peer("invoices-site", None, False),
         ]
-        with patch("phoxtail.cli.net.list_peers", return_value=peers):
+        members = [Member(Path("/home/me/alphasite"), "alphasite"), Member(Path("/home/me/invoices"), "invoices-site")]
+        with (
+            patch("phoxtail.cli.net.list_peers", return_value=peers),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+        ):
             result = runner.invoke(net_app, ["peers", "--json"])
 
         assert result.exit_code == 0, result.output
@@ -587,14 +604,19 @@ class TestPeers:
             {
                 "slug": "alphasite",
                 "address": "http://alphasite.localhost",
+                "attached": True,
                 "running": True,
                 "working_dir": "/home/me/alphasite",
             },
             {
                 "slug": "invoices-site",
                 "address": "http://invoices-site.localhost",
+                "attached": True,
+                # The path of an attached project comes from its member entry,
+                # not from the container — which is the point: a project with
+                # no container at all still reports where it lives.
+                "working_dir": "/home/me/invoices",
                 "running": False,
-                "working_dir": None,
             },
         ]
 
@@ -604,7 +626,11 @@ class TestPeers:
         lands *inside* a JSON string literal."""
         _use_custom_project_name(tmp_path)
         deep = Path("/home/me/" + "x" * 200)
-        with patch("phoxtail.cli.net.list_peers", return_value=[Peer("invoices-site", deep, True)]):
+        peer = Peer("invoices-site", deep, True)
+        with (
+            patch("phoxtail.cli.net.list_peers", return_value=[peer]),
+            patch("phoxtail.cli.net.read_members", return_value=_members(peer)),
+        ):
             result = runner.invoke(net_app, ["peers", "--json"])
 
         assert result.exit_code == 0, result.output
@@ -628,7 +654,10 @@ class TestPeers:
         (tmp_path / "phoxtail.toml").unlink()
         load_config.cache_clear()
         peers = [Peer("invoices-site", Path("/home/me/invoices"), True)]
-        with patch("phoxtail.cli.net.list_peers", return_value=peers):
+        with (
+            patch("phoxtail.cli.net.list_peers", return_value=peers),
+            patch("phoxtail.cli.net.read_members", return_value=_members(*peers)),
+        ):
             result = runner.invoke(net_app, ["peers"])
         assert result.exit_code == 0, result.output
         assert "invoices-site" in result.output
@@ -683,3 +712,389 @@ class TestApiUrlFollowsAttachment:
         self._attach(tmp_path)
         assert (tmp_path / "phoxtail.toml").read_text() == first
         assert first.count("api_url") == 1
+
+
+def _attached_dir(root: Path, wired: bool = True) -> Path:
+    """A directory the fan-out will accept as a startable member."""
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "phoxtail.toml").write_text('[project]\nname = "x"\n')
+    (root / "docker-compose.net.yaml").write_text("services: {}\n")
+    listed = "docker-compose.yaml:docker-compose.net.yaml" if wired else "docker-compose.yaml"
+    (root / ".env").write_text(f"COMPOSE_FILE={listed}\n")
+    return root
+
+
+class TestUpFansOutToProjects:
+    """`net up` brings the whole net up: router first, then every member."""
+
+    def _stack(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(net, "NET_DIR", tmp_path / "net")
+        monkeypatch.setattr(net, "NET_COMPOSE_FILE", tmp_path / "net" / "docker-compose.yaml")
+
+    def test_starts_each_member_in_its_own_directory(self, tmp_path, monkeypatch):
+        """`cwd`, not `--project-directory`: the project's .env, build
+        contexts and derived project name all resolve from there."""
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        beta = _attached_dir(tmp_path / "beta")
+        members = [Member(alpha, "alpha-site"), Member(beta, "beta-site")]
+
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up"])
+
+        assert result.exit_code == 0, result.output
+        project_calls = [c for c in mock_call.call_args_list if c.kwargs.get("cwd")]
+        assert [c.kwargs["cwd"] for c in project_calls] == [str(alpha), str(beta)]
+        assert all(c.args[0] == ["docker", "compose", "up", "-d"] for c in project_calls)
+
+    def test_router_starts_before_the_projects(self, tmp_path, monkeypatch):
+        """A project started first would be unroutable until Traefik caught up."""
+        self._stack(tmp_path, monkeypatch)
+        members = [Member(_attached_dir(tmp_path / "alpha"), "alpha-site")]
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            runner.invoke(net_app, ["up"])
+
+        first, second = mock_call.call_args_list
+        assert "-f" in first.args[0]  # the traefik stack
+        assert second.kwargs["cwd"].endswith("alpha")
+
+    def test_no_build_flag(self, tmp_path, monkeypatch):
+        """Matching what the user types by hand — otherwise a first `net up`
+        silently becomes a multi-minute image build."""
+        self._stack(tmp_path, monkeypatch)
+        members = [Member(_attached_dir(tmp_path / "alpha"), "alpha-site")]
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            runner.invoke(net_app, ["up"])
+        assert not any("--build" in c.args[0] for c in mock_call.call_args_list)
+
+    def test_no_projects_flag_starts_only_the_router(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        members = [Member(_attached_dir(tmp_path / "alpha"), "alpha-site")]
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up", "--no-projects"])
+        assert result.exit_code == 0
+        assert mock_call.call_count == 1
+        assert not any(c.kwargs.get("cwd") for c in mock_call.call_args_list)
+
+    def test_skips_an_unwired_project_without_failing(self, tmp_path, monkeypatch):
+        """Started from the base file alone it would publish its own port 80
+        and fight Traefik for it — worse than not starting. The skip is a
+        standing config fault, so it warns rather than failing the command."""
+        self._stack(tmp_path, monkeypatch)
+        broken = _attached_dir(tmp_path / "broken", wired=False)
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=[Member(broken, "broken-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up"])
+
+        assert result.exit_code == 0, result.output
+        assert "skipped" in result.output
+        assert "net attach" in result.output
+        assert not any(c.kwargs.get("cwd") for c in mock_call.call_args_list)
+
+    def test_continues_past_a_failing_project_and_exits_nonzero(self, tmp_path, monkeypatch):
+        """One broken build must not strand every other project."""
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        beta = _attached_dir(tmp_path / "beta")
+        members = [Member(alpha, "alpha-site"), Member(beta, "beta-site")]
+
+        def call(cmd, **kwargs):
+            return 1 if kwargs.get("cwd") == str(alpha) else 0
+
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", side_effect=call) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up"])
+
+        assert result.exit_code == 1
+        assert [c.kwargs["cwd"] for c in mock_call.call_args_list if c.kwargs.get("cwd")] == [str(alpha), str(beta)]
+        assert "alpha-site" in result.output
+
+    def test_strips_compose_env_that_would_override_each_project(self, tmp_path, monkeypatch):
+        """A real env var outranks a project's .env. Exported in the caller's
+        shell these describe ONE project; inherited here they would override
+        the COMPOSE_FILE just verified, or start every project's services
+        under a single shared project name."""
+        self._stack(tmp_path, monkeypatch)
+        monkeypatch.setenv("COMPOSE_FILE", "/somewhere/else.yaml")
+        monkeypatch.setenv("COMPOSE_PROJECT_NAME", "the-callers-project")
+        members = [Member(_attached_dir(tmp_path / "alpha"), "alpha-site")]
+
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            runner.invoke(net_app, ["up"])
+
+        env = next(c for c in mock_call.call_args_list if c.kwargs.get("cwd")).kwargs["env"]
+        assert "COMPOSE_FILE" not in env
+        assert "COMPOSE_PROJECT_NAME" not in env
+        assert "HOST_UID" in env  # the reason docker_env() exists at all
+
+
+class TestDownFansOutToProjects:
+    def _stack(self, tmp_path, monkeypatch):
+        compose_file = tmp_path / "net" / "docker-compose.yaml"
+        compose_file.parent.mkdir(parents=True, exist_ok=True)
+        compose_file.write_text("services: {}\n")
+        monkeypatch.setattr(net, "NET_COMPOSE_FILE", compose_file)
+        return compose_file
+
+    def test_stops_projects_before_the_router(self, tmp_path, monkeypatch):
+        """The reverse order would leave every project running but
+        unroutable — the worst intermediate state to be interrupted in."""
+        compose_file = self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["down"])
+
+        assert result.exit_code == 0, result.output
+        first, second = mock_call.call_args_list
+        assert first.kwargs["cwd"] == str(alpha)
+        assert second.args[0] == ["docker", "compose", "-f", str(compose_file), "down"]
+
+    def test_stops_rather_than_removes_by_default(self, tmp_path, monkeypatch):
+        """`stop` keeps the containers, so `peers` still reports the project
+        as stopped and a restart is quick."""
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            runner.invoke(net_app, ["down"])
+        assert mock_call.call_args_list[0].args[0] == ["docker", "compose", "stop"]
+
+    def test_remove_flag_tears_the_projects_down(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            runner.invoke(net_app, ["down", "--remove"])
+        assert mock_call.call_args_list[0].args[0] == ["docker", "compose", "down"]
+
+    def test_no_projects_flag_stops_only_the_router(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["down", "--no-projects"])
+        assert result.exit_code == 0
+        assert mock_call.call_count == 1
+        assert not any(c.kwargs.get("cwd") for c in mock_call.call_args_list)
+
+    def test_exits_nonzero_when_a_project_fails(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", side_effect=lambda cmd, **kw: 1 if kw.get("cwd") else 0),
+        ):
+            result = runner.invoke(net_app, ["down"])
+        assert result.exit_code == 1
+
+    def test_still_stops_projects_when_the_net_was_never_set_up(self, tmp_path, monkeypatch):
+        """Projects can be attached and running with no Traefik stack file —
+        the absent router must not skip stopping them."""
+        monkeypatch.setattr(net, "NET_COMPOSE_FILE", tmp_path / "net" / "docker-compose.yaml")
+        alpha = _attached_dir(tmp_path / "alpha")
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=[Member(alpha, "alpha-site")]),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["down"])
+        assert result.exit_code == 0
+        assert mock_call.call_count == 1
+        assert mock_call.call_args_list[0].kwargs["cwd"] == str(alpha)
+
+
+class TestPeersStates:
+    """`peers` is the one place the two sources are merged, so it is the one
+    place all four states are visible."""
+
+    def _invoke(self, members, peers, args=None):
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.list_peers", return_value=peers),
+        ):
+            return runner.invoke(net_app, ["peers", *(args or [])])
+
+    def test_attached_with_no_container_reads_not_created(self, tmp_path):
+        """`docker compose down` deletes the container carrying the label.
+        Before the members file this project vanished from the list."""
+        result = self._invoke([Member(Path("/home/me/alpha"), "alpha-site")], [])
+        assert result.exit_code == 0, result.output
+        assert "not created" in result.output
+        assert "alpha-site" in result.output
+
+    def test_attached_and_exited_reads_stopped(self, tmp_path):
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        peers = [Peer("alpha-site", Path("/home/me/alpha"), False)]
+        assert "stopped" in self._invoke(members, peers).output
+
+    def test_attached_and_live_reads_running(self, tmp_path):
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        peers = [Peer("alpha-site", Path("/home/me/alpha"), True)]
+        assert "running" in self._invoke(members, peers).output
+
+    def test_labelled_container_of_a_detached_project_reads_detached(self, tmp_path):
+        """`detach` edits files; the label was stamped at container creation
+        and outlives it. Hiding the row would leave a name that still routes
+        unexplained — showing it as detached is the honest answer."""
+        result = self._invoke([], [Peer("ghost-site", Path("/home/me/ghost"), True)])
+        assert "detached" in result.output
+        assert "ghost-site" in result.output
+        assert "docker compose up -d" in result.output  # how to clear it
+
+    def test_detached_row_is_absent_when_everything_agrees(self, tmp_path):
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        peers = [Peer("alpha-site", Path("/home/me/alpha"), True)]
+        assert "detached" not in self._invoke(members, peers).output
+
+    def test_path_of_an_attached_project_comes_from_the_members_file(self, tmp_path):
+        """Which is the point: a project with no container still reports
+        where it lives, so `net up` can be told what it would start."""
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        payload = json.loads(self._invoke(members, [], ["--json"]).output)
+        assert payload == [
+            {
+                "slug": "alpha-site",
+                "address": "http://alpha-site.localhost",
+                "attached": True,
+                "running": False,
+                "working_dir": "/home/me/alpha",
+            }
+        ]
+
+    def test_json_marks_a_detached_container(self, tmp_path):
+        payload = json.loads(self._invoke([], [Peer("ghost-site", None, True)], ["--json"]).output)
+        assert payload[0]["attached"] is False
+        assert payload[0]["running"] is True
+        assert payload[0]["working_dir"] is None
+
+    def test_slug_markup_parses_as_a_hyperlink(self, tmp_path):
+        """A non-tty drops the OSC 8 escape, so what this pins is that the
+        markup is well formed — a malformed `[link=...]` would survive into
+        the output literally."""
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        output = self._invoke(members, []).output
+        assert "[link=" not in output
+        assert "http://alpha-site.localhost" not in output
+
+
+class TestAttachRecordsMembership:
+    def test_attach_records_the_project(self, tmp_path):
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\n")
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            result = runner.invoke(net_app, ["attach"])
+
+        assert result.exit_code == 0, result.output
+        assert read_members() == [Member(tmp_path.resolve(), "alphasite")]
+
+    def test_attach_is_repeatable_without_duplicating_the_entry(self, tmp_path):
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\n")
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            runner.invoke(net_app, ["attach"])
+            runner.invoke(net_app, ["attach"])
+
+        assert len(read_members()) == 1
+
+    def test_detach_ends_membership_immediately(self, tmp_path):
+        """Not when the container is recreated: the label lingers until the
+        next `up`, so Docker keeps reporting the project. The members file is
+        what makes `peers` and `net up` follow the user's intent at once."""
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\n")
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            runner.invoke(net_app, ["attach"])
+        assert read_members() != []
+
+        result = runner.invoke(net_app, ["detach"])
+        assert result.exit_code == 0, result.output
+        assert read_members() == []
+
+    def test_no_member_recorded_when_a_later_step_fails(self, tmp_path):
+        """Membership is written last, once nothing left can fail. Recorded
+        earlier, a failing .gitignore append would leave an entry behind and
+        `net up` would start a project the user was told did not attach."""
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\n")
+        # A directory named .gitignore: `exists()` passes, reading it raises.
+        # A real failure rather than a mock — patching Path.open would break
+        # read_text/write_text too and blow up long before this point, so the
+        # test would pass without ever reaching the ordering it checks.
+        (tmp_path / ".gitignore").mkdir()
+
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            result = runner.invoke(net_app, ["attach"])
+
+        # Pin *why* it failed. A non-zero exit alone would also be satisfied
+        # by attach failing earlier for an unrelated reason, leaving the test
+        # green while never reaching the ordering it exists to check.
+        assert isinstance(result.exception, IsADirectoryError), result.output
+        assert result.exit_code != 0
+        assert read_members() == []
+
+    def test_gitignore_is_updated_before_membership_is_recorded(self, tmp_path):
+        """The ordering above must not have cost the gitignore entry."""
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\n")
+        (tmp_path / ".gitignore").write_text("*.pyc\n")
+
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            result = runner.invoke(net_app, ["attach"])
+
+        assert result.exit_code == 0, result.output
+        assert "docker-compose.net.yaml" in (tmp_path / ".gitignore").read_text()
+        assert read_members() == [Member(tmp_path.resolve(), "alphasite")]

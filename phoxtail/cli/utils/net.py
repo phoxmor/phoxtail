@@ -1,7 +1,10 @@
 """Shared local network utilities: the Traefik stack, membership, env editing."""
 
+import json
+import os
 import re
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -159,10 +162,18 @@ def _peers_from_traefik() -> list[Peer]:
 
 
 def list_peers() -> list[Peer]:
-    """Return every project attached to the shared net, newest container wins.
+    """Return every project Docker can currently see on the shared net.
 
-    The ``phoxtail.slug`` label is written by ``net attach``, so its presence
-    *is* membership — there is no separate registry to keep in sync.
+    This answers *reachability*, never membership — :func:`read_members`
+    answers membership, and the two must not be merged. The ``phoxtail.slug``
+    label is stamped on the container when it is **created**, so it is a
+    snapshot of the last ``up``, not a live fact: ``detach`` leaves it on an
+    existing container, and ``down`` deletes the container that carried it.
+
+    Keeping this function on the Docker side of that split is what protects
+    :func:`resolve_peer` — a caller must never be handed an address it cannot
+    reach, because an unclaimed ``*.localhost`` resolves to loopback instead
+    of failing.
     """
     fmt = f'{{{{.Label "{SLUG_LABEL}"}}}}\t{{{{.Label "com.docker.compose.project.working_dir"}}}}\t{{{{.State}}}}'
     try:
@@ -191,6 +202,162 @@ def list_peers() -> list[Peer]:
     return sorted(peers.values(), key=lambda p: p.slug)
 
 
+@dataclass(frozen=True)
+class Member:
+    """A project this machine has attached to the shared net.
+
+    Membership, written by ``attach`` and erased by ``detach`` — as opposed to
+    :class:`Peer`, which is reachability read from Docker. The two disagree
+    exactly where it matters: an attached project that has been ``down``ed is
+    a Member and not a Peer; a detached project whose old container still
+    carries the label is a Peer and not a Member.
+    """
+
+    root: Path
+    slug: str
+
+    @property
+    def hostname(self) -> str:
+        return f"{self.slug}.localhost"
+
+    @property
+    def address(self) -> str:
+        """Where this project answers once it is up — see :attr:`Peer.address`.
+
+        A member is not necessarily reachable, so this is the address it
+        *claims*, not one that has been checked. Route calls through
+        :func:`resolve_peer`, never through here.
+        """
+        return f"http://{self.hostname}"
+
+
+def members_file() -> Path:
+    """Path to the members file, resolved on each call.
+
+    Deliberately a function, not a module constant: a constant would bind
+    ``NET_DIR`` at import, so a test redirecting ``NET_DIR`` to a temp dir
+    would still have ``add_member`` writing the real
+    ``~/.phoxtail/net/members.json``. One monkeypatch of ``NET_DIR`` now
+    redirects every read and write here.
+    """
+    return NET_DIR / "members.json"
+
+
+def is_wired(root: Path) -> bool:
+    """Whether *root*'s ``.env`` actually loads the net fragment.
+
+    The fragment existing on disk is not enough: Compose only reads it when
+    ``COMPOSE_FILE`` lists it. A project that lost that line starts from the
+    base compose file alone, publishes its own port 80, and fights Traefik
+    for it — so starting it is worse than skipping it.
+    """
+    env_file = root / ".env"
+    if not env_file.exists():
+        return False
+    return any(
+        line.startswith("COMPOSE_FILE=") and PROJECT_NET_FILE in line for line in env_file.read_text().splitlines()
+    )
+
+
+def _attachment_intact(root: Path) -> bool:
+    """Whether *root* still looks like a project that was attached.
+
+    Both files are ``attach`` output and ``detach`` removes the fragment, so
+    this doubles as the prune rule: an entry failing it was deleted, moved,
+    or detached by something that never told the members file.
+    """
+    return (root / "phoxtail.toml").exists() and (root / PROJECT_NET_FILE).exists()
+
+
+def _members_from_containers() -> list[Member]:
+    """Recover membership from container labels when no members file exists.
+
+    A one-time migration for projects attached before the members file existed —
+    without it their first ``net up`` would find nothing to start. Containers
+    carry ``com.docker.compose.project.working_dir``, which *is* the project
+    root, and :func:`_attachment_intact` filters out the ones that have since
+    detached but kept a stale labelled container.
+
+    Yields nothing in-container, where ``list_peers`` falls back to Traefik
+    and no working dir is known. That is correct: membership is host-side
+    state and containers cannot read it anyway.
+    """
+    recovered: dict[Path, Member] = {}
+    for peer in list_peers():
+        if peer.working_dir is None or not _attachment_intact(peer.working_dir):
+            continue
+        # Resolved to match `add_member`, so a symlinked path recovered here
+        # and the same project attached later are one entry, not two.
+        root = peer.working_dir.resolve()
+        recovered[root] = Member(root, peer.slug)
+    return sorted(recovered.values(), key=lambda m: m.slug)
+
+
+def read_members() -> list[Member]:
+    """Return every project attached to the shared net, per this machine's record.
+
+    Prunes entries whose project no longer looks attached, so the file
+    self-heals without a GC command — stale rows never survive the write that
+    follows. Unreadable or missing content reads as empty rather than raising:
+    every caller is a CLI command that must still work when the shared net has
+    never been set up.
+    """
+    path = members_file()
+    if not path.exists():
+        return _members_from_containers()
+
+    try:
+        entries = json.loads(path.read_text())["projects"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+    members: dict[Path, Member] = {}
+    for entry in entries:
+        try:
+            root = Path(entry["root"]).resolve()
+            slug = str(entry["slug"])
+        except (KeyError, TypeError, OSError):
+            continue
+        if _attachment_intact(root):
+            members[root] = Member(root, slug)
+    return sorted(members.values(), key=lambda m: m.slug)
+
+
+def _write_members(members: list[Member]) -> None:
+    NET_DIR.mkdir(parents=True, exist_ok=True)
+    payload = {"projects": [{"root": str(m.root), "slug": m.slug} for m in members]}
+
+    # Write-then-rename: a crash partway through a plain write would leave
+    # truncated JSON, which reads as "nothing is attached" — silently turning
+    # the next `net up` into a no-op rather than an error anyone would notice.
+    fd, tmp = tempfile.mkstemp(dir=NET_DIR, prefix=".members-", suffix=".json")
+    try:
+        with os.fdopen(fd, "w") as handle:
+            handle.write(json.dumps(payload, indent=2) + "\n")
+        os.replace(tmp, members_file())
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
+def add_member(root: Path, slug: str) -> None:
+    """Record *root* as attached under *slug*, replacing any earlier entry for it.
+
+    Keyed by root, not slug: the directory is the stable identity, while a
+    slug changes the moment someone edits ``[project] name`` in phoxtail.toml.
+    """
+    root = root.resolve()
+    members = [m for m in read_members() if m.root != root]
+    members.append(Member(root, slug))
+    _write_members(sorted(members, key=lambda m: m.slug))
+
+
+def remove_member(root: Path) -> None:
+    """Drop *root* from the members file. Safe when it was never in it."""
+    root = root.resolve()
+    _write_members([m for m in read_members() if m.root != root])
+
+
 def slug_in_use_elsewhere(slug: str, project_root: Path) -> Path | None:
     """Return the working dir of another project already attached under this slug, if any.
 
@@ -201,7 +368,18 @@ def slug_in_use_elsewhere(slug: str, project_root: Path) -> Path | None:
 
     Raises :class:`RuntimeError` when ``docker ps`` itself fails: a guard
     that silently passes when Docker is down isn't a guard.
+
+    Checks the members file first, because Docker alone cannot see a project
+    that is attached but has no container: ``down`` deletes the container
+    carrying the slug label, so a second project could take the same slug
+    unwarned — and ``net up`` would then start both, each claiming
+    ``Host(`<slug>.localhost`)`` for Traefik to choose between arbitrarily.
     """
+    root = project_root.resolve()
+    for member in read_members():
+        if member.slug == slug and member.root != root:
+            return member.root
+
     result = subprocess.run(
         [
             "docker",
@@ -218,7 +396,6 @@ def slug_in_use_elsewhere(slug: str, project_root: Path) -> Path | None:
     if result.returncode != 0:
         detail = result.stderr.strip() or "is Docker running?"
         raise RuntimeError(f"Could not check slug ownership via docker ps: {detail}")
-    root = project_root.resolve()
     for line in result.stdout.splitlines():
         line = line.strip()
         if not line:
@@ -231,6 +408,14 @@ def slug_in_use_elsewhere(slug: str, project_root: Path) -> Path | None:
 
 class UnknownPeer(LookupError):
     """Raised when a peer slug matches no project attached to the shared net."""
+
+
+class PeerNotRunning(UnknownPeer):
+    """Raised when a peer exists but has no running container to answer.
+
+    Subclasses :class:`UnknownPeer` so existing callers keep handling it —
+    the distinction is the *message*, which must name the real problem.
+    """
 
 
 def resolve_peer(slug: str) -> Peer:
@@ -251,6 +436,19 @@ def resolve_peer(slug: str) -> Peer:
     peers = list_peers()
     for peer in peers:
         if peer.slug == slug:
+            # A stopped peer is listed (``docker ps -a`` includes exited
+            # containers) but Traefik only routes live ones, so its hostname
+            # is an *unclaimed* `*.localhost` — the same loopback trap as a
+            # typo, reached by a correctly spelled name. Refusing here is
+            # what makes the caller see "it is stopped" instead of a 400 from
+            # its own Django.
+            if not peer.running:
+                where = f" in {peer.working_dir}" if peer.working_dir else ""
+                raise PeerNotRunning(
+                    f"Project {slug!r} is on the shared net but has no running container, "
+                    f"so it cannot answer. Start it with `docker compose up -d`{where}, "
+                    f"or bring the whole net up with `phoxtail net up`."
+                )
             return peer
 
     known = ", ".join(p.slug for p in peers) or "none (is anything attached?)"
