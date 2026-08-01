@@ -225,6 +225,29 @@ class TestAttach:
             "alphasite.localhost",
         ]
 
+    def test_fragment_points_mcp_at_the_slug_not_web(self, tmp_path):
+        """`web` collides once attached: every attached project's `web`
+        container answers to the bare alias `web` on the shared network, and
+        which one a lookup resolves to depends on network-name sort order —
+        wrong for any slug sorting after the shared network's name. The bare
+        slug alias is unique by construction, so `mcp` must address the API
+        through it instead of `http://web`.
+        """
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\nCSRF_TRUSTED_ORIGINS=http://localhost\n")
+
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            result = runner.invoke(net_app, ["attach"])
+
+        assert result.exit_code == 0, result.output
+        fragment = yaml.safe_load(_strip_reset_tags((tmp_path / "docker-compose.net.yaml").read_text()))
+
+        assert fragment["services"]["mcp"]["environment"]["PHOXTAIL_API_URL"] == "http://alphasite"
+
     def test_fragment_keeps_web_on_the_default_network(self, tmp_path):
         """Declaring any network replaces `web`'s implicit `default` membership.
 

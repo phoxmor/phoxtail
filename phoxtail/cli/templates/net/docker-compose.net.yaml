@@ -42,6 +42,20 @@ services:
   # the server on container port 80 so no port differs between the two.
   mcp:
     ports: !reset []
+    # Once attached, `web` is ambiguous: every attached project's `web`
+    # container answers to the bare alias `web` on the shared network
+    # (Compose always adds the service name as an alias, on every network
+    # a service joins), and Docker's embedded DNS picks between the
+    # colliding candidates by sorting network names rather than favouring
+    # this project's own — so for a slug that alphabetically sorts after
+    # `{{ network }}`, `http://web` can resolve to a sibling project's
+    # Django instead of this one's. The bare slug alias above is unique by
+    # construction, so address the API through it instead. Only valid
+    # while attached — `detach` deletes this file, and the base compose
+    # file's `http://web` is correct again once the shared network isn't
+    # joined.
+    environment:
+      PHOXTAIL_API_URL: http://{{ slug }}
     networks:
       default: {}
       {{ network }}:

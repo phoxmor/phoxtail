@@ -57,7 +57,10 @@ services:
     environment:
       # Inside this container, `http://localhost` is this MCP server
       # itself, not Django — the API lives in the `web` container, one
-      # service-name hop away on the project's default network.
+      # service-name hop away on the project's default network. Only
+      # correct while detached: `net attach` overrides this to
+      # `http://<slug>` in the net fragment, because the shared network
+      # gives every attached project's `web` the same bare alias.
       PHOXTAIL_API_URL: http://web
     ports:
       - "127.0.0.1:8001:80"

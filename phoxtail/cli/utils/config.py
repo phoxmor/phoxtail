@@ -108,7 +108,12 @@ def get_api_base_url() -> str:
     it exists for processes whose network position differs from the
     host's — the ``mcp`` container sets it to ``http://web``, because
     inside that container ``http://localhost`` is the MCP server itself,
-    not Django. Otherwise reads ``[studio] api_url`` from
+    not Django. Once ``net attach`` has joined the project to the shared
+    net, the net fragment overrides this to ``http://<slug>`` instead:
+    the shared net gives every attached project's ``web`` the same bare
+    ``web`` alias, so an unqualified lookup can resolve to a sibling
+    project's Django rather than this one's; the slug alias is unique.
+    Otherwise reads ``[studio] api_url`` from
     ``phoxtail.toml``; falls back to :data:`DEFAULT_API_BASE_URL` when no
     project is in scope, the file cannot be loaded, or the key is absent.
     Used by the Studio CLI client, the MCP client, and ``phoxtail auth``

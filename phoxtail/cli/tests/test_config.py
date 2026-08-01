@@ -91,7 +91,10 @@ class TestApiBaseUrl:
     def test_env_override_wins_over_config(self, tmp_path, monkeypatch):
         """PHOXTAIL_API_URL exists for processes whose network position
         differs from the host's — the mcp container reaches Django as
-        `http://web`, because its own `localhost` is the MCP server."""
+        `http://web` while detached (its own `localhost` is the MCP
+        server, not Django), or `http://<slug>` once attached to the
+        shared net. `http://web` here is just one example value the
+        env override can carry — this test only checks the env var wins."""
         toml = tmp_path / "phoxtail.toml"
         toml.write_text('[project]\nname = "t"\n\n[studio]\napi_url = "http://t.localhost"\n')
         monkeypatch.chdir(tmp_path)
