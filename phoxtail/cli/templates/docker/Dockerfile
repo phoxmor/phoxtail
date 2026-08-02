@@ -62,6 +62,16 @@ FROM base AS development
 COPY --from=builder-development /usr/local/lib/python{{ python_version }}/site-packages/ \
                                 /usr/local/lib/python{{ python_version }}/site-packages/
 COPY --from=builder-development /usr/local/bin/ /usr/local/bin/
+
+# Headless chromium for the studio's render tools, so an agent editing variants
+# can screenshot its own work instead of asking for one. Development only:
+# production never renders. `--only-shell` skips the 379MB full chromium and
+# installs just the headless shell, which is what `chromium.launch()` already
+# uses — headed mode is the only thing given up. Above `COPY . .` so source
+# edits don't invalidate the layer.
+RUN playwright install --with-deps --only-shell chromium \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY . .
 CMD set -xe; \
     python manage.py migrate --noinput && \
