@@ -68,6 +68,10 @@ runcmd:
   # Add deploy user to docker group so it can run docker without sudo
   - usermod -aG docker {{ deploy_user }}
 
+  # btop — nice-to-have; installed best-effort so an older image without it
+  # (pre btop-in-repo Ubuntu/Debian) can't fail the security packages above
+  - apt-get install -y btop || true
+
   # Install uv (Python package manager) as the deploy user
   - su - {{ deploy_user }} -c "curl -LsSf https://astral.sh/uv/install.sh | sh"
 
