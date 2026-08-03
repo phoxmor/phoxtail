@@ -26,45 +26,34 @@
         return p;
     }
 
-    function bindResults(container) {
-        container.querySelectorAll('.phoxtail-media-picker-add-btn').forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                var item = btn.closest('[data-media-type]');
-                var payload = item ? payloadFromEl(item) : null;
-                if (payload && window.phoxtailChat) {
-                    window.phoxtailChat.addContext(payload);
-                    btn.classList.add('phoxtail-media-picker-add-btn--added');
-                    setTimeout(function () { btn.classList.remove('phoxtail-media-picker-add-btn--added'); }, 800);
-                }
-            });
-        });
-
-        container.querySelectorAll('[data-media-type][draggable="true"]').forEach(function (el) {
-            el.addEventListener('dragstart', function (e) {
-                var payload = payloadFromEl(el);
-                if (!payload || !window.phoxtailChat) { e.preventDefault(); return; }
-                window.phoxtailChat.beginDrag(payload, e);
-            });
-            el.addEventListener('dragend', function () {
-                if (window.phoxtailChat) window.phoxtailChat.endDrag();
-            });
-        });
-    }
-
-    function tryInit(target) {
-        var results = target && target.id === 'phoxtail-media-picker-results'
-            ? target
-            : target && target.querySelector('#phoxtail-media-picker-results');
-        if (results) bindResults(results);
-    }
-
-    /* Bind after HTMX swaps the modal or the results partial */
-    document.addEventListener('htmx:afterSwap', function (e) {
-        tryInit(e.detail && e.detail.target);
+    /* Delegated off document: HTMX's "Load more" swaps `hx-target="this"`
+       (the button itself), not the results container, so per-element
+       listeners bound after a container-level swap never reach appended
+       items. Delegation sidesteps that regardless of what HTMX swaps. */
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.phoxtail-media-picker-add-btn');
+        if (!btn) return;
+        e.stopPropagation();
+        var item = btn.closest('[data-media-type]');
+        var payload = item ? payloadFromEl(item) : null;
+        if (payload && window.phoxtailChat) {
+            window.phoxtailChat.addContext(payload);
+            btn.classList.add('phoxtail-media-picker-add-btn--added');
+            setTimeout(function () { btn.classList.remove('phoxtail-media-picker-add-btn--added'); }, 800);
+        }
     });
-    document.addEventListener('htmx:afterSettle', function (e) {
-        tryInit(e.detail && e.detail.target);
+
+    document.addEventListener('dragstart', function (e) {
+        var el = e.target.closest('[data-media-type][draggable="true"]');
+        if (!el) return;
+        var payload = payloadFromEl(el);
+        if (!payload || !window.phoxtailChat) { e.preventDefault(); return; }
+        window.phoxtailChat.beginDrag(payload, e);
+    });
+    document.addEventListener('dragend', function (e) {
+        var el = e.target.closest('[data-media-type][draggable="true"]');
+        if (!el) return;
+        if (window.phoxtailChat) window.phoxtailChat.endDrag();
     });
 
     window.phoxtailMediaPicker = { payloadFromEl: payloadFromEl };
