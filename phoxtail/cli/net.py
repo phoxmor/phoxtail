@@ -358,7 +358,7 @@ def attach() -> None:
     if other is not None:
         console.print(
             f"[red]Error:[/red] Slug [bold]{slug}[/bold] is already attached to another project at "
-            f"[bold]{other}[/bold]. Set a different, unique [project] name in phoxtail.toml."
+            f"[bold]{other}[/bold]. Set a different, unique \\[project] name in phoxtail.toml."
         )
         raise typer.Exit(code=1)
 
