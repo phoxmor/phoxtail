@@ -228,7 +228,8 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + configure + database + superuser + launch
+        # Accept wizard + all prompted steps (attach is not offered: the mocked
+        # subprocess never writes the config files it requires)
         result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
         assert result.exit_code == 0
         # 1 uv lock + 3 config (no nginx in dev) + 1 migrate
@@ -259,6 +260,54 @@ class TestHatchCommand:
         # Cleanup + launch
         assert calls[7] == ["docker", "compose", "down"]
         assert calls[8][-3:] == ["docker", "up", "--build"]
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_wizard_attaches_to_net_when_accepted(self, mock_q, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_q.select.return_value.ask.return_value = "development"
+
+        target = tmp_path / "myproject"
+
+        # The attach step is gated on the config files existing, so the mock
+        # has to actually produce them the way `env`/`docker create` would.
+        def side_effect(args, **kwargs):
+            from unittest.mock import MagicMock
+
+            cmd = args if isinstance(args, list) else [args]
+            if cmd[-3:] == ["env", "create", "development"]:
+                (target / ".env").write_text("DJANGO_ENV=development\n")
+            elif cmd[-4:] == ["docker", "create", "compose", "development"]:
+                (target / "docker-compose.yaml").write_text("services:\n  web: {}\n")
+            result = MagicMock()
+            result.returncode = 0
+            return result
+
+        mock_run.side_effect = side_effect
+
+        # Accept wizard + configure + network, skip database/superuser/launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\nn\nn\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert any(c[-2:] == ["net", "attach"] for c in calls)
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("phoxtail.cli.hatch.questionary")
+    def test_net_attach_not_offered_without_config(self, mock_q, mock_run, tmp_path, monkeypatch):
+        """Skipping config must skip attach: `net attach` would write a COMPOSE_FILE
+        naming a docker-compose.yaml that was never generated."""
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_q.select.return_value.ask.return_value = "development"
+
+        # Decline config; the attach prompt must not appear, so the next "y"
+        # is consumed by the database step rather than by attach.
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert not any(c[-2:] == ["net", "attach"] for c in calls)
+        # The "y" landed on the database step, proving no prompt was consumed.
+        assert any(c[-2:] == ["manage", "migrate"] for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("phoxtail.cli.hatch.questionary")
@@ -311,7 +360,7 @@ class TestHatchCommand:
         mock_run.side_effect = side_effect
 
         # Accept wizard, skip configure, skip database, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert not any("verify_email" in c for c in calls)
@@ -323,7 +372,7 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard prompt, then skip all 4 steps
+        # Accept wizard prompt, then skip all 4 prompted steps (attach not offered)
         skip_all = "y\n" + "n\n" * 4
         result = runner.invoke(app, ["hatch", "myproject"], input=skip_all)
         assert result.exit_code == 0
@@ -337,7 +386,7 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_q.select.return_value.ask.return_value = "development"
 
-        # Accept wizard + all 4 steps
+        # Accept wizard + all 4 prompted steps
         result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
         assert result.exit_code == 0
         # All steps completed — should show "is ready!" and no next-steps panel

@@ -13,6 +13,7 @@ from rich.prompt import Confirm
 
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
+from phoxtail.cli.utils.net import net_stack_running
 
 console = Console()
 
@@ -28,6 +29,7 @@ TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "project_template"
 # Wizard step definitions: (key, label)
 WIZARD_STEPS = [
     ("configure", "Config"),
+    ("attach_net", "Network"),
     ("setup_db", "Database"),
     ("superuser", "Access"),
     ("docker_up", "Launch"),
@@ -95,7 +97,7 @@ def _clear_and_show_progress(
     """
     if pause:
         console.print()
-        console.input("[dim]Press Enter to continue...[/dim]")
+        console.input("[dim]Press Enter to move on (retry later)...[/dim]")
     console.clear()
     console.print()
     console.print(_render_progress(project_name, steps, details, wizard_steps, environment, current_index))
@@ -246,6 +248,65 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
 
     # Clear sub-step detail so the panel is clean when the next step renders.
     details.pop("configure", None)
+
+    # --- Step: Attach to shared net ---
+    # Placed before the database and launch steps, both of which shell out to
+    # `docker compose run`/`up`: attaching rewrites COMPOSE_FILE in .env, so
+    # doing it first means every later step already runs against the network
+    # the user chose, instead of moving it out from under a running project.
+    #
+    # Requires the config step's output. `net attach` edits .env and appends
+    # docker-compose.yaml to COMPOSE_FILE, creating .env if absent — so on a
+    # skipped config it would write a COMPOSE_FILE naming a base file that
+    # does not exist, breaking every later `docker compose` call, and the
+    # `phoxtail env create` we then tell the user to run would overwrite that
+    # .env and silently strip the wiring back out while the members file
+    # still claims the project is attached.
+    configured = (target_dir / ".env").exists() and (target_dir / "docker-compose.yaml").exists()
+
+    _clear_and_show_progress(
+        project_name,
+        steps,
+        details,
+        active_steps,
+        environment=environment,
+        current_index=step_idx["attach_net"],
+        pause=prev_failed,
+    )
+    if not configured:
+        steps["attach_net"] = "skipped"
+        prev_failed = False
+    elif Confirm.ask(
+        "  Attach to the shared local net (reachable at http://<project>.localhost alongside other Phoxtail projects)?",
+        default=False,
+    ):
+        details["attach_net"] = "attaching…"
+        _clear_and_show_progress(
+            project_name,
+            steps,
+            details,
+            active_steps,
+            environment=environment,
+            current_index=step_idx["attach_net"],
+        )
+        attach_ok = _run_step(target_dir, ["net", "attach"])
+
+        if not attach_ok:
+            steps["attach_net"] = "failed"
+            details["attach_net"] = "net attach failed"
+            prev_failed = True
+        else:
+            steps["attach_net"] = "done"
+            prev_failed = False
+    else:
+        steps["attach_net"] = "skipped"
+        prev_failed = False
+
+    # Clear the transient "attaching…" text, then restate the one detail worth
+    # carrying into the final panel — a skip the user never got asked about.
+    details.pop("attach_net", None)
+    if not configured:
+        details["attach_net"] = "needs project configuration first"
 
     # --- Step: Database ---
     _clear_and_show_progress(
@@ -495,6 +556,15 @@ def hatch(
             + (" && phoxtail nginx create production" if environment == "production" else "")
         )
         _check("configure", configure_cmd, "generate project configuration files")
+        # Deliberately not a `_check`: the shared net is opt-in, so a declined
+        # or not-applicable attach is a choice, not an outstanding task, and
+        # listing it would nag every user who does not want it. Only a genuine
+        # failure is worth surfacing.
+        if wizard_steps.get("attach_net") == "failed":
+            failed_steps.append(
+                "  • [cyan]phoxtail net attach[/cyan]"
+                "\n    [dim]join the shared local net at http://<project>.localhost[/dim]"
+            )
         _check(
             "setup_db",
             "phoxtail manage migrate",
@@ -510,6 +580,15 @@ def hatch(
             "phoxtail docker up --build",
             "build images and start the application",
         )
+
+        # `net attach` creates the shared network but does not start Traefik —
+        # only `net up` does. Without this the project is attached, running,
+        # and unreachable at the hostname the attach step just promised.
+        if wizard_steps.get("attach_net") == "done" and not net_stack_running():
+            next_steps.append(
+                "  • [cyan]phoxtail net up[/cyan]"
+                "\n    [dim]start the shared net's router so http://<project>.localhost resolves[/dim]"
+            )
 
         # Assemble next steps
         all_steps = [f"  • [cyan]cd {target_dir}[/cyan]\n    [dim]navigate to the project directory[/dim]"]
