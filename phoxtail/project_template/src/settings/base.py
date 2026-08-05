@@ -225,7 +225,11 @@ WAGTAIL_FRONTEND_LOGIN_TEMPLATE = "wagtailadmin/pages/login.html"
 _protocol = "https" if env("DJANGO_ENV") == "production" else "http"
 _domain = env("DOMAIN", default="localhost")
 WAGTAILADMIN_BASE_URL = f"{_protocol}://{_domain}"
-WAGTAIL_SITE_NAME = env("SITE_NAME", default="{{ phoxtail_project_name }}")
+# Title-cased to match the default `phoxtail env create` offers for SITE_NAME,
+# so a project with no SITE_NAME in .env still reads "My Project", not
+# "my_project" — in the admin chrome and in the Site row the initial
+# create-homepage migration seeds from this setting.
+WAGTAIL_SITE_NAME = env("SITE_NAME", default="{{ phoxtail_project_name }}".replace("_", " ").title())
 
 # Email Settings
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

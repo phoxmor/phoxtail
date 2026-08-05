@@ -11,6 +11,7 @@ it exits cleanly without making changes.
 import json
 import uuid
 
+from django.conf import settings
 from django.db import migrations
 
 _APP_LABEL = "{{ phoxtail_project_name }}"
@@ -762,7 +763,11 @@ def _create_homepage(apps, schema_editor):
     root.numchild = Page.objects.filter(depth=2).count()
     root.save()
 
-    site_name = _APP_LABEL.replace("_", " ").title()
+    # WAGTAIL_SITE_NAME carries the "Site name" the user typed during
+    # `phoxtail env create` (SITE_NAME in .env). Its settings default is
+    # already the title-cased project name, so the `or` only catches an
+    # explicitly blank SITE_NAME= — which would otherwise name the site "".
+    site_name = getattr(settings, "WAGTAIL_SITE_NAME", None) or _APP_LABEL.replace("_", " ").title()
     if site:
         Site.objects.filter(pk=site.pk).update(
             root_page_id=homepage.pk,
