@@ -14,10 +14,20 @@
 
         <div class="phoxtail-media-picker-tabs">
             <button type="button"
+                    class="phoxtail-media-picker-tab {% if tab == 'menu' %}phoxtail-media-picker-tab--active{% endif %}"
+                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
+                    hx-vals='{"tab": "menu"}'
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
+                    hx-target="#phoxtail-media-picker-results"
+                    hx-swap="innerHTML">
+                {% icon "menu" class="phoxtail-bar-btn-icon" %}
+                Menu
+            </button>
+            <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'images' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "images"}'
-                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "image" class="phoxtail-bar-btn-icon" %}
@@ -27,7 +37,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'videos' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "videos"}'
-                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "videocam" class="phoxtail-bar-btn-icon" %}
@@ -37,7 +47,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'audio' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "audio"}'
-                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "music_note" class="phoxtail-bar-btn-icon" %}
@@ -47,7 +57,7 @@
                     class="phoxtail-media-picker-tab {% if tab == 'documents' %}phoxtail-media-picker-tab--active{% endif %}"
                     hx-get="{% url 'phoxtail_agent:media_picker' %}"
                     hx-vals='{"tab": "documents"}'
-                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id"
+                    hx-include="#phoxtail-media-picker-search, #phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "draft" class="phoxtail-bar-btn-icon" %}
@@ -55,7 +65,12 @@
             </button>
         </div>
 
-        <div class="phoxtail-media-picker-collection-wrap" id="phoxtail-media-picker-collection-wrap">
+        <input type="hidden"
+               id="phoxtail-media-picker-page-id"
+               name="page_id"
+               value="{{ active_page_id|default:'' }}">
+
+        <div class="phoxtail-media-picker-collection-wrap{% if tab == 'menu' %} phoxtail-bar-hidden{% endif %}" id="phoxtail-media-picker-collection-wrap">
             <input type="hidden"
                    id="phoxtail-media-picker-collection-id"
                    name="collection_id"
@@ -113,7 +128,7 @@
                    class="phoxtail-bar-search-input"
                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
                    hx-vals='{"tab": "{{ tab }}"}'
-                   hx-include="#phoxtail-media-picker-collection-id"
+                   hx-include="#phoxtail-media-picker-collection-id, #phoxtail-media-picker-page-id"
                    hx-target="#phoxtail-media-picker-results"
                    hx-trigger="input changed delay:300ms"
                    hx-swap="innerHTML">
@@ -216,6 +231,7 @@
     }
 
     /* Tab switching — mark active immediately on click, sync search hx-vals */
+    var colWrapEl = document.getElementById('phoxtail-media-picker-collection-wrap');
     document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (b) {
@@ -227,6 +243,9 @@
                 input.setAttribute('hx-vals', JSON.stringify({ tab: newTab }));
                 if (typeof htmx !== 'undefined') htmx.process(input);
             }
+            if (colWrapEl) colWrapEl.classList.toggle('phoxtail-bar-hidden', newTab === 'menu');
+            // Shared with phoxtail_bar.js's _getRememberedMediaTab — keep the key in sync.
+            if (newTab) { try { localStorage.setItem('phoxtail.media_picker.tab', newTab); } catch (_) {} }
         });
     });
 

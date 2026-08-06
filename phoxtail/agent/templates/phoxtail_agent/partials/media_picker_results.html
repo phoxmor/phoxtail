@@ -1,7 +1,7 @@
 {% load phoxtail_design_tags wagtailimages_tags %}
 
 {% if offset == 0 and not results %}
-<div class="phoxtail-media-picker-empty">No {{ tab }} found{% if query %} for "{{ query }}"{% endif %}.</div>
+<div class="phoxtail-media-picker-empty">No {% if tab == "menu" %}pages{% else %}{{ tab }}{% endif %} found{% if query %} for "{{ query }}"{% endif %}.</div>
 
 {% elif tab == "images" %}
 {% if offset == 0 %}<div class="phoxtail-media-picker-grid">{% endif %}
@@ -151,6 +151,21 @@
             class="phoxtail-media-picker-load-more"
             hx-get="{% url 'phoxtail_agent:media_picker' %}"
             hx-vals='{"tab": "{{ tab }}", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}, "collection_id": "{{ collection_id }}"}'
+            hx-target="this"
+            hx-swap="outerHTML">
+        Load more
+    </button>
+    {% endif %}
+{% if offset == 0 %}</div>{% endif %}
+
+{% elif tab == "menu" %}
+{% if offset == 0 %}<div class="phoxtail-media-picker-menu-tree{% if query %} phoxtail-media-picker-menu-tree--flat{% endif %}">{% endif %}
+    {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=results flat=query active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids %}
+    {% if has_more %}
+    <button type="button"
+            class="phoxtail-media-picker-load-more"
+            hx-get="{% url 'phoxtail_agent:media_picker' %}"
+            hx-vals='{"tab": "menu", "q": "{{ query|escapejs }}", "offset": {{ next_offset }}, "page_id": "{{ active_page_id|default:'' }}"}'
             hx-target="this"
             hx-swap="outerHTML">
         Load more

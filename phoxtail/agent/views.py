@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
@@ -32,16 +32,32 @@ def chat_history(request):
 
 
 _MEDIA_PICKER_PAGE_SIZE = 15
+# One tree level of the Menu tab, whether rendered eagerly (active trail) or
+# fetched on expand — past this a "Load more" continues the level.
+_MENU_CHILDREN_PAGE_SIZE = 50
+
+
+def _explorable_pages(qs, user):
+    """Restrict a Page queryset to what the Wagtail admin's own page explorer
+    would show this user — same mechanic as
+    ``PageListingMixin.get_base_queryset`` in wagtail.admin.views.pages.listing.
+    """
+    from wagtail.permissions import page_permission_policy
+
+    return qs.filter(pk__in=page_permission_policy.explorable_instances(user).values_list("pk", flat=True))
 
 
 @agent_permission_required("access_chatbot")
 def media_picker(request):
-    tab = request.GET.get("tab", "images")
+    tab = request.GET.get("tab", "menu")
     query = request.GET.get("q", "").strip()
     offset = max(0, int(request.GET.get("offset", 0) or 0))
     collection_id = request.GET.get("collection_id", "").strip()
     if collection_id and not collection_id.isdigit():
         collection_id = ""
+    page_id_param = request.GET.get("page_id", "").strip()
+    active_page_id = int(page_id_param) if page_id_param.isdigit() else None
+    active_ancestor_ids = set()
     s = get_search_backend()
     results = []
 
@@ -104,6 +120,38 @@ def media_picker(request):
         if query:
             qs = s.autocomplete(query, qs)
         results = list(qs[offset : offset + fetch])
+    elif tab == "menu":
+        from wagtail.models import Page
+
+        if query:
+            # Search spans the whole tree (matches how the Wagtail admin page
+            # search works) rather than being scoped to one branch.
+            qs = Page.objects.exclude(depth=1).select_related("content_type", "locale")
+            qs = _explorable_pages(qs, request.user)
+            results = list(s.autocomplete(query, qs)[offset : offset + fetch])
+        else:
+            from wagtail.permissions import page_permission_policy
+
+            # Root the tree where the Wagtail admin explorer roots it for this
+            # user: their explorable root, not an absolute depth. For users
+            # whose permissions all live inside one branch, depth 2 would
+            # intersect to nothing with explorable_instances (which trims
+            # everything above the permitted pages' common ancestor).
+            root = page_permission_policy.explorable_root_instance(request.user)
+            if root is not None:
+                qs = root.get_children().select_related("content_type", "locale").order_by("path")
+                qs = _explorable_pages(qs, request.user)
+                results = list(qs[offset : offset + fetch])
+            if results and active_page_id:
+                try:
+                    active_ancestor_ids = set(
+                        _explorable_pages(
+                            Page.objects.get(pk=active_page_id).get_ancestors(inclusive=True).exclude(depth=1),
+                            request.user,
+                        ).values_list("pk", flat=True)
+                    )
+                except Page.DoesNotExist:
+                    pass
 
     has_more = len(results) > _MEDIA_PICKER_PAGE_SIZE
     if has_more:
@@ -117,11 +165,16 @@ def media_picker(request):
         "has_more": has_more,
         "next_offset": offset + _MEDIA_PICKER_PAGE_SIZE,
         "collection_id": collection_id,
+        "active_page_id": active_page_id,
+        "active_ancestor_ids": active_ancestor_ids,
     }
 
     if request.htmx and (request.htmx.target == "phoxtail-media-picker-results" or offset > 0):
         return render(request, "phoxtail_agent/partials/media_picker_results.html", ctx)
 
+    # Always loaded, even when opening on the Menu tab (which hides the
+    # collection filter): tab switches only swap the results pane, so the
+    # dropdown rendered here is the one every later tab reuses.
     from wagtail.models import Collection
 
     collections = list(Collection.objects.filter(depth__gt=1).order_by("path"))
@@ -138,6 +191,58 @@ def media_picker(request):
     ctx["collections"] = collections
     ctx["selected_collection_name"] = selected_collection_name
     return render(request, "phoxtail_agent/media_picker.html", ctx)
+
+
+@agent_permission_required("access_chatbot")
+def menu_picker_children(request):
+    """Lazily fetch one tree level for the media-picker 'Menu' tab.
+
+    Mirrors the Wagtail admin explorer's own lazy-expand behaviour instead of
+    walking (and rendering) the whole page tree up front.
+    """
+    from wagtail.models import Page
+
+    parent_id = request.GET.get("parent_id", "").strip()
+    if not parent_id.isdigit():
+        raise Http404("Invalid parent_id.")
+    offset_param = request.GET.get("offset", "").strip()
+    offset = int(offset_param) if offset_param.isdigit() else 0
+    # When the eagerly-rendered active trail pulled its trail child in from
+    # beyond the first page (see page_children), later pages skip that pk so
+    # the row never appears twice. The exclusion can't shift this page's
+    # window: the first page was the plain head of the ordering, so an
+    # out-of-window trail child sits at offset or later in either queryset.
+    exclude_param = request.GET.get("exclude_id", "").strip()
+    exclude_id = int(exclude_param) if exclude_param.isdigit() else None
+    # 404s (rather than an empty list) if the parent itself isn't explorable —
+    # same boundary the Wagtail admin explorer enforces on arbitrary page ids.
+    parent = get_object_or_404(_explorable_pages(Page.objects.all(), request.user), pk=parent_id)
+    qs = _explorable_pages(
+        parent.get_children().select_related("content_type", "locale").order_by("path"), request.user
+    )
+    if exclude_id:
+        qs = qs.exclude(pk=exclude_id)
+    children = list(qs[offset : offset + _MENU_CHILDREN_PAGE_SIZE + 1])
+    has_more = len(children) > _MENU_CHILDREN_PAGE_SIZE
+    if has_more:
+        children = children[:_MENU_CHILDREN_PAGE_SIZE]
+    return render(
+        request,
+        "phoxtail_agent/partials/menu_picker_children.html",
+        # Manual expansion never needs to reach further down the active
+        # trail — that trail is already eagerly expanded from the root, so
+        # anything a user expands by hand is, by definition, off it.
+        {
+            "pages": children,
+            "flat": False,
+            "active_page_id": None,
+            "active_ancestor_ids": set(),
+            "parent_id": int(parent_id),
+            "has_more": has_more,
+            "next_offset": offset + _MENU_CHILDREN_PAGE_SIZE,
+            "exclude_id": exclude_id,
+        },
+    )
 
 
 @agent_permission_required("access_chatbot")

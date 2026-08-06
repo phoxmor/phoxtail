@@ -264,6 +264,121 @@
     color: rgb(var(--color-success-600, 22 163 74));
 }
 
+/* ── Menu tab (page tree) ── */
+.phoxtail-media-picker-menu-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.phoxtail-media-picker-menu-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.375rem 0.375rem 0.25rem;
+    border-radius: 0.5rem;
+    cursor: grab;
+    transition: background-color 100ms ease;
+}
+.phoxtail-media-picker-menu-row:hover { background-color: rgb(0 0 0 / 0.04); }
+.phoxtail-media-picker-menu-row--active { background-color: rgb(0 0 0 / 0.04); }
+
+/* Each nesting level indents via the DOM itself, so depth needs no counter. */
+.phoxtail-media-picker-menu-children {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-left: 1.125rem;
+}
+.phoxtail-media-picker-menu-children[hidden] { display: none; }
+
+.phoxtail-media-picker-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 0.375rem;
+    background: none;
+    color: rgb(var(--color-surface-400, 161 161 170));
+    cursor: pointer;
+    padding: 0;
+    transition: background-color 100ms ease, transform 150ms ease, color 150ms ease;
+}
+.phoxtail-media-picker-menu-toggle:hover {
+    background-color: rgb(0 0 0 / 0.06);
+    color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-media-picker-menu-toggle[aria-expanded="true"] { transform: rotate(90deg); }
+.phoxtail-media-picker-menu-toggle--spacer { cursor: default; }
+.phoxtail-media-picker-menu-toggle--spacer:hover { background: none; }
+.phoxtail-media-picker-menu-toggle .phoxtail-bar-btn-icon { width: 0.75rem; height: 0.75rem; }
+
+.phoxtail-media-picker-menu-row-icon {
+    width: 0.9375rem;
+    height: 0.9375rem;
+    flex-shrink: 0;
+    color: rgb(var(--color-surface-400, 161 161 170));
+}
+
+.phoxtail-media-picker-menu-row-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-surface-700, 63 63 70));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    cursor: pointer;
+}
+.phoxtail-media-picker-menu-row-title:hover {
+    color: rgb(var(--color-primary-600, 79 70 229));
+}
+
+.phoxtail-media-picker-menu-row-status {
+    width: 0.375rem;
+    height: 0.375rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: rgb(var(--color-surface-300, 212 212 216));
+}
+.phoxtail-media-picker-menu-row-status--live { background-color: rgb(var(--color-success-500, 34 197 94)); }
+
+.phoxtail-media-picker-menu-row-breadcrumb {
+    flex-shrink: 0;
+    max-width: 7rem;
+    font-size: 0.6875rem;
+    color: rgb(var(--color-surface-400, 161 161 170));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add button on menu rows — plain icon, no shadow (matches doc rows) */
+.phoxtail-media-picker-menu-row .phoxtail-media-picker-add-btn {
+    background: none;
+    box-shadow: none;
+    color: rgb(var(--color-surface-300, 212 212 216));
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    width: 1.625rem;
+    height: 1.625rem;
+}
+.phoxtail-media-picker-menu-row .phoxtail-media-picker-add-btn:hover {
+    background-color: rgb(var(--color-primary-50, 238 242 255));
+    border-color: rgb(var(--color-primary-200, 199 210 254));
+    color: rgb(var(--color-primary-600, 79 70 229));
+    transform: none;
+}
+.phoxtail-media-picker-menu-row .phoxtail-media-picker-add-btn--added {
+    background-color: rgb(var(--color-success-50, 240 253 244));
+    border-color: rgb(var(--color-success-300, 134 239 172));
+    color: rgb(var(--color-success-600, 22 163 74));
+}
+
 /* ── Lightbox (image / video preview + info, scoped to drawer) ── */
 .phoxtail-media-picker-lightbox {
     position: absolute;
@@ -743,6 +858,28 @@
         box-shadow: 0 0 0 2px rgb(var(--color-primary-900, 49 46 129) / 0.6);
     }
     .phoxtail-media-picker-doc-row:hover { background-color: rgb(255 255 255 / 0.05); }
+    .phoxtail-media-picker-menu-row:hover { background-color: rgb(255 255 255 / 0.05); }
+    .phoxtail-media-picker-menu-row--active { background-color: rgb(255 255 255 / 0.05); }
+    .phoxtail-media-picker-menu-toggle { color: rgb(var(--color-surface-500, 113 113 122)); }
+    .phoxtail-media-picker-menu-toggle:hover {
+        background-color: rgb(255 255 255 / 0.08);
+        color: white;
+    }
+    .phoxtail-media-picker-menu-row-icon { color: rgb(var(--color-surface-600, 82 82 91)); }
+    .phoxtail-media-picker-menu-row-title { color: rgb(var(--color-surface-200, 228 228 231)); }
+    .phoxtail-media-picker-menu-row-title:hover { color: rgb(var(--color-primary-300, 165 180 252)); }
+    .phoxtail-media-picker-menu-row-status { background-color: rgb(var(--color-surface-600, 82 82 91)); }
+    .phoxtail-media-picker-menu-row-status--live { background-color: rgb(var(--color-success-500, 34 197 94)); }
+    .phoxtail-media-picker-menu-row-breadcrumb { color: rgb(var(--color-surface-600, 82 82 91)); }
+    .phoxtail-media-picker-menu-row .phoxtail-media-picker-add-btn {
+        background: none;
+        color: rgb(var(--color-surface-600, 82 82 91));
+    }
+    .phoxtail-media-picker-menu-row .phoxtail-media-picker-add-btn:hover {
+        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
+        border-color: rgb(var(--color-primary-700, 67 56 202));
+        color: rgb(var(--color-primary-300, 165 180 252));
+    }
     .phoxtail-media-picker-add-btn {
         background-color: rgb(var(--color-surface-800, 24 24 27));
         color: rgb(var(--color-primary-300, 165 180 252));

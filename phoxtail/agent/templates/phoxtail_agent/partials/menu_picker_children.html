@@ -1,0 +1,11 @@
+{% include "phoxtail_agent/partials/menu_picker_nodes.html" %}
+{% if has_more %}
+<button type="button"
+        class="phoxtail-media-picker-load-more"
+        hx-get="{% url 'phoxtail_agent:menu_picker_children' %}"
+        hx-vals='{"parent_id": {{ parent_id }}, "offset": {{ next_offset }}{% if exclude_id %}, "exclude_id": {{ exclude_id }}{% endif %}}'
+        hx-target="this"
+        hx-swap="outerHTML">
+    Load more
+</button>
+{% endif %}

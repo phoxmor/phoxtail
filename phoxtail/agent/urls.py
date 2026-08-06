@@ -8,6 +8,7 @@ urlpatterns = [
     path("chat-history/", views.chat_history, name="chat_history"),
     path("media-picker/", views.media_picker, name="media_picker"),
     path("collection-picker/", views.collection_picker, name="collection_picker"),
+    path("menu-picker-children/", views.menu_picker_children, name="menu_picker_children"),
     path("model-picker/", views.model_picker_panel, name="model_picker_panel"),
     path(
         "screenshot/<int:page_id>/<str:block_uuid>/",

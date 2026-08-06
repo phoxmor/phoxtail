@@ -1,0 +1,73 @@
+{% load phoxtail_design_tags phoxtail_agent_tags %}
+{% url 'wagtailadmin_home' as admin_home %}
+{% for p in pages %}
+    {# on_trail: this node is the active page itself, or one of its ancestors — auto-expanded instead of lazy #}
+    {% with on_trail=p.pk|in_set:active_ancestor_ids %}
+    <div class="phoxtail-media-picker-menu-node">
+        <div class="phoxtail-media-picker-menu-row{% if p.pk == active_page_id %} phoxtail-media-picker-menu-row--active{% endif %}"
+             draggable="true"
+             data-page-id="{{ p.pk }}"
+             data-page-title="{{ p.title }}"
+             data-page-type="{{ p.content_type.app_label }}.{{ p.content_type.model }}"
+             data-page-slug="{{ p.slug }}"
+             data-page-locale="{{ p.locale.language_code }}"
+             data-page-live="{{ p.live|yesno:'true,false' }}">
+            {% if not flat and p.numchild %}
+            {% if on_trail %}
+            <button type="button" class="phoxtail-media-picker-menu-toggle" aria-expanded="true">
+                {% icon "chevron_right" class="phoxtail-bar-btn-icon" %}
+            </button>
+            {% else %}
+            {# Fetch driven from media_picker.js, not hx-trigger="click once", so failures stay retryable #}
+            <button type="button"
+                    class="phoxtail-media-picker-menu-toggle"
+                    aria-expanded="false"
+                    data-children-url="{% url 'phoxtail_agent:menu_picker_children' %}">
+                {% icon "chevron_right" class="phoxtail-bar-btn-icon" %}
+            </button>
+            {% endif %}
+            {% else %}
+            <span class="phoxtail-media-picker-menu-toggle phoxtail-media-picker-menu-toggle--spacer"></span>
+            {% endif %}
+            {% icon p.numchild|yesno:"folder,doc_full_inverse" class="phoxtail-media-picker-menu-row-icon" %}
+            <a class="phoxtail-media-picker-menu-row-title"
+               href="{% if p.live and p.url %}{{ p.url }}{% else %}{{ admin_home }}pages/{{ p.pk }}/view_draft/{% endif %}"
+               title="{% if p.live %}View live: {% else %}View draft: {% endif %}{{ p.title }}">{{ p.title|truncatechars:32 }}</a>
+            <span class="phoxtail-media-picker-menu-row-status phoxtail-media-picker-menu-row-status--{% if p.live %}live{% else %}draft{% endif %}"
+                  title="{% if p.live %}Live{% else %}Draft{% endif %}"></span>
+            {% if flat %}
+            <span class="phoxtail-media-picker-menu-row-breadcrumb">{{ p.url_path|slice:"1:-1" }}</span>
+            {% endif %}
+            <button type="button"
+                    class="phoxtail-media-picker-add-btn phoxtail-media-picker-menu-add-btn"
+                    title="Add to chat">
+                {% icon "plus" class="phoxtail-bar-btn-icon" %}
+            </button>
+        </div>
+        {% if not flat and p.numchild %}
+            {% if on_trail %}
+            {% page_children p active_ancestor_ids as trail %}
+            <div class="phoxtail-media-picker-menu-children" id="phoxtail-menu-children-{{ p.pk }}" data-loaded="1">
+                {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=trail.pages flat=False active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids %}
+                {% if trail.has_more %}
+                <button type="button"
+                        class="phoxtail-media-picker-load-more"
+                        hx-get="{% url 'phoxtail_agent:menu_picker_children' %}"
+                        hx-vals='{"parent_id": {{ p.pk }}, "offset": {{ trail.next_offset }}{% if trail.exclude_id %}, "exclude_id": {{ trail.exclude_id }}{% endif %}}'
+                        hx-target="this"
+                        hx-swap="outerHTML">
+                    Load more
+                </button>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="phoxtail-media-picker-menu-children" id="phoxtail-menu-children-{{ p.pk }}" hidden></div>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endwith %}
+{% empty %}
+{% if flat %}
+<div class="phoxtail-media-picker-empty">No pages match</div>
+{% endif %}
+{% endfor %}
