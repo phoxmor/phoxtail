@@ -1,8 +1,19 @@
 (function () {
-    var manifestEl = document.getElementById('phoxtail-bar-manifest');
-    if (!manifestEl) return;
+    if (!document.getElementById('phoxtail-bar-manifest')) return;
 
-    var manifest = JSON.parse(manifestEl.textContent);
+    // Re-queried on every read: page-swapping UIs (e.g. the slides
+    // player) replace the manifest node out-of-band, so holding the
+    // element would go stale along with its contents.
+    function _readManifest() {
+        var el = document.getElementById('phoxtail-bar-manifest');
+        try {
+            return el ? JSON.parse(el.textContent) : { id: null };
+        } catch (err) {
+            return { id: null };
+        }
+    }
+
+    var manifest = _readManifest();
     var bar = document.getElementById('phoxtail-bar');
 
     // Mark html + body so CSS can reserve space; ResizeObserver keeps the
@@ -94,6 +105,7 @@
     var chat = {
         isOpen: function () { return chatbotDrawer && chatbotDrawer.classList.contains('phoxtail-chatbot-drawer--open'); },
         open:   function () {
+            if (!chatbotDrawer || !chatbotBtn) return;
             chatbotDrawer.classList.add('phoxtail-chatbot-drawer--open');
             chatbotBtn.classList.add('phoxtail-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'true');
@@ -101,6 +113,7 @@
             _loadModelPickerContent();
         },
         close:  function () {
+            if (!chatbotDrawer || !chatbotBtn) return;
             chatbotDrawer.classList.remove('phoxtail-chatbot-drawer--open');
             chatbotBtn.classList.remove('phoxtail-bar-btn--active');
             chatbotBtn.setAttribute('aria-expanded', 'false');
@@ -407,6 +420,13 @@
         });
     }
 
+    var barMediaBtn = document.getElementById('phoxtail-bar-media-btn');
+    if (barMediaBtn) {
+        barMediaBtn.addEventListener('click', function () {
+            if (window.phoxtailChat) window.phoxtailChat.toggleMedia();
+        });
+    }
+
     if (chatbotStopBtn) {
         chatbotStopBtn.addEventListener('click', function () {
             if (_abortController) _abortController.abort();
@@ -667,7 +687,7 @@
         if ((e.key === 'h' || e.key === 'H') && window.phoxtailChat) {
             window.phoxtailChat.toggleHistory();
         }
-        if (e.key === 'n' || e.key === 'N') {
+        if ((e.key === 'n' || e.key === 'N') && chatbotBtn) {
             if (!chat.isOpen()) chat.open();
             _newConversation();
         }
@@ -1297,21 +1317,30 @@
         _rehydrate(uuid);
     }
 
-    var _mediaPickerUrl = chatbotDrawer ? chatbotDrawer.dataset.mediaPickerUrl : null;
-    var _mediaPickerModalUrl = chatbotDrawer ? chatbotDrawer.dataset.mediaPickerModalUrl : null;
+    var _mediaPickerUrl = bar ? bar.dataset.mediaPickerUrl : null;
+    var _mediaPickerModalUrl = bar ? bar.dataset.mediaPickerModalUrl : null;
     var _mediaPickerTab = null;
     var _mediaPickerObserver = null;
-    var _mediaBtn = null;
+    var _mediaBtns = null;
 
-    function _getMediaBtn() {
-        if (!_mediaBtn) _mediaBtn = document.getElementById('phoxtail-chatbot-media-btn');
-        return _mediaBtn;
+    // Shared with the tab-click handler in media_picker.html — keep the key and
+    // the valid-tabs list in sync with that file.
+    var _MEDIA_TAB_LS_KEY = 'phoxtail.media_picker.tab';
+    var _MEDIA_TABS = ['menu', 'images', 'videos', 'audio', 'documents'];
+
+    function _getRememberedMediaTab() {
+        var stored = null;
+        try { stored = localStorage.getItem(_MEDIA_TAB_LS_KEY); } catch (_) {}
+        return _MEDIA_TABS.indexOf(stored) !== -1 ? stored : 'menu';
+    }
+
+    function _getMediaBtns() {
+        if (!_mediaBtns) _mediaBtns = Array.prototype.slice.call(document.querySelectorAll('.phoxtail-bar-media-btn'));
+        return _mediaBtns;
     }
 
     function _setMediaBtnActive(active) {
-        var btn = _getMediaBtn();
-        if (!btn) return;
-        btn.classList.toggle('phoxtail-bar-btn--active', active);
+        _getMediaBtns().forEach(function (btn) { btn.classList.toggle('phoxtail-bar-btn--active', active); });
     }
 
     function _onMediaPickerClosed() {
@@ -1352,10 +1381,12 @@
         _setMediaBtnActive(true);
         document.body.classList.add('phoxtail-media-picker-open');
         _watchModalForClose();
+        var pickerUrl = _mediaPickerUrl + '?tab=' + tab;
+        if (manifest.id) pickerUrl += '&page_id=' + manifest.id;
         htmx.ajax('GET', _mediaPickerModalUrl, {
             target: '#core-modal-level-1-placeholder-wrapper',
             swap: 'innerHTML',
-            values: { content_url: _mediaPickerUrl + '?tab=' + tab }
+            values: { content_url: pickerUrl }
         });
     }
 
@@ -1436,7 +1467,7 @@
             if (_mediaPickerTab !== null) {
                 if (typeof window.closeModalLevel1 === 'function') window.closeModalLevel1();
             } else {
-                _openMediaPicker('images');
+                _openMediaPicker(_getRememberedMediaTab());
             }
         },
         beginDrag: function (payload, event) {
@@ -1484,15 +1515,21 @@
 
     // ── Block refresh (HTMX-powered per-block updates) ────────────────────────
 
-    var _pageBodyEl = document.querySelector('.phoxtail-page-body');
+    // Queried fresh: the page body can be swapped wholesale (htmx page
+    // navigation in the slides player), so a captured reference would
+    // point at a detached element.
+    function _pageBody() { return document.querySelector('.phoxtail-page-body'); }
 
     // ── Page-body block drag-to-chip ─────────────────────────────────────────
+    // Document-delegated so it survives the page body being replaced.
+    // Only blocks inside .phoxtail-page-body ever get draggable="true",
+    // so the closest() check below already scopes this correctly.
 
-    if (_pageBodyEl) {
-        _pageBodyEl.addEventListener('dragstart', function (e) {
+    {
+        document.addEventListener('dragstart', function (e) {
             // Let native link/image drags pass through untouched
             if (e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
-            var block = e.target.closest('.phoxtail-block[draggable="true"]');
+            var block = e.target.closest && e.target.closest('.phoxtail-block[draggable="true"]');
             if (!block) return;
             var payload = _payloadFromRow(block);
             if (!payload) { e.preventDefault(); return; }
@@ -1514,7 +1551,7 @@
             document.body.setAttribute('data-phoxtail-dragging', '1');
         });
 
-        _pageBodyEl.addEventListener('dragend', function () {
+        document.addEventListener('dragend', function () {
             _draggingPayload = null;
             document.body.removeAttribute('data-phoxtail-dragging');
             if (_dragGhost) {
@@ -1537,8 +1574,9 @@
     }
 
     function _refreshPageBody() {
-        if (_pageBodyEl && typeof htmx !== 'undefined') {
-            htmx.trigger(_pageBodyEl, 'phoxtail:page-body-refresh');
+        var pageBodyEl = _pageBody();
+        if (pageBodyEl && typeof htmx !== 'undefined') {
+            htmx.trigger(pageBodyEl, 'phoxtail:page-body-refresh');
         }
     }
 
@@ -1848,4 +1886,53 @@
             if (idx !== -1) activateBlockAtIndex(idx);
         });
     }
+
+    // ── Public API ───────────────────────────────────────────────────────────
+    // For page-swapping UIs (e.g. the slides player) that replace the
+    // page under the bar without a full navigation. The caller swaps
+    // #phoxtail-bar-manifest (and, if it uses them, the blocks panel
+    // body/count) from the new page's response, then calls refresh() so
+    // everything id-dependent — publish, media picker, block payloads,
+    // the dock's page info — follows the new page.
+
+    function _syncDockPageInfo() {
+        var info = bar.querySelector('.phoxtail-bar-page-info');
+        if (!info || !manifest.id) return;
+        var titleEl = info.querySelector('.phoxtail-bar-page-title');
+        if (titleEl) {
+            var t = manifest.title || '';
+            titleEl.textContent = t.length > 22 ? t.slice(0, 21) + '…' : t;
+            titleEl.title = t;
+        }
+        var badgeEl = info.querySelector('.phoxtail-bar-badge');
+        if (badgeEl) badgeEl.textContent = '#' + manifest.id;
+        var typeEl = info.querySelector('.phoxtail-bar-type');
+        if (typeEl) typeEl.textContent = (manifest.type || '').split('.').pop();
+        var localeEl = info.querySelector('.phoxtail-bar-locale');
+        if (localeEl) localeEl.textContent = manifest.locale || '';
+        var dotEl = info.querySelector('.phoxtail-bar-live-dot');
+        if (dotEl) {
+            dotEl.classList.toggle('phoxtail-bar-live-dot--on', !!manifest.live);
+            dotEl.classList.toggle('phoxtail-bar-live-dot--off', !manifest.live);
+            dotEl.textContent = manifest.live ? 'live' : 'draft';
+        }
+        // Unpublish is server-rendered only when the page was live; when
+        // it exists, keep its visibility in step with the current page.
+        if (unpublishBtn) unpublishBtn.style.display = manifest.live ? '' : 'none';
+        if (editBtn && adminBtn) {
+            editBtn.href = adminBtn.href + 'pages/' + manifest.id + '/edit/';
+        }
+    }
+
+    window.phoxtailBar = {
+        refresh: function () {
+            manifest = _readManifest();
+            _syncDockPageInfo();
+            // Blocks on a freshly swapped page body need draggable
+            // re-applied while the chat is open.
+            if (chat.isOpen()) _setPageBlocksDraggable(true);
+        },
+        pageAction: _pageAction,
+        getManifest: function () { return manifest; },
+    };
 })();

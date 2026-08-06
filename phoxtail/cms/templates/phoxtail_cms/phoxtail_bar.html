@@ -1,20 +1,26 @@
 {% load phoxtail_design_tags phoxtail_streams_tags static %}
-{% if perms.phoxtail_agent.access_chatbot and page %}
+{% if user.is_superuser %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}
 {% url 'phoxtail_agent:media_picker' as media_picker_url %}
 {% url 'phoxtail_agent:model_picker_panel' as model_picker_url %}
 <link rel="stylesheet" href="{% static 'phoxtail_cms/css/phoxtail_bar.css' %}">
+{% if perms.phoxtail_agent.access_chatbot %}
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/chatbot.css' %}">
+{% endif %}
+{% if media_picker_url %}
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/media_picker.css' %}">
+{% endif %}
 
 <script type="application/json" id="phoxtail-bar-manifest">
-{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}, "view_draft_url": "{{ admin_home }}pages/{{ page.id }}/view_draft/"}
+{% if page %}{"id": {{ page.id }}, "title": "{{ page.title|escapejs }}", "type": "{{ page.content_type.app_label }}.{{ page.content_type.model }}", "slug": "{{ page.slug }}", "locale": "{{ page.locale.language_code }}", "live": {{ page.live|yesno:"true,false" }}, "view_draft_url": "{{ admin_home }}pages/{{ page.id }}/view_draft/"}{% else %}{"id": null}{% endif %}
 </script>
 
-<div id="phoxtail-bar">
+<div id="phoxtail-bar"
+     {% if media_picker_url %}data-media-picker-url="{{ media_picker_url }}" data-media-picker-modal-url="{{ chat_history_modal_url }}"{% endif %}>
     <div class="phoxtail-bar-dock">
+        {% if page %}
         <div class="phoxtail-bar-page-info">
             <span class="phoxtail-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
             <span class="phoxtail-bar-badge">#{{ page.id }}</span>
@@ -26,7 +32,18 @@
             <span class="phoxtail-bar-live-dot phoxtail-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}">{% if page.live %}live{% else %}draft{% endif %}</span>
         </div>
         <div class="phoxtail-bar-divider"></div>
+        {% endif %}
         <div class="phoxtail-bar-actions">
+            {% if media_picker_url %}
+            <button type="button"
+                    id="phoxtail-bar-media-btn"
+                    class="phoxtail-bar-btn phoxtail-bar-media-btn"
+                    title="Menu &amp; Media (M)"
+                    aria-expanded="false">
+                {% icon "menu" class="phoxtail-bar-btn-icon" %}
+            </button>
+            {% endif %}
+            {% if perms.phoxtail_agent.access_chatbot %}
             <button type="button"
                     id="phoxtail-bar-chatbot-btn"
                     class="phoxtail-bar-btn"
@@ -34,6 +51,7 @@
                     aria-expanded="false">
                 {% icon "chat" class="phoxtail-bar-btn-icon" %}
             </button>
+            {% endif %}
             <button type="button"
                     id="phoxtail-bar-actions-btn"
                     class="phoxtail-bar-btn"
@@ -53,6 +71,7 @@
             </button>
         </div>
         <div class="phoxtail-bar-panel-body">
+            {% if page %}
             <button type="button"
                     id="phoxtail-bar-publish-btn"
                     class="phoxtail-bar-actions-item"
@@ -90,6 +109,7 @@
                 </div>
             </a>
             <div class="phoxtail-bar-sep-line"></div>
+            {% endif %}
             <a href="{{ admin_home }}"
                id="phoxtail-bar-admin-btn"
                class="phoxtail-bar-actions-item"
@@ -105,11 +125,10 @@
     </div>
 </div>
 
+{% if perms.phoxtail_agent.access_chatbot %}
 <div id="phoxtail-chatbot-drawer"
      aria-label="Chatbot"
      role="complementary"
-     data-media-picker-url="{{ media_picker_url }}"
-     data-media-picker-modal-url="{{ chat_history_modal_url }}"
      data-chat-history-url="{{ chat_history_url }}"
      data-model-picker-url="{{ model_picker_url }}">
     <div class="phoxtail-chatbot-resize-handle"
@@ -187,17 +206,20 @@
             </div>
             <div class="phoxtail-bar-panel-body" id="phoxtail-model-picker-body"></div>
         </div>
+        {% if page %}
         <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
                     Blocks
-                    <span class="phoxtail-bar-badge">{{ page.body|length }}</span>
+                    <span class="phoxtail-bar-badge" id="phoxtail-bar-blocks-count">{{ page.body|length }}</span>
                 </span>
                 <button type="button" id="phoxtail-bar-panel-close" class="phoxtail-bar-panel-close" title="Close">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
-            <div class="phoxtail-bar-panel-body">
+            {# id lets page-swapping UIs replace the rows out-of-band; row     #}
+            {# handlers are delegated to the panel, so a body swap is safe.    #}
+            <div class="phoxtail-bar-panel-body" id="phoxtail-bar-blocks-body">
                 <div class="phoxtail-bar-page-row" data-phoxtail-bar-copy="page" draggable="true">
                     {% icon "web" class="phoxtail-bar-row-icon" %}
                     <div class="phoxtail-bar-row-info">
@@ -238,6 +260,7 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
         <textarea
             id="phoxtail-chatbot-input"
             class="phoxtail-chatbot-input"
@@ -246,6 +269,7 @@
             aria-label="Message"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
             <div class="phoxtail-chatbot-compose-actions-left">
+                {% if page %}
                 <button type="button"
                         id="phoxtail-bar-blocks-btn"
                         class="phoxtail-chatbot-compose-action-btn"
@@ -253,13 +277,16 @@
                         aria-expanded="false">
                     {% icon "layers" class="phoxtail-bar-btn-icon" %}
                 </button>
+                {% endif %}
+                {% if media_picker_url %}
                 <button type="button"
                         id="phoxtail-chatbot-media-btn"
-                        class="phoxtail-chatbot-compose-action-btn"
-                        title="Media (M)"
+                        class="phoxtail-chatbot-compose-action-btn phoxtail-bar-media-btn"
+                        title="Menu &amp; Media (M)"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
-                    {% icon "perm_media" class="phoxtail-bar-btn-icon" %}
+                    {% icon "menu" class="phoxtail-bar-btn-icon" %}
                 </button>
+                {% endif %}
                 <button type="button"
                         id="phoxtail-model-picker-btn"
                         class="phoxtail-chatbot-compose-action-btn phoxtail-chatbot-model-btn"
@@ -290,7 +317,10 @@
     <span data-chip-icon="block">{% icon "layers" class="phoxtail-chip-icon" %}</span>
     <span data-chip-icon="page">{% icon "web" class="phoxtail-chip-icon" %}</span>
 </div>
+{% endif %}
 
 <script src="{% static 'phoxtail_cms/js/phoxtail_bar.js' %}"></script>
+{% if media_picker_url %}
 <script src="{% static 'phoxtail_agent/js/media_picker.js' %}"></script>
+{% endif %}
 {% endif %}
