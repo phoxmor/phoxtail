@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp._changes import mark_changed_blocks
 from phoxtail.mcp.content._http import request
 from phoxtail.mcp.content.pages import _write_error_envelope
 
@@ -50,8 +51,7 @@ def update_block(page_id: int, block_uuid: str, etag: str, value: dict[str, Any]
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", etag)
-    data["_changed_blocks"] = [block_uuid]
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_blocks(data, block_uuid), indent=2)
 
 
 @mcp_server.tool(
@@ -87,10 +87,8 @@ def add_block(
     if envelope is not None:
         return envelope
     data = resp.json()
-    new_uuid = data.get("block", {}).get("id", "")
     data["_etag"] = resp.headers.get("ETag", etag)
-    data["_changed_blocks"] = [new_uuid] if new_uuid else []
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_blocks(data, data.get("block", {}).get("id")), indent=2)
 
 
 @mcp_server.tool(
@@ -114,8 +112,7 @@ def delete_block(page_id: int, block_uuid: str, etag: str) -> str:
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", etag)
-    data["_changed_blocks"] = [block_uuid]
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_blocks(data, block_uuid), indent=2)
 
 
 @mcp_server.tool(
@@ -140,5 +137,4 @@ def move_block(page_id: int, block_uuid: str, etag: str, position: dict[str, Any
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", etag)
-    data["_changed_blocks"] = [block_uuid]
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_blocks(data, block_uuid), indent=2)
