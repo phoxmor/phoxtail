@@ -213,6 +213,19 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                                 ValueError,
                             ):
                                 pass
+                # Any tool may declare a page-tree change with the
+                # _changed_pages marker (see phoxtail.mcp._changes). Read
+                # off the marker rather than a tool-name map, so an app
+                # can contribute a tool that declares one without this
+                # module having to know the tool exists.
+                try:
+                    result_content = str(event.part.content) if hasattr(event.part, "content") else ""
+                    changed_pages = json.loads(result_content).get("_changed_pages")
+                except (json.JSONDecodeError, AttributeError, TypeError, ValueError):
+                    changed_pages = None
+                if changed_pages is not None:
+                    await aq.put(("pages_changed", changed_pages))
+
                 if tool_name in CHAT_BLOCK_TOOLS:
                     # The tool stashed its rendered payload keyed by the
                     # chat_block_id in its result JSON. Pop it and push it to
@@ -362,6 +375,8 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                         {"page_id": page_id, "uuids": uuids, "kind": change_kind},
                     )
                 )
+            elif kind == "pages_changed":
+                out.put(_sse("pages_changed", {"page_ids": rest[0]}))
         await producer
         out.put(_sse("done", {"conversation_uuid": str(conversation.uuid)}))
     except asyncio.CancelledError:

@@ -1663,6 +1663,13 @@
                                 if (_busy) _showThinking();
                             } else if (evt === 'blocks_changed') {
                                 _handleBlocksChanged(data);
+                            } else if (evt === 'pages_changed') {
+                                // The bar has no view of the page tree —
+                                // re-broadcast so whatever is showing one
+                                // (a deck rail, a listing) can re-derive
+                                // itself. data.page_ids says which pages
+                                // were touched, for filtering only.
+                                document.dispatchEvent(new CustomEvent('phoxtail:pages-changed', { detail: data }));
                             } else if (evt === 'block_html') {
                                 _hideThinking();
                                 _finalizeToolGroup();

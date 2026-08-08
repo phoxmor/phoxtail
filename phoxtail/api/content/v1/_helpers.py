@@ -202,8 +202,16 @@ def _safe_full_url(page: Page) -> str | None:
 
 
 def serialize_page_detail(page: Page) -> dict[str, Any]:
-    """Full GET /pages/{id}/ body: common fields + contributed extras."""
+    """Full GET /pages/{id}/ body: common fields + contributed extras.
+
+    ``parent`` is here rather than in :func:`common_fields` on purpose:
+    resolving it costs a query per page, which a list view would pay
+    once per row. A detail response is a single page, and where it sits
+    is what lets a caller reason about the tree around it.
+    """
     base = common_fields(page)
+    parent = page.get_parent()
+    base["parent"] = parent.pk if parent is not None else None
     contribution = get_contribution_for_page(page)
     if contribution is not None:
         extra = contribution.serialize(page)

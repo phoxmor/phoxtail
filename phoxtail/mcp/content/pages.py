@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp._changes import mark_changed_pages
 from phoxtail.mcp.content._http import request
 
 # ---------------------------------------------------------------------------
@@ -171,7 +172,7 @@ def update_page(
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_pages(data, page_id, data.get("parent")), indent=2)
 
 
 @mcp_server.tool(
@@ -194,7 +195,12 @@ def publish_page(page_id: int, etag: str) -> str:
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    # Going live is a body change for the page itself (handled by the
+    # publish branch of the block-tool map) and a tree change for anything
+    # listing it — a draft and a live page do not look the same in a list.
+    # The parent is what makes it noticeable: a view that hides drafts has
+    # never shown this page, so its own id matches nothing there.
+    return json.dumps(mark_changed_pages(data, page_id, data.get("parent")), indent=2)
 
 
 @mcp_server.tool(
@@ -238,7 +244,10 @@ def create_page(
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    # The parent matters as much as the new page: a view listing the
+    # parent's children has never seen the new id and could not match on
+    # it, but it does know the parent it is showing.
+    return json.dumps(mark_changed_pages(data, data.get("id"), parent), indent=2)
 
 
 @mcp_server.tool(
@@ -274,7 +283,9 @@ def move_page(
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    # position='left'/'right' makes target a sibling, so the response's
+    # own parent is the authority on where the page landed.
+    return json.dumps(mark_changed_pages(data, page_id, target, data.get("parent")), indent=2)
 
 
 @mcp_server.tool(
@@ -296,7 +307,7 @@ def delete_page(page_id: int, etag: str, force: bool = False) -> str:
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
-    return json.dumps({"deleted": page_id})
+    return json.dumps(mark_changed_pages({"deleted": page_id}, page_id))
 
 
 @mcp_server.tool(
@@ -337,7 +348,7 @@ def translate_page(
         return envelope
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_pages(data, data.get("id"), data.get("parent")), indent=2)
 
 
 @mcp_server.tool(
@@ -356,4 +367,4 @@ def unpublish_page(page_id: int, etag: str) -> str:
     resp.raise_for_status()
     data = resp.json()
     data["_etag"] = resp.headers.get("ETag", "")
-    return json.dumps(data, indent=2)
+    return json.dumps(mark_changed_pages(data, page_id, data.get("parent")), indent=2)
