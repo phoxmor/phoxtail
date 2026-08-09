@@ -435,7 +435,30 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
             raise ValidationError({"block": ("Only blocks with 'is_shared' enabled can have shared content.")})
         # Ensure the content block type matches the block FK
         if self.block_id and self.content and len(self.content) > 0:
-            content_block_type = self.content[0].block_type
+            # ``content[0].block_type`` materializes the first stream item,
+            # which recurses into every nested block inside it. A malformed
+            # nested value (e.g. a StreamBlock field given `[null, null]`
+            # instead of `[{type, value, id}, ...]`) raises a bare
+            # TypeError/KeyError/AttributeError from deep inside Wagtail's
+            # block machinery, not a ValidationError — left uncaught, that
+            # escapes clean() and surfaces as an unhandled 500 instead of a
+            # normal validation error. See the equivalent guard in
+            # ``phoxtail.api.content.v1._helpers.replace_body``.
+            try:
+                content_block_type = self.content[0].block_type
+            except (TypeError, KeyError, AttributeError, ValueError) as exc:
+                raise ValidationError(
+                    {
+                        "content": (
+                            "Content is malformed and could not be read "
+                            f"({exc}). Every stream/list block entry — "
+                            "including nested ones inside struct fields — "
+                            "must be a {'type': ..., 'value': ..., 'id': "
+                            "...} dict; None or other placeholder values "
+                            "are not valid block entries."
+                        )
+                    }
+                ) from exc
             if content_block_type != self.block.identifier:
                 raise ValidationError(
                     {

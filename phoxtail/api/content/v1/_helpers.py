@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
 from ninja.errors import HttpError
 from wagtail.models import Page
@@ -279,13 +280,40 @@ def replace_body(
 
     Accepts the round-trippable ``[{type, value, id}, ...]`` format. The
     value is set on the page but not saved — the caller saves a revision.
+
+    ``StreamBlock.to_python`` is lazy: it wraps the raw dicts without
+    validating anything below the top level, so a malformed nested block
+    (e.g. a StreamBlock field inside a StructBlock given ``[null, null]``
+    instead of ``[{type, value, id}, ...]``) sails through untouched and
+    only blows up later — during rendering or in the admin editor, by
+    which point it may already be committed to a revision. Forcing a full
+    ``get_api_representation`` pass here, before the caller's
+    ``save_revision()``, makes this the single place that catches that
+    corruption for every block-write endpoint (add/update/delete/move/
+    replace all funnel through this function).
     """
     stream_value = getattr(page, field_name, None)
     if stream_value is None:
         raise HttpError(400, f"Page has no StreamField named '{field_name}'.")
     stream_block = stream_value.stream_block
-    # ``to_python`` converts the JSON-ready form back into a StreamValue.
-    setattr(page, field_name, stream_block.to_python(new_value))
+    try:
+        # ``to_python`` converts the JSON-ready form back into a StreamValue.
+        # It already raises TypeError/KeyError on a malformed *top-level*
+        # entry (e.g. a bare `null`, or a dict missing "type"); wrapping it
+        # together with get_api_representation below means both the
+        # top-level and nested-block failure paths land on the same 400.
+        python_value = stream_block.to_python(new_value)
+        stream_block.get_api_representation(python_value, context=None)
+    except (TypeError, KeyError, AttributeError, ValueError, ValidationError) as exc:
+        raise HttpError(
+            400,
+            "Invalid body: could not materialize the new value "
+            f"({exc}). Every stream/list block entry — including "
+            "nested ones inside struct fields — must be a "
+            "{'type': ..., 'value': ..., 'id': ...} dict; None or "
+            "other placeholder values are not valid block entries.",
+        ) from exc
+    setattr(page, field_name, python_value)
 
 
 def body_field_name_for(page: Page) -> str:
