@@ -18,3 +18,9 @@ class PhoxtailCmsConfig(PhoxtailAppConfig):
     page_schema_contributors = [
         "phoxtail.cms.api.v1.page_schemas.contribute_site_page",
     ]
+
+    def ready(self):
+        super().ready()
+        from phoxtail.cms.signals import install_draft_redirect_guard
+
+        install_draft_redirect_guard()

@@ -48,6 +48,10 @@ INSTALLED_APPS = [
     "phoxtail.agent",
     "phoxtail.dashboard",
     "phoxtail.tokens",
+    # After the phoxtail apps, as in the hatched project template: phoxtail.cms
+    # installs its draft-redirect guard before this app connects the handler,
+    # which is the order the guard is written for. See phoxtail/cms/signals.py.
+    "wagtail.contrib.redirects",
 ]
 
 MIDDLEWARE = [
