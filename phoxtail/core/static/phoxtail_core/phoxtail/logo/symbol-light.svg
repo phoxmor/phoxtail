@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="135.46664mm"
-   height="135.46666mm"
-   viewBox="0 0 135.46664 135.46666"
+   width="135.46675mm"
+   height="135.46667mm"
+   viewBox="0 0 135.46675 135.46667"
    version="1.1"
    id="svg1"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -22,10 +22,10 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm">
     <inkscape:page
-       x="9.474014e-14"
-       y="0"
-       width="135.46664"
-       height="135.46666"
+       x="0"
+       y="-1.3689107e-18"
+       width="135.46675"
+       height="135.46667"
        id="page2"
        margin="0"
        bleed="0" />
@@ -36,30 +36,30 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(319.63251,-65.038062)">
+     transform="translate(202.40624,-511.17506)">
     <g
-       id="g3"
-       inkscape:export-filename="g3.svg"
+       id="g2"
+       inkscape:export-filename="g1.svg"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96">
       <rect
          style="fill:none;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dashoffset:38.456"
-         id="rect2-7"
+         id="rect1"
          width="135.46666"
          height="135.46666"
-         x="-319.63254"
-         y="65.038063" />
+         x="-202.4062"
+         y="511.17499" />
       <text
          xml:space="preserve"
-         style="font-size:133.598px;line-height:1.1;font-family:'EB Garamond';-inkscape-font-specification:'EB Garamond';text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#1a1a1a;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dashoffset:38.456"
-         x="-312.88669"
-         y="173.31841"
-         id="text1-8"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:156.609px;line-height:1.1;font-family:'EB Garamond';-inkscape-font-specification:'EB Garamond';letter-spacing:0px;writing-mode:lr-tb;direction:ltr;fill:#1a1a1a;stroke:#000000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:0;stroke-dashoffset:38.456"
+         x="-206.16489"
+         y="626.43915"
+         id="text1"><tspan
            sodipodi:role="line"
-           id="tspan1-5"
-           style="fill:#1a1a1a;stroke-width:0"
-           x="-312.88669"
-           y="173.31841">Pȶ</tspan></text>
+           id="tspan1"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:156.609px;font-family:'EB Garamond';-inkscape-font-specification:'EB Garamond';fill:#1a1a1a;stroke-width:0"
+           x="-206.16489"
+           y="626.43915">Pȶ</tspan></text>
     </g>
   </g>
 </svg>
