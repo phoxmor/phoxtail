@@ -16,14 +16,14 @@
                Locally installed variants are not affected.</p>
         </div>
         <div class="rga-dialog__footer">
-            <button class="rga-btn rga-btn--secondary"
+            <button class="phoxtail-btn phoxtail-btn--secondary"
                     onclick="closeModal()"
                     type="button">Cancel</button>
             <form hx-post="{% url 'remotes:delete' remote.pk %}"
                   hx-swap="none"
                   style="display: inline-block; margin: 0;">
                 {% csrf_token %}
-                <button class="rga-btn rga-btn--danger" type="submit">
+                <button class="phoxtail-btn phoxtail-btn--danger" type="submit">
                     {% icon "remove" %}
                     <span>Disconnect</span>
                 </button>

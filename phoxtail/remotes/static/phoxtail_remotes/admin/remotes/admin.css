@@ -246,82 +246,9 @@
     white-space: nowrap;
 }
 
-.rga-btn--primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 999px;
-    border: 1px solid rgb(var(--color-surface-900, 9 9 11));
-    background: rgb(var(--color-surface-900, 9 9 11));
-    color: #fff;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
-}
-
-.rga-btn--primary:hover {
-    background: rgb(var(--color-surface-800, 39 39 42));
-    border-color: rgb(var(--color-surface-800, 39 39 42));
-    color: #fff;
-}
-
-.rga-btn--primary:active {
-    transform: scale(0.98);
-}
-
-.rga-btn--secondary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 999px;
-    border: 1px solid rgb(var(--color-surface-200, 228 228 231));
-    background: rgb(var(--color-surface-100, 244 244 245));
-    color: rgb(var(--color-surface-600, 82 82 91));
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
-}
-
-.rga-btn--secondary:hover {
-    background: rgb(var(--color-surface-200, 228 228 231));
-    border-color: rgb(var(--color-surface-300, 212 212 216));
-}
-
-.rga-btn--secondary:active {
-    transform: scale(0.98);
-}
-
-.rga-btn--danger {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 999px;
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    background-color: rgba(220, 38, 38, 0.08);
-    color: rgb(220, 38, 38);
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
-}
-
-.rga-btn--danger:hover {
-    background-color: rgb(220 38 38);
-    color: #fff;
-    border-color: rgb(220 38 38);
-}
-
-.rga-btn--danger:active {
-    transform: scale(0.98);
-}
+/* --primary / --secondary / --danger / --full moved to phoxtail_core/css/modal.css
+   as .phoxtail-btn--*. Still used outside modals here: --ghost, --sm, --install,
+   --installed (below), on the base .rga-btn above. */
 
 .rga-btn--ghost {
     background: transparent;
@@ -635,124 +562,12 @@
     font-size: 0.875rem;
 }
 
-/* ── Drawer (modal) ── */
-
-.rga-modal-overlay {
-    height: 100vh;
-    display: flex;
-    align-items: stretch;
-    justify-content: flex-end;
-}
-
-.rga-drawer {
-    position: fixed;
-    inset-block: 0;
-    right: 0;
-    z-index: 50;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
-    width: 100%;
-    max-width: 480px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-left: 1px solid rgb(0 0 0 / 0.07);
-    box-shadow: -8px 0 48px rgba(0, 0, 0, 0.1), inset 0.5px 0 0 rgb(255 255 255 / 0.6);
-    font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
-}
-
-.rga-drawer__scroll {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(0 0 0 / 0.12) transparent;
-}
-
-.rga-drawer__scroll::-webkit-scrollbar {
-    width: 4px;
-}
-
-.rga-drawer__scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.rga-drawer__scroll::-webkit-scrollbar-thumb {
-    background-color: rgb(0 0 0 / 0.12);
-    border-radius: 100px;
-}
-
-.rga-drawer__scroll::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(0 0 0 / 0.2);
-}
-
-.rga-drawer__header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgb(0 0 0 / 0.06);
-}
-
-.rga-drawer__title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.rga-drawer__title {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: rgb(var(--color-surface-900));
-    margin: 0;
-}
-
-.rga-close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    min-width: 1.75rem;
-    border-radius: 50%;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    padding: 0;
-    font-family: inherit;
-    line-height: 1;
-    flex-shrink: 0;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-
-.rga-close-btn:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
-}
-
-.rga-close-btn svg {
-    width: 0.875rem;
-    height: 0.875rem;
-    display: block;
-}
-
-.rga-drawer__body {
-    padding: 1.5rem;
-    flex: 1;
-}
-
-.rga-drawer__footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgb(0 0 0 / 0.06);
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-}
+/* ── Drawer (modal) ──
+   Shell/chrome (overlay, drawer surface, header/body/footer, close button,
+   form-stack, danger-section) now lives in phoxtail_core/css/modal.css as
+   .phoxtail-modal-overlay / .phoxtail-modal-drawer.phoxtail-drawer--glass /
+   .phoxtail-drawer__* / .phoxtail-close-btn / .phoxtail-form-stack /
+   .phoxtail-danger-section*. See edit/form.html and add/form.html. */
 
 /* ── Dialog (centered modal) ── */
 
@@ -815,71 +630,9 @@
     justify-content: flex-end;
 }
 
-/* ── Form stack ── */
-
-.rga-form-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-/* ── Danger section ── */
-
-.rga-danger-section {
-    width: 100%;
-    border-radius: 1rem;
-    padding: 1.25rem;
-    background-color: rgb(255 255 255 / 0.3);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgb(0 0 0 / 0.06);
-    box-sizing: border-box;
-}
-
-.rga-danger-section__header {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-
-.rga-danger-section__icon-wrap {
-    flex-shrink: 0;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 50%;
-    background-color: rgb(var(--color-surface-100));
-    color: rgb(var(--color-surface-600));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.rga-danger-section__icon-wrap svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    display: block;
-}
-
-.rga-danger-section__title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: rgb(var(--color-surface-900));
-    margin: 0 0 0.25rem;
-}
-
-.rga-danger-section__text {
-    font-size: 0.8125rem;
-    color: rgb(var(--color-surface-500));
-    line-height: 1.5;
-    margin: 0;
-}
-
-.rga-btn--full {
-    width: 100%;
-    justify-content: center;
-}
-
+/* ── Form stack / Danger section ──
+   Moved to phoxtail_core/css/modal.css as .phoxtail-form-stack /
+   .phoxtail-danger-section*. See edit/form.html. */
 
 /* ── Submit button loading state ── */
 
@@ -1269,30 +1022,11 @@
         color: rgb(var(--color-surface-400));
     }
 
-    /* ── Buttons ── */
-
-    .rga-btn--primary {
-        background: rgb(var(--color-surface-800));
-        color: rgb(var(--color-primary-400));
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .rga-btn--primary:hover {
-        background: rgb(var(--color-surface-700));
-        border-color: rgb(var(--color-surface-600));
-        color: rgb(var(--color-primary-300));
-    }
-
-    .rga-btn--secondary {
-        background: rgb(var(--color-surface-800));
-        color: rgb(var(--color-surface-300));
-        border-color: rgb(var(--color-surface-600));
-    }
-
-    .rga-btn--secondary:hover {
-        background: rgb(var(--color-surface-700));
-        color: rgb(var(--color-surface-100));
-    }
+    /* ── Buttons ──
+       --primary / --secondary / --danger moved to phoxtail_core/css/modal.css
+       as .phoxtail-btn--*. This block also used to duplicate them with
+       different (silently-losing, per cascade order) values than the block
+       further down — that conflict goes away with the move. */
 
     .rga-btn--ghost {
         color: rgb(var(--color-surface-400));
@@ -1302,16 +1036,6 @@
     .rga-btn--ghost:hover {
         background: rgb(var(--color-surface-800));
         color: rgb(var(--color-surface-100));
-    }
-
-    .rga-btn--danger {
-        background: rgb(185 28 28);
-        border-color: rgb(185 28 28);
-    }
-
-    .rga-btn--danger:hover {
-        background: rgb(153 27 27);
-        border-color: rgb(153 27 27);
     }
 
     .rga-btn--install {
@@ -1432,68 +1156,9 @@
         color: rgb(var(--color-surface-300));
     }
 
-    /* ── Drawer ── */
-
-    .rga-drawer {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-        border-left-color: rgb(255 255 255 / 0.08);
-        box-shadow: -8px 0 48px rgba(0, 0, 0, 0.5), inset 0.5px 0 0 rgb(255 255 255 / 0.06);
-    }
-
-    .rga-drawer__scroll {
-        scrollbar-color: rgb(255 255 255 / 0.12) transparent;
-    }
-    .rga-drawer__scroll::-webkit-scrollbar-thumb {
-        background-color: rgb(255 255 255 / 0.12);
-    }
-    .rga-drawer__scroll::-webkit-scrollbar-thumb:hover {
-        background-color: rgb(255 255 255 / 0.2);
-    }
-
-    .rga-drawer__header {
-        border-bottom-color: rgb(255 255 255 / 0.07);
-    }
-
-    .rga-drawer__title {
-        color: rgb(var(--color-surface-100));
-    }
-
-    .rga-drawer__footer {
-        border-top-color: rgb(255 255 255 / 0.07);
-    }
-
-    .rga-close-btn {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.7);
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
-    }
-
-    .rga-close-btn:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        border-color: rgb(255 255 255 / 0.2);
-        color: white;
-    }
-
-    .rga-btn--secondary {
-        background: rgb(var(--color-surface-900, 24 24 27) / 0.6);
-        border-color: rgb(var(--color-surface-700, 63 63 70));
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
-    .rga-btn--secondary:hover {
-        background: rgb(var(--color-surface-800, 39 39 42) / 0.7);
-        border-color: rgb(var(--color-surface-600, 82 82 91));
-    }
-
-    .rga-btn--primary {
-        background: rgb(var(--color-surface-800, 39 39 42));
-        border-color: rgb(var(--color-surface-700, 63 63 70));
-        color: #fff;
-    }
-    .rga-btn--primary:hover {
-        background: rgb(var(--color-surface-700, 63 63 70));
-        border-color: rgb(var(--color-surface-600, 82 82 91));
-        color: #fff;
-    }
+    /* Drawer chrome dark-mode overrides moved to phoxtail_core/css/modal.css
+       (.phoxtail-drawer--glass etc.); button overrides moved to
+       .phoxtail-btn--* in the same file. */
 
     /* ── Centered dialog ── */
 
@@ -1564,39 +1229,9 @@
         border-color: rgb(var(--color-surface-700));
     }
 
-    /* ── Danger section ── */
-
-    .rga-danger-section {
-        background-color: rgb(0 0 0 / 0.2);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border-color: rgb(255 255 255 / 0.07);
-    }
-
-    .rga-danger-section__title {
-        color: rgb(var(--color-surface-100));
-    }
-
-    .rga-danger-section__text {
-        color: rgb(var(--color-surface-400));
-    }
-
-    .rga-danger-section__icon-wrap {
-        background-color: rgb(255 255 255 / 0.08);
-        color: rgb(var(--color-surface-300));
-    }
-
-    .rga-btn--danger {
-        background-color: rgba(220, 38, 38, 0.15);
-        border-color: rgba(220, 38, 38, 0.25);
-        color: #fca5a5;
-    }
-
-    .rga-btn--danger:hover {
-        background-color: rgb(220 38 38);
-        border-color: rgb(220 38 38);
-        color: white;
-    }
+    /* Danger-section dark-mode overrides moved to phoxtail_core/css/modal.css
+       (.phoxtail-danger-section*); .rga-btn--danger dark override moved to
+       .phoxtail-btn--danger in the same file. */
 
     /* ── Remote cards ── */
 
