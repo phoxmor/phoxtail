@@ -292,97 +292,10 @@
     color: rgb(var(--color-surface-900));
 }
 
-.dash-btn--primary {
-    background-color: rgb(var(--color-primary-600));
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(var(--color-primary-500) / 0.25);
-}
-
-.dash-btn--primary:hover {
-    background-color: rgb(var(--color-primary-700));
-    transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(var(--color-primary-500) / 0.3);
-}
-
 .dash-btn--full { width: 100%; }
 
 @media (max-width: 767px) {
     .dash-btn-mobile-full { width: 100%; }
-}
-
-/* ========================================
-   DRAWER / MODAL STRUCTURES
-   ======================================== */
-.dash-modal-overlay {
-    height: 100vh;
-    padding: 0 1rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dash-drawer-content {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    background: rgb(255 255 255);
-    border-left: 1px solid rgb(var(--color-surface-200) / 0.5);
-    box-shadow: -10px 0 15px -3px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    z-index: 50;
-}
-
-@media (min-width: 768px) {
-    .dash-drawer-content {
-        max-width: 42rem;
-    }
-}
-
-.dash-drawer-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgb(var(--color-surface-200) / 0.3);
-}
-
-.dash-drawer-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.dash-drawer-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: rgb(var(--color-surface-900));
-    margin: 0;
-}
-
-.dash-drawer-subtitle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: rgb(var(--color-surface-600));
-    font-size: 1rem;
-}
-
-.dash-drawer-body {
-    padding: 1.5rem;
-}
-
-.dash-drawer-body > * + * {
-    margin-top: 1rem;
-}
-
-.dash-drawer-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgb(var(--color-surface-200) / 0.3);
-    background-color: rgb(var(--color-surface-50) / 0.5);
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
 }
 
 /* ========================================
@@ -397,119 +310,6 @@
 }
 
 /* ========================================
-   FORM ELEMENTS
-   ======================================== */
-.dash-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-@media (min-width: 640px) {
-    .dash-form-grid-2 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.dash-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-}
-
-.dash-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(var(--color-surface-700));
-}
-
-.dash-required {
-    color: rgb(var(--color-destructive-500));
-}
-
-.dash-input {
-    display: block;
-    width: 100%;
-    padding: 0.625rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    background-color: rgb(255 255 255);
-    color: rgb(var(--color-surface-900));
-    font-family: inherit;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.dash-input:focus {
-    outline: none;
-    border-color: rgb(var(--color-primary-500));
-    box-shadow: 0 0 0 3px rgb(var(--color-primary-500) / 0.1);
-}
-
-.dash-error-text {
-    font-size: 0.875rem;
-    color: rgb(var(--color-destructive-600));
-    margin-top: 0.25rem;
-}
-
-.dash-error-box {
-    padding: 1rem;
-    background-color: rgb(var(--color-destructive-50));
-    border: 1px solid rgb(var(--color-destructive-200));
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.dash-error-box__title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(var(--color-destructive-800));
-    margin: 0 0 0.5rem;
-}
-
-.dash-error-box__list {
-    margin: 0;
-    padding-left: 1.25rem;
-    font-size: 0.875rem;
-    color: rgb(var(--color-destructive-700));
-}
-
-/* ========================================
-   SPECIAL INPUTS
-   ======================================== */
-.dash-file-input {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-700));
-}
-
-.dash-file-input::-webkit-file-upload-button {
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    background: rgb(var(--color-surface-50));
-    color: rgb(var(--color-surface-700));
-    font-weight: 500;
-    cursor: pointer;
-    margin-right: 1rem;
-    transition: all 0.2s ease;
-}
-
-.dash-checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    cursor: pointer;
-}
-
-.dash-checkbox {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    cursor: pointer;
-}
-
-/* ========================================
    DARK MODE OVERRIDES
    ======================================== */
 @media (prefers-color-scheme: dark) {
@@ -519,20 +319,13 @@
         border-color: rgb(var(--color-surface-700));
     }
 
-    
-    .dash-drawer-content {
-        background-color: rgb(var(--color-surface-900));
-        border-color: rgb(var(--color-surface-700) / 0.4);
-    }
-
     .dash-columns--divided > .dash-column:not(:last-child) {
         border-color: rgb(var(--color-surface-700) / 0.4);
     }
 
     .dash-page-header__subtitle,
     .dash-action-item__desc,
-    .dash-info-item__label,
-    .dash-drawer-subtitle {
+    .dash-info-item__label {
         color: rgb(var(--color-surface-200));
     }
 
@@ -546,16 +339,12 @@
 
     .dash-action-item__title,
     .dash-info-title,
-    .dash-info-item__value,
-    .dash-drawer-title,
-    .dash-label,
-    .dash-input {
+    .dash-info-item__value {
         color: rgb(var(--color-surface-200));
     }
 
     .dash-action-item,
-    .dash-info-item:hover,
-    .dash-drawer-footer {
+    .dash-info-item:hover {
         background-color: rgb(var(--color-surface-800) / 0.3);
     }
 
@@ -586,23 +375,5 @@
     .dash-btn--outline:hover {
         border-color: rgb(var(--color-primary-500));
         color: rgb(var(--color-surface-200));
-    }
-
-    .dash-input {
-        background-color: rgb(var(--color-surface-900));
-        border-color: rgb(var(--color-surface-700));
-    }
-
-    .dash-error-box {
-        background-color: rgb(var(--color-destructive-950) / 0.2);
-        border-color: rgb(var(--color-destructive-900) / 0.5);
-    }
-
-    .dash-error-box__title {
-        color: rgb(var(--color-destructive-400));
-    }
-
-    .dash-error-box__list {
-        color: rgb(var(--color-destructive-500));
     }
 }

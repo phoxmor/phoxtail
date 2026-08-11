@@ -1,207 +1,120 @@
 {% load phoxtail_core_tags thumbnail phoxtail_design_tags %}
-<div class="dash-modal-overlay"
+<div class="phoxtail-modal-overlay"
      onclick="closeModal()"
      data-modal-animation="slide-right"
      data-animation-duration="300ms">
-    <div class="dash-drawer-content" onclick="event.stopPropagation()">
-        <div class="usr-drawer-scroll">
+    <div class="phoxtail-modal-drawer phoxtail-drawer--glass"
+         style="--phoxtail-drawer-width: 480px;"
+         onclick="event.stopPropagation()">
+        <div class="phoxtail-drawer__scroll">
             <!-- Header -->
-            <div class="dash-drawer-header">
-                <div class="dash-drawer-title-row">
-                    <h2 class="dash-drawer-title">Edit Profile</h2>
-                    <button class="dash-icon-btn"
+            <div class="phoxtail-drawer__header">
+                <div class="phoxtail-drawer__title-row">
+                    <h2 class="phoxtail-drawer__title">Edit Profile</h2>
+                    <button class="phoxtail-close-btn"
                             onclick="closeModal()"
                             aria-label="Close modal"
                             type="button">
-                        <span class="dash-icon-btn__icon">{% icon "close" %}</span>
+                        {% icon "close" %}
                     </button>
                 </div>
-                <div class="dash-drawer-subtitle">
-                    <span class="dash-info-item__icon">{% icon "user" %}</span>
-                    <span>Update your personal information</span>
-                </div>
             </div>
-            <!-- Content -->
-            <div class="dash-drawer-body">
-                <!-- Avatar Preview -->
-                <div class="dash-mb-6 dash-avatar-section">
-                    <div id="avatar-preview-initials"
-                         class="dash-avatar-initials{% if user.avatar %} dash-hidden{% endif %}">
-                        {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
-                    </div>
-                    {% if user.avatar %}
-                        {% thumbnail user.avatar "256x256" crop="center" as avatar %}
-                            <img id="avatar-preview-image"
-                                 class="dash-avatar"
-                                 src="{{ avatar.url }}"
-                                 alt="{{ user.get_full_name }}">
-                        {% endthumbnail %}
-                    {% else %}
-                        <img id="avatar-preview-image"
-                             class="dash-avatar dash-hidden"
-                             src=""
-                             alt="{{ user.get_full_name }}">
-                    {% endif %}
-                    <h2 class="dash-profile-name">{{ user.get_full_name }}</h2>
-                    <span class="dash-profile-handle">@{{ user.username }}</span>
-                </div>
-                <form method="POST"
-                      enctype="multipart/form-data"
-                      class="dash-form-grid"
-                      hx-post="{% url 'users:profile_update' %}"
-                      hx-target="#core-modal-placeholder"
-                      hx-swap="innerHTML">
-                    {% csrf_token %}
-                    {{ form.media }}
-                    <div class="dash-form-grid dash-form-grid-2">
-                        <div class="dash-form-group">
-                            <label for="{{ form.first_name.id_for_label }}" class="dash-label">
-                                First Name
-                                {% if form.first_name.field.required %}<span class="dash-required">*</span>{% endif %}
-                            </label>
-                            {{ form.first_name|add_class:"dash-input" }}
-                            {% if form.first_name.errors %}
-                                <p class="dash-error-text">
-                                    {% for error in form.first_name.errors %}
-                                        {{ error }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% endfor %}
-                                </p>
-                            {% endif %}
+            <!-- Body -->
+            <div class="phoxtail-drawer__body">
+                <div class="phoxtail-form-stack">
+                    <!-- Avatar Preview -->
+                    <div class="dash-avatar-section">
+                        <div id="avatar-preview-initials"
+                             class="dash-avatar-initials{% if user.avatar %} dash-hidden{% endif %}">
+                            {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
                         </div>
-                        <div class="dash-form-group">
-                            <label for="{{ form.last_name.id_for_label }}" class="dash-label">
-                                Last Name
-                                {% if form.last_name.field.required %}<span class="dash-required">*</span>{% endif %}
-                            </label>
-                            {{ form.last_name|add_class:"dash-input" }}
-                            {% if form.last_name.errors %}
-                                <p class="dash-error-text">
-                                    {% for error in form.last_name.errors %}
-                                        {{ error }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% endfor %}
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="dash-form-grid dash-form-grid-2">
-                        <div class="dash-form-group">
-                            <label for="{{ form.born_at.id_for_label }}" class="dash-label">
-                                Date of Birth
-                                {% if form.born_at.field.required %}<span class="dash-required">*</span>{% endif %}
-                            </label>
-                            {{ form.born_at|add_class:"dash-input" }}
-                            {% if form.born_at.errors %}
-                                <p class="dash-error-text">
-                                    {% for error in form.born_at.errors %}
-                                        {{ error }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% endfor %}
-                                </p>
-                            {% endif %}
-                        </div>
-                        <div class="dash-form-group">
-                            <label for="{{ form.gender.id_for_label }}" class="dash-label">
-                                Gender
-                                {% if form.gender.field.required %}<span class="dash-required">*</span>{% endif %}
-                            </label>
-                            {{ form.gender|add_class:"dash-input" }}
-                            {% if form.gender.errors %}
-                                <p class="dash-error-text">
-                                    {% for error in form.gender.errors %}
-                                        {{ error }}
-                                        {% if not forloop.last %}<br>{% endif %}
-                                    {% endfor %}
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="dash-form-group">
-                        <label for="{{ form.phone_number.id_for_label }}" class="dash-label">
-                            Phone Number
-                            {% if form.phone_number.field.required %}<span class="dash-required">*</span>{% endif %}
-                        </label>
-                        {{ form.phone_number|add_class:"dash-input" }}
-                        {% if form.phone_number.errors %}
-                            <p class="dash-error-text">
-                                {% for error in form.phone_number.errors %}
-                                    {{ error }}
-                                    {% if not forloop.last %}<br>{% endif %}
-                                {% endfor %}
-                            </p>
-                        {% endif %}
-                    </div>
-                    <div class="dash-form-group">
-                        <label for="{{ form.country.id_for_label }}" class="dash-label">
-                            Country
-                            {% if form.country.field.required %}<span class="dash-required">*</span>{% endif %}
-                        </label>
-                        {{ form.country|add_class:"dash-input" }}
-                        {% if form.country.errors %}
-                            <p class="dash-error-text">
-                                {% for error in form.country.errors %}
-                                    {{ error }}
-                                    {% if not forloop.last %}<br>{% endif %}
-                                {% endfor %}
-                            </p>
-                        {% endif %}
-                    </div>
-                    <div class="dash-form-group">
-                        <label for="{{ form.avatar.id_for_label }}" class="dash-label">
-                            Avatar
-                            {% if form.avatar.field.required %}<span class="dash-required">*</span>{% endif %}
-                        </label>
-                        <input type="file"
-                               name="{{ form.avatar.name }}"
-                               id="{{ form.avatar.id_for_label }}"
-                               accept="image/*"
-                               onchange="previewAvatar(event)"
-                               class="dash-file-input">
                         {% if user.avatar %}
-                            <label class="dash-checkbox-group">
-                                <input type="checkbox"
-                                       name="{{ form.avatar.name }}-clear"
-                                       id="avatar-clear-checkbox"
-                                       onchange="handleClearAvatar(event)"
-                                       class="dash-checkbox">
-                                <span class="dash-label">Clear current avatar</span>
-                            </label>
+                            {% thumbnail user.avatar "256x256" crop="center" as avatar %}
+                                <img id="avatar-preview-image"
+                                     class="dash-avatar"
+                                     src="{{ avatar.url }}"
+                                     alt="{{ user.get_full_name }}">
+                            {% endthumbnail %}
+                        {% else %}
+                            <img id="avatar-preview-image"
+                                 class="dash-avatar dash-hidden"
+                                 src=""
+                                 alt="{{ user.get_full_name }}">
                         {% endif %}
-                        {% if form.avatar.errors %}
-                            <p class="dash-error-text">
-                                {% for error in form.avatar.errors %}
-                                    {{ error }}
-                                    {% if not forloop.last %}<br>{% endif %}
-                                {% endfor %}
-                            </p>
-                        {% endif %}
+                        <h2 class="dash-profile-name">{{ user.get_full_name }}</h2>
+                        <span class="dash-profile-handle">@{{ user.username }}</span>
                     </div>
-                    {% if form.non_field_errors %}
-                        <div class="dash-error-box">
-                            <h3 class="dash-error-box__title">Please correct the errors below:</h3>
-                            <ul class="dash-error-box__list">
-                                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-                            </ul>
+                    <form id="profile-update-form"
+                          method="POST"
+                          enctype="multipart/form-data"
+                          hx-post="{% url 'users:profile_update' %}"
+                          hx-target="#core-modal-placeholder"
+                          hx-swap="innerHTML">
+                        {% csrf_token %}
+                        {{ form.media }}
+                        <div class="phoxtail-form-stack">
+                            {% include "phoxtail_core/forms/widgets/input.html" with field=form.first_name show_label=True show_help_text=False %}
+                            {% include "phoxtail_core/forms/widgets/input.html" with field=form.last_name show_label=True show_help_text=False %}
+                            {% include "phoxtail_core/forms/widgets/date.html" with field=form.born_at %}
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.gender %}
+                            {% include "phoxtail_core/forms/widgets/select.html" with field=form.country %}
+                            {% include "phoxtail_core/forms/widgets/htmx/input.html" with field=form.phone_number show_label=True show_help_text=False %}
+                            <div class="usr-form-group">
+                                <label for="{{ form.avatar.id_for_label }}" class="usr-label">
+                                    Avatar
+                                    {% if form.avatar.field.required %}<span class="usr-required">*</span>{% endif %}
+                                </label>
+                                <input type="file"
+                                       name="{{ form.avatar.name }}"
+                                       id="{{ form.avatar.id_for_label }}"
+                                       accept="image/*"
+                                       onchange="previewAvatar(event)"
+                                       class="usr-file-input">
+                                {% if user.avatar %}
+                                    <label class="usr-checkbox-group">
+                                        <input type="checkbox"
+                                               name="{{ form.avatar.name }}-clear"
+                                               id="avatar-clear-checkbox"
+                                               onchange="handleClearAvatar(event)"
+                                               class="usr-checkbox">
+                                        <span class="usr-label">Clear current avatar</span>
+                                    </label>
+                                {% endif %}
+                                {% if form.avatar.errors %}
+                                    <p class="usr-error-text">
+                                        {% for error in form.avatar.errors %}
+                                            {{ error }}
+                                            {% if not forloop.last %}<br>{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            {% if form.non_field_errors %}
+                                <div class="usr-error-box">
+                                    <h3 class="usr-error-box__title">Please correct the errors below:</h3>
+                                    <ul class="usr-error-box__list">
+                                        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                    <!-- Hidden submit button for form -->
-                    <button type="submit"
-                            id="profile-form-submit-dash-hidden"
-                            class="dash-hidden">Submit</button>
-                </form>
-            </div>
-            <!-- Footer with action buttons -->
-            <div class="usr-drawer-footer">
-                <button class="dash-btn dash-btn--primary"
-                        onclick="document.getElementById('profile-form-submit-dash-hidden').click()"
-                        type="button">Save Changes</button>
-                <button class="dash-btn dash-btn--outline"
-                        onclick="closeModal()"
-                        type="button">Cancel</button>
+                    </form>
+                </div>
             </div>
         </div>
-        <!-- usr-drawer-scroll -->
+        <!-- Footer -->
+        <div class="phoxtail-drawer__footer">
+            <button class="phoxtail-btn phoxtail-btn--secondary"
+                    onclick="closeModal()"
+                    type="button">
+                <span>Cancel</span>
+            </button>
+            <button class="phoxtail-btn phoxtail-btn--primary"
+                    type="submit"
+                    form="profile-update-form">
+                <span>Save</span>
+            </button>
+        </div>
     </div>
 </div>
 <script>
