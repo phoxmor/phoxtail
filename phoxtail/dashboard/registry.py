@@ -8,6 +8,7 @@ class DashboardNavItem:
     icon: str
     order: int = 100
     mobile: bool = True
+    center: bool = False
 
 
 @dataclass

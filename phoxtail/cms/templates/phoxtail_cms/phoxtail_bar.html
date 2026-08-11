@@ -29,7 +29,7 @@
             <span class="phoxtail-bar-sep">·</span>
             <span class="phoxtail-bar-locale">{{ page.locale.language_code }}</span>
             <span class="phoxtail-bar-sep">·</span>
-            <span class="phoxtail-bar-live-dot phoxtail-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}">{% if page.live %}live{% else %}draft{% endif %}</span>
+            <span class="phoxtail-bar-live-dot phoxtail-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}" title="{% if page.live %}live{% else %}draft{% endif %}"></span>
         </div>
         <div class="phoxtail-bar-divider"></div>
         {% endif %}

@@ -11,7 +11,7 @@
 {% block body %}
     <div class="dash-layout">
         {% include 'phoxtail_dashboard/navigation/sidebar.html' %}
-        <div class="dash-main">
+        <div class="dash-main" data-phoxtail-bar-lane>
             {% include 'phoxtail_dashboard/navigation/drawer.html' %}
             <div class="dash-content">
                 {% block content %}

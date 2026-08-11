@@ -29,6 +29,40 @@
         }).observe(_dock);
     }
 
+    // A host with persistent chrome marks its content container with
+    // [data-phoxtail-bar-lane] (sidebar/rail eating into the sides) and/or
+    // [data-phoxtail-bar-floor] (a fixed bottom bar) so the bar centers on
+    // that lane and clears that floor instead of assuming it owns the
+    // whole viewport. clientWidth (not innerWidth) so a classic scrollbar
+    // doesn't skew the right inset.
+    var _lane = document.querySelector('[data-phoxtail-bar-lane]');
+    var _floor = document.querySelector('[data-phoxtail-bar-floor]');
+    if (_lane || _floor) {
+        var _syncChrome = function () {
+            var docEl = document.documentElement;
+            if (_lane) {
+                var laneRect = _lane.getBoundingClientRect();
+                docEl.style.setProperty('--phoxtail-bar-lane-left', laneRect.left + 'px');
+                docEl.style.setProperty(
+                    '--phoxtail-bar-lane-right', (docEl.clientWidth - laneRect.right) + 'px'
+                );
+            }
+            if (_floor) {
+                // A zero height here is meaningful, not a glitch: the floor
+                // element is hidden (a tab bar above its breakpoint), so the
+                // bar should drop back to its default clearance.
+                docEl.style.setProperty(
+                    '--phoxtail-bar-floor', _floor.getBoundingClientRect().height + 'px'
+                );
+            }
+        };
+        var _chromeObserver = new ResizeObserver(_syncChrome);
+        if (_lane) _chromeObserver.observe(_lane);
+        if (_floor) _chromeObserver.observe(_floor);
+        window.addEventListener('resize', _syncChrome);
+        _syncChrome();
+    }
+
     var blocksBtn = document.getElementById('phoxtail-bar-blocks-btn');
     var blocksPanel = document.getElementById('phoxtail-bar-blocks-panel');
     var blocksPanelClose = document.getElementById('phoxtail-bar-panel-close');

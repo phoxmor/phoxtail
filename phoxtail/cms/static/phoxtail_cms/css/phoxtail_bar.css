@@ -2,9 +2,51 @@
 /* Fallback used on first paint before ResizeObserver fires */
 :root { --phoxtail-bar-offset: 2.125rem; }
 
+/* ── Lane centering ──────────────────────────────────────────────────────
+   The bar centers on a "lane" that defaults to the full viewport. A host
+   with persistent chrome (a sidebar, a rail) can narrow that lane by
+   marking its content container with [data-phoxtail-bar-lane]; phoxtail_bar.js
+   then measures it and keeps these two vars in sync. No host opt-in means
+   both insets stay 0 and centering is unchanged. */
+:root {
+    --phoxtail-bar-lane-left: 0px;
+    --phoxtail-bar-lane-right: 0px;
+}
+
+/* ── Floor clearance ──────────────────────────────────────────────────────
+   Same idea, vertical axis: a host can mark a fixed bottom element (a mobile
+   tab bar, etc.) with [data-phoxtail-bar-floor] so the bar sits above it
+   instead of underneath it. No host opt-in means the floor stays 0 and the
+   bar keeps its default clearance from the viewport edge. */
+:root { --phoxtail-bar-floor: 0px; }
+
+/* ── Yielding to a modal ──────────────────────────────────────────────────
+   The lane and floor vars describe permanent chrome. A transient surface
+   that takes over the bottom of the screen (a bottom sheet, an action tray)
+   is a different thing: the host adds this class to <html> while such a
+   surface is open and the bar steps aside rather than floating over it. */
+html.phoxtail-bar-yield #phoxtail-bar {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Bottom reservation ───────────────────────────────────────────────────
+   How much room content must leave above the bar, exposed as a var so it can
+   be reserved wherever the scrolling actually happens. Hosts that scroll the
+   document get it applied to <body> below and need do nothing. An app shell
+   that scrolls an inner pane instead must add it to that pane itself, since
+   body padding can never reach it. Reading it as
+   `var(--phoxtail-bar-reserved, 0px)` collapses to zero when the bar is not
+   on the page at all, so hosts don't reserve space for a bar that no one
+   (a non-superuser, say) can see. Excludes the floor: that is the host's own
+   chrome, which the host already accounts for. */
+:root {
+    --phoxtail-bar-reserved: calc(var(--phoxtail-bar-offset) + 1.25rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* Push the page tail up so content doesn't scroll under the dock */
 body.phoxtail-bar-active {
-    padding-bottom: calc(var(--phoxtail-bar-offset) + 1.25rem + 0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: var(--phoxtail-bar-reserved) !important;
 }
 
 /* Ensure #anchor jumps land above the dock */
@@ -23,12 +65,13 @@ html.phoxtail-bar-active {
 
 #phoxtail-bar {
     position: fixed;
-    bottom: 1.25rem;
-    left: 50%;
+    bottom: calc(1.25rem + var(--phoxtail-bar-floor));
+    left: calc(50% + (var(--phoxtail-bar-lane-left) - var(--phoxtail-bar-lane-right)) / 2);
     transform: translateX(-50%);
     z-index: 9900;
     font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
     pointer-events: none;
+    transition: opacity 0.2s ease;
 }
 #phoxtail-bar * { box-sizing: border-box; }
 
@@ -37,7 +80,7 @@ html.phoxtail-bar-active {
     position: relative;
     display: flex;
     align-items: center;
-    padding: 0.25rem 0.375rem 0.25rem 0.75rem;
+    padding: 0.25rem 0.375rem;
     pointer-events: auto;
     white-space: nowrap;
 }
@@ -60,6 +103,7 @@ html.phoxtail-bar-active {
     align-items: center;
     gap: 0.375rem;
     min-width: 0;
+    padding-left: 0.375rem;
 }
 .phoxtail-bar-page-title {
     font-size: 0.8125rem;

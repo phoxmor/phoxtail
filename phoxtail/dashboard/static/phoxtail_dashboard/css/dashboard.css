@@ -35,6 +35,10 @@
 .dash-content {
     flex: 1;
     padding: 3.5rem 1rem 0;
+    /* This pane is the scroller, not the document, so the phoxtail bar's
+       body-level reservation can never reach it — claim it here instead.
+       Collapses to 0 when the bar isn't on the page. */
+    padding-bottom: var(--phoxtail-bar-reserved, 0px);
     overflow-y: auto;
     background-color: rgb(var(--color-surface-50));
 }
@@ -47,7 +51,9 @@
 
 @media (max-width: 1279px) {
     .dash-content {
-        padding-bottom: 5rem;
+        /* 5rem clears the dock; the bar floats above the dock, so the two
+           reservations stack rather than overlap. */
+        padding-bottom: calc(5rem + var(--phoxtail-bar-reserved, 0px));
     }
 }
 
@@ -580,13 +586,33 @@
     bottom: 0;
     left: 0;
     right: 0;
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    /* minmax(0, 1fr), not 1fr alone, so both side tracks stay genuinely
+       equal width regardless of how many items land in each — 1fr never
+       shrinks below its content's min-content size, which would pull the
+       center item off the true midpoint. */
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     background: rgb(var(--color-surface-50));
-    border-top: 1px solid rgb(var(--color-surface-200));
-    z-index: 40;
+    /* No top border: the dock reads as a surface lifted off the page rather
+       than a ruled-off strip. Two stacked shadows — a tight one for the
+       edge, a wide soft one for the lift. */
+    box-shadow: 0 -1px 2px rgb(0 0 0 / 0.05),
+                0 -6px 16px rgb(0 0 0 / 0.05);
+    /* Bottom-chrome stack: backdrop 9940 < sheet 9941 < dock 9942. The dock
+       tops its own cluster so the sheet reads as sliding out from behind it,
+       and the cluster as a whole sits above the phoxtail bar (9900) but below
+       the chatbot drawer (9950), which is full-bleed on mobile and must cover
+       the dock rather than be pierced by it. */
+    z-index: 9942;
     padding: 0.5rem 0;
+}
+
+.dash-dock__side {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    min-width: 0;
 }
 
 @media (min-width: 1280px) {
@@ -654,8 +680,12 @@
 .dash-dock-sheet-backdrop {
     position: fixed;
     inset: 0;
-    bottom: 4rem;
-    z-index: 38;
+    bottom: var(--dash-dock-height, 3.5rem);
+    /* Above the phoxtail bar (9900): while the sheet is open it is the modal
+       surface that owns the bottom of the screen. The bar also yields via
+       .phoxtail-bar-yield (toggled in dock.html), so this is belt-and-braces
+       for the open/close transition. See .dash-dock for the full stack. */
+    z-index: 9940;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -668,15 +698,18 @@
 
 .dash-dock-sheet {
     position: fixed;
-    /* To match the height of the dash-dock */
-    bottom: 3.5rem;
+    /* Sits exactly on top of the dock. The height is measured (dock.html)
+       rather than hardcoded, so the sheet stays flush no matter what the
+       dock's content does to its height. */
+    bottom: var(--dash-dock-height, 3.5rem);
     left: 0px;
     right: 0px;
     background: rgb(255 255 255);
     border: 1px solid rgb(var(--color-surface-200) / 0.8);
+    border-bottom: none;
     border-radius: 1rem 1rem 0rem 0rem;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
-    z-index: 39;
+    z-index: 9941;
     padding: 0.375rem;
     transform: translateY(calc(100% + 0.5rem));
     opacity: 0;
@@ -1205,10 +1238,12 @@
         background-color: rgb(var(--color-primary-400));
     }
 
-    /* Mobile dock */
+    /* Mobile dock — shadows read weakly against a dark ground, so the same
+       lift needs deeper, more opaque blacks than the light-mode pair. */
     .dash-dock {
         background: rgb(var(--color-surface-950));
-        border-top-color: rgb(var(--color-surface-700) / 0.4);
+        box-shadow: 0 -1px 2px rgb(0 0 0 / 0.4),
+                    0 -6px 18px rgb(0 0 0 / 0.35);
     }
 
     .dash-dock__item {

@@ -1,7 +1,7 @@
 {% load phoxtail_dashboard_tags %}
 <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
 <div id="dock-sheet" class="dash-dock-sheet">
-    {% for item in dashboard_mobile_nav_items|slice:"3:" %}
+    {% for item in dashboard_dock.overflow %}
         {% url item.url_name as item_path %}
         {% dashboard_icon_path item.icon as svg_path %}
         <a href="{{ item_path }}"
@@ -10,7 +10,7 @@
             <span class="dash-nav-label">{{ item.label }}</span>
         </a>
     {% endfor %}
-    {% if dashboard_mobile_nav_items|slice:"3:" %}<hr class="dash-nav-separator">{% endif %}
+    {% if dashboard_dock.overflow %}<hr class="dash-nav-separator">{% endif %}
     {% url 'users:profile' as profile_path %}
     <a href="{{ profile_path }}"
        class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
@@ -33,47 +33,83 @@
         </button>
     </form>
 </div>
-<nav class="dash-dock">
-    {% url 'dashboard:index' as dashboard_path %}
-    <a href="{{ dashboard_path }}"
-       class="dash-dock__item{% if request.path == dashboard_path %} dash-dock__item--active{% endif %}">
-        <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
-        <span class="dash-dock__label">Dashboard</span>
+<nav class="dash-dock" data-phoxtail-bar-floor>
+    <div class="dash-dock__side dash-dock__side--left">
+        {% for item in dashboard_dock.left %}
+            {% url item.url_name as item_path %}
+            {% dashboard_icon_path item.icon as svg_path %}
+            <a href="{{ item_path }}"
+               class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
+                <span class="dash-dock__icon">{% include svg_path %}</span>
+                <span class="dash-dock__label">{{ item.label }}</span>
+            </a>
+        {% endfor %}
+    </div>
+    {% url dashboard_dock.center.url_name as center_path %}
+    {% dashboard_icon_path dashboard_dock.center.icon as center_svg %}
+    <a href="{{ center_path }}"
+       class="dash-dock__item{% if request.path == center_path %} dash-dock__item--active{% endif %}">
+        <span class="dash-dock__icon">{% include center_svg %}</span>
+        <span class="dash-dock__label">{{ dashboard_dock.center.label }}</span>
     </a>
-    {% for item in dashboard_mobile_nav_items|slice:":3" %}
-        {% url item.url_name as item_path %}
-        {% dashboard_icon_path item.icon as svg_path %}
-        <a href="{{ item_path }}"
-           class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
-            <span class="dash-dock__icon">{% include svg_path %}</span>
-            <span class="dash-dock__label">{{ item.label }}</span>
-        </a>
-    {% endfor %}
-    <button id="dock-more-btn"
-            type="button"
-            class="dash-dock__item dash-dock__more-btn"
-            aria-label="More navigation items"
-            aria-expanded="false">
-        <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/more_horiz.html' %}</span>
-        <span class="dash-dock__label">More</span>
-    </button>
+    <div class="dash-dock__side dash-dock__side--right">
+        {% for item in dashboard_dock.right %}
+            {% url item.url_name as item_path %}
+            {% dashboard_icon_path item.icon as svg_path %}
+            <a href="{{ item_path }}"
+               class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
+                <span class="dash-dock__icon">{% include svg_path %}</span>
+                <span class="dash-dock__label">{{ item.label }}</span>
+            </a>
+        {% endfor %}
+        <button id="dock-more-btn"
+                type="button"
+                class="dash-dock__item dash-dock__more-btn"
+                aria-label="More navigation items"
+                aria-expanded="false">
+            <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/more_horiz.html' %}</span>
+            <span class="dash-dock__label">More</span>
+        </button>
+    </div>
 </nav>
 <script>
     (function () {
         const moreBtn = document.getElementById('dock-more-btn');
         const sheet = document.getElementById('dock-sheet');
         const backdrop = document.getElementById('dock-sheet-backdrop');
+        const dock = document.querySelector('.dash-dock');
+
+        // The sheet and its backdrop stop exactly at the dock's top edge.
+        // Measured rather than hardcoded so they stay flush if the dock's
+        // height changes (labels, safe-area insets, a taller item).
+        // A zero height means the dock is display:none (>=1280px), not that
+        // it collapsed — writing that would define the var as 0 and defeat
+        // the CSS fallback, so keep the last real measurement instead.
+        if (dock) {
+            new ResizeObserver(function (entries) {
+                var height = entries[0].target.offsetHeight;
+                if (!height) return;
+                document.documentElement.style.setProperty(
+                    '--dash-dock-height', height + 'px'
+                );
+            }).observe(dock);
+        }
+
+        // The sheet owns the bottom of the screen while open, so the
+        // phoxtail bar (if present) steps aside for it.
+        function setSheetOpen(open) {
+            sheet.classList.toggle('dash-dock-sheet--open', open);
+            backdrop.classList.toggle('dash-dock-sheet-backdrop--open', open);
+            moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            document.documentElement.classList.toggle('phoxtail-bar-yield', open);
+        }
 
         function openSheet() {
-            sheet.classList.add('dash-dock-sheet--open');
-            backdrop.classList.add('dash-dock-sheet-backdrop--open');
-            moreBtn.setAttribute('aria-expanded', 'true');
+            setSheetOpen(true);
         }
 
         function closeSheet() {
-            sheet.classList.remove('dash-dock-sheet--open');
-            backdrop.classList.remove('dash-dock-sheet-backdrop--open');
-            moreBtn.setAttribute('aria-expanded', 'false');
+            setSheetOpen(false);
         }
 
         moreBtn.addEventListener('click', function () {
