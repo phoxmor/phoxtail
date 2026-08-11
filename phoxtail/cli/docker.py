@@ -1,8 +1,10 @@
 """Docker-related commands: lifecycle and file generation."""
 
 import os
+import re
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import questionary
@@ -112,9 +114,11 @@ def _git_sha() -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def _build_image(base: str, sha: str | None) -> int:
+def _build_image(base: str, sha: str | None, no_cache: bool = False) -> int:
     """Build production image tagged as <base>:latest (and <base>:<sha> when available)."""
     cmd = ["docker", "build", "--target", "production"]
+    if no_cache:
+        cmd.append("--no-cache")
     ssh_sock = os.environ.get("SSH_AUTH_SOCK")
     if ssh_sock:
         cmd += ["--ssh", f"default={ssh_sock}"]
@@ -123,6 +127,52 @@ def _build_image(base: str, sha: str | None) -> int:
         cmd += ["-t", f"{base}:{sha}"]
     cmd += ["."]
     return subprocess.call(cmd)
+
+
+def _phoxtail_dependencies() -> list[str]:
+    """Return this project's git-sourced phoxtail packages, phoxtail first.
+
+    A release must ship the current main of *all* phoxtail packages, not just
+    the engine: upgrading only ``phoxtail`` silently pins sibling packages
+    (phoxtail-booking, phoxtail-blog, ...) to whatever commit the lockfile
+    happened to hold, so their newest commits never reach the image.
+
+    Only packages declared as git sources in ``[tool.uv.sources]`` are
+    returned. For an index-resolved package ``--upgrade-package`` means "take
+    a newer released version", which is a different decision than "follow the
+    branch" and is not something a release should make on its own.
+
+    Falls back to ["phoxtail"] when pyproject.toml is unreadable — the engine
+    is always a dependency, so that keeps the previous behaviour rather than
+    skipping the lock refresh entirely.
+    """
+    try:
+        pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return ["phoxtail"]
+
+    sources = pyproject.get("tool", {}).get("uv", {}).get("sources", {})
+
+    project = pyproject.get("project", {})
+    specs = list(project.get("dependencies", []))
+    for group in project.get("optional-dependencies", {}).values():
+        specs.extend(group)
+    for group in pyproject.get("dependency-groups", {}).values():
+        specs.extend(s for s in group if isinstance(s, str))
+
+    names = []
+    for spec in specs:
+        # "phoxtail[engine,dashboard]>=0.1.1" -> "phoxtail"
+        name = re.split(r"[\[<>=!~;\s]", spec, maxsplit=1)[0].strip()
+        if not name.startswith("phoxtail") or name in names:
+            continue
+        source = sources.get(name) or sources.get(name.replace("-", "_"))
+        if isinstance(source, dict) and "git" in source:
+            names.append(name)
+    if not names:
+        return ["phoxtail"]
+    # phoxtail first so its resolution leads; the rest keep declaration order.
+    return sorted(names, key=lambda n: n != "phoxtail")
 
 
 def _push_image(base: str, sha: str | None) -> int:
@@ -239,7 +289,9 @@ def login_cmd(
 
 
 @app.command("build")
-def build_cmd() -> None:
+def build_cmd(
+    no_cache: bool = typer.Option(False, "--no-cache", help="Build without Docker's layer cache"),
+) -> None:
     """Build the production Docker image, tagged as :latest and :<git-sha>.
 
     Uses SSH agent forwarding so private git dependencies can be cloned
@@ -247,6 +299,7 @@ def build_cmd() -> None:
 
     Examples:
         phoxtail docker build
+        phoxtail docker build --no-cache
     """
     result = _registry_and_sha()
     if result is None:
@@ -254,7 +307,7 @@ def build_cmd() -> None:
     base, sha = result
     sha_label = sha or "no git SHA"
     console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
-    rc = _build_image(base, sha)
+    rc = _build_image(base, sha, no_cache=no_cache)
     if rc != 0:
         raise typer.Exit(rc)
     tags = f"{base}:latest" + (f", {base}:{sha}" if sha else "")
@@ -284,22 +337,27 @@ def push_cmd() -> None:
 
 
 @app.command("release")
-def release_cmd() -> None:
+def release_cmd(
+    no_cache: bool = typer.Option(False, "--no-cache", help="Build without Docker's layer cache"),
+) -> None:
     """Build and push the production image in one step (build + push).
 
     Equivalent to running ``phoxtail docker build`` followed by ``phoxtail docker push``.
 
     Examples:
         phoxtail docker release
+        phoxtail docker release --no-cache
     """
     result = _registry_and_sha()
     if result is None:
         raise typer.Exit(1)
     base, sha = result
 
-    console.print("\n  [bold cyan]→[/bold cyan] Updating lockfile")
+    packages = _phoxtail_dependencies()
+    console.print(f"\n  [bold cyan]→[/bold cyan] Updating lockfile ({', '.join(packages)})")
+    upgrade_flags = [flag for pkg in packages for flag in ("--upgrade-package", pkg)]
     lock_result = subprocess.run(
-        ["uv", "lock", "--upgrade-package", "phoxtail"],
+        ["uv", "lock", *upgrade_flags],
         capture_output=True,
         text=True,
     )
@@ -313,7 +371,7 @@ def release_cmd() -> None:
 
     sha_label = sha or "no git SHA"
     console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
-    rc = _build_image(base, sha)
+    rc = _build_image(base, sha, no_cache=no_cache)
     if rc != 0:
         raise typer.Exit(rc)
     console.print("  [green]✓[/green] Built")
