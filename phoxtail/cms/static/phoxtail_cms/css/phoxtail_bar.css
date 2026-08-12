@@ -136,6 +136,12 @@ html.phoxtail-bar-active {
     color: rgb(var(--color-surface-500, 113 113 122));
     flex-shrink: 0;
 }
+/* Narrow screens: drop the content type — and the separator trailing it, so
+   the remaining dots stay between the parts that are still shown. */
+@media (max-width: 30rem) {
+    .phoxtail-bar-type,
+    .phoxtail-bar-type + .phoxtail-bar-sep { display: none; }
+}
 .phoxtail-bar-locale {
     font-size: 0.6875rem;
     font-weight: 700;
@@ -205,8 +211,6 @@ html.phoxtail-bar-active {
     color: rgb(var(--color-primary-700, 67 56 202));
 }
 .phoxtail-bar-btn-icon { width: 0.9375rem; height: 0.9375rem; }
-
-/* ── Count badge ── */
 
 /* ── Panel — hidden by default; .phoxtail-bar-panel--open reveals it ── */
 .phoxtail-bar-panel {
@@ -367,15 +371,9 @@ html.phoxtail-bar-active {
     background-color: rgb(var(--color-success-50, 240 253 244)) !important;
 }
 
-/* ── Actions panel — narrower, right-anchored above the actions button ── */
+/* ── Actions panel — narrower; inherits the base centering on the dock ── */
 .phoxtail-bar-actions-panel {
     width: 14rem;
-    left: auto;
-    right: 0;
-    transform: translateY(8px) scale(0.97);
-}
-.phoxtail-bar-actions-panel.phoxtail-bar-panel--open {
-    transform: translateY(0) scale(1);
 }
 
 /* ── Add-to-chat button on block/page rows ── */

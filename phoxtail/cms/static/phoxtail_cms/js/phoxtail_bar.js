@@ -89,6 +89,7 @@
     var unpublishBtn = document.getElementById('phoxtail-bar-unpublish-btn');
     var editBtn = document.getElementById('phoxtail-bar-edit-btn');
     var adminBtn = document.getElementById('phoxtail-bar-admin-btn');
+    var dashboardBtn = document.getElementById('phoxtail-bar-dashboard-btn');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
@@ -701,6 +702,10 @@
         if ((e.key === 'd' || e.key === 'D') && menu && menu.isOpen() && adminBtn) {
             menu.close();
             window.open(adminBtn.href, adminBtn.target || '_self');
+        }
+        if ((e.key === 's' || e.key === 'S') && menu && menu.isOpen() && dashboardBtn) {
+            menu.close();
+            window.open(dashboardBtn.href, dashboardBtn.target || '_self');
         }
         if ((e.key === 'i' || e.key === 'I') && modelPicker) {
             var iChatWasOpen = chat.isOpen();
@@ -1945,8 +1950,6 @@
             titleEl.textContent = t.length > 22 ? t.slice(0, 21) + '…' : t;
             titleEl.title = t;
         }
-        var badgeEl = info.querySelector('.phoxtail-bar-badge');
-        if (badgeEl) badgeEl.textContent = '#' + manifest.id;
         var typeEl = info.querySelector('.phoxtail-bar-type');
         if (typeEl) typeEl.textContent = (manifest.type || '').split('.').pop();
         var localeEl = info.querySelector('.phoxtail-bar-locale');

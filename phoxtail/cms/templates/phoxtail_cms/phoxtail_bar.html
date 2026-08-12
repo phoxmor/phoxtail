@@ -2,6 +2,7 @@
 {% if user.is_superuser %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
+{% url 'dashboard:index' as site_dashboard_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}
 {% url 'phoxtail_agent:media_picker' as media_picker_url %}
 {% url 'phoxtail_agent:model_picker_panel' as model_picker_url %}
@@ -23,13 +24,12 @@
         {% if page %}
         <div class="phoxtail-bar-page-info">
             <span class="phoxtail-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
-            <span class="phoxtail-bar-badge">#{{ page.id }}</span>
             <span class="phoxtail-bar-sep">·</span>
             <span class="phoxtail-bar-type">{{ page.content_type.model }}</span>
             <span class="phoxtail-bar-sep">·</span>
-            <span class="phoxtail-bar-locale">{{ page.locale.language_code }}</span>
-            <span class="phoxtail-bar-sep">·</span>
             <span class="phoxtail-bar-live-dot phoxtail-bar-live-dot--{% if page.live %}on{% else %}off{% endif %}" title="{% if page.live %}live{% else %}draft{% endif %}"></span>
+            <span class="phoxtail-bar-sep">·</span>
+            <span class="phoxtail-bar-locale">{{ page.locale.language_code }}</span>
         </div>
         <div class="phoxtail-bar-divider"></div>
         {% endif %}
@@ -121,6 +121,19 @@
                     <span class="phoxtail-bar-row-meta">Go to admin dashboard</span>
                 </div>
             </a>
+            {% if site_dashboard_url %}
+            <a href="{{ site_dashboard_url }}"
+               id="phoxtail-bar-dashboard-btn"
+               class="phoxtail-bar-actions-item"
+               role="menuitem"
+               title="Site Dashboard (S)">
+                {% icon "browse" class="phoxtail-bar-row-icon" %}
+                <div class="phoxtail-bar-row-info">
+                    <span class="phoxtail-bar-row-type">Site Dashboard</span>
+                    <span class="phoxtail-bar-row-meta">Go to frontend dashboard</span>
+                </div>
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>
