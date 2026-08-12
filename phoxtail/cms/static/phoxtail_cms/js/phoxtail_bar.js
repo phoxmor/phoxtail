@@ -1111,15 +1111,16 @@
         return el;
     }
 
-    // Variants carry page-section spacing on their root (padding + margins
-    // for page rhythm) — wasted space in the chat pane, where the messages
-    // container already provides the gutter and gap. Strip it so the block
-    // itself (which brings its own card padding) gets the full width.
+    // Variants carry page-section rhythm on their root (tall top/bottom
+    // padding, section margins) — wasted height in the chat pane, where the
+    // messages container already provides the gutter and gap. Strip the
+    // block axis only: the inline axis is the block's own edge padding, and
+    // zeroing it would flatten cards against the bubble edge.
     function _stripBlockRootSpacing(container) {
         Array.prototype.forEach.call(container.children, function (root) {
             if (root.tagName === 'STYLE' || root.tagName === 'SCRIPT') return;
-            root.style.setProperty('padding', '0', 'important');
-            root.style.setProperty('margin', '0', 'important');
+            root.style.setProperty('padding-block', '0', 'important');
+            root.style.setProperty('margin-block', '0', 'important');
         });
     }
 
@@ -1148,7 +1149,10 @@
     // Agent-designed one-off components render in the light DOM like any
     // block: natural height, native scrolling, page design tokens inherited.
     // The agent is instructed to self-scope its CSS under a unique root
-    // class, the same convention DB-authored variants follow.
+    // class, the same convention DB-authored variants follow. That root is
+    // the card itself, not a page-section wrapper, so its spacing is left
+    // exactly as authored — it renders here the way it will once promoted
+    // to a Block/BlockVariant.
     function _appendCustomBlock(data) {
         var el = _blockShell(data.stream_id);
         el.innerHTML = '';
@@ -1165,7 +1169,6 @@
             script.textContent = data.javascript;
             el.appendChild(script);
         }
-        _stripBlockRootSpacing(body);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
         return el;
     }
