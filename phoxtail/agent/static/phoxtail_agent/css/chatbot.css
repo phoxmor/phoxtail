@@ -1,38 +1,26 @@
-/* ── Blocks panel anchored above the compose bar ── */
-.phoxtail-chatbot-blocks-panel {
-    bottom: calc(100% + 0.625rem);
-    left: 0;
-    right: 0;
-    width: auto;
-    transform: translateY(8px) scale(0.97);
-    /* Tune glassmorphism for the inside-drawer context: lower opacity so the blur
-       is actually visible through the background, and a shadow that reads as floating
-       upward rather than downward. */
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.93);
-    backdrop-filter: blur(24px) saturate(1.8);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1),
-                inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
-    border-color: rgb(0 0 0 / 0.06);
-}
-.phoxtail-chatbot-blocks-panel.phoxtail-bar-panel--open {
-    transform: translateY(0) scale(1);
-}
-
-/* ── Model picker panel — same chrome as blocks panel ── */
+/* ── Blocks and Inference panels anchored above the compose bar ──────────────
+   Both read as the compose bar's own surface, lifted upward: same fill token
+   and hairline, same rounding, a shadow that floats up rather than down.
+   The fill is opaque where the compose bar's is translucent, because these
+   panels live INSIDE the compose bar — an ancestor with backdrop-filter is a
+   backdrop root, so a nested backdrop-filter has only its ancestor's group to
+   sample and never sees the chat behind. Glass here would not frost anything;
+   it would just leave the conversation legible through the panel. */
+.phoxtail-chatbot-blocks-panel,
 .phoxtail-chatbot-model-panel {
     bottom: calc(100% + 0.625rem);
     left: 0;
     right: 0;
     width: auto;
     transform: translateY(8px) scale(0.97);
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.93);
-    backdrop-filter: blur(24px) saturate(1.8);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    background-color: rgb(var(--color-surface-50, 255 255 255));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1),
                 inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
-    border-color: rgb(0 0 0 / 0.06);
+    border-color: rgb(0 0 0 / 0.08);
 }
+.phoxtail-chatbot-blocks-panel.phoxtail-bar-panel--open,
 .phoxtail-chatbot-model-panel.phoxtail-bar-panel--open {
     transform: translateY(0) scale(1);
 }
@@ -912,8 +900,8 @@ body.phoxtail-chatbot-resizing {
     .phoxtail-bar-add-btn--active { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-chatbot-blocks-panel,
     .phoxtail-chatbot-model-panel {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.93);
-        border-color: rgb(255 255 255 / 0.08);
+        background-color: rgb(var(--color-surface-950, 12 12 16));
+        border-color: rgb(255 255 255 / 0.1);
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.5),
                     inset 0 0.5px 0 rgb(255 255 255 / 0.09), inset 0 -0.5px 0 rgb(0 0 0 / 0.2);
     }
