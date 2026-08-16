@@ -1,93 +1,134 @@
-# Phoxtail
+<p align="center">
+  <a href="https://phoxtail.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)"
+              srcset="https://phoxtail.com/static/phoxtail_core/phoxtail/logo/wordmark-on-dark.svg">
+      <img src="https://phoxtail.com/static/phoxtail_core/phoxtail/logo/wordmark-on-light.svg"
+           width="400" height="95" alt="Phoxtail">
+    </picture>
+  </a>
+</p>
 
-The engine behind every Phoxtail project.
+<p align="center">
+  <em>The engine behind your agentic platform.</em>
+</p>
 
-Phoxtail is a CLI toolkit that automates the development and deployment workflow for Phoxtail projects — Docker configuration, environment setup, database operations, nginx, SSL, media sync, and more.
+<p align="center">
+  <a href="https://pypi.org/project/phoxtail/"><img src="https://img.shields.io/pypi/v/phoxtail.svg" alt="PyPI"></a>
+  <a href="https://pypi.org/project/phoxtail/"><img src="https://img.shields.io/pypi/pyversions/phoxtail.svg" alt="Python versions"></a>
+  <a href="https://github.com/phoxmor/phoxtail/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/phoxtail.svg" alt="License"></a>
+</p>
 
-## Requirements
+<p align="center">
+  <a href="https://docs.phoxtail.com/">Documentation</a> ·
+  <a href="https://github.com/phoxmor/phoxtail">Source code</a> ·
+  <a href="https://community.phoxtail.com/">Community</a>
+</p>
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+Phoxtail is a web framework to help you build platforms focused on agentic interactions and generated user interfaces.
 
-## Installation
+## Features
 
-### As a CLI tool
+An A-B-C-D Management System:
+
+- **Agentic** — every capability is an MCP (Model Context Protocol) interface, so agents operate the platform through the same surface you do.
+- **Business** — your domain logic installs as dedicated apps, automatically exposing API namespaces, agent tools, and more, while plugging into a dashboard for users to sign in to and interact with.
+- **Content** — a full CMS (Content Management System) equipped with page trees, multi-site, localization, a media library, and more to power the data layer behind your public surface.
+- **Design** — dynamic UI components, themes, typography, and more, held in the database layer and editable at runtime.
+
+## Getting started
+
+Phoxtail ships a CLI that drives a platform from hatching to production.
 
 ```bash
-# Recommended: installs in an isolated environment
+# Recommended
 uv tool install phoxtail
 
-# Or with pip/pipx
+# Or with pip
 pip install phoxtail
 ```
 
-### For development
+## 🐣 Hatch a platform
+
+Phoxtail does not scaffold a website. It scaffolds a platform.
 
 ```bash
-git clone git@github.com:phoxmor/phoxtail.git
-cd phoxtail
-uv venv
-source .venv/bin/activate
-uv pip install -e ".[dev]"
+phoxtail hatch my_platform
 ```
 
-## Usage
+```
+  ┌  Hatching 'my_platform' development  ┐
+  │  ✓ 1. Config                         │
+  │  ✓ 2. Network                        │
+  │  ✓ 3. Database                       │
+  │  ✓ 4. Access                         │
+  │  ▸ 5. Launch                         │
+  └──────────────────────────────────────┘
+```
 
-Run `phoxtail` from the root of any Phoxtail project (where `phoxtail.toml` lives):
+## 🐦‍🔥 Grow the platform
+
+`phoxtail install` takes a package from name to running app:
 
 ```bash
-phoxtail --help
+phoxtail install <package>
 ```
 
-### Commands
+```
+  ┌  Installing '<package>'  ┐
+  │  ✓ 1. Check              │
+  │  ✓ 2. Lock               │
+  │  ✓ 3. Sync               │
+  │  ✓ 4. Register           │
+  │  ✓ 5. Compose            │
+  │  ✓ 6. Build              │
+  │  ✓ 7. Migrate            │
+  │  ✓ 8. Populate           │
+  │  ▸ 9. Launch             │
+  └──────────────────────────┘
+```
 
-| Command | Description |
+## Commands
+
+| Group | What it does |
 |---|---|
-| `phoxtail docker up/down/restart` | Docker lifecycle management |
-| `phoxtail docker create compose` | Generate docker-compose.yaml |
-| `phoxtail docker create dockerfile` | Generate Dockerfile |
-| `phoxtail env create` | Generate .env files (dev/production) |
-| `phoxtail nginx create initial` | Nginx config for SSL certificate retrieval |
-| `phoxtail nginx create production` | Nginx config with SSL/TLS |
-| `phoxtail ssl obtain/renew` | SSL certificate management |
-| `phoxtail db backup/restore` | Database backup and restore |
-| `phoxtail db pull` | Pull database from remote server |
-| `phoxtail media pull` | Sync media files from remote server |
-| `phoxtail requirements compile` | Compile Python dependencies |
-| `phoxtail manage <command>` | Run Django management commands |
-| `phoxtail test` | Run the test suite |
-| `phoxtail lint` | Run linting and formatting |
-| `phoxtail version` | Show CLI version |
+| `hatch` · `install` · `upgrade` | Scaffold a project, add packages, move versions forward |
+| `docker` · `net` · `server` | Containers, the shared local network, remote hosts |
+| `db` · `media` | Backup, restore, and pull production data down |
+| `env` · `requirements` | Environment files and dependency compilation |
+| `nginx` · `ssl` | Production web server config and certificates |
+| `studio` · `content` | Component variants and themes; pages, locales and sites |
+| `mcp` · `auth` | The agent server and its API credentials |
+| `manage` · `test` · `lint` | Management commands and the local toolchain |
 
-## Project detection
+Run `phoxtail --help`, or `phoxtail <group> --help`, for the full list.
 
-Phoxtail detects projects by looking for `phoxtail.toml` in the current directory. This file declares the project name, Docker image prefix, database clusters, and their dependencies.
+## Documentation
 
-## Development
+The CLI is where a platform starts.
+**[docs.phoxtail.com](https://docs.phoxtail.com/)** takes it from there,
+covering the development of your own phoxtail applications, the engine behind
+content and design, the API and MCP surfaces, going to production, and more.
 
-### Running tests
+## Compatibility
 
-```bash
-pytest
-```
+| | |
+|---|---|
+| Python | 3.11+ |
+| Database | PostgreSQL |
+| Runtime | Docker and Docker Compose |
 
-### Project structure
+## Community
 
-```
-phoxtail/
-  phoxtail/
-    __init__.py         # Package version
-    __main__.py         # CLI entry point (Typer app)
-    cli/                # CLI subsystem (commands, utilities, templates, tests)
-    core/               # Library app: shared infrastructure
-    design/             # Library app: design tokens
-    streams/            # Library app: schema-driven block system
-    project_template/   # Scaffold templates for `phoxtail hatch`
-  pyproject.toml
-  LICENSE
-  README.md
-```
+Questions and discussion at [community.phoxtail.com](https://community.phoxtail.com/).
+Bugs and feature requests at
+[GitHub issues](https://github.com/phoxmor/phoxtail/issues).
+
+## Contributing
+
+See the [contributing guide](https://docs.phoxtail.com/contributing/).
 
 ## License
 
-BSD 3-Clause. See [LICENSE](LICENSE).
+BSD 3-Clause. See
+[LICENSE](https://github.com/phoxmor/phoxtail/blob/main/LICENSE).
