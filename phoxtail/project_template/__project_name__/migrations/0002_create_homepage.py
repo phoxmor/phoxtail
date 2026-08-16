@@ -25,8 +25,8 @@ _HTML = """\
     <header class="phxt-top-bar">
         <div class="phxt-top-bar-inner">
             <div class="phxt-logo">
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-light.png' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-light" />
-                <img src="{% static 'phoxtail_core/phoxtail/logo/name-dark.png' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-dark" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-light.svg' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-light" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-dark.svg' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-dark" />
             </div>
             <div class="phxt-badge-tonal">
                 v{% phoxtail_version %}
