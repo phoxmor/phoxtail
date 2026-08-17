@@ -7,6 +7,7 @@ Tests verify the correct command is constructed for each invocation.
 from unittest.mock import MagicMock, patch
 
 import pytest
+import typer
 from typer.testing import CliRunner
 
 from phoxtail.cli.docker import app as docker_app
@@ -100,10 +101,10 @@ class TestManage:
     @patch("phoxtail.cli.manage.sys.stdin")
     def test_no_command_non_tty_exits_with_error(self, mock_stdin):
         """Without a command and no TTY, interactive mode should fail."""
-        from click.exceptions import Exit
-
+        # typer.Exit, not click's — newer typer vendors its own click, and
+        # then the two classes are no longer the same object.
         mock_stdin.isatty.return_value = False
-        with pytest.raises(Exit):
+        with pytest.raises(typer.Exit):
             manage_fn(self._make_ctx())
 
     @patch("phoxtail.cli.manage.questionary")
