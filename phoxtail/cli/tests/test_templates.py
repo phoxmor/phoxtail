@@ -151,7 +151,8 @@ class TestNginxInitialTemplate:
         result = render_template("nginx/initial.conf", {})
         assert "listen 80" in result
         assert "acme-challenge" in result
-        assert "proxy_pass http://web:80" in result
+        assert "set $upstream_web web" in result
+        assert "proxy_pass http://$upstream_web:80" in result
 
 
 class TestNginxProductionTemplate:

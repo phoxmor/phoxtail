@@ -996,7 +996,9 @@ class TestPeersStates:
         result = self._invoke([], [Peer("ghost-site", Path("/home/me/ghost"), True)])
         assert "detached" in result.output
         assert "ghost-site" in result.output
-        assert "docker compose up -d" in result.output  # how to clear it
+        # Rich wraps the hint to the terminal width, so match on the text
+        # rather than on where the line happens to break.
+        assert "docker compose up -d" in " ".join(result.output.split())  # how to clear it
 
     def test_detached_row_is_absent_when_everything_agrees(self, tmp_path):
         members = [Member(Path("/home/me/alpha"), "alpha-site")]
