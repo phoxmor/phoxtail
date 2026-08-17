@@ -28,7 +28,7 @@ from phoxtail.cli.utils.config import require_project
 
 app = typer.Typer(
     name="phoxtail",
-    help="The engine behind every Phoxtail project.",
+    help="The framework for agentic platforms.",
     add_completion=True,
     invoke_without_command=True,
 )
@@ -40,7 +40,7 @@ NO_PROJECT_COMMANDS = {"version", "hatch", "server", "mcp", "auth", "net"}
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
-    """The engine behind every Phoxtail project."""
+    """The framework for agentic platforms."""
     if ctx.invoked_subcommand is None:
         console.print(ctx.get_help())
         raise typer.Exit()

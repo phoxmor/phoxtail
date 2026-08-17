@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <em>The engine behind your agentic platform.</em>
+  <em>The framework for agentic platforms.</em>
 </p>
 
 <p align="center">
