@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "phoxtail"
-version = "0.1.2"
+dynamic = ["version"]
 description = "The engine behind every Phoxtail project."
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -91,6 +91,9 @@ Repository = "https://github.com/phoxmor/phoxtail"
 
 [project.scripts]
 phoxtail = "phoxtail.__main__:app"
+
+[tool.setuptools.dynamic]
+version = { attr = "phoxtail.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["phoxtail*"]
