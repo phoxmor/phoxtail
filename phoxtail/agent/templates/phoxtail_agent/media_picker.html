@@ -232,8 +232,26 @@
 
     /* Tab switching — mark active immediately on click, sync search hx-vals */
     var colWrapEl = document.getElementById('phoxtail-media-picker-collection-wrap');
+    var tabsEl = document.querySelector('.phoxtail-media-picker-tabs');
+
+    /* Scroll a clipped tab into the strip rather than scrollIntoView, which
+       would also scroll the drawer and the page behind it. */
+    function revealTab(btn) {
+        if (!tabsEl || !btn) return;
+        var pad = 12;
+        var left = btn.offsetLeft - pad;
+        var right = btn.offsetLeft + btn.offsetWidth + pad;
+        if (right > tabsEl.scrollLeft + tabsEl.clientWidth) {
+            tabsEl.scrollLeft = right - tabsEl.clientWidth;
+        } else if (left < tabsEl.scrollLeft) {
+            tabsEl.scrollLeft = Math.max(0, left);
+        }
+    }
+    revealTab(document.querySelector('.phoxtail-media-picker-tab--active'));
+
     document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (btn) {
         btn.addEventListener('click', function () {
+            revealTab(btn);
             document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (b) {
                 b.classList.remove('phoxtail-media-picker-tab--active');
             });

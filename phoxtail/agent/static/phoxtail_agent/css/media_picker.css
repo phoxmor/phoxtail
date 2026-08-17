@@ -65,11 +65,20 @@
     padding: 0.375rem 0.75rem;
     border-bottom: 1px solid rgb(0 0 0 / 0.06);
     flex-shrink: 0;
+    /* Narrow drawers cannot fit five tabs — scroll them instead of hiding the
+       tail. The bar itself is hidden; the clipped tab is the affordance.
+       position anchors offsetLeft to the strip, which revealTab() measures. */
+    position: relative;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
 }
+.phoxtail-media-picker-tabs::-webkit-scrollbar { display: none; }
 
 .phoxtail-media-picker-tab {
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
     gap: 0.3rem;
     padding: 0.3125rem 0.625rem;
     border: 1px solid transparent;
