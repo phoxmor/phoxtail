@@ -30,9 +30,11 @@
             <span class="phoxtail-media-picker-menu-toggle phoxtail-media-picker-menu-toggle--spacer"></span>
             {% endif %}
             {% icon p.numchild|yesno:"folder,doc_full_inverse" class="phoxtail-media-picker-menu-row-icon" %}
+            {# draggable="false" kills the native link drag so the row's page payload wins #}
             <a class="phoxtail-media-picker-menu-row-title"
+               draggable="false"
                href="{% if p.live and p.url %}{{ p.url }}{% else %}{{ admin_home }}pages/{{ p.pk }}/view_draft/{% endif %}"
-               title="{% if p.live %}View live: {% else %}View draft: {% endif %}{{ p.title }}">{{ p.title|truncatechars:32 }}</a>
+               title="{% if p.live %}View live: {% else %}View draft: {% endif %}{{ p.title }}"><span class="phoxtail-media-picker-menu-row-title-text">{{ p.title|truncatechars:32 }}</span></a>
             <span class="phoxtail-media-picker-menu-row-status phoxtail-media-picker-menu-row-status--{% if p.live %}live{% else %}draft{% endif %}"
                   title="{% if p.live %}Live{% else %}Draft{% endif %}"></span>
             {% if flat %}
