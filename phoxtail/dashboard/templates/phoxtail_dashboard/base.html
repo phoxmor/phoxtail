@@ -4,6 +4,14 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon"
+              type="image/svg+xml"
+              href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-light.svg' %}"
+              media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+        <link rel="icon"
+              type="image/svg+xml"
+              href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-dark.svg' %}"
+              media="(prefers-color-scheme: dark)" />
         <title>
             {% block head_title %}
             {% endblock head_title %}
