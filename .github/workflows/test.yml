@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # No lockfile is committed, so this resolves from the declared
+      # constraints on every run — the check that catches a floor drifting
+      # out of step with the code.
+      - run: uv sync --all-extras --python ${{ matrix.python-version }}
+
+      - run: uv run --python ${{ matrix.python-version }} pytest -n auto
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # ruff lives in the dev-tools extra, which `uv run` would not sync.
+      - run: uv sync --extra dev-tools
+
+      - run: make lint-check
