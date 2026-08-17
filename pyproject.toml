@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "phoxtail"
 dynamic = ["version"]
 description = "The framework for agentic platforms."
+keywords = ["agentic", "agents", "mcp", "framework", "django", "wagtail", "cms"]
 readme = "README.md"
 license = "BSD-3-Clause"
 requires-python = ">=3.11"
@@ -19,6 +20,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Build Tools",
 ]
