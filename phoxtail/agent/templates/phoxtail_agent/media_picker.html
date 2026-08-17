@@ -251,11 +251,12 @@
 
     document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            revealTab(btn);
             document.querySelectorAll('.phoxtail-media-picker-tab').forEach(function (b) {
                 b.classList.remove('phoxtail-media-picker-tab--active');
             });
             btn.classList.add('phoxtail-media-picker-tab--active');
+            // After the class swap: active weight changes both tabs' widths.
+            revealTab(btn);
             var newTab = JSON.parse(btn.getAttribute('hx-vals') || '{}').tab;
             if (newTab && input) {
                 input.setAttribute('hx-vals', JSON.stringify({ tab: newTab }));
