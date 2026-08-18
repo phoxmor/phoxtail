@@ -42,8 +42,14 @@ dependencies = [
 
 [project.optional-dependencies]
 engine = [
-    "django>=4.2",
-    "wagtail>=7.4",
+    # 5.2 is the LTS Wagtail 7.4 requires, and the last major that still
+    # supports Python 3.11. The ceiling is Wagtail's, not Django's: 7.4.2
+    # claims Django 5.2 and 6.0, so raise it when Wagtail ships a release
+    # claiming the next one.
+    "django>=5.2,<6.0",
+    # Bounded for the same reason: an open upper bound promises majors that
+    # do not exist yet. Raise it after testing against the next one.
+    "wagtail>=7.4,<8.0",
     "celery>=5.0",
     "django-ninja>=1.3",
     "django-allauth>=0.60",
