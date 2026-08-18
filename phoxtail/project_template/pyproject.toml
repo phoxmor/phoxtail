@@ -1,9 +1,9 @@
 [project]
 name = "{{ phoxtail_project_name }}"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "phoxtail[engine,dashboard,chatbot]",
+    "phoxtail[engine,dashboard,chatbot]~={{ phoxtail_version }}",
     "django-environ",
     "babel",
     "psycopg[binary]",
@@ -25,6 +25,3 @@ dev = [
 
 [tool.uv]
 package = false
-
-[tool.uv.sources]
-phoxtail = { git = "ssh://git@github.com/phoxmor/phoxtail.git", branch = "main" }

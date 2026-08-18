@@ -11,6 +11,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm
 
+from phoxtail import __version__
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.net import net_stack_running
@@ -18,6 +19,9 @@ from phoxtail.cli.utils.net import net_stack_running
 console = Console()
 
 PLACEHOLDER = "{{ phoxtail_project_name }}"
+# Scaffolded projects pin the phoxtail that made them, so a release that
+# breaks them can never reach them unattended.
+VERSION_PLACEHOLDER = "{{ phoxtail_version }}"
 # Stable sentinel that survives hatch — phoxtail install inserts above this line.
 INSTALL_MARKER = "    # phoxtail:apps\n"
 # Sentinel used in template directory and file names that should be renamed
@@ -134,6 +138,8 @@ def _copy_template(project_name: str, target_dir: Path) -> int:
             content = src_path.read_text(encoding="utf-8")
             if PLACEHOLDER in content:
                 content = content.replace(PLACEHOLDER, project_name)
+            if VERSION_PLACEHOLDER in content:
+                content = content.replace(VERSION_PLACEHOLDER, __version__)
             dest_path.write_text(content, encoding="utf-8")
         except UnicodeDecodeError:
             shutil.copy2(src_path, dest_path)
