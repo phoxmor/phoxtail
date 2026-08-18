@@ -14,9 +14,6 @@ test-cli:
 test-engine:
 	uv run pytest phoxtail/core/tests/ phoxtail/streams/tests/ phoxtail/dashboard/tests/ $(ARGS)
 
-test-booking:
-	uv run pytest phoxtail/booking/core/tests/ phoxtail/booking/events/tests/ phoxtail/booking/subscriptions/tests/ phoxtail/booking/reservations/tests/ $(ARGS)
-
 test-tokens:
 	DJANGO_SETTINGS_MODULE=phoxtail.tokens.tests.settings uv run pytest phoxtail/tokens/tests/ $(ARGS)
 

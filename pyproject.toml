@@ -122,17 +122,9 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-testpaths = [
-    "phoxtail/agent/api/tests",
-    "phoxtail/cli/tests",
-    "phoxtail/core/tests",
-    "phoxtail/dashboard/tests",
-    "phoxtail/design/tests",
-    "phoxtail/streams/tests",
-    "phoxtail/tokens/tests",
-    "phoxtail/media/tests",
-    "phoxtail/users/api/tests"
-]
+# Discovered, not enumerated: a hand-kept list drifts silently, and its
+# failure mode is a green run that skipped an app.
+testpaths = ["phoxtail"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
 [tool.ruff]
