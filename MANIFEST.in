@@ -1,9 +1,12 @@
+# Sdist contents. Package data (templates, static, project_template) is
+# declared in pyproject.toml and reaches the sdist from there.
 include LICENSE
 include README.md
-recursive-include phoxtail/templates *
-prune phoxtail/tests
-prune phoxtail/docs
-prune docs-temp
+include CHANGELOG.md
+include CONTRIBUTING.md
+include SECURITY.md
+include DCO
+
 prune build
 exclude CLAUDE.md
 exclude uv.lock

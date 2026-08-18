@@ -109,11 +109,10 @@ exclude = [
 "phoxtail.cli" = ["templates/**/*"]
 "phoxtail.users" = ["templates/**/*", "static/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
-"phoxtail.design" = ["management/data/**/*"]
 "phoxtail.cms" = ["templates/**/*", "static/**/*"]
 "phoxtail.agent" = ["templates/**/*", "static/**/*"]
 "phoxtail.tokens" = ["templates/**/*", "static/**/*"]
-"phoxtail.streams" = ["templates/**/*", "static/**/*", "management/data/**/*"]
+"phoxtail.streams" = ["templates/**/*", "static/**/*"]
 "phoxtail.remotes" = ["templates/**/*", "static/**/*"]
 "phoxtail.dashboard" = ["templates/**/*", "static/**/*"]
 
