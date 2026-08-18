@@ -126,7 +126,9 @@ Bugs and feature requests at
 
 ## Contributing
 
-See the [contributing guide](https://docs.phoxtail.com/contributing/).
+See [CONTRIBUTING.md](https://github.com/phoxmor/phoxtail/blob/main/CONTRIBUTING.md).
+Commits carry a `Signed-off-by` line — the
+[DCO](https://github.com/phoxmor/phoxtail/blob/main/DCO).
 
 ## License
 
