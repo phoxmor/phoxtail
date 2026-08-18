@@ -7,6 +7,10 @@ lint-check:
 	uv run ruff check phoxtail/
 	uv run ruff format --check phoxtail/
 
+# The package ships py.typed, so its annotations are a contract with users.
+typecheck:
+	uv run mypy phoxtail/ $(ARGS)
+
 # Testing
 test-cli:
 	uv run pytest phoxtail/cli/tests/ -p no:django $(ARGS)

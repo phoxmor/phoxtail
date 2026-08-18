@@ -83,6 +83,7 @@ dev-tools = [
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.0.0",
     "ruff>=0.4.0",
+    "mypy>=1.10",
     "factory-boy>=3.3",
     "freezegun>=1.2",
     "ipython>=8.0",
@@ -114,7 +115,7 @@ exclude = [
 ]
 
 [tool.setuptools.package-data]
-"phoxtail" = ["project_template/**/*", "project_template/**/.*"]
+"phoxtail" = ["py.typed", "project_template/**/*", "project_template/**/.*"]
 "phoxtail.cli" = ["templates/**/*"]
 "phoxtail.users" = ["templates/**/*", "static/**/*"]
 "phoxtail.core" = ["templates/**/*", "static/**/*"]
@@ -134,6 +135,14 @@ addopts = "-v --tb=short"
 # failure mode is a green run that skipped an app.
 testpaths = ["phoxtail"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
+
+[tool.mypy]
+python_version = "3.11"
+# Django, Wagtail and most of the plugin set ship no type information, so
+# without this every import from them is an error about the dependency
+# rather than about this code.
+ignore_missing_imports = true
+exclude = ["/migrations/", "/tests/", "project_template/"]
 
 [tool.ruff]
 line-length = 120

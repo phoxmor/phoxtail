@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
@@ -14,7 +15,7 @@ class DashboardNavItem:
 @dataclass
 class DashboardWidget:
     template_name: str
-    context_function: callable
+    context_function: Callable
     order: int = 100
     css_files: list = field(default_factory=list)
 
