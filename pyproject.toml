@@ -100,8 +100,11 @@ version = { attr = "phoxtail.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["phoxtail*"]
+# Tests are not part of the distribution: they inflate every install and,
+# once inside site-packages, a user's own pytest run can collect them.
 exclude = [
-    "phoxtail.cli.tests*",
+    "phoxtail*.tests",
+    "phoxtail*.tests.*",
 ]
 
 [tool.setuptools.package-data]
