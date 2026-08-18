@@ -98,6 +98,9 @@ dev = [
 [project.urls]
 Homepage = "https://phoxtail.com"
 Repository = "https://github.com/phoxmor/phoxtail"
+Documentation = "https://docs.phoxtail.com"
+Issues = "https://github.com/phoxmor/phoxtail/issues"
+Changelog = "https://github.com/phoxmor/phoxtail/blob/main/CHANGELOG.md"
 
 [project.scripts]
 phoxtail = "phoxtail.__main__:app"
