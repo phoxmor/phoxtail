@@ -1,5 +1,8 @@
 name: Test
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -20,10 +23,17 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "pyproject.toml"
 
-      # No lockfile is committed, so this resolves from the declared
-      # constraints on every run — the check that catches a floor drifting
-      # out of step with the code.
       - run: uv sync --all-extras --python ${{ matrix.python-version }}
+
+      # Every job must land on the Django the engine extra declares. Without
+      # this the resolver picks per-interpreter and the version under test is
+      # whatever happens to be newest — which is how three of four jobs once
+      # ran a major nobody chose. Update alongside the bound in pyproject.toml.
+      - name: Assert the Django under test is the declared one
+        run: >
+          uv run --python ${{ matrix.python-version }}
+          python -c "import django, sys; v = django.get_version(); print(v);
+          sys.exit(0 if django.VERSION[:2] == (5, 2) else f'expected 5.2, resolved {v}')"
 
       - run: uv run --python ${{ matrix.python-version }} pytest -n auto
 
@@ -41,3 +51,99 @@ jobs:
       - run: uv sync --extra dev-tools
 
       - run: make lint-check
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      # One interpreter, matching [tool.mypy] python_version. Stubs for the
+      # engine come from the full extra set, so annotations resolve the same
+      # way they do locally.
+      - run: uv sync --all-extras
+
+      - run: make typecheck
+
+  package:
+    # The wheel is what users receive, and the local editable install never
+    # builds one. Every packaging defect found so far was invisible until
+    # someone unpacked the artifact — this job is that unpacking, automated.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      # A stale egg-info serves a cached file list, which makes a correct
+      # packaging fix read as inert. A checkout is clean, but the build is
+      # only trustworthy if it stays that way.
+      - name: Build sdist and wheel from a clean tree
+        run: |
+          rm -rf dist build phoxtail.egg-info
+          uv build
+
+      - name: Inspect the artifacts
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, tarfile, zipfile
+
+          dist = pathlib.Path("dist")
+          sdist = next(dist.glob("*.tar.gz"))
+          wheel = next(dist.glob("*.whl"))
+
+          with tarfile.open(sdist) as tar:
+              # Drop the version-stamped top directory so paths match the wheel.
+              sdist_names = [n.split("/", 1)[1] for n in tar.getnames() if "/" in n]
+          with zipfile.ZipFile(wheel) as zf:
+              wheel_names = zf.namelist()
+
+          failures = []
+
+          # Package data is declared in pyproject.toml, and a glob that stops
+          # matching fails silently. One file from each rule is enough to catch
+          # a rule that has gone dead.
+          for required in (
+              "phoxtail/py.typed",
+              "phoxtail/cli/templates/docker/Dockerfile",
+              "phoxtail/project_template/manage.py",
+          ):
+              for label, names in (("sdist", sdist_names), ("wheel", wheel_names)):
+                  if required not in names:
+                      failures.append(f"{required} missing from {label}")
+
+          # The exclude in pyproject.toml is a pattern, not a list, but nothing
+          # stops a future suite landing outside it. conftest.py counts: it is
+          # the one test file that lives outside a tests package by convention.
+          for label, names in (("sdist", sdist_names), ("wheel", wheel_names)):
+              tests = [
+                  n for n in names
+                  if (name := pathlib.PurePosixPath(n).name).startswith("test_")
+                  or name == "conftest.py"
+              ]
+              if tests:
+                  failures.append(f"{len(tests)} test files in {label}: {tests[:5]}")
+
+          # A silent pass cannot be told apart from a check that ran on an
+          # empty list, so say what was actually inspected.
+          print(f"sdist {sdist.name}: {len(sdist_names)} entries")
+          print(f"wheel {wheel.name}: {len(wheel_names)} entries")
+          for line in failures:
+              print(f"FAIL {line}")
+          sys.exit(1 if failures else 0)
+          PY
+
+      - name: Install the wheel and smoke the CLI
+        # Outside the repo root on purpose: from inside, `import phoxtail`
+        # resolves to the source tree and the wheel is never exercised.
+        run: |
+          uv venv --python 3.11 "$RUNNER_TEMP/smoke"
+          uv pip install --python "$RUNNER_TEMP/smoke/bin/python" dist/*.whl
+          cd "$RUNNER_TEMP" && "$RUNNER_TEMP/smoke/bin/phoxtail" version
