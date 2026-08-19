@@ -7,6 +7,10 @@ Phoxtail is pre-1.0 and follows [Semantic Versioning](https://semver.org/) with
 one caveat: **minor releases may contain breaking changes** until 1.0. Pin a
 version you have tested.
 
+Migrations carry their own pre-1.0 clause: the history may be rebased, in which
+case upgrading means re-hatching or rebuilding the database rather than
+migrating into it. Any release that does so says so here.
+
 ## [Unreleased]
 
 ### Added
@@ -41,6 +45,9 @@ version you have tested.
   lockfile that no longer matches. Without the entry the development image
   fails at `playwright install`. Production images are unaffected, and lose a
   browser stack they were never using.
+- One migration was folded away as a no-op. **No action required**: it set no
+  SQL, so a database that already applied it is unchanged and the leftover
+  history row is ignored.
 - `LICENSE` names the copyright holder as a person rather than a trade name.
 - The README's contributing link points at `CONTRIBUTING.md` instead of a
   documentation page that does not exist.

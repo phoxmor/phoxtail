@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
                 ('site', models.OneToOneField(editable=False, on_delete=django.db.models.deletion.CASCADE, to='wagtailcore.site')),
             ],
             options={
-                'verbose_name': 'Agent',
+                'verbose_name': 'Inference',
             },
         ),
     ]

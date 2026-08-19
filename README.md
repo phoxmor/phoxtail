@@ -118,6 +118,14 @@ content and design, the API and MCP surfaces, going to production, and more.
 | Database | PostgreSQL |
 | Runtime | Docker and Docker Compose |
 
+## Stability
+
+Phoxtail is pre-1.0. Alongside the usual caveat that minor releases may break
+things, one consequence is easy to miss: **before 1.0, Phoxtail may rebase its
+migration history.** Upgrading across such a release means re-hatching or
+rebuilding your database rather than migrating into it. Pin a version you have
+tested, and read the [changelog](https://github.com/phoxmor/phoxtail/blob/main/CHANGELOG.md) before upgrading.
+
 ## Community
 
 Questions and discussion at [community.phoxtail.com](https://community.phoxtail.com/).

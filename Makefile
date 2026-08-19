@@ -29,6 +29,13 @@ typecheck:
 		echo "mypy: $$count errors, at or under the ceiling of $(MYPY_CEILING)"; \
 	fi
 
+# Migrations
+# The autodetector compares models to migration files, so a model edited
+# without a matching migration reports here and nowhere else.
+check-migrations:
+	DJANGO_SETTINGS_MODULE=phoxtail.core.tests.settings \
+	uv run python -m django makemigrations --check --dry-run $(ARGS)
+
 # Testing
 test-cli:
 	uv run pytest phoxtail/cli/tests/ -p no:django $(ARGS)

@@ -35,6 +35,14 @@ jobs:
           python -c "import django, sys; v = django.get_version(); print(v);
           sys.exit(0 if django.VERSION[:2] == (5, 2) else f'expected 5.2, resolved {v}')"
 
+      # Most migration bloat is accidental drift — a model edited without a
+      # matching migration — which stays invisible until someone runs
+      # makemigrations. Runs on every column rather than one: the check takes
+      # seconds, and a guard gated on a matrix value stops running silently if
+      # that value is ever requoted.
+      - name: Assert models and migrations agree
+        run: make check-migrations
+
       - run: uv run --python ${{ matrix.python-version }} pytest -n auto
 
   lint:
