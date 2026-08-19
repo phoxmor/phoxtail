@@ -1,0 +1,10 @@
+# Bug reports use the form above. Everything else has a better home than the
+# issue tracker, so route it there rather than letting it arrive as a bug.
+blank_issues_enabled: false
+contact_links:
+  - name: Question or discussion
+    url: https://community.phoxtail.com/
+    about: How-to questions, ideas, and anything that is not a defect.
+  - name: Security vulnerability
+    url: https://github.com/phoxmor/phoxtail/security/advisories/new
+    about: Report privately. Never open a public issue for a vulnerability.

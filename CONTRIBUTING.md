@@ -9,11 +9,11 @@ a large pull request.
 ```bash
 git clone https://github.com/phoxmor/phoxtail.git
 cd phoxtail
-uv sync --extra dev
+uv sync --all-extras
 ```
 
 `uv sync` creates `.venv`, installs Phoxtail into it in editable mode, and
-resolves the development dependencies — the same command CI runs. Prefix
+resolves every optional dependency group — the same command CI runs. Prefix
 commands with `uv run`, or activate the environment with
 `source .venv/bin/activate`.
 
@@ -37,8 +37,16 @@ make test-cli      # the CLI suite alone
 make test-engine   # core, streams and dashboard
 ```
 
+CI runs two more checks, both available locally:
+
+```bash
+make typecheck         # mypy; fails only if the error count grows
+make check-migrations  # fails if a model has no matching migration
+```
+
 Run `make lint` and the suite covering what you touched before opening a pull
-request. Anything that changes behaviour needs a test.
+request. Anything that changes behaviour needs a test; anything that changes a
+model needs a migration.
 
 ## Commits
 
@@ -84,6 +92,12 @@ the BSD 3-Clause terms in [LICENSE](LICENSE), the same as the rest of Phoxtail.
 Branch from `main`, keep the change focused, and describe what problem it solves
 rather than what files it touches. Green CI — lint and tests — is required to
 merge.
+
+## Code of conduct
+
+Participation is covered by the [Contributor Covenant](CODE_OF_CONDUCT.md),
+unmodified. Report unacceptable behaviour to **conduct@phoxtail.com** — that
+address is read by the maintainers and is separate from security reports.
 
 ## Reporting a security issue
 

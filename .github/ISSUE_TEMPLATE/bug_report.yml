@@ -1,0 +1,83 @@
+name: Bug report
+description: Something behaves differently from what it documents or implies.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security vulnerabilities here — see
+        [SECURITY.md](https://github.com/phoxmor/phoxtail/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+      placeholder: |
+        Ran `phoxtail db restore backup.sql`.
+        Expected the database to be replaced; the command exited 0 and nothing changed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: >
+        The shortest sequence that shows the problem. A failing command with its
+        output is usually enough; a repository is welcome but rarely necessary.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Phoxtail version
+      description: The output of `phoxtail version`.
+      placeholder: Phoxtail v0.1.3
+    validations:
+      required: true
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: The output of `python --version`.
+      placeholder: Python 3.11.9
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Ubuntu 24.04 / macOS 15.3 / Windows 11 + WSL2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where it happens
+      description: Which part of Phoxtail. Pick the closest.
+      options:
+        - CLI
+        - Engine (Django/Wagtail apps)
+        - Dashboard
+        - Chatbot
+        - API or MCP surface
+        - Docker, nginx or SSL setup
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Traceback or logs
+      description: >
+        Paste the full traceback if there is one. This block is formatted as
+        code automatically, so no backticks are needed.
+      render: shell
+    validations:
+      required: false

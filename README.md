@@ -136,7 +136,9 @@ Bugs and feature requests at
 
 See [CONTRIBUTING.md](https://github.com/phoxmor/phoxtail/blob/main/CONTRIBUTING.md).
 Commits carry a `Signed-off-by` line — the
-[DCO](https://github.com/phoxmor/phoxtail/blob/main/DCO).
+[DCO](https://github.com/phoxmor/phoxtail/blob/main/DCO). Participation is
+covered by the
+[Contributor Covenant](https://github.com/phoxmor/phoxtail/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 

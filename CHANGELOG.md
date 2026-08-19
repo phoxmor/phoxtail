@@ -18,6 +18,11 @@ migrating into it. Any release that does so says so here.
 - `DCO` — contributions are certified under the Developer Certificate of Origin.
 - `CONTRIBUTING.md` — setup, linting, tests, commit conventions and sign-off.
 - `SECURITY.md` — how to report a vulnerability privately.
+- `CODE_OF_CONDUCT.md` — the Contributor Covenant 2.1, unmodified. Reports go
+  to `conduct@phoxtail.com`.
+- A bug-report issue form asking for version, Python, OS and a reproduction,
+  with questions routed to the community site and vulnerabilities to the
+  private advisory form.
 - This changelog.
 
 ### Changed
