@@ -36,8 +36,6 @@ dependencies = [
     # dropped the ambient request context our tools read the caller's Bearer
     # from. Lift it once fastmcp (via pydantic-ai) supports mcp 2.x.
     "mcp>=1.28,<2",
-    "playwright>=1.40",
-    "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
@@ -72,6 +70,15 @@ chatbot = [
     # Chat prose markdown -> HTML (also arrives transitively via rich)
     "markdown-it-py>=3.0",
 ]
+# The screenshot tools in phoxtail.mcp.studio, and nothing else. A browser
+# stack is a heavy thing to install by default for a CLI that mostly does
+# not render, so both imports are lazy and this extra is what turns them on.
+# No engine dependency: the tools reach the site over HTTP, so they work
+# from a client-only install.
+studio = [
+    "playwright>=1.40",
+    "Pillow>=10.0",
+]
 # Test/lint toolchain only — no feature extras. Projects put this in their
 # PEP 735 dev dependency group so production builds can exclude it wholesale
 # (uv sync --no-dev in the Dockerfile's production builder stage).
@@ -92,7 +99,7 @@ dev-tools = [
 # before the dependency-groups split depend on this as a runtime dependency;
 # keep it until they are retrofitted to explicit feature extras + a dev group.
 dev = [
-    "phoxtail[dev-tools,engine,dashboard,chatbot]",
+    "phoxtail[dev-tools,engine,dashboard,chatbot,studio]",
 ]
 
 [project.urls]

@@ -64,11 +64,13 @@ COPY --from=builder-development /usr/local/lib/python{{ python_version }}/site-p
 COPY --from=builder-development /usr/local/bin/ /usr/local/bin/
 
 # Headless chromium for the studio's render tools, so an agent editing variants
-# can screenshot its own work instead of asking for one. Development only:
-# production never renders. `--only-shell` skips the 379MB full chromium and
-# installs just the headless shell, which is what `chromium.launch()` already
-# uses — headed mode is the only thing given up. Above `COPY . .` so source
-# edits don't invalidate the layer.
+# can screenshot its own work instead of asking for one. The command exists
+# because phoxtail[studio] is in the dev dependency group, which the production
+# builder excludes — so this stage is the only one where it resolves.
+# `--only-shell` skips the 379MB full chromium and installs just the headless
+# shell, which is what `chromium.launch()` already uses — headed mode is the
+# only thing given up. Above `COPY . .` so source edits don't invalidate the
+# layer.
 RUN playwright install --with-deps --only-shell chromium \
  && rm -rf /var/lib/apt/lists/*
 

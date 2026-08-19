@@ -58,7 +58,7 @@ async def render_block(
         from playwright.async_api import async_playwright
     except ImportError:
         return json.dumps(
-            {"error": ("Playwright is not installed. Run: uv add playwright && playwright install chromium")}
+            {"error": ("Playwright is not installed. Run: uv add 'phoxtail[studio]' && playwright install chromium")}
         )
 
     token = outbound_token()
@@ -149,7 +149,7 @@ async def screenshot_page(
         from playwright.async_api import async_playwright
     except ImportError:
         return json.dumps(
-            {"error": "Playwright is not installed. Run: uv add playwright && playwright install chromium"}
+            {"error": "Playwright is not installed. Run: uv add 'phoxtail[studio]' && playwright install chromium"}
         )
 
     if viewport not in _VIEWPORTS:

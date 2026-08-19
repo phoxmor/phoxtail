@@ -18,6 +18,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "phoxtail[dev-tools]",
+    # Playwright, for the studio's screenshot tools. Dev-only on purpose: the
+    # Dockerfile's development stage runs `playwright install` and needs the
+    # package's CLI, while production never renders and should not carry a
+    # browser stack.
+    "phoxtail[studio]",
     "django-browser-reload",
     "django-extensions",
     "factory-boy",

@@ -56,8 +56,9 @@ _PREVIEW_FIELDS = {
         "via phoxtail_studio_update_variant → delete the temp page and local files. "
         "REQUIREMENT: this workflow calls phoxtail_studio_screenshot_page which "
         "requires Playwright + Chromium to be installed in the environment "
-        "(playwright install --with-deps chromium). If the screenshot step returns "
-        "a Playwright not installed error, stop and inform the user."
+        "(uv add 'phoxtail[studio]' && playwright install --with-deps chromium). "
+        "If the screenshot step returns a Playwright not installed error, "
+        "stop and inform the user."
     ),
 )
 def capture_variant_previews(variant_id: int) -> str:
