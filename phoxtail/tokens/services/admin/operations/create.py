@@ -113,7 +113,10 @@ class AccessTokenServiceAdminCreate:
         user = User.objects.get(pk=user_id)
 
         resolved_scopes = scopes if scopes is not None else ["*"]
-        resolved_type = token_type or TokenType.PERSONAL
+        # TextChoices members are plain strings at runtime; without Django
+        # stubs a type checker reads the attribute as the (value, label)
+        # tuple it was assigned from.
+        resolved_type: str = token_type or TokenType.PERSONAL  # type: ignore[assignment]
 
         self.authorize()
         self.validate(name=name, scopes=resolved_scopes, expires_at=expires_at)

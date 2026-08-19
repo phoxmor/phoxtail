@@ -7,6 +7,7 @@ import tomllib
 from functools import lru_cache
 from importlib.util import find_spec
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -16,7 +17,9 @@ CONFIG_FILENAME = "phoxtail.toml"
 console = Console()
 
 # Defaults used when phoxtail.toml is missing or incomplete.
-DEFAULTS = {
+# Shaped like the parsed phoxtail.toml it is merged into, so the value type
+# is whatever TOML allows at that key rather than anything narrower.
+DEFAULTS: dict[str, Any] = {
     "project": {
         "name": "phoxtail",
         "apps": [],
@@ -206,8 +209,8 @@ def resolve_cluster_order(cluster_name: str) -> list[str]:
         raise ValueError(f"Unknown cluster: '{cluster_name}'")
 
     # Collect this cluster and all its transitive dependencies
-    ordered = []
-    visited = set()
+    ordered: list[str] = []
+    visited: set[str] = set()
     _resolve_deps(cluster_name, clusters, ordered, visited, chain=set())
     return ordered
 
@@ -238,8 +241,8 @@ def _resolve_deps(
 
 def _topological_sort(clusters: dict) -> list[str]:
     """Sort all clusters in dependency order."""
-    ordered = []
-    visited = set()
+    ordered: list[str] = []
+    visited: set[str] = set()
     for name in clusters:
         _resolve_deps(name, clusters, ordered, visited, chain=set())
     return ordered

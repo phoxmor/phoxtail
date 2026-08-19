@@ -374,4 +374,6 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model)
         )
         return mark_safe(html)
 
-    shades_preview.short_description = _("Shades")
+    # Wagtail reads the label off the function object; a type checker sees
+    # only the callable.
+    shades_preview.short_description = _("Shades")  # type: ignore[attr-defined]

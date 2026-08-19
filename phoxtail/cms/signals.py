@@ -76,7 +76,9 @@ def install_draft_redirect_guard() -> None:
 
         Redirect.objects.filter(automatically_created=True, redirect_page=instance).delete()
 
-    guarded._phoxtail_draft_guard = True
+    # A marker on the function object, so a second call can tell the guard
+    # is already installed; functools.wraps hides it from a type checker.
+    guarded._phoxtail_draft_guard = True  # type: ignore[attr-defined]
     signal_handlers.autocreate_redirects_on_page_move = guarded
     if post_page_move.disconnect(original):
         post_page_move.connect(guarded, weak=False)

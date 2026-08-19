@@ -2,6 +2,7 @@
 
 import os
 import time
+from typing import TypedDict, Unpack
 
 import questionary
 import typer
@@ -46,6 +47,25 @@ _PREFERRED_FLAVOURS = ["ubuntu", "debian", "fedora", "centos", "rocky", "alma"]
 # ------------------------------------------------------------------
 # Summary panel
 # ------------------------------------------------------------------
+
+
+class _Selections(TypedDict, total=False):
+    """The wizard's accumulated answers.
+
+    Mirrors the keywords of :func:`_summary_panel`; every key is optional
+    because the panel is redrawn after each step with only what has been
+    answered so far.
+    """
+
+    provider_name: str | None
+    architecture: str | None
+    location: Location | None
+    server_type: ServerType | None
+    image: Image | None
+    ssh_keys: list[SSHKey] | None
+    name: str | None
+    deploy_user: str | None
+    currency: str
 
 
 def _summary_panel(
@@ -100,7 +120,7 @@ def _summary_panel(
     )
 
 
-def _clear_and_show(**kwargs: object) -> None:
+def _clear_and_show(**kwargs: Unpack[_Selections]) -> None:
     """Clear the terminal and redraw the summary panel."""
     console.clear()
     console.print()
@@ -197,7 +217,10 @@ def _ask_server_type(
     # Default to cheapest shared option
     default = shared[0] if shared else (dedicated[0] if dedicated else None)
 
-    return questionary.select("Server type:", choices=choices, default=default).ask()
+    # questionary matches `default` against the choices' values as well as
+    # against Choice objects, so a bare value is valid — its own annotation
+    # is narrower than what it accepts.
+    return questionary.select("Server type:", choices=choices, default=default).ask()  # type: ignore[arg-type]
 
 
 def _ask_image(images: list[Image]) -> Image | None:
@@ -229,7 +252,10 @@ def _ask_image(images: list[Image]) -> Image | None:
     ubuntu_imgs = sorted(flavors.get("ubuntu", []), key=lambda i: i.os_version or "", reverse=True)
     default = ubuntu_imgs[0] if ubuntu_imgs else None
 
-    return questionary.select("OS image:", choices=choices, default=default).ask()
+    # questionary matches `default` against the choices' values as well as
+    # against Choice objects, so a bare value is valid — its own annotation
+    # is narrower than what it accepts.
+    return questionary.select("OS image:", choices=choices, default=default).ask()  # type: ignore[arg-type]
 
 
 def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:

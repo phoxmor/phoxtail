@@ -1,7 +1,10 @@
 from functools import cached_property
+from typing import ClassVar
 
 from wagtail.admin.menu import MenuItem
 from wagtail.admin.viewsets.base import ViewSet
+
+from .policies import AppPermissionPolicy
 
 
 class PermissionedViewSet(ViewSet):
@@ -20,8 +23,8 @@ class PermissionedViewSet(ViewSet):
     permission decorator for fine-grained action control.
     """
 
-    permission_policy = None
-    required_permissions = []
+    permission_policy: ClassVar[AppPermissionPolicy | None] = None
+    required_permissions: ClassVar[list[str]] = []
 
     @cached_property
     def menu_item_class(self):

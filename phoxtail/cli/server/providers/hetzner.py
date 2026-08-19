@@ -39,7 +39,7 @@ class HetznerProvider(Provider):
             except (ValueError, KeyError):
                 resp.raise_for_status()
 
-    def _get_all(self, path: str, key: str, **params: object) -> list[dict]:
+    def _get_all(self, path: str, key: str, **params: str | int | float | bool | None) -> list[dict]:
         """Fetch all pages for a list endpoint, returning the merged item list."""
         results: list[dict] = []
         page = 1

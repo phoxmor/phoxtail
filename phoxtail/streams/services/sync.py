@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import httpx
 from django.apps import apps as django_apps
@@ -21,12 +22,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+if TYPE_CHECKING:
+    from phoxtail.streams.models import BlockVariant
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class PullResult:
-    variant: object
+    variant: BlockVariant
     created: bool
     skipped_page_types: list[str] = field(default_factory=list)
 

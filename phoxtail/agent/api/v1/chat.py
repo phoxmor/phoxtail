@@ -178,7 +178,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                 await aq.put(("tool_start", event.part.tool_name))
             elif isinstance(event, FunctionToolResultEvent):
                 tool_name = event.part.tool_name
-                kind = _BLOCK_WRITE_TOOLS.get(tool_name)
+                kind = _BLOCK_WRITE_TOOLS.get(tool_name) if tool_name else None
                 if kind is not None:
                     args = _pending_args.get(event.tool_call_id, {})
                     page_id = args.get("page_id")
@@ -266,11 +266,11 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
                         "last_render": 0.0,
                     }
             elif isinstance(event, PartDeltaEvent) and isinstance(event.delta, ToolCallPartDelta):
-                state = _block_streams.get(event.index)
-                if state is not None and isinstance(event.delta.args_delta, str):
-                    state["buf"].append(event.delta.args_delta)
+                stream_state = _block_streams.get(event.index)
+                if stream_state is not None and isinstance(event.delta.args_delta, str):
+                    stream_state["buf"].append(event.delta.args_delta)
                     try:
-                        await _render_partial_block(state)
+                        await _render_partial_block(stream_state)
                     except Exception:
                         pass  # streaming preview is best-effort, never fatal
             elif isinstance(event, PartStartEvent) and isinstance(event.part, TextPart):
@@ -460,9 +460,9 @@ def get_conversation(request, uuid: str):
     messages = []
     for msg in history:
         if isinstance(msg, ModelRequest):
-            for part in msg.parts:
-                if isinstance(part, UserPromptPart) and isinstance(part.content, str):
-                    messages.append({"role": "user", "content": part.content})
+            for request_part in msg.parts:
+                if isinstance(request_part, UserPromptPart) and isinstance(request_part.content, str):
+                    messages.append({"role": "user", "content": request_part.content})
         elif isinstance(msg, ModelResponse):
             # Walk parts in order so chat blocks interleave with prose the
             # same way they streamed. Blocks re-render deterministically from

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -287,7 +288,7 @@ def create_variant(
     identifier: str,
     name: str,
     block_id: int,
-    collection_id: int,
+    collection_id: int | None,
     description: str = "",
     html: str = "",
     css: str = "",
@@ -483,7 +484,7 @@ def search_images(title: str) -> list[dict[str, Any]]:
 def attach_variant_previews(
     variant_id: int,
     *,
-    image_ids: dict[str, int | None],
+    image_ids: Mapping[str, int | None],
     etag: str,
 ) -> tuple[dict[str, Any], int, str | None]:
     """Attach preview images to a variant via a partial PUT.

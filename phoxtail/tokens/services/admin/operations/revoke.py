@@ -31,6 +31,7 @@ class AccessTokenServiceAdminRevoke:
 
     def perform(self) -> AccessToken:
         token = self.service.token
+        assert token is not None, "call validate() first"
 
         with transaction.atomic():
             if token.revoked_at is None:

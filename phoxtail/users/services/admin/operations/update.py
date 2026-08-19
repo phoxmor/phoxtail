@@ -28,6 +28,7 @@ class UserServiceAdminUpdate:
 
     def validate(self, **data) -> None:
         user = self.service.user
+        assert user is not None, "operation requires a service bound to a user"
         if user.is_superuser and data.get("is_active") is False:
             raise ValidationError(_("Superuser accounts cannot be deactivated through this interface."))
 
@@ -36,6 +37,7 @@ class UserServiceAdminUpdate:
         from allauth.account.models import EmailAddress
 
         user = self.service.user
+        assert user is not None, "operation requires a service bound to a user"
         old_email = user.email
         adapter = get_adapter(request)
 

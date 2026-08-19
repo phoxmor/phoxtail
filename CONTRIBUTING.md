@@ -40,7 +40,7 @@ make test-engine   # core, streams and dashboard
 CI runs two more checks, both available locally:
 
 ```bash
-make typecheck         # mypy; fails only if the error count grows
+make typecheck         # mypy; fails on any error
 make check-migrations  # fails if a model has no matching migration
 ```
 

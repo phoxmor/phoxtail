@@ -3,6 +3,7 @@
 import re
 import subprocess
 from pathlib import Path
+from typing import TypedDict
 
 import typer
 from rich.console import Console
@@ -22,9 +23,20 @@ _PROGRESS_RE = re.compile(r"(\d+)%")
 _STAGING_DIR = ".media_sync_tmp"
 
 
-def _parse_rsync_stats(output: str) -> dict:
+class RsyncStats(TypedDict, total=False):
+    """What rsync --stats reports, when it reports it.
+
+    Both keys are absent for a run that transferred nothing, which is why
+    every reader supplies a default.
+    """
+
+    files: int
+    size: str
+
+
+def _parse_rsync_stats(output: str) -> RsyncStats:
     """Parse rsync --stats output into a summary dict."""
-    stats = {}
+    stats: RsyncStats = {}
 
     match = re.search(r"Number of regular files transferred:\s*([\d,]+)", output)
     if match:
@@ -66,6 +78,8 @@ def _run_rsync_with_progress(rsync_cmd: list[str], label: str = "Syncing media")
         transient=True,
     ) as progress:
         task = progress.add_task("sync", total=100)
+
+        assert proc.stdout is not None, "Popen was given stdout=PIPE"
 
         for line in proc.stdout:
             output_lines.append(line)

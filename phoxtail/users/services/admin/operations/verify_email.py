@@ -25,6 +25,7 @@ class UserServiceAdminVerifyEmail:
         from allauth.account.models import EmailAddress
 
         user = self.service.user
+        assert user is not None, "operation requires a service bound to a user"
         email_address, created = EmailAddress.objects.get_or_create(
             user=user,
             email=user.email,

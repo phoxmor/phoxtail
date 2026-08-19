@@ -195,11 +195,12 @@ def _format_duration(seconds: float) -> str:
 def _format_size(size: int | None) -> str:
     if size is None:
         return ""
+    value = float(size)
     for unit in ("B", "KB", "MB", "GB"):
-        if size < 1024:
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
-        size /= 1024
-    return f"{size:.1f} TB"
+        if value < 1024:
+            return f"{value:.0f} {unit}" if unit == "B" else f"{value:.1f} {unit}"
+        value /= 1024
+    return f"{value:.1f} TB"
 
 
 def render_sites(data: dict[str, Any], console: Console) -> None:

@@ -41,7 +41,7 @@ def _make_tool(mcp_tool) -> Tool:
 
     fn.__name__ = mcp_tool.name
 
-    async def prepare(ctx: RunContext[None], tool_def: ToolDefinition) -> ToolDefinition:
+    async def prepare(ctx: RunContext[object], tool_def: ToolDefinition) -> ToolDefinition:
         return ToolDefinition(
             name=mcp_tool.name,
             description=mcp_tool.description or "",

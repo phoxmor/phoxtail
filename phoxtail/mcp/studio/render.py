@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from mcp.server.fastmcp import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import api_base_url, outbound_token
 
-_VIEWPORTS: dict[str, dict] = {
+if TYPE_CHECKING:
+    # playwright ships only with the studio extra, so it is never imported
+    # at runtime here — the launcher inside each tool does that.
+    from playwright.async_api import ViewportSize
+
+_VIEWPORTS: dict[str, ViewportSize] = {
     "desktop": {"width": 1440, "height": 810},
     "tablet": {"width": 768, "height": 1024},
     "mobile": {"width": 390, "height": 844},
@@ -76,7 +81,7 @@ async def render_block(
         return json.dumps({"error": f"Unknown viewport '{viewport}'. Use: desktop, tablet, mobile, all"})
 
     captures: list[bytes] = []
-    color_scheme = "dark" if theme == "dark" else "light"
+    color_scheme: Literal["dark", "light"] = "dark" if theme == "dark" else "light"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -163,7 +168,7 @@ async def screenshot_page(
 
     base = api_base_url().rstrip("/")
     screenshot_url = f"{base}/phoxtail-agent/screenshot/{page_id}/?token={token}"
-    color_scheme = "dark" if theme == "dark" else "light"
+    color_scheme: Literal["dark", "light"] = "dark" if theme == "dark" else "light"
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()

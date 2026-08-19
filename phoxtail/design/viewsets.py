@@ -15,7 +15,7 @@ class PaletteRoleViewSet(SnippetViewSet):
     menu_name = _("Palette Roles")
     menu_order = 150
     list_display = ["name", "identifier"]
-    list_filter = []
+    list_filter: list[str] = []
     search_fields = ["name", "identifier"]
 
     panels = [
@@ -32,7 +32,7 @@ class FontRoleViewSet(SnippetViewSet):
     menu_name = _("Font Roles")
     menu_order = 150
     list_display = ["name", "identifier"]
-    list_filter = []
+    list_filter: list[str] = []
     search_fields = ["name", "identifier"]
 
     panels = [
@@ -90,7 +90,7 @@ class PaletteSetViewSet(SnippetViewSet):
     menu_name = _("Palette Sets")
     menu_order = 190
     list_display = ["name", "identifier"]
-    list_filter = []
+    list_filter: list[str] = []
     search_fields = ["name", "identifier", "description"]
 
     edit_handler = TabbedInterface(

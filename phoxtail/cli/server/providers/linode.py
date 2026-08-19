@@ -92,7 +92,7 @@ class LinodeProvider(Provider):
             except (ValueError, KeyError):
                 resp.raise_for_status()
 
-    def _get_all(self, path: str, **params: object) -> list[dict]:
+    def _get_all(self, path: str, **params: str | int | float | bool | None) -> list[dict]:
         """Fetch all pages, returning the merged data list."""
         results: list[dict] = []
         page = 1

@@ -138,13 +138,13 @@ def _field_json_schema(block_type: str, cfg: Any) -> dict[str, Any] | None:
     elif block_type in ("choice_field", "multiple_choice_field"):
         choices = [str(c.get("value")) for c in (get("choices") or []) if c.get("value")]
         labels = ", ".join(f"{c.get('value')} ({c.get('label')})" for c in (get("choices") or []) if c.get("value"))
-        item = {"type": "string"}
+        item_schema: dict[str, Any] = {"type": "string"}
         if choices:
-            item["enum"] = choices
+            item_schema["enum"] = choices
         if block_type == "multiple_choice_field":
-            schema = {"type": "array", "items": item}
+            schema = {"type": "array", "items": item_schema}
         else:
-            schema = item
+            schema = item_schema
         if labels:
             schema["description"] = f"Choices: {labels}"
 
@@ -518,7 +518,7 @@ def _search_blocks(query: str):
 def _find_blocks_sync(query: str) -> str:
     blocks = _search_blocks(query)
     top, rest = blocks[:_FIND_BLOCKS_LIMIT], blocks[_FIND_BLOCKS_LIMIT:]
-    payload = {
+    payload: dict[str, Any] = {
         "blocks": [
             {
                 "identifier": b.identifier,

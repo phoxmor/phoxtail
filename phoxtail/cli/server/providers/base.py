@@ -101,6 +101,15 @@ class Provider(ABC):
     # Architectures offered; wizard skips the question when only one is present.
     architectures: tuple[str, ...] = ("x86",)
 
+    @abstractmethod
+    def __init__(self, token: str) -> None:
+        """Build a client authenticated with *token*.
+
+        The wizard picks a provider class and instantiates it with nothing
+        but an API token, so the one-argument constructor is part of the
+        interface rather than an accident shared by the subclasses.
+        """
+
     def validate_server_name(self, name: str) -> bool | str:
         """Return True if *name* is valid, else a human-readable error string."""
         name = name.strip()

@@ -11,6 +11,6 @@ class StreamsAdminPermission(models.Model):
 
     class Meta:
         default_permissions = ()
-        permissions = []
+        permissions: list[tuple[str, str]] = []
         verbose_name = _("Streams")
         verbose_name_plural = _("Streams")

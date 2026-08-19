@@ -27,11 +27,14 @@ class UserServiceAdminDelete:
 
     def validate(self, acting_user: "AbstractUser | None" = None) -> None:
         user = self.service.user
+        assert user is not None, "operation requires a service bound to a user"
         if acting_user is not None and user.pk == acting_user.pk:
             raise ValidationError(_("You cannot delete your own account."))
 
     def perform(self) -> None:
-        self.service.user.delete()
+        user = self.service.user
+        assert user is not None, "operation requires a service bound to a user"
+        user.delete()
 
     def execute(self, acting_user: "AbstractUser | None" = None) -> None:
         self.authorize()

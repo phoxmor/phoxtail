@@ -90,7 +90,7 @@ class SharedBlockViewSet(SnippetViewSet):
     menu_order = 200
     list_display = ["block", "site", "locale"]
     list_filter = ["block", "site", "locale"]
-    search_fields = []
+    search_fields: list[str] = []
     add_view_class = SharedBlockCreateView
     edit_view_class = SharedBlockEditView
 
@@ -161,7 +161,7 @@ class VariantCollectionViewSet(SnippetViewSet):
     menu_name = _("Collections")
     menu_order = 400
     list_display = ["name", "identifier"]
-    list_filter = []
+    list_filter: list[str] = []
     search_fields = ["name", "identifier", "description"]
 
     edit_handler = ObjectList(

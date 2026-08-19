@@ -31,6 +31,7 @@ def _build_agent(
 
     api_key = os.environ.get(api_key_env_var) if api_key_env_var else None
 
+    model: OpenAIChatModel | str
     if base_url:
         model = OpenAIChatModel(
             identifier,

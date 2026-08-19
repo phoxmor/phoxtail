@@ -78,7 +78,9 @@ def create_shared_block(request: HttpRequest, response: HttpResponse, payload: S
 
     sb = SharedBlockModel(block=block, site=site, locale=locale)
     if payload.content:
-        sb.content = payload.content
+        # A StreamField accepts raw stream data on assignment and converts
+        # it; the descriptor advertises only the converted type.
+        sb.content = payload.content  # type: ignore[assignment]
 
     try:
         sb.full_clean()
@@ -127,7 +129,9 @@ def update_shared_block_by_id(
         )
 
     if payload.content is not None:
-        sb.content = payload.content
+        # A StreamField accepts raw stream data on assignment and converts
+        # it; the descriptor advertises only the converted type.
+        sb.content = payload.content  # type: ignore[assignment]
 
     try:
         sb.full_clean()

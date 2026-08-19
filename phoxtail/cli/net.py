@@ -330,6 +330,7 @@ def attach() -> None:
     """
     require_project()
     config_path = find_config_file()
+    assert config_path is not None, "call require_project() first"
     root = _project_root()
 
     slug = slugify(get_project_name())
@@ -426,8 +427,8 @@ def attach() -> None:
     if gitignore.exists():
         ignore_content = gitignore.read_text()
         if PROJECT_NET_FILE not in ignore_content and "docker-compose.*.yaml" not in ignore_content:
-            with gitignore.open("a") as f:
-                f.write(f"{PROJECT_NET_FILE}\n")
+            with gitignore.open("a") as handle:
+                handle.write(f"{PROJECT_NET_FILE}\n")
 
     # Recorded last, once nothing left can fail. `net up` fans out over this
     # file, so an entry must never outlive an attach the user was told did
@@ -452,6 +453,7 @@ def detach() -> None:
     """Detach this project from the shared net, reversing `attach`."""
     require_project()
     config_path = find_config_file()
+    assert config_path is not None, "call require_project() first"
     root = _project_root()
 
     slug = slugify(get_project_name())

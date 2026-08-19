@@ -537,6 +537,8 @@ def hatch(
         if not no_wizard:
             run_wizard = Confirm.ask("Would you like to run the setup wizard?", default=True)
             if run_wizard:
+                # Asked for on this same `not no_wizard` branch above.
+                assert environment is not None
                 wizard_steps = _run_wizard(project_name, target_dir, environment)
 
         # Build context-aware next steps — separate skipped from failed

@@ -1,7 +1,11 @@
+from typing import ClassVar
+
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.utils.translation import gettext as _
 from django_htmx.http import trigger_client_event
+
+from .policies import AppPermissionPolicy
 
 
 class PermissionMixin:
@@ -19,8 +23,8 @@ class PermissionMixin:
             required_permissions = ["access_booking_management", "manage_reservations"]
     """
 
-    permission_policy = None
-    required_permissions = []
+    permission_policy: ClassVar[AppPermissionPolicy | None] = None
+    required_permissions: ClassVar[list[str]] = []
 
     def dispatch(self, request, *args, **kwargs):
         if self.permission_policy:
