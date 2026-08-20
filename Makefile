@@ -13,6 +13,14 @@ lint-check:
 typecheck:
 	uv run mypy phoxtail/ $(ARGS)
 
+# Packaging
+# Setuptools caches a file list in the egg-info directory, and a stale one
+# serves the old list — which makes a correct packaging fix read as inert.
+# Cleaning first costs nothing and removes the trap rather than documenting it.
+build:
+	rm -rf dist build phoxtail.egg-info
+	uv build $(ARGS)
+
 # Migrations
 # The autodetector compares models to migration files, so a model edited
 # without a matching migration reports here and nowhere else.

@@ -1,0 +1,212 @@
+name: Release
+
+# Pushing a v* tag is the release. Nothing else triggers this, so the tag, the
+# GitHub Release and the file on PyPI are one causal chain rather than three
+# steps that can drift apart.
+#
+# The workflow filename is registered with PyPI as part of the trusted-publisher
+# identity. Renaming this file breaks publishing until the registration is
+# updated to match.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs project code; holds no privileges. Kept apart from `publish` so that
+  # nothing which executes arbitrary code can also mint a PyPI credential.
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          # Nothing here pushes, and a credential left in .git/config is
+          # readable by every later step, including one inside a dependency.
+          persist-credentials: false
+
+      # Caching is off, and explicitly so: setup-uv enables it by default, and
+      # a cache is shared across runs — an entry poisoned by an earlier one
+      # could end up inside the artifact users receive. The saving is seconds,
+      # once per release; the exposure is the thing being published.
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          enable-cache: false
+
+      # The tag says what a human typed; the version says what the package
+      # will call itself. They are computed from different places and can
+      # silently disagree, which would publish one number under a tag naming
+      # another — permanently, since PyPI never lets a version be replaced.
+      - name: Assert the tag matches the package version
+        id: version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          pkg_version=$(uv run --no-project python -c \
+            "import re,pathlib; print(re.search(r'__version__ = \"([^\"]+)\"', pathlib.Path('phoxtail/__init__.py').read_text()).group(1))")
+          echo "tag=$tag_version package=$pkg_version"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies $tag_version, but __version__ is $pkg_version"
+            exit 1
+          fi
+          echo "version=$pkg_version" >> "$GITHUB_OUTPUT"
+
+      # An unbuilt fragment means the entries exist but sit in a directory no
+      # user reads. `ls` rather than `compgen -G`, which is a bash builtin and
+      # vanishes the day this step runs under sh.
+      - name: Assert the changelog was built
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if ls newsfragments/*.*.md >/dev/null 2>&1; then
+            echo "::error::unbuilt news fragments present — run: towncrier build --version $VERSION"
+            ls newsfragments/*.*.md
+            exit 1
+          fi
+
+      # Asserts the outcome rather than the process, so it keeps working if
+      # the changelog tooling is ever replaced.
+      - name: Assert the changelog has a section for this version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          grep -q "^## \[${VERSION}\]" CHANGELOG.md || {
+            echo "::error::CHANGELOG.md has no section for ${VERSION}"
+            exit 1
+          }
+
+      - name: Build sdist and wheel from a clean tree
+        run: make build
+
+      # The local editable install never exercises the artifact, so every
+      # packaging defect is invisible until someone opens the file. This is
+      # that, automated — the same inspection the `package` job runs on every
+      # push, repeated here because a release must not depend on an earlier
+      # workflow having been green.
+      - name: Inspect the artifacts
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, tarfile, zipfile
+
+          dist = pathlib.Path("dist")
+          sdist = next(dist.glob("*.tar.gz"))
+          wheel = next(dist.glob("*.whl"))
+
+          with tarfile.open(sdist) as tar:
+              sdist_names = [n.split("/", 1)[1] for n in tar.getnames() if "/" in n]
+          with zipfile.ZipFile(wheel) as zf:
+              wheel_names = zf.namelist()
+
+          failures = []
+          for required in (
+              "phoxtail/py.typed",
+              "phoxtail/cli/templates/docker/Dockerfile",
+              "phoxtail/project_template/manage.py",
+          ):
+              for label, names in (("sdist", sdist_names), ("wheel", wheel_names)):
+                  if required not in names:
+                      failures.append(f"{required} missing from {label}")
+
+          for label, names in (("sdist", sdist_names), ("wheel", wheel_names)):
+              tests = [
+                  n for n in names
+                  if (name := pathlib.PurePosixPath(n).name).startswith("test_")
+                  or name == "conftest.py"
+              ]
+              if tests:
+                  failures.append(f"{len(tests)} test files in {label}: {tests[:5]}")
+
+          print(f"sdist {sdist.name}: {len(sdist_names)} entries")
+          print(f"wheel {wheel.name}: {len(wheel_names)} entries")
+          for line in failures:
+              print(f"FAIL {line}")
+          sys.exit(1 if failures else 0)
+          PY
+
+      - name: Install the wheel and smoke the CLI
+        # From outside the repository root: inside it, `import phoxtail`
+        # resolves to the source tree and the wheel is never exercised.
+        run: |
+          uv venv --python 3.11 "$RUNNER_TEMP/smoke"
+          uv pip install --python "$RUNNER_TEMP/smoke/bin/python" dist/*.whl
+          cd "$RUNNER_TEMP" && "$RUNNER_TEMP/smoke/bin/phoxtail" version
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  # Runs no project code and builds nothing: it downloads what `build`
+  # produced and uploads it. This is the only job holding id-token: write.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/phoxtail/${{ needs.build.outputs.version }}
+    permissions:
+      # Mints the short-lived OIDC credential PyPI exchanges for upload rights.
+      # Job-scoped: at workflow level, any dependency executing during the
+      # build could request one.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist
+          path: dist/
+
+      # Not `uv publish`: it uploads attestations that already exist but cannot
+      # create them, so publishing through it would ship without provenance.
+      # See astral-sh/uv#15618; revisit when that lands.
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        # Attestations are on by default under trusted publishing: each file is
+        # signed with a short-lived Sigstore certificate bound to this workflow
+        # and recorded in a public transparency log, so "built from this commit"
+        # becomes checkable rather than asserted.
+
+  # Written last, once PyPI has the files: a release note pointing at a version
+  # nobody can install is worse than a late one.
+  github-release:
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist
+          path: dist/
+
+      # The changelog section for this version, lifted verbatim — the same
+      # words, so the two records cannot describe the release differently.
+      - name: Extract this version's changelog section
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" {found=1; next}
+            found && /^## / {exit}
+            found {print}
+          ' CHANGELOG.md > release-notes.md
+          test -s release-notes.md || {
+            echo "::error::extracted empty release notes for $VERSION"
+            exit 1
+          }
+          cat release-notes.md
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            dist/*

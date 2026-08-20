@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # Actions are pinned to commit SHAs, which stops a tag being repointed under
+  # us — and also stops fixes arriving. Dependabot is the other half of that
+  # trade: it turns a silent risk into a reviewable pull request.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
