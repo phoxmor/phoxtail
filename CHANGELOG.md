@@ -13,6 +13,58 @@ migrating into it. Any release that does so says so here.
 
 <!-- towncrier release notes start -->
 
+## [0.1.2] — 2026-08-20
+
+### Added
+
+- A bug-report issue form asking for version, Python, OS and a reproduction, with
+  questions routed to the community site and vulnerabilities to the private
+  advisory form.
+- This changelog.
+- `CODE_OF_CONDUCT.md` — the Contributor Covenant 2.1, unmodified. Reports go to
+  `conduct@phoxtail.com`.
+- `CONTRIBUTING.md` — setup, linting, tests, commit conventions and sign-off.
+- `DCO` — contributions are certified under the Developer Certificate of Origin.
+- `SECURITY.md` — how to report a vulnerability privately.
+
+### Changed
+
+- **Breaking for existing projects.** `playwright` and `Pillow` are no longer
+  installed by default. They moved to a new `studio` extra, which carries the
+  screenshot tools in `phoxtail.mcp.studio` and nothing else — a base install no
+  longer pulls a browser stack it may never use.
+
+  Newly hatched projects get `phoxtail[studio]` in their `dev` dependency group,
+  and projects still on the `phoxtail[dev]` alias keep it because that alias now
+  includes `studio`. Projects that already moved to the `dev-tools` +
+  dependency-group layout must add it themselves — `phoxtail upgrade` advances the
+  lockfile without rewriting `pyproject.toml`:
+
+  ```toml
+  [dependency-groups]
+  dev = [
+      "phoxtail[dev-tools]",
+      "phoxtail[studio]",
+  ]
+  ```
+
+  Then run `uv lock`; the Dockerfile syncs with `--frozen` and refuses a lockfile
+  that no longer matches. Without the entry the development image fails at
+  `playwright install`. Production images are unaffected, and lose a browser stack
+  they were never using.
+- One migration was folded away as a no-op. **No action required**: it set no SQL,
+  so a database that already applied it is unchanged and the leftover history row
+  is ignored.
+- The README's contributing link points at `CONTRIBUTING.md` instead of a
+  documentation page that does not exist.
+- The annotations shipped under `py.typed` are now verified rather than asserted —
+  the package type-checks clean, and CI fails on any error. Two signatures were
+  corrected against their callers in the process: `collection_id` on the studio
+  client's `create_variant` accepts `None`, and `Provider` subclasses now declare
+  their one-argument constructor on the base class.
+- `LICENSE` names the copyright holder as a person rather than a trade name.
+
+
 ## Earlier versions
 
 Versions before 0.1.2 predate this changelog. Their history is in the commit
@@ -20,3 +72,5 @@ log:
 
 - [0.1.1...main](https://github.com/phoxmor/phoxtail/compare/v0.1.1...main)
 - [0.1.0...0.1.1](https://github.com/phoxmor/phoxtail/compare/v0.1.0...v0.1.1)
+
+[0.1.2]: https://github.com/phoxmor/phoxtail/compare/v0.1.1...v0.1.2
