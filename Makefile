@@ -43,3 +43,27 @@ test:
 
 test-cov:
 	uv run pytest --cov --cov-report=term-missing $(ARGS)
+
+# Installs every direct dependency at exactly the floor pyproject.toml declares,
+# then runs the suite against it — so a floor is a measured claim rather than a
+# guess. `lowest-direct` leaves transitive dependencies at their newest, which
+# is what a user with an old pinned project actually gets.
+#
+# UV_PROJECT_ENVIRONMENT redirects the venv: a plain `uv sync` here would
+# replace .venv with the floor versions and leave the working environment
+# quietly downgraded. It rewrites uv.lock regardless — untracked, but note that
+# `uv lock` afterwards re-resolves to current versions rather than restoring
+# what the file held before.
+#
+# Built from scratch each time, and --upgrade is what makes it a check at all.
+# uv sync re-resolves only when the existing lock violates pyproject.toml, and
+# lowering a floor violates nothing — so without it, the one edit this target
+# exists to catch is the one it cannot see. CI has no lockfile and resolves
+# regardless, which is how that gap would have survived: green here, real only
+# there.
+FLOORS_ENV ?= .floors-venv
+test-floors:
+	rm -rf $(FLOORS_ENV)
+	UV_PROJECT_ENVIRONMENT=$(FLOORS_ENV) \
+	uv sync --all-extras --resolution lowest-direct --upgrade --python 3.11
+	$(FLOORS_ENV)/bin/python -m pytest $(ARGS)

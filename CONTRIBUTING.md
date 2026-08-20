@@ -37,12 +37,21 @@ make test-cli      # the CLI suite alone
 make test-engine   # core, streams and dashboard
 ```
 
-CI runs two more checks, both available locally:
+CI runs three more checks, all available locally (the last one only when
+`pyproject.toml` changes):
 
 ```bash
 make typecheck         # mypy; fails on any error
 make check-migrations  # fails if a model has no matching migration
+make test-floors       # the suite against the oldest dependency versions
+                       # pyproject.toml declares
 ```
+
+`make test-floors` builds a second environment in `.floors-venv/` rather than
+reusing `.venv`, so it will not downgrade the one you work in. It does rewrite
+the untracked `uv.lock`; `uv lock` re-resolves that to current versions
+afterwards. If it fails, a declared floor is lower than the oldest version that
+actually works — raise the floor, do not pin the dependency.
 
 ## Changelog entries
 

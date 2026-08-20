@@ -1,0 +1,69 @@
+name: Floors
+
+# A floor is a promise about the oldest version a user may bring, and until now
+# nothing ever installed one — every floor in pyproject.toml was inherited or
+# guessed, and several were false. `lowest-direct` pins each direct dependency
+# at exactly the declared floor, so this is what makes the published metadata a
+# measured claim. PyPI never lets a release's metadata be corrected, which is
+# why it has to be true before the first publish rather than after.
+#
+# Transitive dependencies stay at their newest on purpose — that is what a user
+# with an old pinned project actually resolves, and the pair is where breakage
+# lives: the typer floor was wrong on its own, and wrong again only in
+# combination with a current click.
+#
+# Its own workflow, gated on pyproject.toml, and that gate is a deliberate
+# trade rather than a free one. The declared half of the resolution changes
+# only when that file does; the transitive half floats, so a new release of
+# something nobody here declares can break this job while the gate keeps it
+# silent. What the gate buys is that the check runs on every change that can
+# make a floor false, which is the failure it exists to catch. Sampling the
+# floating half needs a schedule, and that is a cost decision, not an
+# oversight.
+on:
+  push:
+    branches: [main]
+    paths: ["pyproject.toml"]
+  pull_request:
+    paths: ["pyproject.toml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One definition for both the sync and the interpreter that runs the tests, and
+# the same directory `make test-floors` uses — so the command CI runs is the
+# command a contributor can reproduce.
+env:
+  UV_PROJECT_ENVIRONMENT: .floors-venv
+
+jobs:
+  floors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      # 3.11 alone. Floors are the oldest release of each package, and old
+      # releases have no wheels for the newest interpreters — a matrix here
+      # would report build failures that say nothing about the floors.
+      # --upgrade is redundant on a fresh checkout, which has no lockfile, and
+      # is kept so this line stays identical to the one in make test-floors —
+      # where a stale lock would otherwise silence the check.
+      - run: uv sync --all-extras --resolution lowest-direct --upgrade --python 3.11
+
+      # A silent pass cannot be told apart from a job that resolved something
+      # else entirely, so put the versions under test in the log.
+      - name: Report what the floors resolved to
+        run: uv pip list
+
+      # The interpreter directly, not `uv run`: uv run re-syncs at its default
+      # resolution, which would quietly replace the floors with the newest
+      # versions and leave this job green for the wrong reason.
+      - run: .floors-venv/bin/python -m pytest -n auto
