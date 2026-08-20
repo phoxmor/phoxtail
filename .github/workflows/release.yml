@@ -1,5 +1,11 @@
 name: Release
 
+# One workflow, two destinations, so the rehearsal exercises the identical
+# code path the real release will take — the only thing a rehearsal is for.
+# Splitting it in two would duplicate the build job, and the copies would
+# drift. This names each run for what it actually did instead.
+run-name: ${{ github.event_name == 'workflow_dispatch' && 'Rehearsal → TestPyPI' || format('Release {0} → PyPI', github.ref_name) }}
+
 # Pushing a v* tag is the release, so the tag, the GitHub Release and the file
 # on PyPI are one causal chain rather than three steps that can drift apart.
 #
