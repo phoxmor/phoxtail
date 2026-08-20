@@ -53,6 +53,10 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
+          # All branches, so the news-fragment check below can compare against
+          # the pull request's base without fetching — which it could not do,
+          # having no credential.
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
         with:
@@ -67,12 +71,26 @@ jobs:
       # Only on pull requests: the check needs a base branch to compare
       # against, and a direct push to main has none. That gap is covered by
       # the commit-msg hook in .githooks/ instead.
+      #
+      # The base branch comes from the checkout above rather than a git fetch
+      # here. Fetching would need a credential, and this job deliberately
+      # keeps none — see fetch-depth on the checkout step.
       - name: Assert the change carries a news fragment
         if: github.event_name == 'pull_request'
         env:
           BASE_BRANCH: ${{ github.base_ref }}
         run: |
-          git fetch --no-tags --depth=1 origin "+refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH"
+          # The same rule the commit-msg hook applies, so a contributor is
+          # never told one thing locally and another here: a fragment is
+          # required only for changes that could reach a user. A dependency
+          # bump or a workflow edit is not one.
+          changed=$(git diff --name-only "origin/$BASE_BRANCH...HEAD" -- 'phoxtail/**' \
+            | grep -vE '(^|/)tests/' || true)
+          if [ -z "$changed" ]; then
+            echo "Nothing under phoxtail/ outside tests/ — no fragment required."
+            exit 0
+          fi
+          echo "$changed"
           uv run towncrier check --compare-with "origin/$BASE_BRANCH"
 
   typecheck:
