@@ -1,0 +1,3 @@
+# Keep this directory tracked while it is empty — towncrier deletes every
+# fragment at release time, and git does not track empty directories.
+!.gitignore

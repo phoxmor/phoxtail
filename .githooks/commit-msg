@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Two checks on every commit message: the DCO sign-off, and a news fragment
+# for changes that could reach a user.
+#
+# Fires only on changes under phoxtail/ outside tests/, because a hook that
+# demands a fragment for every commit gets bypassed, and a bypassed hook is
+# worse than none. Opt out deliberately with a "Changelog: none" line, which
+# leaves a record in the log where --no-verify leaves nothing.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+set -euo pipefail
+
+message_file="$1"
+staged() { git diff --cached --name-only --diff-filter=ACMR; }
+
+# The DCO sign-off, on every commit — this is `git commit -s`, a plain
+# Signed-off-by trailer certifying you have the right to submit the work.
+# Not a cryptographic signature; that is `-S`, and it is a separate thing.
+if ! grep -qE '^Signed-off-by: .+ <.+@.+>$' "$message_file"; then
+    cat >&2 <<'EOF'
+No Signed-off-by line. Contributions are certified under the DCO — see DCO
+and CONTRIBUTING.md.
+
+Commit with -s and git adds it for you:
+
+    git commit -s -m "..."
+
+To fix the commit you just tried:
+
+    git commit -s --amend --no-edit
+EOF
+    exit 1
+fi
+
+if ! staged | grep -qE '^phoxtail/' || ! staged | grep -E '^phoxtail/' | grep -qvE '(^|/)tests/'; then
+    exit 0
+fi
+
+if staged | grep -qE '^newsfragments/.+\..+\.md$'; then
+    exit 0
+fi
+
+if grep -qiE '^Changelog:[[:space:]]*none[[:space:]]*$' "$message_file"; then
+    exit 0
+fi
+
+cat >&2 <<'EOF'
+No news fragment staged, and this commit touches phoxtail/ outside tests/.
+
+Add one:
+
+    newsfragments/+short-slug.changed.md
+
+Types: added changed deprecated removed fixed security
+
+Write it for someone upgrading — what changes for them, not what you edited.
+
+If this genuinely needs no changelog entry, say so in the commit message:
+
+    Changelog: none
+EOF
+exit 1

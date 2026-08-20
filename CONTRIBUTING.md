@@ -44,6 +44,36 @@ make typecheck         # mypy; fails on any error
 make check-migrations  # fails if a model has no matching migration
 ```
 
+## Changelog entries
+
+`CHANGELOG.md` is compiled from news fragments, so it is never edited directly.
+Any change that a user could notice needs one file in `newsfragments/`, in the
+same commit as the change:
+
+```
+newsfragments/+short-slug.changed.md
+```
+
+Use the issue number instead of `+short-slug` if there is one. The middle word
+is one of `added` `changed` `deprecated` `removed` `fixed` `security`. The
+content is Markdown, written for someone upgrading — what changes for them, not
+what you edited.
+
+A hook enforces this, alongside the DCO sign-off below. Enable it once per
+clone, because git does not share hooks through a checkout:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+It fires only on changes under `phoxtail/` outside `tests/`. If a change there
+genuinely needs no entry, say so in the commit message rather than bypassing the
+hook — the line is a record, `--no-verify` is not:
+
+```
+Changelog: none
+```
+
 Run `make lint` and the suite covering what you touched before opening a pull
 request. Anything that changes behaviour needs a test; anything that changes a
 model needs a migration.
@@ -80,9 +110,10 @@ git commit -s -m "fix(cli): resolve the config path relative to the project root
 Signed-off-by: Your Name <you@example.com>
 ```
 
-Use a real name and an address you can be reached at. A bot checks every commit
-in a pull request and will tell you if one is missing; `git rebase --signoff main`
-fixes a branch retroactively.
+Use a real name and an address you can be reached at. The `.githooks/commit-msg`
+hook above catches a missing sign-off before the commit is made, and a bot checks
+every commit in a pull request; `git rebase --signoff main` fixes a branch
+retroactively.
 
 You keep the copyright in what you contribute. It is licensed to everyone under
 the BSD 3-Clause terms in [LICENSE](LICENSE), the same as the rest of Phoxtail.

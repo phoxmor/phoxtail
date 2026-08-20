@@ -92,6 +92,7 @@ dev-tools = [
     "ruff>=0.4.0",
     "mypy>=1.10",
     "factory-boy>=3.3",
+    "towncrier>=24.7",
     "freezegun>=1.2",
     "ipython>=8.0",
 ]
@@ -153,6 +154,47 @@ python_version = "3.11"
 # rather than about this code.
 ignore_missing_imports = true
 exclude = ["/migrations/", "/tests/", "project_template/"]
+
+# The changelog is compiled from news fragments in newsfragments/, one per
+# user-visible change, written in the commit that makes the change. Headings
+# and their order are Keep a Changelog's; the array form fixes the order,
+# where the table form would sort them alphabetically.
+[tool.towncrier]
+directory = "newsfragments"
+filename = "CHANGELOG.md"
+start_string = "<!-- towncrier release notes start -->\n"
+title_format = "## [{version}] \u2014 {project_date}"
+issue_format = "[#{issue}](https://github.com/phoxmor/phoxtail/issues/{issue})"
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "deprecated"
+name = "Deprecated"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "removed"
+name = "Removed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "security"
+name = "Security"
+showcontent = true
 
 [tool.ruff]
 line-length = 120

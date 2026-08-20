@@ -60,6 +60,17 @@ jobs:
 
       - run: make lint-check
 
+      # Only on pull requests: the check needs a base branch to compare
+      # against, and a direct push to main has none. That gap is covered by
+      # the commit-msg hook in .githooks/ instead.
+      - name: Assert the change carries a news fragment
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH"
+          uv run towncrier check --compare-with "origin/$BASE_BRANCH"
+
   typecheck:
     runs-on: ubuntu-latest
     steps:
