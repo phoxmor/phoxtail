@@ -1,8 +1,14 @@
 name: Release
 
-# Pushing a v* tag is the release. Nothing else triggers this, so the tag, the
-# GitHub Release and the file on PyPI are one causal chain rather than three
-# steps that can drift apart.
+# Pushing a v* tag is the release, so the tag, the GitHub Release and the file
+# on PyPI are one causal chain rather than three steps that can drift apart.
+#
+# Running it by hand from the Actions tab publishes to TestPyPI instead — a
+# rehearsal, so that the first time these steps run in anger is not the first
+# time they run at all. That path cannot reach PyPI: the job is skipped on a
+# manual run, GitHub's `pypi` environment is restricted to v* tags, and PyPI
+# issues a credential only to a run in that environment. Two of those three
+# are enforced outside this file.
 #
 # The workflow filename is registered with PyPI as part of the trusted-publisher
 # identity. Renaming this file breaks publishing until the registration is
@@ -10,6 +16,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -43,13 +50,19 @@ jobs:
       - name: Assert the tag matches the package version
         id: version
         run: |
-          tag_version="${GITHUB_REF_NAME#v}"
           pkg_version=$(uv run --no-project python -c \
             "import re,pathlib; print(re.search(r'__version__ = \"([^\"]+)\"', pathlib.Path('phoxtail/__init__.py').read_text()).group(1))")
-          echo "tag=$tag_version package=$pkg_version"
-          if [ "$tag_version" != "$pkg_version" ]; then
-            echo "::error::tag $GITHUB_REF_NAME implies $tag_version, but __version__ is $pkg_version"
-            exit 1
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            # A rehearsal has no tag to compare against. Everything downstream
+            # is identical; only the destination differs.
+            echo "rehearsal: publishing $pkg_version to TestPyPI"
+          else
+            tag_version="${GITHUB_REF_NAME#v}"
+            echo "tag=$tag_version package=$pkg_version"
+            if [ "$tag_version" != "$pkg_version" ]; then
+              echo "::error::tag $GITHUB_REF_NAME implies $tag_version, but __version__ is $pkg_version"
+              exit 1
+            fi
           fi
           echo "version=$pkg_version" >> "$GITHUB_OUTPUT"
 
@@ -143,6 +156,10 @@ jobs:
   # produced and uploads it. This is the only job holding id-token: write.
   publish:
     needs: build
+    # Only a tag publishes to PyPI. A manual run never reaches this job — and
+    # if it somehow did, PyPI would refuse the credential, because the run
+    # would not be in the environment registered as the trusted publisher.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -167,10 +184,37 @@ jobs:
         # and recorded in a public transparency log, so "built from this commit"
         # becomes checkable rather than asserted.
 
+  # The rehearsal. Same artifacts, same upload action, same attestations —
+  # a different index, with its own account and its own trusted publisher.
+  # Nothing here can affect the real one.
+  publish-testpypi:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/phoxtail/${{ needs.build.outputs.version }}
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          # A rehearsal is run repeatedly, and the version does not change
+          # between runs. Without this the second attempt fails on a filename
+          # TestPyPI already has, which says nothing about the workflow.
+          skip-existing: true
+
   # Written last, once PyPI has the files: a release note pointing at a version
   # nobody can install is worse than a late one.
   github-release:
     needs: [build, publish]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
