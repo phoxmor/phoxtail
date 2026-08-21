@@ -1,4 +1,9 @@
-"""Minimal Django settings for running phoxtail.tokens tests."""
+"""Django settings for running phoxtail.tokens tests.
+
+Installing phoxtail.core means installing every phoxtail app: its AppConfig
+imports phoxtail.api, which mounts the core domain routers, which import
+their models. So this list is as long as it is.
+"""
 
 SECRET_KEY = "test-secret-key-not-for-production"
 
@@ -24,7 +29,17 @@ INSTALLED_APPS = [
     "wagtail.sites",
     "wagtail.locales",
     "wagtail.users",
+    "wagtail.documents",
+    "wagtail.embeds",
+    "wagtail.snippets",
+    "wagtailmedia",
     "phoxtail.core",
+    "phoxtail.users",
+    "phoxtail.media",
+    "phoxtail.design",
+    "phoxtail.streams",
+    "phoxtail.remotes",
+    "phoxtail.cms",
     "phoxtail.tokens",
 ]
 
