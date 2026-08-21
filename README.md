@@ -144,3 +144,6 @@ covered by the
 
 BSD 3-Clause. See
 [LICENSE](https://github.com/phoxmor/phoxtail/blob/main/LICENSE).
+
+The code is open source; the Phoxtail name and logo are not. See
+[TRADEMARK.md](https://github.com/phoxmor/phoxtail/blob/main/TRADEMARK.md).
