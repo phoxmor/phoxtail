@@ -49,8 +49,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <!-- Global App Stylesheets -->
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
-        <!-- HTMX -->
-        <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+        {% htmx_script %}
         {% django_htmx_script %}
         <!-- Modal Media -->
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">

@@ -2,8 +2,7 @@
 {% load static wagtailsettings_tags django_htmx %}
 {% block titletag %}API Tokens{% endblock %}
 {% block extra_css %}
-    <!-- HTMX -->
-    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% htmx_script %}
     {% django_htmx_script %}
     <!-- Fallback design token properties -->
     <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">

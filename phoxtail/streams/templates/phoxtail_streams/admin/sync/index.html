@@ -2,7 +2,7 @@
 {% load static wagtailsettings_tags django_htmx %}
 {% block titletag %}Sync{% endblock %}
 {% block extra_css %}
-    <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+    {% htmx_script %}
     {% django_htmx_script %}
     <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">

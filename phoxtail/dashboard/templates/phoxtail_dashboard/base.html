@@ -16,8 +16,7 @@
             {% block head_title %}
             {% endblock head_title %}
         </title>
-        <!-- HTMX -->
-        <script src="{% static 'phoxtail_core/js/htmx.min.js' %}" defer></script>
+        {% htmx_script %}
         {% django_htmx_script %}
         <!-- Modal Media -->
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
