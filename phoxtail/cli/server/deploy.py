@@ -17,11 +17,28 @@ from phoxtail.cli.server.utils import (
     ssh_run,
     verify_server_identity,
 )
-from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
+from phoxtail.cli.utils.config import (
+    find_config_file,
+    get_docker_registry,
+    get_project_name,
+    slugify,
+)
 
 console = Console()
 
 _DEPLOY_DIR = Path(".phoxtail/deploy")
+
+
+def _read_image(user: str, ip: str, image: str) -> tuple[bool, str]:
+    """Whether the server can read the image from the registry, and why not.
+
+    Asks the registry for the manifest, which needs both a valid credential and
+    read access to the package. Presence of a login in ~/.docker/config.json
+    proves neither: a token that has expired, been revoked, or never covered
+    this package leaves the file untouched.
+    """
+    result = ssh_run(user, ip, f"docker manifest inspect {image} >/dev/null")
+    return result.returncode == 0, result.stderr.strip()
 
 
 def deploy(
@@ -159,8 +176,11 @@ def deploy(
         # 6. GHCR login
         # ------------------------------------------------------------------
         console.print()
-        if ssh_check(user, ip, "grep -q 'ghcr.io' ~/.docker/config.json 2>/dev/null"):
-            console.print("  [green]✓[/green] GHCR [dim](already authenticated)[/dim]")
+        registry = get_docker_registry()
+        image = f"{registry}/{slugify(get_project_name())}:latest" if registry else None
+
+        if image and _read_image(user, ip, image)[0]:
+            console.print("  [green]✓[/green] GHCR [dim](image readable)[/dim]")
         else:
             console.print(
                 Panel(
@@ -193,6 +213,25 @@ def deploy(
                 console.print(f"[red]GHCR login failed:[/red] {result.stderr.strip()}")
                 raise typer.Exit(1)
             console.print("  [green]✓[/green] GHCR login successful")
+
+            if image:
+                readable, why = _read_image(user, ip, image)
+                if not readable:
+                    console.print(
+                        Panel(
+                            f"Signed in, but [bold]{image}[/bold] is still unreadable.\n"
+                            f"  [dim]{why or 'no detail from the registry'}[/dim]\n\n"
+                            "If this is an access problem, the credentials are fine and the\n"
+                            "package is not visible to this account — a package is private on\n"
+                            "first push and is not linked to its repository automatically.\n\n"
+                            "  [dim]GitHub → Packages → the package → Package settings →\n"
+                            "  Manage Actions access, or change visibility[/dim]\n\n"
+                            "Continuing; the pull below will report the registry's own error.",
+                            title="[yellow]Image not readable yet[/yellow]",
+                            border_style="yellow",
+                            expand=False,
+                        )
+                    )
 
         # ------------------------------------------------------------------
         # 7. Confirm before deploying
