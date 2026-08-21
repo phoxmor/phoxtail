@@ -1,9 +1,9 @@
+from django import forms
 from django.utils.translation import gettext_lazy as _
 from wagtail.admin.panels import FieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
 from wagtail.snippets.views.snippets import CreateView, EditView, SnippetViewSet
 
-from .admin.panels import CodeEditorPanel
 from .models import (
     Block,
     BlockCategory,
@@ -133,9 +133,9 @@ class BlockVariantViewSet(SnippetViewSet):
             ),
             ObjectList(
                 [
-                    CodeEditorPanel("html"),
-                    CodeEditorPanel("css"),
-                    CodeEditorPanel("javascript"),
+                    FieldPanel("html", widget=forms.Textarea(attrs={"rows": 20})),
+                    FieldPanel("css", widget=forms.Textarea(attrs={"rows": 15})),
+                    FieldPanel("javascript", widget=forms.Textarea(attrs={"rows": 15})),
                 ],
                 heading=_("Code"),
             ),
