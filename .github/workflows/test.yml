@@ -45,7 +45,22 @@ jobs:
       - name: Assert models and migrations agree
         run: make check-migrations
 
-      - run: uv run --python ${{ matrix.python-version }} pytest -n auto
+      # On the run that already happens: a job of its own would pay for a second
+      # checkout, sync and suite to learn one number.
+      - run: uv run --python ${{ matrix.python-version }} pytest -n auto --cov --cov-report=term
+
+      # Into the run summary, because a number only in the log is one nobody
+      # reads. Written by every matrix job, so the summary carries four copies.
+      - name: Report coverage in the run summary
+        run: |
+          {
+            echo "### Coverage — Python ${{ matrix.python-version }}"
+            echo
+            echo '```'
+            uv run --python ${{ matrix.python-version }} coverage report --format=total \
+              | sed 's/^/total: /;s/$/%/'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   lint:
     runs-on: ubuntu-latest

@@ -150,6 +150,30 @@ testpaths = ["phoxtail"]
 norecursedirs = [".floors-venv", ".venv", "build", "dist"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
 
+# Migrations are generated and the project template is scaffolding rendered into
+# someone else's repository; neither is code anyone would act on a number for.
+[tool.coverage.run]
+# A package name rather than a directory path: phoxtail/ also holds Dockerfiles
+# and other templates, and coverage fails while reporting when it tries to parse
+# those as Python.
+source_pkgs = ["phoxtail"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/project_template/*",
+]
+
+[tool.coverage.report]
+# `if TYPE_CHECKING:` never executes at runtime by design, so counting it as a
+# miss measures the annotations rather than the code.
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "^\\s*\\.\\.\\.$",
+]
+skip_covered = false
+
 [tool.mypy]
 python_version = "3.11"
 # Django, Wagtail and most of the plugin set ship no type information, so
