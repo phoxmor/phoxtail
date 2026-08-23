@@ -315,13 +315,7 @@ class TestSetApiUrl:
     def test_replaces_existing_value_and_preserves_everything_else(self, tmp_path):
         path = tmp_path / "phoxtail.toml"
         path.write_text(
-            "# hand-written comment\n"
-            "[project]\n"
-            'name = "alphasite"\n'
-            "apps = []\n"
-            "\n"
-            "[studio]\n"
-            'api_url = "http://localhost"\n'
+            '# hand-written comment\n[project]\nname = "alphasite"\n\n[studio]\napi_url = "http://localhost"\n'
         )
         set_api_url(path, "http://alphasite.localhost")
         content = path.read_text()
@@ -331,7 +325,6 @@ class TestSetApiUrl:
         # A TOML round-trip would have dropped these; a line edit must not.
         assert "# hand-written comment" in content
         assert 'name = "alphasite"' in content
-        assert "apps = []" in content
 
     def test_is_reversible(self, tmp_path):
         """detach must restore exactly what attach found, so the pair is a no-op."""

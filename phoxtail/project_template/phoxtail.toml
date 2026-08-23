@@ -1,6 +1,5 @@
 [project]
 name = "{{ phoxtail_project_name }}"
-apps = []
 
 [docker]
 # registry = "ghcr.io/<org_name>"

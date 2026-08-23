@@ -22,7 +22,6 @@ console = Console()
 DEFAULTS: dict[str, Any] = {
     "project": {
         "name": "phoxtail",
-        "apps": [],
     },
     "db": {
         "clusters": {},
@@ -95,10 +94,6 @@ def slugify(name: str) -> str:
     needed because validate_project_name already guarantees ASCII identifiers.
     """
     return name.replace("_", "-").lower()
-
-
-def get_project_apps() -> list[str]:
-    return list(load_config()["project"].get("apps", []))
 
 
 DEFAULT_API_BASE_URL = "http://localhost"

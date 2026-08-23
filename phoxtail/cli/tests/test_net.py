@@ -717,7 +717,7 @@ class TestApiUrlFollowsAttachment:
         when attach edits an existing key rather than creating the section.
         """
         (tmp_path / "phoxtail.toml").write_text(
-            '# my notes\n[project]\nname = "alphasite"\napps = []\n\n[studio]\napi_url = "http://localhost"\n'
+            '# my notes\n[project]\nname = "alphasite"\n\n[studio]\napi_url = "http://localhost"\n'
         )
         load_config.cache_clear()
         before = (tmp_path / "phoxtail.toml").read_text()

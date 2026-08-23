@@ -84,14 +84,6 @@ class TestCopyTemplate:
         assert INSTALL_MARKER.strip() in settings
         assert "{{ phoxtail_optional_apps }}" not in settings
 
-    def test_toml_has_empty_apps_by_default(self, tmp_path):
-        target = tmp_path / "acme"
-        target.mkdir()
-        _copy_template("acme", target)
-
-        toml = (target / "phoxtail.toml").read_text()
-        assert "apps = []" in toml
-
     def test_raises_when_template_dir_missing(self, tmp_path, monkeypatch):
         monkeypatch.setattr("phoxtail.cli.hatch.TEMPLATE_DIR", tmp_path / "nonexistent")
         with pytest.raises(FileNotFoundError, match="Template directory not found"):

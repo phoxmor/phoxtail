@@ -9,7 +9,6 @@ from phoxtail.cli.utils.config import (
     get_api_base_url,
     get_cluster_names,
     get_clusters,
-    get_project_apps,
     get_project_name,
     load_config,
     resolve_cluster_order,
@@ -43,19 +42,6 @@ class TestLoadConfig:
     def test_booking_depends_on_cms(self):
         clusters = get_clusters()
         assert clusters["booking"]["depends_on"] == ["cms"]
-
-
-class TestProjectApps:
-    def test_get_project_apps_returns_empty_by_default(self):
-        # SAMPLE_TOML in conftest has no apps key → falls back to DEFAULTS
-        assert get_project_apps() == []
-
-    def test_get_project_apps_returns_list(self, tmp_path, monkeypatch):
-        toml = tmp_path / "phoxtail.toml"
-        toml.write_text('[project]\nname = "test"\napps = ["phoxtail.dashboard", "phoxtail_booking"]\n')
-        monkeypatch.chdir(tmp_path)
-        load_config.cache_clear()
-        assert get_project_apps() == ["phoxtail.dashboard", "phoxtail_booking"]
 
 
 class TestApiBaseUrl:
