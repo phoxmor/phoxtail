@@ -19,7 +19,7 @@ class RemotesViewSet(RemotesPermissionedViewSet):
     name = "remotes"
     menu_label = _("Remotes")
     icon = "graph-5"
-    menu_order = 601
+    menu_order = 602
     add_to_settings_menu = True
     required_permissions = ["manage_remotes"]
 

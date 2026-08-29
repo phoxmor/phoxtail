@@ -13,7 +13,7 @@ class PaletteRoleViewSet(SnippetViewSet):
     icon = "sell"
     menu_label = _("Palette Roles")
     menu_name = _("Palette Roles")
-    menu_order = 150
+    menu_order = 210
     list_display = ["name", "identifier"]
     list_filter: list[str] = []
     search_fields = ["name", "identifier"]
@@ -30,7 +30,7 @@ class FontRoleViewSet(SnippetViewSet):
     icon = "sell"
     menu_label = _("Font Roles")
     menu_name = _("Font Roles")
-    menu_order = 150
+    menu_order = 120
     list_display = ["name", "identifier"]
     list_filter: list[str] = []
     search_fields = ["name", "identifier"]
