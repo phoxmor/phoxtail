@@ -106,6 +106,29 @@ class TestApplyDiffs:
         assert "django-browser-reload" in new_dev
         assert collect_diffs(tomllib.loads(new_text), template_doc) == {}
 
+    def test_project_without_a_dependency_groups_table_gets_one(self):
+        """The phoxtail[dev] era predates dependency groups entirely."""
+        legacy = (
+            '[project]\nname = "demo"\ndependencies = [\n    "phoxtail[dev]~=0.1.1",\n]\n\n[tool.uv]\npackage = false\n'
+        )
+        template_doc = load_template_doc()
+        diffs = collect_diffs(tomllib.loads(legacy), template_doc)
+        new_text = apply_diffs(legacy, diffs)
+        new_doc = tomllib.loads(new_text)
+        assert "phoxtail[studio]" in new_doc["dependency-groups"]["dev"]
+        assert new_doc["tool"]["uv"]["package"] is False
+        assert collect_diffs(new_doc, template_doc) == {}
+
+    def test_missing_group_inside_an_existing_table_is_created(self):
+        no_dev_group = DEV_TOOLS_ONLY.replace(
+            'dev = [\n    "phoxtail[dev-tools]",\n    "django-browser-reload",\n]', 'docs = [\n    "sphinx",\n]'
+        )
+        template_doc = load_template_doc()
+        diffs = collect_diffs(tomllib.loads(no_dev_group), template_doc)
+        new_doc = tomllib.loads(apply_diffs(no_dev_group, diffs))
+        assert "phoxtail[dev-tools]" in new_doc["dependency-groups"]["dev"]
+        assert "sphinx" in new_doc["dependency-groups"]["docs"]
+
     def test_unrecognised_formatting_reports_remaining_diff_instead_of_lying(self):
         # A single-line array is valid TOML but not one the text-based
         # patcher's insertion regex recognises — apply_diffs must not pretend

@@ -89,9 +89,14 @@ def apply_main_dependency_diff(text: str, old_entry: str, new_entry: str) -> str
 def apply_group_diff(text: str, group: str, to_remove: list[str], to_add: list[str]) -> str:
     # Anchored to [dependency-groups] so a same-named array in another table
     # (e.g. [project.optional-dependencies]) is never touched.
+    insertion = "".join(f'    "{entry}",\n' for entry in to_add)
     table_start = re.search(r"(?m)^\[dependency-groups\]\s*$", text)
     if table_start is None:
-        return text
+        # Projects hatched before the dependency-groups split have no table
+        # at all — exactly the projects reconciliation exists for.
+        if not to_add:
+            return text
+        return text.rstrip() + f"\n\n[dependency-groups]\n{group} = [\n{insertion}]\n"
     head, tail = text[: table_start.end()], text[table_start.end() :]
 
     for entry in to_remove:
@@ -99,10 +104,11 @@ def apply_group_diff(text: str, group: str, to_remove: list[str], to_add: list[s
     if to_add:
         group_start = re.search(rf"(?m)^{re.escape(group)}\s*=\s*\[\n", tail)
         if group_start is not None:
-            indent = "    "
-            insertion = "".join(f'{indent}"{entry}",\n' for entry in to_add)
-            insert_at = group_start.end()
-            tail = tail[:insert_at] + insertion + tail[insert_at:]
+            tail = tail[: group_start.end()] + insertion + tail[group_start.end() :]
+        elif re.search(rf"(?m)^{re.escape(group)}\s*=", tail) is None:
+            tail = f"\n{group} = [\n{insertion}]" + tail
+        # else: the group exists in a form the patcher doesn't recognise —
+        # leave it alone and let the caller's re-collect report the remainder.
     return head + tail
 
 
