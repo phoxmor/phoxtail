@@ -86,6 +86,9 @@ def build_variant_envelope(v: BlockVariant) -> dict:
             "icon": b.icon,
             "group": b.group,
             "is_shared": b.is_shared,
+            "site_slot": b.site_slot,
+            "slot_order": b.slot_order,
+            "render_in_preview": b.render_in_preview,
             "source_app": b.source_app,
             "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
             "schema_json": b.schema.get_prep_value(),
@@ -169,6 +172,9 @@ def block_summary(b: Block, variant_count: int) -> dict:
         "group": b.group,
         "icon": b.icon,
         "is_shared": b.is_shared,
+        "site_slot": b.site_slot,
+        "slot_order": b.slot_order,
+        "render_in_preview": b.render_in_preview,
         "source_app": b.source_app,
         "variant_count": variant_count,
     }
@@ -330,6 +336,9 @@ def block_etag(b: Block) -> str:
         b.icon,
         b.group,
         str(b.is_shared),
+        b.site_slot,
+        str(b.slot_order),
+        str(b.render_in_preview),
         str(b.sort_order or 0),
     )
     for field in fields:
@@ -346,7 +355,7 @@ def block_etag(b: Block) -> str:
 
 def resolve_shared_block_by_pk(pk: int) -> SharedBlock:
     try:
-        return SharedBlock.objects.select_related("block", "site", "locale").get(pk=pk)
+        return SharedBlock.objects.select_related("block", "site", "locale", "variant").get(pk=pk)
     except SharedBlock.DoesNotExist as exc:
         raise HttpError(404, f"SharedBlock {pk} not found.") from exc
 
@@ -382,6 +391,8 @@ def shared_block_summary(sb: SharedBlock) -> dict:
         "site_hostname": sb.site.hostname,
         "locale_id": sb.locale_id,
         "language_code": sb.locale.language_code,
+        "variant_id": sb.variant_id,
+        "variant_identifier": sb.variant.identifier if sb.variant_id else "",
         "created_at": sb.created_at.isoformat(),
         "updated_at": sb.updated_at.isoformat(),
     }
@@ -400,6 +411,7 @@ def shared_block_etag(sb: SharedBlock) -> str:
         str(sb.block_id),
         str(sb.site_id),
         str(sb.locale_id),
+        str(sb.variant_id or ""),
         json.dumps(sb.content.get_prep_value() or [], sort_keys=True),
         sb.updated_at.isoformat(),
     ):

@@ -42,6 +42,7 @@ from phoxtail.streams.blocks.schema import (
     URLSchemaBlock,
     VideoChooserSchemaBlock,
 )
+from phoxtail.streams.constants import BlockSiteSlot
 from phoxtail.streams.fields import SharedBlockStreamField
 from phoxtail.streams.utils import _page_content_type_choices
 
@@ -102,6 +103,30 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "If checked, this block's content is defined once per site/locale "
             "(in Shared Blocks) and shared across pages. "
             "In page editors, only the variant chooser will be shown."
+        ),
+    )
+    site_slot = models.CharField(
+        max_length=20,
+        choices=BlockSiteSlot.choices,
+        blank=True,
+        default="",
+        help_text=_(
+            "Render this block automatically at this position on every page of a "
+            "site that has filled in its shared content. A page that places the "
+            "block itself takes over on that page. Requires 'is_shared'. "
+            "Leave empty for normal per-page placement."
+        ),
+    )
+    slot_order = models.IntegerField(
+        default=0,
+        help_text=_("Render order among blocks pinned to the same slot (lower renders first)."),
+    )
+    render_in_preview = models.BooleanField(
+        default=True,
+        help_text=_(
+            "Whether the site-wide render includes this block in the Wagtail "
+            "preview panel and Studio screenshots. Uncheck for analytics and "
+            "tracking scripts."
         ),
     )
     source_app = models.CharField(
@@ -192,6 +217,13 @@ class Block(index.Indexed, Orderable, ClusterableModel):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.site_slot and not self.is_shared:
+            raise ValidationError(
+                {"site_slot": _("Only shared blocks can be pinned to a site-wide slot — enable 'is_shared' first.")}
+            )
 
     @property
     def default_variant(self):
@@ -400,6 +432,18 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
         on_delete=models.CASCADE,
         related_name="shared_blocks",
     )
+    variant = models.ForeignKey(
+        BlockVariant,
+        on_delete=models.SET_NULL,
+        related_name="shared_blocks",
+        null=True,
+        blank=True,
+        help_text=_(
+            "Variant used when this block renders site-wide (and the fallback "
+            "for per-page placements that don't choose one). Leave empty to "
+            "use the block's default variant."
+        ),
+    )
     content = SharedBlockStreamField
 
     search_fields = [
@@ -433,6 +477,9 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
         # Ensure the block FK points to a shared block
         if self.block_id and not self.block.is_shared:
             raise ValidationError({"block": ("Only blocks with 'is_shared' enabled can have shared content.")})
+        # Ensure the variant belongs to the same block
+        if self.variant_id and self.block_id and self.variant.block_id != self.block_id:
+            raise ValidationError({"variant": (f"Variant '{self.variant}' does not belong to block '{self.block}'.")})
         # Ensure the content block type matches the block FK
         if self.block_id and self.content and len(self.content) > 0:
             # ``content[0].block_type`` materializes the first stream item,

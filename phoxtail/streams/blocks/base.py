@@ -28,14 +28,26 @@ class BlockVariantStructBlock(blocks.StructBlock):
         javascript = ""
 
         is_shared = getattr(self, "_is_shared", False)
+        shared_row = None
         if is_shared:
-            render_value = self._get_shared_content(context)
-            if render_value is None:
+            # A page that places a site-wide block takes over; the hide
+            # toggle lets taking over mean "render nothing at all".
+            if value.get("hidden"):
                 return ""
+            # The site-slot render path resolves the row itself and passes it
+            # through; per-page refs resolve it from the request context.
+            shared_row = value.get("_shared_row") or self._get_shared_block_row(context)
+            if shared_row is None or not shared_row.content or len(shared_row.content) == 0:
+                return ""
+            render_value = shared_row.content[0].value
         else:
             render_value = value
 
+        # Variant cascade: the page's explicit choice, then the site's
+        # (SharedBlock.variant), then the block's global default.
         variant = value.get("variant")
+        if not variant and shared_row is not None:
+            variant = shared_row.variant
 
         if variant:
             html = variant.html
@@ -72,7 +84,7 @@ class BlockVariantStructBlock(blocks.StructBlock):
 
         return super().render(value, context)
 
-    def _get_shared_content(self, context):
+    def _get_shared_block_row(self, context):
         from phoxtail.streams.cache import get_shared_block
 
         if not context:
@@ -96,8 +108,4 @@ class BlockVariantStructBlock(blocks.StructBlock):
 
             locale = Locale.get_default()
 
-        shared_block = get_shared_block(self._block_identifier, site, locale)
-        if shared_block and shared_block.content and len(shared_block.content) > 0:
-            return shared_block.content[0].value
-
-        return None
+        return get_shared_block(self._block_identifier, site, locale)

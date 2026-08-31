@@ -102,6 +102,12 @@ def update_block_by_id(
         b.group = payload.group
     if payload.is_shared is not None:
         b.is_shared = payload.is_shared
+    if payload.site_slot is not None:
+        b.site_slot = payload.site_slot
+    if payload.slot_order is not None:
+        b.slot_order = payload.slot_order
+    if payload.render_in_preview is not None:
+        b.render_in_preview = payload.render_in_preview
     if payload.block_schema is not None:
         b.schema = payload.block_schema
     if payload.sort_order is not None:
@@ -139,6 +145,9 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
         icon=payload.icon,
         group=payload.group,
         is_shared=payload.is_shared,
+        site_slot=payload.site_slot,
+        slot_order=payload.slot_order,
+        render_in_preview=payload.render_in_preview,
         schema=payload.block_schema,
         sort_order=payload.sort_order,
     )

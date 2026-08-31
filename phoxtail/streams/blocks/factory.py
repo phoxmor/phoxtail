@@ -129,6 +129,17 @@ def create_shared_block_ref(block):
         required=False,
     )
 
+    # Site-wide blocks: placing the block on a page takes over from the
+    # automatic slot render; this toggle lets taking over mean "render nothing".
+    if block.site_slot:
+        fields["hidden"] = BooleanBlock(
+            required=False,
+            label="Hide on this page",
+            help_text=(
+                "Suppress this site-wide block on this page — it renders neither here nor in its automatic position."
+            ),
+        )
+
     # Create Meta class with icon, label, and group
     meta_attrs = {"icon": block.icon if block.icon else "placeholder"}
     if block.name:

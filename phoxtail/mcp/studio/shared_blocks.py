@@ -56,7 +56,10 @@ def get_shared_block(shared_block_id: int) -> str:
         "use phoxtail_studio_list_blocks to find eligible blocks), site_id, and "
         "locale_id. Content is a list with exactly one entry whose block_type must "
         "match the block's identifier. Only one shared block may exist per "
-        "(block, site, locale) triplet. Returns the created record with its ETag."
+        "(block, site, locale) triplet. An optional variant_id (a variant of the "
+        "same block) selects the variant used when the block renders site-wide "
+        "via its site_slot; without one, the block's default variant applies. "
+        "Returns the created record with its ETag."
     ),
 )
 def create_shared_block(
@@ -64,6 +67,7 @@ def create_shared_block(
     site_id: int,
     locale_id: int,
     content: list[dict] | None = None,
+    variant_id: int | None = None,
 ) -> str:
     body: dict[str, Any] = {
         "block_id": block_id,
@@ -72,6 +76,8 @@ def create_shared_block(
     }
     if content is not None:
         body["content"] = content
+    if variant_id is not None:
+        body["variant_id"] = variant_id
 
     resp = request("POST", "/shared-blocks/", json_body=body)
 
@@ -99,19 +105,29 @@ def create_shared_block(
 @mcp_server.tool(
     name="phoxtail_studio_update_shared_block",
     description=(
-        "Update a shared block's content. Requires the ETag from a prior "
-        "phoxtail_studio_get_shared_block call for optimistic concurrency control. "
-        "Content must be a list with exactly one entry whose block_type matches "
-        "the block's identifier. The block/site/locale triplet cannot be changed. "
-        "On success, returns the updated record with a new ETag."
+        "Update a shared block's content and/or variant. Requires the ETag from "
+        "a prior phoxtail_studio_get_shared_block call for optimistic concurrency "
+        "control. Content must be a list with exactly one entry whose block_type "
+        "matches the block's identifier. variant_id selects the variant used for "
+        "the site-wide render (pass clear_variant=True to fall back to the "
+        "block's default variant). The block/site/locale triplet cannot be "
+        "changed. On success, returns the updated record with a new ETag."
     ),
 )
 def update_shared_block(
     shared_block_id: int,
     etag: str,
-    content: list[dict],
+    content: list[dict] | None = None,
+    variant_id: int | None = None,
+    clear_variant: bool = False,
 ) -> str:
-    body: dict[str, Any] = {"content": content}
+    body: dict[str, Any] = {}
+    if content is not None:
+        body["content"] = content
+    if variant_id is not None:
+        body["variant_id"] = variant_id
+    elif clear_variant:
+        body["variant_id"] = None
 
     resp = request(
         "PATCH",

@@ -47,6 +47,12 @@ def get_block(block_id: int) -> str:
         "the schema definition as a list of field objects. "
         "Use the phoxtail://schema-reference resource to see available "
         "field types and their parameters. "
+        "A shared block may also declare `site_slot` (head_start, head_end, "
+        "body_start, before_content, after_content, body_end) to render "
+        "automatically at that position on every page of a site that fills "
+        "in its shared content; `slot_order` orders blocks within the same "
+        "slot and `render_in_preview=False` keeps it out of previews and "
+        "screenshots (use for analytics/tracking scripts). "
         "Returns the created block with its ETag."
     ),
 )
@@ -57,6 +63,9 @@ def create_block(
     icon: str = "",
     group: str = "",
     is_shared: bool = False,
+    site_slot: str = "",
+    slot_order: int = 0,
+    render_in_preview: bool = True,
     sort_order: int | None = None,
     page_types: list[str] | None = None,
     schema: list[dict] | None = None,
@@ -68,6 +77,9 @@ def create_block(
         "icon": icon,
         "group": group,
         "is_shared": is_shared,
+        "site_slot": site_slot,
+        "slot_order": slot_order,
+        "render_in_preview": render_in_preview,
     }
     if sort_order is not None:
         body["sort_order"] = sort_order
@@ -103,7 +115,8 @@ def create_block(
     name="phoxtail_studio_update_block",
     description=(
         "Update any mutable field on a block: identifier, name, description, "
-        "icon, group, is_shared, sort_order, page_types, and schema. "
+        "icon, group, is_shared, site_slot, slot_order, render_in_preview, "
+        "sort_order, page_types, and schema. "
         "Requires the ETag from a prior phoxtail_studio_get_block call "
         "for optimistic concurrency control. Omitted fields are left "
         "untouched. "
@@ -123,6 +136,9 @@ def update_block(
     icon: str | None = None,
     group: str | None = None,
     is_shared: bool | None = None,
+    site_slot: str | None = None,
+    slot_order: int | None = None,
+    render_in_preview: bool | None = None,
     sort_order: int | None = None,
     page_types: list[str] | None = None,
     schema: list[dict] | None = None,
@@ -140,6 +156,12 @@ def update_block(
         body["group"] = group
     if is_shared is not None:
         body["is_shared"] = is_shared
+    if site_slot is not None:
+        body["site_slot"] = site_slot
+    if slot_order is not None:
+        body["slot_order"] = slot_order
+    if render_in_preview is not None:
+        body["render_in_preview"] = render_in_preview
     if sort_order is not None:
         body["sort_order"] = sort_order
     if page_types is not None:

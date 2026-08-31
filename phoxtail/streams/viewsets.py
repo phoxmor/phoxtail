@@ -36,8 +36,8 @@ class BlockViewSet(SnippetViewSet):
     menu_label = _("Blocks")
     menu_name = _("Blocks")
     menu_order = 100
-    list_display = ["name", "identifier", "is_shared"]
-    list_filter = ["is_shared"]
+    list_display = ["name", "identifier", "is_shared", "site_slot"]
+    list_filter = ["is_shared", "site_slot"]
     search_fields = ["name", "identifier", "description"]
 
     edit_handler = TabbedInterface(
@@ -55,6 +55,14 @@ class BlockViewSet(SnippetViewSet):
                     FieldPanel("categories"),
                 ],
                 heading=_("Details"),
+            ),
+            ObjectList(
+                [
+                    FieldPanel("site_slot"),
+                    FieldPanel("slot_order"),
+                    FieldPanel("render_in_preview"),
+                ],
+                heading=_("Placement"),
             ),
             ObjectList(
                 [
@@ -98,6 +106,7 @@ class SharedBlockViewSet(SnippetViewSet):
         FieldPanel("block"),
         FieldPanel("site"),
         FieldPanel("locale"),
+        FieldPanel("variant"),
         FieldPanel("content"),
     ]
 

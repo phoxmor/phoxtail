@@ -1,0 +1,15 @@
+<div id="phoxtail-shared-block-{{ shared_block.pk }}"
+     class="phoxtail-block phoxtail-site-wide-block"
+     data-phoxtail-bar-shared-block-id="{{ shared_block.pk }}"
+     data-phoxtail-bar-type="{{ block_identifier }}"
+     data-phoxtail-bar-site-slot="{{ slot }}"
+     {% if variant %}data-phoxtail-bar-variant-id="{{ variant.id }}" data-phoxtail-bar-variant-identifier="{{ variant.identifier }}"{% endif %}
+     {% if fragment_url %}hx-get="{{ fragment_url }}"
+     hx-trigger="phoxtail:block-refresh"
+     hx-swap="outerHTML"
+     hx-indicator="#phoxtail-shared-block-{{ shared_block.pk }}-indicator"{% endif %}>
+    <span id="phoxtail-shared-block-{{ shared_block.pk }}-indicator"
+          class="phoxtail-block-refresh-indicator htmx-indicator"
+          aria-hidden="true"></span>
+    {{ rendered }}
+</div>

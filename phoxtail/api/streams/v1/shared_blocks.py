@@ -14,6 +14,7 @@ from phoxtail.api.streams.v1._helpers import (
     resolve_locale,
     resolve_shared_block_by_pk,
     resolve_site,
+    resolve_variant_by_pk,
     shared_block_detail,
     shared_block_etag,
     shared_block_summary,
@@ -37,7 +38,7 @@ def list_shared_blocks(
     site: int | None = Query(None, description="Filter by site ID."),
     locale: int | None = Query(None, description="Filter by locale ID."),
 ):
-    qs = SharedBlockModel.objects.select_related("block", "site", "locale").order_by(
+    qs = SharedBlockModel.objects.select_related("block", "site", "locale", "variant").order_by(
         "block__name", "site__hostname", "locale__language_code"
     )
     if block is not None:
@@ -75,8 +76,9 @@ def create_shared_block(request: HttpRequest, response: HttpResponse, payload: S
         )
     site = resolve_site(payload.site_id)
     locale = resolve_locale(payload.locale_id)
+    variant = resolve_variant_by_pk(payload.variant_id) if payload.variant_id is not None else None
 
-    sb = SharedBlockModel(block=block, site=site, locale=locale)
+    sb = SharedBlockModel(block=block, site=site, locale=locale, variant=variant)
     if payload.content:
         # A StreamField accepts raw stream data on assignment and converts
         # it; the descriptor advertises only the converted type.
@@ -104,7 +106,7 @@ def create_shared_block(request: HttpRequest, response: HttpResponse, payload: S
 @router.patch(
     "/{shared_block_id}/",
     response={200: SharedBlock, 400: Error, 404: Error, 412: Error, 428: Error},
-    summary="Update a SharedBlock's content by numeric ID",
+    summary="Update a SharedBlock's content or variant by numeric ID",
 )
 def update_shared_block_by_id(
     request: HttpRequest,
@@ -132,6 +134,10 @@ def update_shared_block_by_id(
         # A StreamField accepts raw stream data on assignment and converts
         # it; the descriptor advertises only the converted type.
         sb.content = payload.content  # type: ignore[assignment]
+    # An explicit ``"variant_id": null`` clears the variant; an omitted key
+    # leaves it untouched — model_fields_set tells the two apart.
+    if "variant_id" in payload.model_fields_set:
+        sb.variant = resolve_variant_by_pk(payload.variant_id) if payload.variant_id is not None else None
 
     try:
         sb.full_clean()

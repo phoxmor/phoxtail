@@ -24,6 +24,7 @@ _dynamic_blocks_cache = None
 _shared_blocks_cache = None
 _page_type_blocks_cache: dict = {}
 _shared_block_cache: dict = {}
+_blocks_for_site_slot_cache: dict = {}
 
 _local_generation: int = 0  # generation this process's caches currently reflect
 
@@ -80,6 +81,7 @@ def _clear_local_caches():
     _default_variant_cache.clear()
     _template_cache.clear()
     _shared_block_cache.clear()
+    _blocks_for_site_slot_cache.clear()
     _dynamic_blocks_cache = None
     _shared_blocks_cache = None
     _page_type_blocks_cache = {}
@@ -143,24 +145,59 @@ def get_cached_blocks_for_page_type(content_type_id) -> list:
 
 
 def get_shared_block(block_identifier: str, site, locale):
+    """Resolve the SharedBlock row for site+locale, falling back to the
+    default locale's row when the requested locale has none — untranslated
+    shared content shows the source language rather than disappearing."""
     get_cache_generation()  # self-invalidate regardless of render order
     site_id = site.pk if site else None
     locale_id = locale.pk if locale else None
     cache_key = (block_identifier, site_id, locale_id)
 
     if cache_key not in _shared_block_cache:
+        from wagtail.models import Locale
+
         from phoxtail.streams.models import SharedBlock
 
-        _shared_block_cache[cache_key] = (
-            SharedBlock.objects.filter(
-                block__identifier=block_identifier,
-                site_id=site_id,
-                locale_id=locale_id,
-            )
-            .select_related("block")
-            .first()
-        )
+        rows = SharedBlock.objects.filter(
+            block__identifier=block_identifier,
+            site_id=site_id,
+        ).select_related("block", "variant")
+        row = rows.filter(locale_id=locale_id).first()
+        if row is None:
+            default_locale = Locale.get_default()
+            if default_locale and default_locale.pk != locale_id:
+                row = rows.filter(locale_id=default_locale.pk).first()
+        _shared_block_cache[cache_key] = row
     return _shared_block_cache[cache_key]
+
+
+def get_blocks_for_site_slot(slot: str) -> list:
+    """Blocks pinned to the given site-wide slot, in render order."""
+    get_cache_generation()  # self-invalidate regardless of render order
+    if slot not in _blocks_for_site_slot_cache:
+        from phoxtail.streams.models import Block
+
+        _blocks_for_site_slot_cache[slot] = list(
+            Block.objects.filter(site_slot=slot).prefetch_related("page_types").order_by("slot_order", "sort_order")
+        )
+    return _blocks_for_site_slot_cache[slot]
+
+
+def get_dynamic_block_instance(identifier: str, content_type_id=None):
+    """The generated block instance for an identifier.
+
+    The unrestricted dynamic-blocks cache is checked first; a page-type-
+    restricted block only exists in the per-page-type cache, so pass the
+    current page's ``content_type_id`` to find it there.
+    """
+    for block_identifier, instance in get_cached_dynamic_blocks():
+        if block_identifier == identifier:
+            return instance
+    if content_type_id is not None:
+        for block_identifier, instance in get_cached_blocks_for_page_type(content_type_id):
+            if block_identifier == identifier:
+                return instance
+    return None
 
 
 def get_cache_generation() -> int:

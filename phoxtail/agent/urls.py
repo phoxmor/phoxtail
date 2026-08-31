@@ -26,6 +26,11 @@ urlpatterns = [
         name="render_block_fragment",
     ),
     path(
+        "htmx-partials/shared-blocks/<int:shared_block_id>/render/",
+        views.render_shared_block_fragment,
+        name="render_shared_block_fragment",
+    ),
+    path(
         "htmx-partials/body/<int:page_id>/render/",
         views.render_body_fragment,
         name="render_body_fragment",

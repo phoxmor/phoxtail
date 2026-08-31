@@ -158,6 +158,9 @@ class BlockSummary(Schema):
     group: str
     icon: str
     is_shared: bool
+    site_slot: str = ""
+    slot_order: int = 0
+    render_in_preview: bool = True
     source_app: str
     variant_count: int
 
@@ -193,6 +196,9 @@ class BlockCreate(Schema):
     icon: str = ""
     group: str = ""
     is_shared: bool = False
+    site_slot: str = ""
+    slot_order: int = 0
+    render_in_preview: bool = True
     page_types: list[str] = []
     block_schema: list[dict] = Field([], alias="schema")
     sort_order: int = 0
@@ -211,6 +217,9 @@ class BlockUpdate(Schema):
     icon: str | None = None
     group: str | None = None
     is_shared: bool | None = None
+    site_slot: str | None = None
+    slot_order: int | None = None
+    render_in_preview: bool | None = None
     page_types: list[str] | None = None
     block_schema: list[dict] | None = Field(None, alias="schema")
     sort_order: int | None = None
@@ -328,6 +337,8 @@ class SharedBlockSummary(Schema):
     site_hostname: str
     locale_id: int
     language_code: str
+    variant_id: int | None = None
+    variant_identifier: str = ""
     created_at: str
     updated_at: str
 
@@ -347,17 +358,21 @@ class SharedBlockCreate(Schema):
     block_id: int
     site_id: int
     locale_id: int
+    variant_id: int | None = None
     content: list[dict] = []
 
 
 class SharedBlockUpdate(Schema):
     """Request body for ``PATCH /shared-blocks/{id}/``.
 
-    Only ``content`` may be changed after creation. The block/site/locale
-    triplet is immutable. The ETag check happens via ``If-Match``.
+    ``content`` and ``variant_id`` may be changed after creation; the
+    block/site/locale triplet is immutable. Passing ``variant_id: null``
+    explicitly clears the variant (omitting it leaves it untouched). The
+    ETag check happens via ``If-Match``.
     """
 
     content: list[dict] | None = None
+    variant_id: int | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -374,6 +389,9 @@ class PushBlockData(Schema):
     name: str
     identifier: str
     is_shared: bool = False
+    site_slot: str = ""
+    slot_order: int = 0
+    render_in_preview: bool = True
     source_app: str = ""
     page_types: list[str] = []
     block_schema: str | list = Field([], alias="schema_json")

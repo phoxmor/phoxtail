@@ -1,8 +1,9 @@
-{% load static wagtailcore_tags wagtailimages_tags wagtailsettings_tags django_htmx %}
+{% load static wagtailcore_tags wagtailimages_tags wagtailsettings_tags django_htmx phoxtail_cms_tags %}
 <!DOCTYPE html>
 <html lang="{{ page.locale.language_code }}">
     <head>
         <meta charset="utf-8" />
+        {% block_site_slot "head_start" %}
         {% wagtail_site as current_site %}
         {% if settings.phoxtail_cms.SiteSetting.favicon and settings.phoxtail_cms.SiteSetting.favicon_dark %}
             {% image settings.phoxtail_cms.SiteSetting.favicon max-32x32 as favicon_img %}
@@ -66,8 +67,10 @@
             {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
         </style>
         {% block extra_css %}{% endblock %}
+        {% block_site_slot "head_end" %}
     </head>
     <body>
+        {% block_site_slot "body_start" %}
         {% include "account/messages_static.html" %}
         {% include "account/messages.html" %}
         <main>
@@ -75,9 +78,12 @@
             <div id="core-modal-placeholder-wrapper"></div>
             <div id="core-modal-level-1-placeholder-wrapper"></div>
             <!-- Content -->
+            {% block_site_slot "before_content" %}
             {% block content %}{% endblock %}
+            {% block_site_slot "after_content" %}
         </main>
         {% if not phoxtail_screenshot_mode %}{% include "phoxtail_cms/phoxtail_bar.html" %}{% endif %}
         {% block extra_js %}{% endblock %}
+        {% block_site_slot "body_end" %}
     </body>
 </html>

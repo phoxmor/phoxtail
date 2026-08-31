@@ -410,6 +410,30 @@ def render_block_fragment(request, page_id: int, block_uuid: str) -> HttpRespons
 
 
 @agent_permission_required("access_chatbot")
+def render_shared_block_fragment(request, shared_block_id: int) -> HttpResponse:
+    """Render one site-wide (slot-pinned) shared block as an HTML fragment.
+
+    Site-wide blocks are not StreamField children of any page, so they have no
+    per-page block UUID — they are addressed by their SharedBlock row instead.
+    """
+    from phoxtail.cms.templatetags.phoxtail_cms_tags import render_site_wide_block
+    from phoxtail.streams.models import SharedBlock
+
+    try:
+        shared_row = SharedBlock.objects.select_related("block", "variant").get(pk=shared_block_id)
+    except SharedBlock.DoesNotExist:
+        raise Http404(f"Shared block '{shared_block_id}' not found.") from None
+
+    html = render_site_wide_block(
+        shared_row.block,
+        shared_row,
+        {"request": request},
+        request=request,
+    )
+    return HttpResponse(html, content_type="text/html")
+
+
+@agent_permission_required("access_chatbot")
 def render_body_fragment(request, page_id: int) -> HttpResponse:
     """Render all blocks as an HTML fragment for HTMX innerHTML swap."""
     draft = resolve_page_for_read(page_id)
