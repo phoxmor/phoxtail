@@ -24,6 +24,7 @@ from phoxtail.cli.server.providers.linode import LinodeProvider
 from phoxtail.cli.server.utils import (
     fmt_memory,
     fmt_price,
+    forget_host_key,
     price_key,
     render_bootstrap,
     wait_for_cloud_init,
@@ -593,9 +594,12 @@ def provision(
 
         # --- Wait for cloud-init bootstrap ---
         if user_data and server.ipv4:
+            # This IP may have belonged to someone else's server yesterday.
+            # The stale key would make every SSH attempt below fail closed.
+            forget_host_key(server.ipv4)
             console.print()
             console.print("[bold cyan]Waiting for cloud-init to finish (Docker, uv, hardening)...[/bold cyan]\n")
-            cloud_init_ok = wait_for_cloud_init(deploy_user, server.ipv4)
+            cloud_init_ok, cloud_init_detail = wait_for_cloud_init(deploy_user, server.ipv4)
             console.print()
 
             if cloud_init_ok:
@@ -610,15 +614,27 @@ def provision(
                     f"{server.ipv4}[/cyan]"
                 )
             else:
+                # The server exists either way, so this is a warning, not an
+                # exit — but it must not read as success.
+                console.print(
+                    Panel(
+                        escape(cloud_init_detail),
+                        title="cloud-init",
+                        border_style="red",
+                        expand=False,
+                    )
+                )
+                console.print()
                 bootstrap_note = (
-                    "\n\n  [yellow]Cloud-init is still "
-                    "running.[/yellow]\n"
-                    f"  SSH in manually to check:\n"
-                    f"  [cyan]ssh {deploy_user}@{server.ipv4}"
-                    f"[/cyan]"
+                    "\n\n  [red]Cloud-init did not finish "
+                    "cleanly — Docker may be missing.[/red]\n"
+                    f"  Inspect the full log:\n"
+                    f"  [cyan]ssh {deploy_user}@{server.ipv4} "
+                    f"'sudo cat /var/log/cloud-init-output.log'[/cyan]"
                 )
         else:
             bootstrap_note = ""
+            cloud_init_ok = True
 
         # Root password note (shown when no SSH keys were provided)
         root_pass_note = ""
@@ -629,15 +645,19 @@ def provision(
             )
 
         # --- Done ---
+        headline = (
+            f"[green]Server '{server.name}' is ready![/green]"
+            if cloud_init_ok
+            else f"[yellow]Server '{server.name}' was created, but its bootstrap failed.[/yellow]"
+        )
         console.print(
             Panel(
-                f"[green]Server '{server.name}' is ready!"
-                f"[/green]\n\n"
+                f"{headline}\n\n"
                 f"  [dim]IPv4:[/dim]  "
                 f"[bold]{server.ipv4 or 'N/A'}[/bold]\n"
                 f"  [dim]IPv6:[/dim]  "
                 f"[bold]{server.ipv6 or 'N/A'}[/bold]" + root_pass_note + bootstrap_note,
-                border_style="green",
+                border_style="green" if cloud_init_ok else "yellow",
                 expand=False,
             )
         )

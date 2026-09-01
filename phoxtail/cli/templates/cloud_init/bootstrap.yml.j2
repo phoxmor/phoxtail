@@ -17,6 +17,35 @@ users:
       - {{ key }}
 {% endfor %}
 
+# Keep cloud-init's package step from wedging dpkg.
+# An image can ship grub-pc with a stored install device that doesn't exist,
+# in which case the first grub-pc upgrade fails and leaves dpkg
+# half-configured — and dpkg refuses to do anything else until that's
+# resolved, which fails the package step, then every later apt-get, Docker's
+# included. Acting only when the stored value is invalid keeps this a no-op
+# on a healthy image, so it needs no removal once such an image is fixed.
+bootcmd:
+  - |
+    set -u
+    current=$(debconf-show grub-pc 2>/dev/null \
+      | sed -n 's|^[* ] *grub-pc/install_devices: ||p')
+    if [ -n "${current:-}" ] && [ ! -e "$current" ]; then
+      # Decline the install rather than redirect it at a detected disk: an
+      # image that stores an unusable device never had a working grub-pc
+      # install to preserve, and on a whole-disk filesystem grub-install
+      # fails outright ("blocklists are invalid"). Skipping leaves the
+      # bootloader exactly as the image shipped it.
+      printf '%s\n' \
+        'grub-pc grub-pc/install_devices multiselect' \
+        'grub-pc grub-pc/install_devices_empty boolean true' \
+        'grub-pc grub-pc/install_devices_failed boolean false' \
+        | debconf-set-selections
+    fi
+    # Nothing is stuck yet on a first boot — the preseed above is what keeps
+    # the package step clean. This covers later boots, and any state the
+    # preseed didn't anticipate.
+    DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
+
 # Install security and utility packages
 packages:
   - fail2ban
@@ -63,6 +92,12 @@ write_files:
       bantime = 3600
 
 runcmd:
+  # The recovery path, and not a formality: when the package step above still
+  # wedges dpkg, retrying the configure here is what clears it — grub-pc's
+  # postinst tolerates a failure it has already recorded. Everything below
+  # needs a working dpkg, Docker's apt-get calls first among them.
+  - DEBIAN_FRONTEND=noninteractive dpkg --configure -a || true
+
   # Install Docker (official convenience script — installs engine + compose plugin)
   - curl -fsSL https://get.docker.com | sh
   # Add deploy user to docker group so it can run docker without sudo
@@ -88,3 +123,7 @@ runcmd:
   # Restart SSH to apply hardening config (new connections use hardened config,
   # existing root session stays open until the server reboots or it's closed)
   - systemctl restart ssh
+
+  # Last runcmd wins: cloud-init reports only the final exit status, so end on
+  # the check that matters. Without this a failed Docker install is invisible.
+  - docker --version

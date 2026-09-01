@@ -142,8 +142,14 @@ def _wait_for_ssh(
     *,
     timeout: int = 120,
     interval: int = 5,
-) -> bool:
-    """Block until SSH accepts a connection for *user*@*ip*."""
+) -> tuple[bool, str]:
+    """Block until SSH accepts a connection for *user*@*ip*.
+
+    Returns (ok, reason). The reason carries SSH's own last words: a refused
+    host key and a server that is merely slow both look like waiting from
+    here, and reporting the first as a timeout sends the reader hunting in
+    the wrong place.
+    """
     cmd = [
         "ssh",
         *_SSH_BATCH,
@@ -151,16 +157,74 @@ def _wait_for_ssh(
         "true",
     ]
     deadline = time.monotonic() + timeout
+    stderr = ""
     while time.monotonic() < deadline:
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode == 0:
-            return True
+            return True, ""
+        stderr = result.stderr.strip()
         time.sleep(interval)
-    return False
+    reason = f"Gave up waiting for SSH after {timeout}s."
+    if stderr:
+        reason = f"{reason}\n\n{stderr}"
+    return False, reason
+
+
+def forget_host_key(ip: str) -> None:
+    """Drop any known_hosts entry for *ip*.
+
+    Only safe for a server that was just created: providers recycle IP
+    addresses, so a leftover key belongs to a machine that no longer answers
+    there, and SSH refuses the connection outright rather than accepting the
+    new one. On an existing server a changed key is a real warning and must
+    not be cleared.
+    """
+    subprocess.run(
+        ["ssh-keygen", "-R", ip],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def cloud_init_report(
+    user: str,
+    ip: str,
+    *,
+    settle: int = 30,
+) -> tuple[bool, str]:
+    """Ask cloud-init how the bootstrap actually went.
+
+    Keys on the reported status word, not the exit code: cloud-init exits
+    non-zero for ``degraded`` as well as ``error``, and a warning a provider
+    logs on every boot is enough to make degraded the norm. Judging by exit
+    code would fail healthy servers.
+
+    Only ``done`` counts as success. The sentinel file can land a moment
+    before the status settles, so a ``running`` status is re-polled for
+    *settle* seconds rather than being taken either way.
+    """
+    detail = ""
+    deadline = time.monotonic() + settle
+    while True:
+        result = subprocess.run(
+            ["ssh", *_SSH_BATCH, f"{user}@{ip}", "sudo cloud-init status --long"],
+            capture_output=True,
+            text=True,
+        )
+        detail = (result.stdout + result.stderr).strip()
+        status = ""
+        for line in result.stdout.splitlines():
+            if line.startswith("status:"):
+                status = line.split(":", 1)[1].strip()
+                break
+        if status != "running" or time.monotonic() >= deadline:
+            break
+        time.sleep(3)
+
+    if status == "done":
+        return True, detail
+    # error, running, disabled, "not run", or unreadable — the detail says which.
+    return False, detail or "Could not read cloud-init status."
 
 
 def wait_for_cloud_init(
@@ -168,15 +232,20 @@ def wait_for_cloud_init(
     ip: str,
     *,
     timeout: int = 600,
-) -> bool:
+) -> tuple[bool, str]:
     """Wait for cloud-init, streaming its log output live.
 
     1. Poll until SSH is reachable (deploy user may not exist yet).
-    2. If cloud-init already finished, return immediately.
+    2. If cloud-init already finished, report what it says.
     3. Otherwise tail the cloud-init log live until the sentinel appears.
+
+    Returns (ok, detail). The sentinel file only means cloud-init *stopped* —
+    it is written even when the commands inside failed — so finishing is
+    always followed by asking cloud-init for its verdict.
     """
-    if not _wait_for_ssh(user, ip):
-        return False
+    reachable, reason = _wait_for_ssh(user, ip)
+    if not reachable:
+        return False, reason
 
     # Already done?
     check = subprocess.run(
@@ -185,7 +254,7 @@ def wait_for_cloud_init(
         stderr=subprocess.DEVNULL,
     )
     if check.returncode == 0:
-        return True
+        return cloud_init_report(user, ip)
 
     # Tail the log live; exit as soon as the sentinel file appears.
     tail_cmd = (
@@ -208,7 +277,10 @@ def wait_for_cloud_init(
         stderr=subprocess.DEVNULL,
     )
 
-    return rc == 0
+    if rc != 0:
+        return False, "Timed out waiting for cloud-init to finish."
+
+    return cloud_init_report(user, ip)
 
 
 _SCP_OPTS = [
