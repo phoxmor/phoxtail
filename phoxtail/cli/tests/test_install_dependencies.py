@@ -1,12 +1,16 @@
-"""Tests for how `phoxtail install` edits the dependency list."""
+"""Tests for how `phoxtail install` and `phoxtail hatch` edit the dependency list."""
 
 import tomllib
 
 import pytest
 
-from phoxtail.cli import install
-from phoxtail.cli.install import NoInsertionPoint, _add_dependency, _add_uv_source
 from phoxtail.cli.utils.pyproject_sync import TEMPLATE_PYPROJECT
+from phoxtail.cli.utils.sources import (
+    NoInsertionPoint,
+    add_dependency,
+    add_source,
+    parse_source,
+)
 
 PYPROJECT = """\
 [project]
@@ -38,119 +42,72 @@ def _hatched() -> str:
 class TestAddDependency:
     def test_pinned_package_is_not_added_twice(self):
         """A second bare entry would leave two requirements for one distribution."""
-        assert _add_dependency(PYPROJECT, "wagtail") == PYPROJECT
+        assert add_dependency(PYPROJECT, "wagtail") == PYPROJECT
 
     def test_package_declared_with_extras_is_not_added_twice(self):
-        assert _add_dependency(PYPROJECT, "psycopg") == PYPROJECT
+        assert add_dependency(PYPROJECT, "psycopg") == PYPROJECT
 
     def test_new_package_lands_in_project_dependencies(self):
-        doc = tomllib.loads(_add_dependency(PYPROJECT, "celery"))
+        doc = tomllib.loads(add_dependency(PYPROJECT, "celery"))
         assert "celery" in doc["project"]["dependencies"]
         assert "celery" not in doc["dependency-groups"]["dev"]
 
     def test_hatched_project_gets_a_runtime_dependency(self):
         """dependency-groups.dev is dropped from the production image."""
-        doc = tomllib.loads(_add_dependency(_hatched(), "celery"))
+        doc = tomllib.loads(add_dependency(_hatched(), "celery"))
         assert "celery" in doc["project"]["dependencies"]
         assert "celery" not in doc["dependency-groups"]["dev"]
 
     def test_dev_group_entry_does_not_block_a_runtime_install(self):
         """dependency-groups.dev never reaches the production image."""
-        doc = tomllib.loads(_add_dependency(PYPROJECT, "django-extensions"))
+        doc = tomllib.loads(add_dependency(PYPROJECT, "django-extensions"))
         assert "django-extensions" in doc["project"]["dependencies"]
 
     def test_empty_single_line_array_is_populated(self):
-        doc = tomllib.loads(_add_dependency('[project]\nname = "demo"\ndependencies = []\n', "celery"))
+        doc = tomllib.loads(add_dependency('[project]\nname = "demo"\ndependencies = []\n', "celery"))
         assert doc["project"]["dependencies"] == ["celery"]
 
     def test_single_line_array_is_appended_to(self):
-        doc = tomllib.loads(_add_dependency('[project]\nname = "demo"\ndependencies = ["redis"]\n', "celery"))
+        doc = tomllib.loads(add_dependency('[project]\nname = "demo"\ndependencies = ["redis"]\n', "celery"))
         assert doc["project"]["dependencies"] == ["redis", "celery"]
 
     def test_file_without_a_project_table_is_an_error(self):
         """Silently returning the text unchanged would report a phantom install."""
         with pytest.raises(NoInsertionPoint):
-            _add_dependency("[tool.uv]\npackage = false\n", "celery")
+            add_dependency("[tool.uv]\npackage = false\n", "celery")
 
     def test_project_table_without_a_dependencies_array_is_an_error(self):
         with pytest.raises(NoInsertionPoint):
-            _add_dependency('[project]\nname = "demo"\n\n[tool.uv]\npackage = false\n', "celery")
+            add_dependency('[project]\nname = "demo"\n\n[tool.uv]\npackage = false\n', "celery")
 
 
-class TestAddUvSource:
-    URL = "ssh://git@github.com/phoxmor/phoxtail-blog.git"
+class TestAddSource:
+    URL = "ssh://git@github.com/example/example-package.git"
 
     def test_sources_table_is_created_when_missing(self):
         """Without it, `uv lock` would look for a private package on PyPI."""
-        doc = tomllib.loads(_add_uv_source(_hatched(), "phoxtail-blog", self.URL, "main"))
-        assert doc["tool"]["uv"]["sources"]["phoxtail-blog"]["git"] == self.URL
+        doc = tomllib.loads(add_source(_hatched(), "example-package", parse_source(f"git+{self.URL}@main")))
+        assert doc["tool"]["uv"]["sources"]["example-package"]["git"] == self.URL
         assert doc["tool"]["uv"]["package"] is False
 
     def test_existing_sources_table_is_appended_to(self):
-        content = f'[tool.uv.sources]\nother = {{ git = "{self.URL}x", branch = "main" }}\n'
-        doc = tomllib.loads(_add_uv_source(content, "phoxtail-blog", self.URL, "dev"))
-        assert doc["tool"]["uv"]["sources"]["phoxtail-blog"]["branch"] == "dev"
+        content = f'[tool.uv.sources]\nother = {{ git = "{self.URL}x", rev = "main" }}\n'
+        doc = tomllib.loads(add_source(content, "example-package", parse_source(f"git+{self.URL}@dev")))
+        assert doc["tool"]["uv"]["sources"]["example-package"]["rev"] == "dev"
         assert "other" in doc["tool"]["uv"]["sources"]
 
     def test_source_lands_in_the_sources_table_even_when_another_table_follows(self):
-        content = (
-            f'[tool.uv.sources]\nother = {{ git = "{self.URL}x", branch = "main" }}\n\n[tool.uv]\npackage = false\n'
-        )
-        doc = tomllib.loads(_add_uv_source(content, "phoxtail-blog", self.URL, "dev"))
-        assert doc["tool"]["uv"]["sources"]["phoxtail-blog"]["git"] == self.URL
+        content = f'[tool.uv.sources]\nother = {{ git = "{self.URL}x", rev = "main" }}\n\n[tool.uv]\npackage = false\n'
+        doc = tomllib.loads(add_source(content, "example-package", parse_source(f"git+{self.URL}@dev")))
+        assert doc["tool"]["uv"]["sources"]["example-package"]["git"] == self.URL
         assert doc["tool"]["uv"]["package"] is False
 
     def test_already_present_url_is_not_added_twice(self):
-        once = _add_uv_source(_hatched(), "phoxtail-blog", self.URL, "main")
-        assert _add_uv_source(once, "phoxtail-blog", self.URL, "main") == once
+        once = add_source(_hatched(), "example-package", parse_source(f"git+{self.URL}@main"))
+        assert add_source(once, "example-package", parse_source(f"git+{self.URL}@main")) == once
 
     def test_same_url_under_another_key_does_not_block_the_source(self):
         """The check is per package: a duplicate key would be the real hazard."""
         content = f'[tool.uv.sources]\nold-name = {{ git = "{self.URL}", branch = "main" }}\n'
-        doc = tomllib.loads(_add_uv_source(content, "phoxtail-blog", self.URL, "main"))
-        assert doc["tool"]["uv"]["sources"]["phoxtail-blog"]["git"] == self.URL
-
-
-class _Response:
-    def __init__(self, status_code: int, payload: dict | None = None):
-        self.status_code = status_code
-        self._payload = payload or {}
-
-    def json(self) -> dict:
-        return self._payload
-
-
-class TestPypiPreflight:
-    """PyPI is asked over its JSON API: `uv pip index` is gone as of uv 0.11."""
-
-    def test_releases_are_listed(self, monkeypatch):
-        payload = {"releases": {"0.1.1": [], "0.1.0": []}}
-        monkeypatch.setattr(install.httpx, "get", lambda *a, **kw: _Response(200, payload))
-        assert install._pypi_releases("example-package") == ["0.1.0", "0.1.1"]
-
-    def test_unknown_project_is_an_empty_list(self, monkeypatch):
-        monkeypatch.setattr(install.httpx, "get", lambda *a, **kw: _Response(404))
-        assert install._pypi_releases("example-package") == []
-
-    def test_unreachable_index_is_not_an_empty_list(self, monkeypatch):
-        """Empty means "PyPI has no such project"; None means it never answered."""
-
-        def boom(*args, **kwargs):
-            raise install.httpx.ConnectError("offline")
-
-        monkeypatch.setattr(install.httpx, "get", boom)
-        assert install._pypi_releases("example-package") is None
-
-    def test_missing_package_fails_the_check(self, monkeypatch):
-        monkeypatch.setattr(install, "_pypi_releases", lambda package: [])
-        ok, message = install._preflight_pypi("example-package")
-        assert not ok
-        assert "not found on PyPI" in message
-
-    def test_unreachable_index_does_not_block_the_install(self, monkeypatch):
-        monkeypatch.setattr(install, "_pypi_releases", lambda package: None)
-        assert install._preflight_pypi("example-package")[0]
-
-    def test_published_package_passes(self, monkeypatch):
-        monkeypatch.setattr(install, "_pypi_releases", lambda package: ["1.0", "1.1"])
-        assert install._preflight_pypi("example-package")[0]
+        doc = tomllib.loads(add_source(content, "example-package", parse_source(f"git+{self.URL}@main")))
+        assert doc["tool"]["uv"]["sources"]["example-package"]["git"] == self.URL

@@ -15,6 +15,15 @@ from phoxtail import __version__
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.net import net_stack_running
+from phoxtail.cli.utils.sources import (
+    PATH,
+    InvalidSource,
+    Source,
+    add_source,
+    parse_source,
+    preflight,
+    pypi_releases,
+)
 
 console = Console()
 
@@ -147,6 +156,25 @@ def _copy_template(project_name: str, target_dir: Path) -> int:
         file_count += 1
 
     return file_count
+
+
+def _lock_failure_note(source: Source) -> str:
+    """Explain a failed `uv lock`, in terms of where phoxtail was resolved from.
+
+    uv has already printed its own resolver error above this panel; the note
+    only has to say which knob moves it.
+    """
+    released = pypi_releases("phoxtail") if source.is_pypi else None
+    if released is not None and __version__ not in released:
+        return (
+            f"\n[yellow]⚠[/yellow] uv lock failed — phoxtail [bold]{__version__}[/bold] is not on PyPI."
+            "\n   Re-hatch with [cyan]--source git+https://github.com/phoxmor/phoxtail@main[/cyan]"
+            "\n   to resolve phoxtail from the repository instead."
+        )
+    return (
+        "\n[yellow]⚠[/yellow] uv lock failed — fix the error above, then run "
+        "[cyan]uv lock[/cyan] in the project directory"
+    )
 
 
 def _run_step(target_dir: Path, args: list[str]) -> bool:
@@ -427,6 +455,14 @@ def hatch(
         "--no-wizard",
         help="Skip the interactive setup wizard",
     ),
+    source: str | None = typer.Option(
+        None,
+        "--source",
+        help=(
+            "Where the new project resolves phoxtail from: a git+ URL, a local path, "
+            "or an archive URL. Defaults to PyPI."
+        ),
+    ),
 ) -> None:
     """Hatch a new Phoxtail project.
 
@@ -442,7 +478,27 @@ def hatch(
         phoxtail hatch myproject .
         phoxtail hatch myproject /tmp/myproject
         phoxtail hatch myproject --no-wizard
+        phoxtail hatch myproject --source git+ssh://git@github.com/phoxmor/phoxtail@main
+        phoxtail hatch myproject --source ../phoxtail
     """
+    try:
+        phoxtail_source = parse_source(source)
+    except InvalidSource as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(1) from exc
+    if not phoxtail_source.is_pypi:
+        # Before anything is written: a source that cannot be reached would
+        # otherwise leave a scaffolded project that can never resolve.
+        with console.status("[dim]checking the phoxtail source...[/dim]"):
+            reachable, why = preflight(phoxtail_source, "phoxtail")
+        if reachable is False:
+            console.print(f"[red]Error:[/red] {why}")
+            raise typer.Exit(1)
+        if reachable is None:
+            # uv can lock from its own cache, so an unanswered check is not a
+            # reason to refuse a hatch that may well work offline.
+            console.print(f"[yellow]⚠[/yellow] {why} Continuing — uv will decide.")
+
     # Validate project name
     error = validate_project_name(project_name)
     if error:
@@ -500,6 +556,15 @@ def hatch(
         with console.status(f"[bold cyan]Scaffolding '{project_name}'...[/bold cyan]"):
             _copy_template(project_name, target_dir)
 
+            if not phoxtail_source.is_pypi:
+                # The template declares phoxtail like any other dependency;
+                # a source entry is what redirects it away from the index.
+                project_pyproject = target_dir / "pyproject.toml"
+                project_pyproject.write_text(
+                    add_source(project_pyproject.read_text(encoding="utf-8"), "phoxtail", phoxtail_source),
+                    encoding="utf-8",
+                )
+
             if docker_registry:
                 toml_path = target_dir / "phoxtail.toml"
                 toml_content = toml_path.read_text(encoding="utf-8")
@@ -516,13 +581,14 @@ def hatch(
             )
 
         # Summary
-        lock_note = (
-            ""
-            if locked.returncode == 0
-            else (
-                "\n[yellow]⚠[/yellow] uv lock failed — run [cyan]uv lock[/cyan] in the project directory once SSH is available"  # noqa: E501
+        lock_note = "" if locked.returncode == 0 else _lock_failure_note(phoxtail_source)
+        if phoxtail_source.kind == PATH:
+            # The checkout sits outside the image build context, so `uv sync`
+            # inside the Dockerfile cannot see what `uv lock` just resolved.
+            lock_note += (
+                f"\n[yellow]⚠[/yellow] phoxtail resolves from [bold]{phoxtail_source.location}[/bold] — "
+                "a local path Docker builds cannot reach."
             )
-        )
         console.print(
             Panel(
                 f"[green]Project '{project_name}' created[/green] at [bold]{target_dir}[/bold]" + lock_note,

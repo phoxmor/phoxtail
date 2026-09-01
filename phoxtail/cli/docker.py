@@ -133,9 +133,9 @@ def _phoxtail_dependencies() -> list[str]:
     """Return this project's git-sourced phoxtail packages, phoxtail first.
 
     A release must ship the current main of *all* phoxtail packages, not just
-    the engine: upgrading only ``phoxtail`` silently pins sibling packages
-    (phoxtail-booking, phoxtail-blog, ...) to whatever commit the lockfile
-    happened to hold, so their newest commits never reach the image.
+    the engine: upgrading only ``phoxtail`` silently pins the sibling
+    packages to whatever commit the lockfile happened to hold, so their
+    newest commits never reach the image.
 
     Only packages declared as git sources in ``[tool.uv.sources]`` are
     returned. For an index-resolved package ``--upgrade-package`` means "take

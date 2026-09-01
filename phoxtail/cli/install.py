@@ -7,7 +7,6 @@ import sys
 import tomllib
 from pathlib import Path
 
-import httpx
 import typer
 import yaml
 from rich.console import Console
@@ -18,6 +17,15 @@ from phoxtail.cli.hatch import INSTALL_MARKER
 from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.docker import collect_package_compose_fragments
 from phoxtail.cli.utils.packages import is_declared, module_guess
+from phoxtail.cli.utils.sources import (
+    InvalidSource,
+    NoInsertionPoint,
+    add_dependency,
+    add_source,
+    package_name,
+    parse_source,
+    preflight,
+)
 from phoxtail.cli.utils.templates import render_template
 
 console = Console()
@@ -80,126 +88,6 @@ def _redraw(package: str, steps: dict, details: dict, current_index: int | None 
 def _run_phoxtail(*args: str) -> bool:
     result = subprocess.run([sys.executable, "-m", "phoxtail", *args])
     return result.returncode == 0
-
-
-def _package_name_from_url(url: str) -> str:
-    name = url.rstrip("/").split("/")[-1]
-    if name.endswith(".git"):
-        name = name[:-4]
-    return name
-
-
-def _pypi_releases(package: str) -> list[str] | None:
-    """Versions of `package` released on PyPI.
-
-    An empty list means PyPI answered and has no such project; None means it
-    could not answer at all, which is not the same thing — an unreachable
-    index must never be reported to the user as a missing package.
-
-    Asked over the JSON API rather than uv: `uv pip index` is gone as of uv
-    0.11, and no other uv subcommand lists the versions of a package that is
-    not installed.
-    """
-    try:
-        response = httpx.get(f"https://pypi.org/pypi/{package}/json", timeout=10.0, follow_redirects=True)
-    except httpx.HTTPError:
-        return None
-    if response.status_code == 404:
-        return []
-    if response.status_code != 200:
-        return None
-    try:
-        return sorted(response.json().get("releases", {}))
-    except ValueError:
-        return None
-
-
-def _preflight_pypi(package: str) -> tuple[bool, str]:
-    # A package is missing only when PyPI says so: None means the index never
-    # answered, which must not be reported as a package that does not exist.
-    if _pypi_releases(package) == []:
-        return False, (
-            f"[bold]{package}[/bold] was not found on PyPI.\n"
-            "If this is a private package, provide its git URL:\n"
-            f"  [cyan]phoxtail install --url ssh://git@github.com/your-org/{package}.git[/cyan]"
-        )
-    return True, ""
-
-
-def _preflight_git(url: str, package: str) -> tuple[bool, str]:
-    result = subprocess.run(
-        ["git", "ls-remote", url, "HEAD"],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
-    if result.returncode != 0:
-        stderr_lower = result.stderr.lower()
-        if "permission denied" in stderr_lower or "publickey" in stderr_lower:
-            return False, (
-                f"SSH access denied for [bold]{package}[/bold].\n"
-                "You don't have access to this repository — contact [cyan]hello@phoxmor.com[/cyan]."
-            )
-        return False, f"Could not reach [bold]{url}[/bold].\nError: {result.stderr.strip()}"
-    return True, ""
-
-
-class NoInsertionPoint(Exception):
-    """pyproject.toml has no [project] dependencies array to append to."""
-
-
-def _add_dependency(content: str, package: str) -> str:
-    """Append `package` to [project].dependencies, or return `content` if already declared.
-
-    Raises NoInsertionPoint when the array cannot be found — returning the
-    text unchanged would let every later step report success for a package
-    that was never declared.
-    """
-    # A pinned entry ("wagtail>=7.4.2,<8.0") declares the package just as much
-    # as a bare one does — appending a second entry for it would leave the
-    # project with two conflicting requirements for one distribution.
-    # runtime_only: a dev-group or extras entry never reaches the production
-    # image, so it must not block declaring the package as a runtime dependency.
-    if is_declared(content, package, runtime_only=True):
-        return content
-    # Anchored inside the [project] table: keying off what follows the array
-    # instead landed every install in dependency-groups.dev, which the
-    # production image drops with `uv sync --no-dev`.
-    header = re.search(r"(?m)^\[project\][ \t]*$", content)
-    if header is None:
-        raise NoInsertionPoint("no [project] table")
-    tail = content[header.end() :]
-    next_table = re.search(r"(?m)^\[", tail)
-    table = tail[: next_table.start()] if next_table else tail
-    array = re.search(r"(?ms)^dependencies\s*=\s*\[\n.*?^\]", table)
-    if array is not None:
-        closing_bracket = header.end() + array.end() - 1
-        return content[:closing_bracket] + f'    "{package}",\n' + content[closing_bracket:]
-    # `dependencies = []` and single-line arrays are valid TOML too.
-    inline = re.search(r"(?m)^dependencies\s*=\s*\[(?P<inner>[^\[\]]*)\]", table)
-    if inline is None:
-        raise NoInsertionPoint("no dependencies array under [project]")
-    inner = inline.group("inner").strip().rstrip(",")
-    new_inner = f'{inner}, "{package}"' if inner else f'"{package}"'
-    start, end = header.end() + inline.start("inner"), header.end() + inline.end("inner")
-    return content[:start] + new_inner + content[end:]
-
-
-def _add_uv_source(content: str, package: str, git_url: str, branch: str) -> str:
-    # Keyed on the package, not the URL: the same URL under another package's
-    # key must not stop this one from getting a source, and a second entry for
-    # an already-sourced package would be a duplicate TOML key.
-    if re.search(rf"(?m)^{re.escape(package)}\s*=\s*{{", content):
-        return content
-    source_line = f'{package} = {{ git = "{git_url}", branch = "{branch}" }}'
-    header = re.search(r"(?m)^\[tool\.uv\.sources\][ \t]*$", content)
-    if header:
-        # Right under the table header — appended to the end of the file, the
-        # key would belong to whichever table happens to come last.
-        return content[: header.end()] + f"\n{source_line}" + content[header.end() :]
-    # The hatched template has [tool.uv] but no [tool.uv.sources]; dropping the
-    # source silently would send `uv lock` to PyPI for a private package.
-    return content.rstrip() + f"\n\n[tool.uv.sources]\n{source_line}\n"
 
 
 def _shipped_modules(dist_info: Path) -> list[str]:
@@ -369,14 +257,13 @@ def _regenerate_compose(project_name: str, postgres_version: str, environment: s
 def install(
     package: str | None = typer.Argument(
         None,
-        help="Package name for PyPI installs, e.g. django-allauth",
+        help="Package name for PyPI installs",
     ),
-    url: str | None = typer.Option(
+    source: str | None = typer.Option(
         None,
-        "--url",
-        help="Git SSH URL — package name is derived from the URL automatically",
+        "--source",
+        help="Where to resolve the package from: a git+ URL, a local path, or an archive URL. Defaults to PyPI.",
     ),
-    branch: str = typer.Option("main", "--branch", help="Git branch to track (only used with --url)"),
     no_build: bool = typer.Option(False, "--no-build", help="Skip the rebuild and launch step"),
     app: str = typer.Option(None, "--app", help="Module to add to INSTALLED_APPS, skipping the prompt"),
     no_app: bool = typer.Option(False, "--no-app", help="Do not touch INSTALLED_APPS"),
@@ -384,19 +271,29 @@ def install(
     """Add a package to this project.
 
     PyPI install:
-        phoxtail install django-allauth
+        phoxtail install <package>
 
-    Private git install (name derived from URL):
-        phoxtail install --url ssh://git@github.com/phoxmor/phoxtail-blog.git
-        phoxtail install --url ssh://git@github.com/phoxmor/phoxtail-booking.git --no-build
+    From somewhere else (--source takes uv's own locator syntax):
+        phoxtail install --source git+ssh://git@github.com/<org>/<package>.git
+        phoxtail install <package> --source git+https://github.com/<org>/<package>@v1.2.0
+        phoxtail install <package> --source ../<package>
+        phoxtail install <package> --source https://example.com/<package>-1.0-py3-none-any.whl
 
     Updates pyproject.toml, locks dependencies, registers the app in
     INSTALLED_APPS, syncs .venv, and regenerates docker-compose.yaml.
     """
-    if url and not package:
-        package = _package_name_from_url(url)
-    elif not package:
-        console.print("[red]Error:[/red] Provide a package name or --url.")
+    try:
+        resolved = parse_source(source)
+    except InvalidSource as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(1) from exc
+
+    if not package:
+        # Only a git URL carries the distribution name; a path or an archive
+        # does not, so those still need it spelled out.
+        package = package_name(resolved)
+    if not package:
+        console.print("[red]Error:[/red] Provide a package name, or a --source git URL to derive it from.")
         raise typer.Exit(1)
 
     project_name = get_project_name()
@@ -434,16 +331,19 @@ def install(
             )
             raise typer.Exit(0)
         with console.status("  [dim]verifying access...[/dim]"):
-            if url:
-                ok, err = _preflight_git(url, package)
-            else:
-                ok, err = _preflight_pypi(package)
-        if not ok:
+            reachable, err = preflight(resolved, package)
+        if reachable is False:
             steps["check"] = "failed"
             _redraw(package, steps, details)
             console.print(Panel(err, title="[red]Pre-flight failed[/red]", border_style="red", expand=False))
             raise typer.Exit(1)
-        steps["check"] = "done"
+        if reachable is None:
+            # Nothing could be asked — say so rather than tick a check that
+            # never ran; uv gets the final say at the lock step anyway.
+            steps["check"] = "skipped"
+            details["check"] = "not verified"
+        else:
+            steps["check"] = "done"
 
         # --- Lock ---
         _redraw(package, steps, details, step_idx["lock"])
@@ -455,7 +355,7 @@ def install(
             raise typer.Exit(1)
         original_content = pyproject_path.read_text()
         try:
-            updated_content = _add_dependency(original_content, package)
+            updated_content = add_dependency(original_content, package)
         except NoInsertionPoint as exc:
             steps["lock"] = "failed"
             _redraw(package, steps, details)
@@ -465,8 +365,7 @@ def install(
                 "[cyan]uv lock[/cyan]."
             )
             raise typer.Exit(1) from exc
-        if url:
-            updated_content = _add_uv_source(updated_content, package, url, branch)
+        updated_content = add_source(updated_content, package, resolved)
         pyproject_path.write_text(updated_content)
 
         with console.status("  [dim]resolving dependencies...[/dim]"):

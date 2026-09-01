@@ -1,0 +1,1 @@
+`phoxtail install --url` and `--branch` are gone; `--source` covers both. `--url <repo>` becomes `--source git+<repo>`, and `--branch <ref>` becomes an `@<ref>` suffix on that locator — `--source git+ssh://git@github.com/your-org/<package>.git@dev`. A bare `ssh://` or `git@host:` remote is still understood without the `git+` prefix.

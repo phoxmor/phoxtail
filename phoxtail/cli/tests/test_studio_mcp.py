@@ -229,7 +229,7 @@ class TestMCPToolRegistration:
         }
         expected = studio_tools | pages_tools | content_tools | cms_tools | design_tools
         registered = set(mcp_server._tool_manager._tools.keys())
-        # Optional installed apps (e.g. phoxtail-blog) contribute extra tools
+        # Optional installed apps contribute extra tools
         # via entry points; use subset check so those don't cause false failures.
         assert expected <= registered
 
