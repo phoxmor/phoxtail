@@ -7,6 +7,7 @@ import sys
 import tomllib
 from pathlib import Path
 
+import httpx
 import typer
 import yaml
 from rich.console import Console
@@ -88,17 +89,39 @@ def _package_name_from_url(url: str) -> str:
     return name
 
 
+def _pypi_releases(package: str) -> list[str] | None:
+    """Versions of `package` released on PyPI.
+
+    An empty list means PyPI answered and has no such project; None means it
+    could not answer at all, which is not the same thing — an unreachable
+    index must never be reported to the user as a missing package.
+
+    Asked over the JSON API rather than uv: `uv pip index` is gone as of uv
+    0.11, and no other uv subcommand lists the versions of a package that is
+    not installed.
+    """
+    try:
+        response = httpx.get(f"https://pypi.org/pypi/{package}/json", timeout=10.0, follow_redirects=True)
+    except httpx.HTTPError:
+        return None
+    if response.status_code == 404:
+        return []
+    if response.status_code != 200:
+        return None
+    try:
+        return sorted(response.json().get("releases", {}))
+    except ValueError:
+        return None
+
+
 def _preflight_pypi(package: str) -> tuple[bool, str]:
-    result = subprocess.run(
-        ["uv", "pip", "index", "versions", package],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
+    # A package is missing only when PyPI says so: None means the index never
+    # answered, which must not be reported as a package that does not exist.
+    if _pypi_releases(package) == []:
         return False, (
             f"[bold]{package}[/bold] was not found on PyPI.\n"
             "If this is a private package, provide its git URL:\n"
-            f"  [cyan]phoxtail install --url ssh://git@github.com/org/{package}.git[/cyan]"
+            f"  [cyan]phoxtail install --url ssh://git@github.com/your-org/{package}.git[/cyan]"
         )
     return True, ""
 

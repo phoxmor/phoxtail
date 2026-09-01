@@ -4,6 +4,7 @@ import tomllib
 
 import pytest
 
+from phoxtail.cli import install
 from phoxtail.cli.install import NoInsertionPoint, _add_dependency, _add_uv_source
 from phoxtail.cli.utils.pyproject_sync import TEMPLATE_PYPROJECT
 
@@ -108,3 +109,48 @@ class TestAddUvSource:
         content = f'[tool.uv.sources]\nold-name = {{ git = "{self.URL}", branch = "main" }}\n'
         doc = tomllib.loads(_add_uv_source(content, "phoxtail-blog", self.URL, "main"))
         assert doc["tool"]["uv"]["sources"]["phoxtail-blog"]["git"] == self.URL
+
+
+class _Response:
+    def __init__(self, status_code: int, payload: dict | None = None):
+        self.status_code = status_code
+        self._payload = payload or {}
+
+    def json(self) -> dict:
+        return self._payload
+
+
+class TestPypiPreflight:
+    """PyPI is asked over its JSON API: `uv pip index` is gone as of uv 0.11."""
+
+    def test_releases_are_listed(self, monkeypatch):
+        payload = {"releases": {"0.1.1": [], "0.1.0": []}}
+        monkeypatch.setattr(install.httpx, "get", lambda *a, **kw: _Response(200, payload))
+        assert install._pypi_releases("example-package") == ["0.1.0", "0.1.1"]
+
+    def test_unknown_project_is_an_empty_list(self, monkeypatch):
+        monkeypatch.setattr(install.httpx, "get", lambda *a, **kw: _Response(404))
+        assert install._pypi_releases("example-package") == []
+
+    def test_unreachable_index_is_not_an_empty_list(self, monkeypatch):
+        """Empty means "PyPI has no such project"; None means it never answered."""
+
+        def boom(*args, **kwargs):
+            raise install.httpx.ConnectError("offline")
+
+        monkeypatch.setattr(install.httpx, "get", boom)
+        assert install._pypi_releases("example-package") is None
+
+    def test_missing_package_fails_the_check(self, monkeypatch):
+        monkeypatch.setattr(install, "_pypi_releases", lambda package: [])
+        ok, message = install._preflight_pypi("example-package")
+        assert not ok
+        assert "not found on PyPI" in message
+
+    def test_unreachable_index_does_not_block_the_install(self, monkeypatch):
+        monkeypatch.setattr(install, "_pypi_releases", lambda package: None)
+        assert install._preflight_pypi("example-package")[0]
+
+    def test_published_package_passes(self, monkeypatch):
+        monkeypatch.setattr(install, "_pypi_releases", lambda package: ["1.0", "1.1"])
+        assert install._preflight_pypi("example-package")[0]
