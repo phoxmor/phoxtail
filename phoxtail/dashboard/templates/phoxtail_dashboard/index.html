@@ -1,13 +1,13 @@
 {% extends "phoxtail_dashboard/base.html" %}
 {% load static %}
-{% block head_title %}
-    Dashboard
-{% endblock head_title %}
 {% block extra_css %}
     {% for css_file in widget_css_files %}
         <link rel="stylesheet" href="{% static css_file %}">
     {% endfor %}
 {% endblock extra_css %}
+{% block head_title %}
+    Dashboard
+{% endblock head_title %}
 {% block body %}
     <div class="dash-layout">
         {% include 'phoxtail_dashboard/navigation/sidebar.html' %}
@@ -15,12 +15,19 @@
             {% include 'phoxtail_dashboard/navigation/drawer.html' %}
             <div class="dash-content">
                 {% block content %}
-                    {% if dashboard_widgets %}
+                    {% if dashboard_widget_groups %}
                         <div class="dash-page">
                             <div class="dash-page-inner">
-                                <div class="dash-widgets-grid">
-                                    {% for widget in dashboard_widgets %}
-                                        {% include widget.template_name with data=widget %}
+                                <div class="dash-widget-groups">
+                                    {% for group in dashboard_widget_groups %}
+                                        <section class="dash-widget-group">
+                                            <h2 class="dash-widget-group__title">{{ group.title }}</h2>
+                                            <div class="dash-widgets">
+                                                {% for widget in group.widgets %}
+                                                    {% include widget.template_name with data=widget %}
+                                                {% endfor %}
+                                            </div>
+                                        </section>
                                     {% endfor %}
                                 </div>
                             </div>

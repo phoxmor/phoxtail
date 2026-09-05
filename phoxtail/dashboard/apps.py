@@ -1,5 +1,7 @@
 from phoxtail.core.app_config import PhoxtailAppConfig, UrlMount
 
+from .constants import DEFAULT_INDEX_VIEW
+
 
 class PhoxtailDashboardConfig(PhoxtailAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
@@ -11,6 +13,9 @@ class PhoxtailDashboardConfig(PhoxtailAppConfig):
     context_processors = [
         "phoxtail.dashboard.context_processors.dashboard_nav",
     ]
+    default_settings = {
+        "PHOXTAIL_DASHBOARD_VIEW": DEFAULT_INDEX_VIEW,
+    }
 
     def ready(self):
         from django.utils.module_loading import autodiscover_modules

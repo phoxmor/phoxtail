@@ -1,0 +1,11 @@
+{% comment %}
+The admin card is the one destination a signed-in user may not be allowed to
+reach, so it carries the same permission check as the sidebar's Admin link
+instead of leading everyone to a 403. Resolving the URL through `as` first
+also keeps a project without the Wagtail admin mounted from taking the whole
+index down with a NoReverseMatch.
+{% endcomment %}
+{% url 'wagtailadmin_home' as admin_path %}
+{% if admin_path and perms.wagtailadmin.access_admin %}
+    {% include "phoxtail_dashboard/widgets/widget.html" with data=data %}
+{% endif %}

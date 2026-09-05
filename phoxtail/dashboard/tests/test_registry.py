@@ -1,6 +1,7 @@
 import pytest
 
 from phoxtail.dashboard.registry import (
+    DEFAULT_WIDGET_TEMPLATE,
     DashboardModule,
     DashboardNavItem,
     DashboardRegistry,
@@ -33,6 +34,21 @@ class TestDashboardWidget:
         assert widget.order == 100
         assert widget.css_files == []
 
+    def test_declarative_widget_needs_no_template_or_context_function(self):
+        widget = DashboardWidget(name="profile", title="Profile", url_name="users:profile")
+        assert widget.template_name == DEFAULT_WIDGET_TEMPLATE
+        assert widget.context_function is None
+
+    def test_default_template_without_url_name_raises(self):
+        # NoReverseMatch at render would take the whole index down, so the
+        # default template's contract is enforced at import.
+        with pytest.raises(ValueError, match="needs a url_name"):
+            DashboardWidget(name="broken", title="Broken")
+
+    def test_custom_template_needs_no_url_name(self):
+        widget = DashboardWidget(name="custom", template_name="own.html")
+        assert widget.url_name == ""
+
 
 class TestDashboardModule:
     def test_init(self):
@@ -42,6 +58,51 @@ class TestDashboardModule:
         assert module.url_patterns == []
         assert module._nav_items == []
         assert module._widgets == []
+
+    def test_verbose_name_derived_from_app_name(self):
+        assert DashboardModule("booking").verbose_name == "Booking"
+        assert DashboardModule("event_planning").verbose_name == "Event Planning"
+
+    def test_verbose_name_explicit_wins(self):
+        assert DashboardModule("users", verbose_name="Account").verbose_name == "Account"
+
+    def test_url_prefix_optional_for_a_widget_only_module(self):
+        module = DashboardModule("users")
+        assert module.url_prefix == ""
+        assert module.url_patterns == []
+
+    def test_remove_widget(self):
+        module = DashboardModule("booking", "booking/")
+        module.add_widget(name="keep", title="Keep", url_name="a")
+        module.add_widget(name="drop", title="Drop", url_name="b")
+
+        module.remove_widget("drop")
+        assert [w.name for w in module._widgets] == ["keep"]
+
+    def test_remove_widget_unknown_raises(self):
+        module = DashboardModule("booking", "booking/")
+        with pytest.raises(KeyError, match="no widget named"):
+            module.remove_widget("absent")
+
+    def test_remove_widget_requires_a_name(self):
+        # Every unnamed widget would match "" and be dropped together.
+        module = DashboardModule("booking", "booking/")
+        module.add_widget(title="Unnamed", url_name="a")
+        with pytest.raises(ValueError, match="needs a widget name"):
+            module.remove_widget("")
+
+    def test_remove_nav_item(self):
+        module = DashboardModule("booking", "booking/")
+        module.add_nav_item(label="Keep", url_name="a", icon="a")
+        module.add_nav_item(label="Drop", url_name="b", icon="b")
+
+        module.remove_nav_item("Drop")
+        assert [item.label for item in module._nav_items] == ["Keep"]
+
+    def test_remove_nav_item_unknown_raises(self):
+        module = DashboardModule("booking", "booking/")
+        with pytest.raises(KeyError, match="no nav item labelled"):
+            module.remove_nav_item("absent")
 
     def test_add_nav_item(self):
         module = DashboardModule("booking", "booking/")
@@ -137,10 +198,71 @@ class TestDashboardRegistry:
         css_files = reg.get_widget_css_files()
         assert css_files == ["style.css", "shared.css", "other.css"]
 
+    def test_get_module(self):
+        reg = DashboardRegistry()
+        module = DashboardModule("booking", "booking/")
+        reg.register(module)
+        assert reg.get_module("booking") is module
+
+    def test_get_module_unknown_raises(self):
+        reg = DashboardRegistry()
+        with pytest.raises(KeyError, match="is not registered"):
+            reg.get_module("absent")
+
+    def test_unregister_removes_everything_the_module_contributed(self):
+        reg = DashboardRegistry()
+        module = DashboardModule("booking", "booking/", url_patterns=[("path/", lambda: None)])
+        module.add_nav_item(label="Bookings", url_name="a", icon="a")
+        module.add_widget(name="bookings", title="Bookings", url_name="a")
+        reg.register(module)
+
+        reg.unregister("booking")
+        assert reg.get_nav_items() == []
+        assert reg.get_widgets() == []
+        assert reg.get_url_patterns() == []
+
+    def test_unregister_unknown_raises(self):
+        reg = DashboardRegistry()
+        with pytest.raises(KeyError, match="is not registered"):
+            reg.unregister("absent")
+
+    def test_reregister_after_unregister(self):
+        # The path a site takes to replace an app's contribution wholesale.
+        reg = DashboardRegistry()
+        reg.register(DashboardModule("booking", "booking/"))
+        reg.unregister("booking")
+        reg.register(DashboardModule("booking", "booking/", verbose_name="Studio"))
+        assert reg.get_module("booking").verbose_name == "Studio"
+
+    def test_get_widget_groups(self):
+        reg = DashboardRegistry()
+        account = DashboardModule("users", verbose_name="Account")
+        account.add_widget(name="profile", title="Profile", url_name="a", order=100)
+        booking = DashboardModule("booking", "booking/")
+        booking.add_widget(name="plans", title="Plans", url_name="c", order=30)
+        booking.add_widget(name="bookings", title="Bookings", url_name="b", order=10)
+        reg.register(account)
+        reg.register(booking)
+
+        groups = reg.get_widget_groups()
+        # Booking first: its earliest widget (10) precedes Account's (100),
+        # despite Account registering first.
+        assert [group["title"] for group in groups] == ["Booking", "Account"]
+        assert [w.name for w in groups[0]["widgets"]] == ["bookings", "plans"]
+
+    def test_get_widget_groups_skips_modules_without_widgets(self):
+        reg = DashboardRegistry()
+        module = DashboardModule("booking", "booking/")
+        module.add_nav_item(label="Bookings", url_name="a", icon="a")
+        reg.register(module)
+
+        assert reg.get_widget_groups() == []
+
     def test_empty_registry(self):
         reg = DashboardRegistry()
         assert reg.get_nav_items() == []
         assert reg.get_mobile_nav_items() == []
         assert reg.get_url_patterns() == []
         assert reg.get_widgets() == []
+        assert reg.get_widget_groups() == []
         assert reg.get_widget_css_files() == []

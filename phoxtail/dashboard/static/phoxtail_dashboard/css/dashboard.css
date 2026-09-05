@@ -743,180 +743,158 @@
 }
 
 /* ========================================
-   WIDGETS – Grid
+   WIDGETS – Groups
+
+   One section per registered module, headed by its verbose_name. The wrapper
+   is what is centred in the content area; the cards inside start at its left
+   edge, in line with the heading above them.
    ======================================== */
-.dash-widgets-grid {
+.dash-widget-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    max-width: 80rem;
+    margin: 0 auto;
+}
+
+.dash-widget-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    /* The query container for the card grid below — see WIDGETS – Row. */
+    container-type: inline-size;
+}
+
+/* The list-view title from the admin standard (.adm-toolbar-row__title):
+   centred while the cards under it are stacked or paired, left once the row
+   is wide enough to read as a row. Measured on the group, like the grid — a
+   viewport query would put the heading and its cards on different clocks. */
+.dash-widget-group__title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: rgb(var(--color-surface-700));
+    margin: 0;
+    text-align: center;
+}
+
+@container (min-width: 30rem) {
+    .dash-widget-group__title {
+        text-align: left;
+    }
+}
+
+/* ========================================
+   WIDGETS – Row
+
+   A grid with a stated column count rather than wrapped flex, so the last row
+   of a group never leaves a card at a different size from the rest: four
+   across on a desktop, halving down to one on a phone.
+
+   The steps are container queries, not media queries. What decides how many
+   cards fit is the width of this column, and that is the viewport minus a
+   sidebar that is 15rem, collapsed, or absent depending on the breakpoint —
+   a viewport query would put four cards in a 4-across layout at widths where
+   only three fit.
+
+   The pair holds down to a phone: two cards sit side by side from a 19rem
+   container, which is roughly a 350px screen. One card across is reserved
+   for what is narrower than that, where a pair would leave each card too
+   thin to read. Cards go compact below 30rem so the pair keeps its room.
+   ======================================== */
+.dash-widgets {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0;
+    gap: 1rem;
+}
+
+@container (min-width: 19rem) {
+    .dash-widgets {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container (min-width: 48rem) {
+    .dash-widgets {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@container (min-width: 64rem) {
+    .dash-widgets {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Two cards on a phone leave each about 10rem of content, so the card gives
+   back the padding and icon size it can spare. */
+@container (width < 30rem) {
+    .dash-widgets {
+        gap: 0.75rem;
+    }
+
+    .dash-widget {
+        padding: 1rem;
+    }
+
+    .dash-widget__icon {
+        width: 2rem;
+        height: 2rem;
+        margin-bottom: 0.375rem;
+    }
 }
 
 /* ========================================
-   WIDGETS – Card
+   WIDGETS – Widget
+
+   Borderless: the fill alone separates the widget from the page. The ground
+   here is surface-50 (light) / surface-950 (dark), not Wagtail's, so white
+   and surface-900 are each a real step away from it.
    ======================================== */
-.dash-widget-card {
-    background: rgb(255 255 255);
-    border: 1px solid rgb(var(--color-surface-200));
-    border-radius: 1rem;
-    padding: 1.5rem;
-    transition: box-shadow 0.3s ease;
-}
-
-.dash-widget-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 2px 4px -2px rgba(0, 0, 0, 0.1);
-}
-
-.dash-widget-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: rgb(var(--color-surface-800));
-    margin: 0 0 1rem;
-}
-
-.dash-widget-empty {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-500));
-}
-
-/* ========================================
-   WIDGETS – List (reusable inside cards)
-   ======================================== */
-.dash-widget-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.dash-widget-list__item {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgb(var(--color-surface-100));
-}
-
-.dash-widget-list__item:last-child {
-    border-bottom: none;
-}
-
-.dash-widget-list__primary {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(var(--color-surface-800));
-}
-
-.dash-widget-list__top-row {
+.dash-widget {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    background: rgb(255 255 255);
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.dash-widget-list__top-row .dash-widget-list__primary {
-    min-width: 0;
-    flex: 1;
+.dash-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.12);
 }
 
-/* Size app SVG icons that lack intrinsic dimensions inside widgets */
-.dash-widget-list__item svg {
-    width: 1rem;
-    height: 1rem;
+.dash-widget__icon {
+    display: flex;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+    border-radius: 0.625rem;
+    background: rgb(var(--color-surface-100));
+    color: rgb(var(--color-primary-600));
+}
+
+.dash-widget__icon svg {
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
 }
 
-
-
-/* ========================================
-   WIDGETS – Header (title + link row)
-   ======================================== */
-.dash-widget-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid rgb(var(--color-surface-200));
+.dash-widget__title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
 }
 
-.dash-widget-header .dash-widget-title {
-    margin: 0;
-    font-size: 1.0625rem;
-}
-
-.dash-widget-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
+.dash-widget__description {
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: rgb(var(--color-primary-600));
-    text-decoration: none;
-    white-space: nowrap;
-    padding: 0.25rem 0.625rem;
-    border-radius: 0.375rem;
-    transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.dash-widget-link:hover {
-    color: rgb(var(--color-primary-700));
-    background-color: rgb(var(--color-primary-50));
-}
-
-.dash-widget-link svg {
-    width: 1rem;
-    height: 1rem;
-}
-
-/* ========================================
-   WIDGETS – Empty state (inside card)
-   ======================================== */
-.dash-widget-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 1.5rem 0;
-}
-
-.dash-widget-empty-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    color: rgb(var(--color-surface-300));
-    margin-bottom: 0.5rem;
-}
-
-.dash-widget-empty-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.dash-widget-empty-state .dash-widget-empty {
-    margin: 0 0 0.75rem;
-}
-
-.dash-widget-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: rgb(255 255 255);
-    background-color: rgb(var(--color-primary-600));
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-}
-
-.dash-widget-cta:hover {
-    background-color: rgb(var(--color-primary-700));
-}
-
-.dash-widget-cta svg {
-    width: 1rem;
-    height: 1rem;
+    line-height: 1.4;
+    color: rgb(var(--color-surface-500));
 }
 
 /* ========================================
@@ -1270,31 +1248,30 @@
     }
 
     /* Widgets */
-    .dash-widget-card {
-        background: rgb(var(--color-surface-950));
-        border-color: rgb(var(--color-surface-700));
+    .dash-widget-group__title {
+        color: rgb(var(--color-surface-300));
     }
 
-    .dash-widget-card:hover {
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
-                    0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    .dash-widget {
+        background: rgb(var(--color-surface-900));
     }
 
-    .dash-widget-title {
+    .dash-widget:hover {
+        background: rgb(var(--color-surface-800));
+        box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.4);
+    }
+
+    .dash-widget__icon {
+        background: rgb(255 255 255 / 0.06);
+        color: rgb(var(--color-primary-400));
+    }
+
+    .dash-widget__title {
         color: rgb(var(--color-surface-200));
     }
 
-    .dash-widget-empty {
-        color: rgb(var(--color-surface-500));
-    }
-
-    /* Widget list */
-    .dash-widget-list__item {
-        border-bottom-color: rgb(var(--color-surface-700));
-    }
-
-    .dash-widget-list__primary {
-        color: rgb(var(--color-surface-200));
+    .dash-widget__description {
+        color: rgb(var(--color-surface-400));
     }
 
     /* Empty state */
@@ -1310,40 +1287,4 @@
         color: rgb(var(--color-surface-500));
     }
 
-    /* Widget header */
-    .dash-widget-header {
-        border-bottom-color: rgb(var(--color-surface-700));
-    }
-
-    /* Widget link */
-    .dash-widget-link {
-        color: rgb(var(--color-primary-400));
-    }
-
-    .dash-widget-link:hover {
-        color: rgb(var(--color-primary-300));
-        background-color: rgb(var(--color-primary-900) / 0.3);
-    }
-
-    /* Widget list item icons — exclude badge SVGs which inherit from their parent */
-    .dash-widget-list__item svg {
-        color: rgb(var(--color-surface-500));
-    }
-
-    .dash-widget-list__item .sub-badge svg {
-        color: inherit;
-    }
-
-    /* Widget empty state */
-    .dash-widget-empty-icon {
-        color: rgb(var(--color-surface-600));
-    }
-
-    .dash-widget-cta {
-        background-color: rgb(var(--color-primary-500));
-    }
-
-    .dash-widget-cta:hover {
-        background-color: rgb(var(--color-primary-400));
-    }
 }

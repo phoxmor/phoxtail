@@ -108,7 +108,11 @@ LOGOUT_REDIRECT_URL = "/"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Searched before any app's templates, so a site can shadow anything
+        # phoxtail ships (e.g. phoxtail_dashboard/index.html) by dropping a
+        # file at the same path. APP_DIRS order would otherwise decide it, and
+        # wire_apps() reorders INSTALLED_APPS.
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

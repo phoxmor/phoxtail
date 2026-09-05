@@ -1,0 +1,9 @@
+{% load phoxtail_dashboard_tags %}
+<a class="dash-widget" href="{% url data.url_name %}">
+    {% if data.icon %}
+        {% dashboard_icon_path data.icon as icon_template %}
+        <span class="dash-widget__icon">{% include icon_template %}</span>
+    {% endif %}
+    <span class="dash-widget__title">{{ data.title }}</span>
+    {% if data.description %}<span class="dash-widget__description">{{ data.description }}</span>{% endif %}
+</a>
