@@ -10,6 +10,10 @@ class UrlMount:
     prefix: str
     module: str
     namespace: str | None = None
+    # Mount under a language prefix (/en/dashboard/). Set it for anything a
+    # person reads; leave it off for machine endpoints, whose callers would
+    # have to learn a locale to reach them.
+    i18n: bool = False
 
 
 class PhoxtailAppConfig(AppConfig):

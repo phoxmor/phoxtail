@@ -103,19 +103,34 @@ def collect_url_patterns():
     """Return a list of url path() entries from every PhoxtailAppConfig.
 
     Call from src/urls.py after the Django app registry is ready.
+
+    Mounts that ask for it (``UrlMount.i18n``) are wrapped in
+    ``i18n_patterns`` so they live under a language prefix like the rest of
+    the site, and ``set_language`` is published alongside them — outside the
+    prefix, since the view's whole job is to change it. Hatched projects own
+    their copy of src/urls.py, so this has to arrive here rather than in the
+    project template, or existing sites would never see it.
     """
     from django.apps import apps
+    from django.conf.urls.i18n import i18n_patterns
     from django.urls import include, path
 
+    def mount_path(mount):
+        if mount.namespace:
+            return path(mount.prefix, include((mount.module, mount.namespace)))
+        return path(mount.prefix, include(mount.module))
+
     patterns = []
+    localized = []
     for config in apps.get_app_configs():
         if not isinstance(config, PhoxtailAppConfig):
             continue
         mount = config.url_mount
         if mount is None:
             continue
-        if mount.namespace:
-            patterns.append(path(mount.prefix, include((mount.module, mount.namespace))))
-        else:
-            patterns.append(path(mount.prefix, include(mount.module)))
+        (localized if mount.i18n else patterns).append(mount_path(mount))
+
+    if localized:
+        patterns.append(path("i18n/", include("django.conf.urls.i18n")))
+        patterns.extend(i18n_patterns(*localized))
     return patterns

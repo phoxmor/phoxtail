@@ -116,3 +116,67 @@ class TestWireApps:
         settings["INSTALLED_APPS"] = [APP_B]
         wire_apps(settings)
         assert settings["INSTALLED_APPS"] == [APP_A, APP_B]
+
+
+class TestCollectUrlPatterns:
+    """Synthetic app configs — the mechanism, not whichever apps ship with it."""
+
+    @staticmethod
+    def _config(url_mount):
+        from phoxtail.core.app_config import PhoxtailAppConfig
+
+        config = object.__new__(PhoxtailAppConfig)
+        config.url_mount = url_mount
+        return config
+
+    @pytest.fixture
+    def collect(self, monkeypatch):
+        from django.apps import apps
+
+        from phoxtail.core.app_config import UrlMount
+        from phoxtail.core.wiring import collect_url_patterns
+
+        def _collect(*mounts):
+            configs = [self._config(mount) for mount in mounts]
+            monkeypatch.setattr(apps, "get_app_configs", lambda: configs)
+            return collect_url_patterns()
+
+        _collect.mount = UrlMount
+        return _collect
+
+    @staticmethod
+    def _localized(patterns):
+        return [p for p in patterns if hasattr(p.pattern, "language_prefix")]
+
+    @staticmethod
+    def _plain(patterns):
+        return [str(p.pattern) for p in patterns if not hasattr(p.pattern, "language_prefix")]
+
+    def test_i18n_mount_is_language_prefixed(self, collect):
+        mount = collect.mount(prefix="shop/", module="phoxtail.core.urls", i18n=True)
+        assert self._localized(collect(mount))
+
+    def test_plain_mount_is_not_language_prefixed(self, collect):
+        mount = collect.mount(prefix="shop/", module="phoxtail.core.urls")
+        patterns = collect(mount)
+        assert not self._localized(patterns)
+        assert "shop/" in self._plain(patterns)
+
+    def test_set_language_published_alongside_a_localized_mount(self, collect):
+        mount = collect.mount(prefix="shop/", module="phoxtail.core.urls", i18n=True)
+        assert "i18n/" in self._plain(collect(mount))
+
+    def test_a_plain_mount_stays_out_of_the_localized_group(self, collect):
+        plain = collect.mount(prefix="shop/", module="phoxtail.core.urls")
+        localized = collect.mount(prefix="dash/", module="phoxtail.core.urls", i18n=True)
+        patterns = collect(plain, localized)
+        assert "shop/" in self._plain(patterns)
+        assert len(self._localized(patterns)) == 1
+
+    def test_no_localized_mount_publishes_no_set_language(self, collect):
+        """A project with nothing to translate gets no i18n/ URLs at all."""
+        mount = collect.mount(prefix="shop/", module="phoxtail.core.urls")
+        assert self._plain(collect(mount)) == ["shop/"]
+
+    def test_no_mounts_at_all(self, collect):
+        assert collect() == []
