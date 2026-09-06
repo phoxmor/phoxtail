@@ -1,0 +1,53 @@
+{% load i18n phoxtail_dashboard_tags %}
+{% dashboard_languages as languages %}
+{% if languages %}
+    <div class="dash-lang" data-dash-lang>
+        <button type="button"
+                class="dash-icon-btn dash-lang__btn"
+                aria-label="{% translate 'Language' %}"
+                aria-expanded="false"
+                aria-haspopup="true">
+            {% get_current_language as current_language %}
+            <span class="dash-lang__code">{{ current_language }}</span>
+        </button>
+        <div class="dash-lang__menu">
+            {% for language in languages %}
+                {# Posted, not followed: set_language stores the choice, then redirects to `next`. #}
+                <form method="post" action="{% url 'set_language' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="language" value="{{ language.code }}">
+                    <input type="hidden" name="next" value="{{ language.url }}">
+                    <button type="submit"
+                            class="dash-lang__option{% if language.active %} dash-lang__option--active{% endif %}">
+                        <span class="dash-lang__name">{{ language.name_local }}</span>
+                        <span class="dash-lang__option-code">{{ language.code }}</span>
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        (function () {
+            const root = document.querySelector('[data-dash-lang]');
+            const btn = root.querySelector('.dash-lang__btn');
+
+            const setOpen = (open) => {
+                root.classList.toggle('dash-lang--open', open);
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                setOpen(!root.classList.contains('dash-lang--open'));
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!root.contains(e.target)) setOpen(false);
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') setOpen(false);
+            });
+        })();
+    </script>
+{% endif %}

@@ -12,7 +12,7 @@ class PhoxtailDashboardConfig(PhoxtailAppConfig):
     # Menus point at InternalLink snippets, so core is not optional here.
     depends_on = ["phoxtail.core"]
 
-    url_mount = UrlMount(prefix="dashboard/", module="phoxtail.dashboard.urls")
+    url_mount = UrlMount(prefix="dashboard/", module="phoxtail.dashboard.urls", i18n=True)
     context_processors = [
         "phoxtail.dashboard.context_processors.dashboard_nav",
         "phoxtail.dashboard.context_processors.dashboard_menu",

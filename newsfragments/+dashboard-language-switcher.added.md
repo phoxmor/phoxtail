@@ -1,0 +1,1 @@
+The dashboard is served under a language prefix (`/en/dashboard/`) and carries a language switcher offering every language the project serves. A language with no menu written for it still opens the platform — the menu bar is simply absent, and the dashboard's own screens are translated regardless.

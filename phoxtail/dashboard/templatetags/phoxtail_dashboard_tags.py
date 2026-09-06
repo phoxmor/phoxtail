@@ -91,3 +91,42 @@ def menu_holds_current_entry(context, items):
     """Whether a dropdown contains the page currently being read."""
     request = context.get("request")
     return any((link := _entry_link(item, request)) and link["current"] for item in items)
+
+
+@register.simple_tag(takes_context=True)
+def dashboard_languages(context):
+    """The languages the dashboard can be read in, each with this page's URL in it.
+
+    Every language the project serves, not only those a menu is written for:
+    the platform's own screens are translated regardless.
+
+    Dashboard pages are not Wagtail pages — there is no ``get_translations``
+    to walk — so the path is re-prefixed with ``translate_url`` instead.
+    """
+    from django.conf import settings
+    from django.urls import translate_url
+    from django.utils.translation import get_language, get_language_info
+
+    # Without i18n there are no language prefixes to move between, and
+    # set_language is not published either.
+    languages = getattr(settings, "LANGUAGES", []) if settings.USE_I18N else []
+    if len(languages) < 2:
+        return []
+
+    request = context.get("request")
+    path = request.get_full_path() if request else "/"
+    active = get_language()
+
+    options = []
+    for code, _label in languages:
+        info = get_language_info(code)
+        options.append(
+            {
+                "code": code,
+                "name": info["name"],
+                "name_local": info["name_local"],
+                "url": translate_url(path, code),
+                "active": code == active,
+            }
+        )
+    return options

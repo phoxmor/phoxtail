@@ -33,7 +33,9 @@
             <div class="dash-topbar__slot">
                 {% if dashboard_menu.items %}
                     {% include 'phoxtail_dashboard/navigation/menu.html' %}
+                    <div class="dash-topbar__divider"></div>
                 {% endif %}
+                {% include 'phoxtail_dashboard/navigation/language.html' %}
             </div>
             <div class="dash-topbar__actions">
                 <button id="menu-btn"
