@@ -1,0 +1,1 @@
+The platform menu now renders along the top of the dashboard and inside the small-screen drawer, with dropdowns, separators, and the entry for the page being read marked as current. Unpublished pages are shown only to editors, linked to their draft. A site with no menu written for it shows no bar and no drawer section.

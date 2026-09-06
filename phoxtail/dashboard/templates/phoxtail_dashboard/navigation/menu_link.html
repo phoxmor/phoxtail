@@ -1,0 +1,9 @@
+{% comment %}
+One menu entry as an anchor. `link` comes from the menu_entry tag; the
+caller supplies the classes.
+{% endcomment %}
+<a href="{{ link.url }}"
+   class="{{ link_class }}{% if link.current %} {{ current_class }}{% endif %}{% if link.unpublished %} dash-menu__entry--unpublished{% endif %}"
+   {% if link.new_tab %}target="_blank" rel="noopener"{% endif %}>
+    {% if label_class %}<span class="{{ label_class }}">{{ link.label }}</span>{% else %}{{ link.label }}{% endif %}
+</a>

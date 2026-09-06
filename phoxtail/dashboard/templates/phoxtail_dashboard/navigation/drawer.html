@@ -1,6 +1,6 @@
 {% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
 {% get_settings %}
-<!-- Mobile Top Bar (hidden on xl+) -->
+<!-- Top Bar -->
 <nav class="dash-topbar">
     <div class="dash-topbar__inner">
         <div class="dash-topbar__row">
@@ -28,6 +28,11 @@
                                  class="dash-topbar__logo-img" />
                         </picture>
                     </a>
+                {% endif %}
+            </div>
+            <div class="dash-topbar__slot">
+                {% if dashboard_menu.items %}
+                    {% include 'phoxtail_dashboard/navigation/menu.html' %}
                 {% endif %}
             </div>
             <div class="dash-topbar__actions">
@@ -99,8 +104,8 @@
                     </a>
                 {% endfor %}
             </div>
+            {% include 'phoxtail_dashboard/navigation/menu_drawer.html' %}
             <div class="dash-mobile-sidebar__footer-links">
-                <hr class="dash-nav-separator">
                 {% url 'users:profile' as profile_path %}
                 <a href="{{ profile_path }}"
                    class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
@@ -193,6 +198,38 @@
             }, 300);
             document.body.style.overflow = '';
         }
+
+    /* Platform menu accordions */
+        document.querySelectorAll('.dash-menu-drawer__trigger').forEach(function (trigger) {
+            var panel = trigger.nextElementSibling;
+            var chevron = trigger.querySelector('.dash-menu-drawer__chevron');
+            if (!panel) return;
+
+            trigger.addEventListener('click', function () {
+                var expanded = panel.classList.contains('dash-menu-drawer__panel--expanded');
+
+                if (expanded) {
+                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    panel.offsetHeight;
+                    panel.style.maxHeight = '0px';
+                    setTimeout(function () {
+                        panel.classList.remove('dash-menu-drawer__panel--expanded');
+                        panel.style.maxHeight = '';
+                    }, 300);
+                } else {
+                    panel.style.maxHeight = '0px';
+                    panel.offsetHeight;
+                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    setTimeout(function () {
+                        panel.classList.add('dash-menu-drawer__panel--expanded');
+                        panel.style.maxHeight = '';
+                    }, 300);
+                }
+
+                trigger.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                if (chevron) chevron.classList.toggle('dash-menu-drawer__chevron--rotated', !expanded);
+            });
+        });
 
         if (menuBtn) menuBtn.addEventListener('click', openSidebar);
         if (closeBtn) closeBtn.addEventListener('click', closeSidebar);

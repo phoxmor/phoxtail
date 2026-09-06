@@ -1,0 +1,47 @@
+{% load phoxtail_dashboard_tags %}
+{% comment %}
+The menu inside the drawer. A dropdown becomes an accordion opening in
+place, already open when it holds the page being read.
+{% endcomment %}
+{% if dashboard_menu.items %}
+<div class="dash-menu-drawer">
+    {% for entry in dashboard_menu.items %}
+        {% if entry.block_type == 'dropdown' %}
+            {% menu_holds_current_entry entry.value.items as holds_current %}
+            <div class="dash-menu-drawer__accordion">
+                <button type="button"
+                        class="dash-menu-drawer__link dash-menu-drawer__trigger"
+                        aria-expanded="{% if holds_current %}true{% else %}false{% endif %}">
+                    <span>{{ entry.value.label }}</span>
+                    <span class="dash-menu-drawer__chevron{% if holds_current %} dash-menu-drawer__chevron--rotated{% endif %}">
+                        {% include 'phoxtail_core/svgs/chevron_down.html' %}
+                    </span>
+                </button>
+                <div class="dash-menu-drawer__panel{% if holds_current %} dash-menu-drawer__panel--expanded{% endif %}">
+                    {% for item in entry.value.items %}
+                        {% if item.block_type == 'separator' %}
+                            <div class="dash-menu__separator" role="separator">
+                                {% if item.value.label %}<span class="dash-menu__separator-label">{{ item.value.label }}</span>{% endif %}
+                            </div>
+                        {% else %}
+                            {% menu_entry item as link %}
+                            {% if link %}
+                                {% include 'phoxtail_dashboard/navigation/menu_link.html' with link=link link_class='dash-menu-drawer__sublink' current_class='dash-menu-drawer__link--active' %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% elif entry.block_type == 'separator' %}
+            <div class="dash-menu__separator" role="separator">
+                {% if entry.value.label %}<span class="dash-menu__separator-label">{{ entry.value.label }}</span>{% endif %}
+            </div>
+        {% else %}
+            {% menu_entry entry as link %}
+            {% if link %}
+                {% include 'phoxtail_dashboard/navigation/menu_link.html' with link=link link_class='dash-menu-drawer__link' current_class='dash-menu-drawer__link--active' %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}

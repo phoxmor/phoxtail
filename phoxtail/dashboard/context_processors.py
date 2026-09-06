@@ -39,3 +39,10 @@ def dashboard_nav(request):
         "dashboard_mobile_nav_items": mobile_items,
         "dashboard_dock": _dock_layout(mobile_items),
     }
+
+
+def dashboard_menu(request):
+    """The menu an editor wrote for this site, in the language being read."""
+    from phoxtail.dashboard.menus import menu_for_request
+
+    return {"dashboard_menu": menu_for_request(request)}

@@ -15,6 +15,7 @@ class PhoxtailDashboardConfig(PhoxtailAppConfig):
     url_mount = UrlMount(prefix="dashboard/", module="phoxtail.dashboard.urls")
     context_processors = [
         "phoxtail.dashboard.context_processors.dashboard_nav",
+        "phoxtail.dashboard.context_processors.dashboard_menu",
     ]
     default_settings = {
         "PHOXTAIL_DASHBOARD_VIEW": DEFAULT_INDEX_VIEW,
