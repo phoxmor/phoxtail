@@ -24,11 +24,14 @@ smallest reproduction you have. A proof of concept is welcome but not required.
 
 ## What happens next
 
-- **Within 72 hours** — acknowledgement that the report arrived.
-- **Within 10 working days** — an assessment: whether it is a vulnerability, how
-  severe, and the intended fix.
-- A fix ships as a patch release as soon as it is ready, rather than waiting for
-  the next scheduled release.
+Phoxtail is in early development and has not reached a stable release. What
+follows describes intent, not a service level: reports are read and you will
+hear back, but no response time is promised yet and none should be inferred.
+A stated commitment comes with 1.0, alongside the stability guarantees it
+belongs with.
+
+- A fix ships as a patch release as soon as one is ready, rather than waiting
+  for the next scheduled release.
 - The advisory and the release are published together, so nobody learns of the
   problem before the fix exists.
 - You are credited in the advisory unless you prefer otherwise.
