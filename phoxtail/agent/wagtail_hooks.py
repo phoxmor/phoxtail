@@ -19,7 +19,7 @@ class AgentViewSetGroup(ModelViewSetGroup):
     menu_label = _("Inference")
     menu_icon = "cognition"
     show_in_menu = True
-    menu_order = 300
+    menu_order = 400
     items = (
         InferenceProviderViewSet,
         ModelArtifactViewSet,

@@ -9,6 +9,9 @@ class PhoxtailDashboardConfig(PhoxtailAppConfig):
     label = "phoxtail_dashboard"
     verbose_name = "Phoxtail Dashboard"
 
+    # Menus point at InternalLink snippets, so core is not optional here.
+    depends_on = ["phoxtail.core"]
+
     url_mount = UrlMount(prefix="dashboard/", module="phoxtail.dashboard.urls")
     context_processors = [
         "phoxtail.dashboard.context_processors.dashboard_nav",
