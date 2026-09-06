@@ -31,8 +31,12 @@ INSTALLED_APPS = [
     "wagtail.users",
     "wagtail.documents",
     "wagtail.embeds",
-    "wagtail.snippets",
+    # Before wagtail.snippets: that app's ready() searches every app for
+    # wagtail_hooks, and wagtailmedia's hooks module looks up the media
+    # permission policy. Looking it up creates a fallback policy, after
+    # which wagtailmedia's own ready() can no longer register the real one.
     "wagtailmedia",
+    "wagtail.snippets",
     "phoxtail.core",
     "phoxtail.users",
     "phoxtail.media",
