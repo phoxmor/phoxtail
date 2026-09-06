@@ -13,7 +13,7 @@ migrating into it. Any release that does so says so here.
 
 <!-- towncrier release notes start -->
 
-## [0.2.0] — 2026-09-06
+## [0.2.0] — 2026-09-07
 
 Upgrade notes below — a dependency that moved, renamed CSS classes, an app that
 must change position in `INSTALLED_APPS` — address projects built against an
