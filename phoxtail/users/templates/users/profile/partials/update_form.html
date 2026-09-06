@@ -23,26 +23,26 @@
             <div class="phoxtail-drawer__body">
                 <div class="phoxtail-form-stack">
                     <!-- Avatar Preview -->
-                    <div class="dash-avatar-section">
+                    <div class="usr-avatar-section">
                         <div id="avatar-preview-initials"
-                             class="dash-avatar-initials{% if user.avatar %} dash-hidden{% endif %}">
+                             class="usr-avatar-initials{% if user.avatar %} usr-hidden{% endif %}">
                             {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
                         </div>
                         {% if user.avatar %}
                             {% thumbnail user.avatar "256x256" crop="center" as avatar %}
                                 <img id="avatar-preview-image"
-                                     class="dash-avatar"
+                                     class="usr-avatar"
                                      src="{{ avatar.url }}"
                                      alt="{{ user.get_full_name }}">
                             {% endthumbnail %}
                         {% else %}
                             <img id="avatar-preview-image"
-                                 class="dash-avatar dash-hidden"
+                                 class="usr-avatar usr-hidden"
                                  src=""
                                  alt="{{ user.get_full_name }}">
                         {% endif %}
-                        <h2 class="dash-profile-name">{{ user.get_full_name }}</h2>
-                        <span class="dash-profile-handle">@{{ user.username }}</span>
+                        <h2 class="usr-profile-name">{{ user.get_full_name }}</h2>
+                        <span class="usr-profile-handle">@{{ user.username }}</span>
                     </div>
                     <form id="profile-update-form"
                           method="POST"
@@ -158,9 +158,9 @@
                         ctx.drawImage(img, 0, 0, width, height);
 
                         previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
-                        previewImage.classList.remove('dash-hidden');
+                        previewImage.classList.remove('usr-hidden');
                         if (previewInitials) {
-                            previewInitials.classList.add('dash-hidden');
+                            previewInitials.classList.add('usr-hidden');
                         }
                         if (clearCheckbox) {
                             clearCheckbox.checked = false;
@@ -177,14 +177,14 @@
             const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
 
             if (event.target.checked) {
-                previewImage.classList.add('dash-hidden');
-                previewInitials.classList.remove('dash-hidden');
+                previewImage.classList.add('usr-hidden');
+                previewInitials.classList.remove('usr-hidden');
                 fileInput.value = '';
             } else {
                 if (hasOriginalAvatar) {
                     previewImage.src = originalAvatarSrc;
-                    previewImage.classList.remove('dash-hidden');
-                    previewInitials.classList.add('dash-hidden');
+                    previewImage.classList.remove('usr-hidden');
+                    previewInitials.classList.add('usr-hidden');
                 }
             }
         };

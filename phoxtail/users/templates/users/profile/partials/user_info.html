@@ -1,123 +1,123 @@
 {% load thumbnail phoxtail_design_tags %}
 <!-- Avatar -->
-<div class="dash-column dash-avatar-section">
+<div class="usr-column usr-avatar-section">
     {% if user.avatar %}
         {% thumbnail user.avatar "256x256" crop="center" as avatar %}
-            <img class="dash-avatar"
+            <img class="usr-avatar"
                  src="{{ avatar.url }}"
                  alt="{{ user.get_full_name }}">
         {% endthumbnail %}
     {% else %}
-        <div class="dash-avatar-initials">
+        <div class="usr-avatar-initials">
             {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
         </div>
     {% endif %}
-    <h2 class="dash-profile-name">{{ user.get_full_name }}</h2>
-    <span class="dash-profile-handle">@{{ user.username }}</span>
+    <h2 class="usr-profile-name">{{ user.get_full_name }}</h2>
+    <span class="usr-profile-handle">@{{ user.username }}</span>
     <!-- Account Settings -->
     <span class="usr-section-label">Account Settings</span>
-    <div class="dash-action-list">
-        <a href="{% url 'account_change_password' %}" class="dash-action-item">
-            <div class="dash-action-item__icon-wrapper">
-                <span class="dash-action-item__icon">{% icon "lock" %}</span>
+    <div class="usr-action-list">
+        <a href="{% url 'account_change_password' %}" class="usr-action-item">
+            <div class="usr-action-item__icon-wrapper">
+                <span class="usr-action-item__icon">{% icon "lock" %}</span>
             </div>
-            <div class="dash-action-item__content">
-                <h3 class="dash-action-item__title">Change Password</h3>
-                <p class="dash-action-item__desc">Update your account password</p>
+            <div class="usr-action-item__content">
+                <h3 class="usr-action-item__title">Change Password</h3>
+                <p class="usr-action-item__desc">Update your account password</p>
             </div>
         </a>
-        <a href="{% url 'account_email' %}" class="dash-action-item">
-            <div class="dash-action-item__icon-wrapper">
-                <span class="dash-action-item__icon">{% icon "email" %}</span>
+        <a href="{% url 'account_email' %}" class="usr-action-item">
+            <div class="usr-action-item__icon-wrapper">
+                <span class="usr-action-item__icon">{% icon "email" %}</span>
             </div>
-            <div class="dash-action-item__content">
-                <h3 class="dash-action-item__title">Manage Email</h3>
-                <p class="dash-action-item__desc">Add or remove email addresses</p>
+            <div class="usr-action-item__content">
+                <h3 class="usr-action-item__title">Manage Email</h3>
+                <p class="usr-action-item__desc">Add or remove email addresses</p>
             </div>
         </a>
     </div>
 </div>
 <!-- Profile Info -->
-<div class="dash-column">
-    <div class="dash-info-header">
-        <h3 class="dash-info-title">Personal Information</h3>
+<div class="usr-column">
+    <div class="usr-info-header">
+        <h3 class="usr-info-title">Personal Information</h3>
         {% url 'users:profile_update_form' as profile_update_form_url %}
         <!-- Edit Button - Desktop (hidden on mobile) -->
         <button type="button"
-                class="dash-btn dash-btn--outline dash-hidden dash-md-flex"
+                class="usr-btn usr-hidden usr-md-flex"
                 hx-get="{% url 'phoxtail_core:modal' %}"
                 hx-vals='{"content_url": "{{profile_update_form_url }}"}'
                 hx-target="#core-modal-placeholder-wrapper"
                 hx-swap="innerHTML">
-            <span class="dash-info-item__icon">{% icon "edit" %}</span>
+            {% icon "edit" %}
             <span>Edit</span>
         </button>
     </div>
-    <div class="dash-info-list">
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "email" %}</span>
+    <div class="usr-info-list">
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "email" %}</span>
             </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Email</p>
-                <p class="dash-info-item__value">{{ user.email|default:"-" }}</p>
-            </div>
-        </div>
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "calendar" %}</span>
-            </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Date of Birth</p>
-                <p class="dash-info-item__value">{{ user.born_at|default:"-" }}</p>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Email</p>
+                <p class="usr-info-item__value">{{ user.email|default:"-" }}</p>
             </div>
         </div>
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "person" %}</span>
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "calendar" %}</span>
             </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Gender</p>
-                <p class="dash-info-item__value">{{ user.gender.name|default:"-" }}</p>
-            </div>
-        </div>
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "globe" %}</span>
-            </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Country</p>
-                <p class="dash-info-item__value">{{ user.country.name|default:"-" }}</p>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Date of Birth</p>
+                <p class="usr-info-item__value">{{ user.born_at|default:"-" }}</p>
             </div>
         </div>
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "phone" %}</span>
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "person" %}</span>
             </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Phone Number</p>
-                <p class="dash-info-item__value">{{ user.phone_number|default:"-" }}</p>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Gender</p>
+                <p class="usr-info-item__value">{{ user.gender.name|default:"-" }}</p>
             </div>
         </div>
-        <div class="dash-info-item">
-            <div class="dash-info-item__icon-wrapper">
-                <span class="dash-info-item__icon">{% icon "calendar_check" %}</span>
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "globe" %}</span>
             </div>
-            <div class="dash-info-item__content">
-                <p class="dash-info-item__label">Member Since</p>
-                <p class="dash-info-item__value">{{ user.created_at|date:"F j, Y" }}</p>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Country</p>
+                <p class="usr-info-item__value">{{ user.country.name|default:"-" }}</p>
+            </div>
+        </div>
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "phone" %}</span>
+            </div>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Phone Number</p>
+                <p class="usr-info-item__value">{{ user.phone_number|default:"-" }}</p>
+            </div>
+        </div>
+        <div class="usr-info-item">
+            <div class="usr-info-item__icon-wrapper">
+                <span class="usr-info-item__icon">{% icon "calendar_check" %}</span>
+            </div>
+            <div class="usr-info-item__content">
+                <p class="usr-info-item__label">Member Since</p>
+                <p class="usr-info-item__value">{{ user.created_at|date:"F j, Y" }}</p>
             </div>
         </div>
     </div>
     <!-- Edit Button - Mobile (full width at bottom) -->
-    <div class="dash-mt-4 dash-md-hide">
+    <div class="usr-mt-4 usr-md-hide">
         <button type="button"
-                class="dash-btn dash-btn--outline dash-btn-mobile-full"
+                class="usr-btn usr-btn--mobile-full"
                 hx-get="{% url 'phoxtail_core:modal' %}"
                 hx-vals='{"content_url": "{{ profile_update_form_url }}"}'
                 hx-target="#core-modal-placeholder-wrapper"
                 hx-swap="innerHTML">
-            <span class="dash-info-item__icon">{% icon "edit" %}</span>
+            {% icon "edit" %}
             <span>Edit</span>
         </button>
     </div>
