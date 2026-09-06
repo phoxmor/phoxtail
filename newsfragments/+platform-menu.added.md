@@ -1,1 +1,0 @@
-A Platform Menu an editor writes in the admin, scoped to a site and a language. Its entries point at a page, a named route, an address elsewhere, or a group of those, and it is edited under a new Platform section in the Wagtail admin. Nothing renders it yet.

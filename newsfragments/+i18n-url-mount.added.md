@@ -1,1 +1,0 @@
-`UrlMount` accepts `i18n=True`, mounting an app's URLs under a language prefix (`/en/shop/`). Set it for anything a person reads; machine endpoints stay unprefixed so their callers need not learn a locale. When at least one app opts in, Django's `set_language` view is published at `i18n/` alongside it.

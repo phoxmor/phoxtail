@@ -1,1 +1,0 @@
-Platform menus are readable and writable over `/api/dashboard/v1/menus/` and through the `phoxtail_dashboard_*` MCP tools, so an agent can list, create, update and delete them. Updates take an `If-Match` ETag, and an entry type the menu does not define is refused rather than silently dropped.

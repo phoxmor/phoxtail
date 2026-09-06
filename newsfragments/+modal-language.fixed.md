@@ -1,1 +1,0 @@
-Modals opened from a page behind a language prefix no longer fail with "Invalid content URL". The modal endpoint carries no prefix of its own, so it took the language from the browser's cookie; it now reads the language from the content URL it was asked to fetch, which also keeps the modal's own strings in the page's language.
