@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from functools import wraps
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
@@ -5,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest, QueryDict
 from django.shortcuts import render
 from django.urls import Resolver404, resolve, reverse
+from django.utils.translation import get_language, get_language_from_path, override
 from django.views import View
 from wagtail.search.backends import get_search_backend
 
@@ -83,43 +85,54 @@ def _fetch_modal_content(request, content_url):
     return response
 
 
-@require_htmx
-def get_core_modal_with_htmx(request):
+@contextmanager
+def _language_of(content_url):
+    """Read a modal in the language its content URL names.
+
+    The modal endpoint carries no language prefix of its own, so the active
+    language arrives from the cookie — a guess. When it disagrees with a
+    prefixed content URL, ``resolve()`` cannot match the prefix and the modal
+    fails; when it happens to agree, the modal renders in the guessed
+    language rather than the page's. Taking the language from the URL
+    settles both.
+
+    A content URL with no prefix names no language, and the active one
+    stands: ``override(None)`` would deactivate translation entirely.
+    """
+    language = get_language_from_path(urlparse(content_url).path) or get_language()
+    with override(language):
+        yield
+
+
+def _render_modal(request, template_name):
     content_url, error = _build_content_url(request)
     if error:
         return error
 
-    content_response = _fetch_modal_content(request, content_url)
+    with _language_of(content_url):
+        content_response = _fetch_modal_content(request, content_url)
 
-    # If the content view returned an error or a 204 (e.g. permission
-    # denied with a showToast event), propagate it directly.
-    if content_response.status_code >= 400 or content_response.status_code == 204:
-        return content_response
+        # If the content view returned an error or a 204 (e.g. permission
+        # denied with a showToast event), propagate it directly.
+        if content_response.status_code >= 400 or content_response.status_code == 204:
+            return content_response
 
-    # Render TemplateResponse if needed
-    if hasattr(content_response, "render") and callable(content_response.render):
-        content_response = content_response.render()
+        # Render TemplateResponse if needed
+        if hasattr(content_response, "render") and callable(content_response.render):
+            content_response = content_response.render()
 
-    context = {"content_html": content_response.content.decode()}
-    return render(request, "phoxtail_core/modal.html", context)
+        context = {"content_html": content_response.content.decode()}
+        return render(request, template_name, context)
+
+
+@require_htmx
+def get_core_modal_with_htmx(request):
+    return _render_modal(request, "phoxtail_core/modal.html")
 
 
 @require_htmx
 def get_core_modal_level_1_with_htmx(request):
-    content_url, error = _build_content_url(request)
-    if error:
-        return error
-
-    content_response = _fetch_modal_content(request, content_url)
-
-    if content_response.status_code >= 400 or content_response.status_code == 204:
-        return content_response
-
-    if hasattr(content_response, "render") and callable(content_response.render):
-        content_response = content_response.render()
-
-    context = {"content_html": content_response.content.decode()}
-    return render(request, "phoxtail_core/modal_level_1.html", context)
+    return _render_modal(request, "phoxtail_core/modal_level_1.html")
 
 
 class MultiSelectChipsSearchView(PermissionMixin, View):
