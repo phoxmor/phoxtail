@@ -38,7 +38,8 @@ mcp_server = FastMCP(
         "every "
         "phoxtail_users_* tool requires a superuser token/session), agent "
         "(the chatbot's inference providers, selectable models and per-site "
-        "default model). Optional "
+        "default model), dashboard (the menus shown on the platform's own "
+        "screens). Optional "
         "apps contribute their own phoxtail_<app>_* tools (e.g. "
         "phoxtail_blog_list_authors when the blog app is installed). "
         "Always fetch a resource before updating it to get the current "
@@ -63,6 +64,7 @@ def _register_core_tools() -> None:
     import phoxtail.agent.mcp.artifacts  # noqa: F401
     import phoxtail.agent.mcp.providers  # noqa: F401
     import phoxtail.agent.mcp.settings  # noqa: F401
+    import phoxtail.dashboard.mcp.menus  # noqa: F401
     import phoxtail.mcp.cms.site_setting_fonts  # noqa: F401
     import phoxtail.mcp.cms.site_setting_palettes  # noqa: F401
     import phoxtail.mcp.cms.site_settings  # noqa: F401
