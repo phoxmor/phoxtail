@@ -35,6 +35,36 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
+      # First, and before the checkout: the tag is the only part of this chain
+      # that says a *person* chose this commit. Attestations prove the file was
+      # built by this workflow from that commit — true even if the tag were
+      # pushed by a stolen token. This is the link they cannot cover.
+      #
+      # GitHub is asked for its own verdict rather than verifying here, which
+      # would mean shipping an allowed-signers file and keeping it correct.
+      # Skipped on a rehearsal, which has no tag; the API call was proven
+      # against a throwaway signed tag before this gate was added.
+      - name: Assert the tag is signed and verified
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          sha=$(gh api "repos/$REPO/git/ref/tags/$TAG" --jq .object.sha)
+          # An unannotated tag points straight at a commit and has no object to
+          # verify, so the lookup 404s rather than returning false — say which.
+          verified=$(gh api "repos/$REPO/git/tags/$sha" --jq .verification.verified 2>/dev/null) || {
+            echo "::error::$TAG is not an annotated tag — release tags must be created with git tag -s"
+            exit 1
+          }
+          echo "$TAG -> $sha, verified=$verified"
+          if [ "$verified" != "true" ]; then
+            reason=$(gh api "repos/$REPO/git/tags/$sha" --jq .verification.reason)
+            echo "::error::$TAG carries no verified signature ($reason)"
+            exit 1
+          fi
+
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           # Nothing here pushes, and a credential left in .git/config is
