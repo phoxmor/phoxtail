@@ -364,6 +364,14 @@ select.auth-input option {
     border-color: rgb(239, 68, 68);
 }
 
+.auth-input:disabled,
+.auth-input[disabled] {
+    background-color: rgb(var(--color-surface-100) / 0.5);
+    border-color: rgb(var(--color-surface-300) / 0.5);
+    color: rgb(var(--color-surface-600));
+    cursor: not-allowed;
+}
+
 .auth-input-glow {
     position: absolute;
     inset: 0;
@@ -494,6 +502,66 @@ select.auth-input option {
 }
 
 
+/* Secondary / danger variants share the pill shape but drop the fill,
+   so a row of actions reads as one primary choice plus alternatives. */
+/* display, not opacity: `.auth-btn:hover .auth-btn-glow` is more specific
+   than a variant class and would light the halo back up on hover. */
+.auth-btn--secondary .auth-btn-glow,
+.auth-btn--danger .auth-btn-glow {
+    display: none;
+}
+
+.auth-btn--secondary .auth-btn-inner {
+    background: rgb(var(--color-surface-50) / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
+    color: rgb(var(--color-surface-700));
+}
+
+.auth-btn--secondary:hover .auth-btn-inner {
+    background: rgb(var(--color-surface-50) / 0.9);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-400) / 0.7);
+}
+
+.auth-btn--danger .auth-btn-inner {
+    background: rgb(var(--color-surface-50) / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
+    color: rgb(220, 38, 38);
+}
+
+.auth-btn--danger:hover .auth-btn-inner {
+    background: rgba(254, 242, 242, 0.8);
+    box-shadow: inset 0 0 0 1px rgb(252, 165, 165);
+}
+
+
+/* ========================================
+   AUTH PAGES – Action row
+   ======================================== */
+.auth-actions-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 10;
+}
+
+.auth-actions-row .auth-btn {
+    flex: 1;
+}
+
+/* Three actions abreast need a tighter pill than a lone full-width submit. */
+.auth-actions-row .auth-btn-inner {
+    font-size: 0.875rem;
+    padding: 0.875rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .auth-actions-row {
+        flex-direction: row;
+    }
+}
+
+
 /* ========================================
    AUTH PAGES – Links
    ======================================== */
@@ -507,6 +575,32 @@ select.auth-input option {
 .auth-link:hover {
     color: rgb(var(--color-primary-500));
     text-decoration: underline;
+}
+
+
+/* ========================================
+   AUTH PAGES – Note
+   ======================================== */
+.auth-note {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
+    background: rgb(var(--color-surface-100) / 0.6);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
+    border-radius: 0.75rem;
+    padding: 0.875rem 1.125rem;
+    margin: 0 0 1.5rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.auth-note p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.625;
+    color: rgb(var(--color-surface-700));
+    text-align: center;
 }
 
 
@@ -605,7 +699,7 @@ select.auth-input option {
 
     /* Background gradient */
     .auth-bg {
-        background: rgb(var(--color-surface-900));
+        background: rgb(var(--color-surface-950));
     }
 
     /* Background orbs - slightly more subtle on dark surface */
@@ -697,6 +791,13 @@ select.auth-input option {
         background-color: rgba(255, 255, 255, 0.07);
     }
 
+    .auth-input:disabled,
+    .auth-input[disabled] {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgb(var(--color-surface-600) / 0.6);
+        color: rgb(var(--color-surface-400));
+    }
+
     select.auth-input {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
     }
@@ -756,6 +857,28 @@ select.auth-input option {
         background: rgb(var(--color-primary-400));
     }
 
+    .auth-btn--secondary .auth-btn-inner {
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600));
+        color: rgb(var(--color-surface-300));
+    }
+
+    .auth-btn--secondary:hover .auth-btn-inner {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-500));
+    }
+
+    .auth-btn--danger .auth-btn-inner {
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600));
+        color: rgb(248, 113, 113);
+    }
+
+    .auth-btn--danger:hover .auth-btn-inner {
+        background: rgba(127, 29, 29, 0.2);
+        box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.3);
+    }
+
     /* Links */
     .auth-link {
         color: rgb(var(--color-primary-400));
@@ -763,6 +886,16 @@ select.auth-input option {
 
     .auth-link:hover {
         color: rgb(var(--color-primary-300));
+    }
+
+    /* Notes */
+    .auth-note {
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600) / 0.6);
+    }
+
+    .auth-note p {
+        color: rgb(var(--color-surface-300));
     }
 
     /* Dividers */

@@ -5,24 +5,32 @@
     {% trans "Verify Your Email Address" %}
 {% endblock head_title %}
 {% block content %}
-    <div class="py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-md w-full space-y-6 bg-white p-8 shadow-md text-center">
-            <h1 class="text-3xl font-extrabold text-neutral-900">{% trans "Verify Your Email Address" %}</h1>
-            <p class="mt-4 text-sm text-neutral-600">
-                {% blocktrans %}
-                    This part of the site requires us to verify that you are who you claim to be. For this purpose, we require that you verify ownership of your email address.
-                {% endblocktrans %}
-            </p>
-            <p class="mt-4 text-sm text-neutral-600">
-                {% blocktrans %}
-                    We have sent an email to you for verification. Please click on the link inside that email. If you do not see the verification email in your main inbox, check your spam folder. Otherwise, contact us if you do not receive it within a few minutes.
-                {% endblocktrans %}
-            </p>
-            <p class="mt-4 text-sm text-neutral-600">
-                {% blocktrans %}
-                    <strong>Note:</strong> You can still <a href="{{ email_url }}" class="text-red-500 hover:text-red-400 transition-colors">change your email address</a>.
-                {% endblocktrans %}
-            </p>
+    {% if messages %}
+        {% include "account/messages.html" %}
+    {% endif %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header">
+                    <h1 class="auth-heading">{% trans "Verify Your Email Address" %}</h1>
+                    <p class="auth-subtitle">
+                        {% blocktrans %}
+                            This part of the site requires us to verify that you are who you claim to be. For this purpose, we require that you verify ownership of your email address.
+                        {% endblocktrans %}
+                    </p>
+                </div>
+                <p class="auth-subtitle">
+                    {% blocktrans %}
+                        We have sent an email to you for verification. Please click on the link inside that email. If you do not see the verification email in your main inbox, check your spam folder. Otherwise, contact us if you do not receive it within a few minutes.
+                    {% endblocktrans %}
+                </p>
+                <p class="auth-subtitle auth-mt-6">
+                    {% blocktrans %}
+                        <strong>Note:</strong> You can still <a href="{{ email_url }}" class="auth-link">change your email address</a>.
+                    {% endblocktrans %}
+                </p>
+            </div>
         </div>
     </div>
 {% endblock content %}

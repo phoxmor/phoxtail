@@ -42,22 +42,6 @@
     color: rgb(153, 27, 27);
 }
 
-/* ========================================
-   AUTH PAGES – Phone field layout
-   ======================================== */
-.auth-phone-wrapper {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.auth-phone-inner {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
 @media (prefers-color-scheme: dark) {
     .auth-error-box {
         background: rgba(127, 29, 29, 0.3);

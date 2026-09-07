@@ -10,10 +10,10 @@
 {% block recipient %}
     {% if email %}
         <a href="mailto:{{ email }}"
-           class="font-medium text-neutral-600 hover:text-neutral-700 transition-colors">{{ email }}</a>
+           class="auth-link">{{ email }}</a>
     {% else %}
         <a href="tel:{{ phone }}"
-           class="font-medium text-neutral-600 hover:text-neutral-700 transition-colors">{{ phone }}</a>
+           class="auth-link">{{ phone }}</a>
     {% endif %}
 {% endblock %}
 {% block action_url %}

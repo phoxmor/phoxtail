@@ -12,70 +12,58 @@
         {% include "account/messages.html" %}
     {% endif %}
     <div class="auth-page">
-        <div class="auth-page-container">
-            <div class="auth-email-card">
-                <div class="auth-email-header">
-                    {% include "allauth/components/logo.html" %}
-                    <h1 class="auth-email-heading">{% trans "Email Addresses" %}</h1>
+        <div class="auth-container auth-container--wide">
+            <div class="auth-card">
+                {% include "allauth/components/logo.html" %}
+                <div class="auth-header">
+                    <h1 class="auth-heading">{% trans "Email Addresses" %}</h1>
+                    {% if emailaddresses %}
+                        <p class="auth-subtitle">{% trans 'The following email addresses are associated with your account:' %}</p>
+                    {% endif %}
                 </div>
                 {% if emailaddresses %}
-                    <div class="auth-email-section">
-                        <p class="auth-email-desc">{% trans 'The following email addresses are associated with your account:' %}</p>
-                        {% url 'account_email' as email_url %}
-                        <form action="{{ email_url }}" method="post" class="auth-form">
-                            {% csrf_token %}
-                            <div class="auth-radio-list">
-                                {% for radio in emailaddress_radios %}
-                                    {% with emailaddress=radio.emailaddress %}
-                                        <div class="auth-radio-item">
-                                            <input type="radio"
-                                                   name="email"
-                                                   value="{{ emailaddress.email }}"
-                                                   id="{{ radio.id }}"
-                                                   class="auth-radio"
-                                                   {% if radio.checked %}checked{% endif %}>
-                                            <label for="{{ radio.id }}" class="auth-radio-label">
-                                                <span class="auth-radio-email">{{ emailaddress.email }}</span>
-                                                <div class="auth-badge-group">
-                                                    {% if emailaddress.verified %}
-                                                        <span class="auth-badge auth-badge--verified">{% translate "Verified" %}</span>
-                                                    {% else %}
-                                                        <span class="auth-badge auth-badge--unverified">{% translate "Unverified" %}</span>
-                                                    {% endif %}
-                                                    {% if emailaddress.primary %}
-                                                        <span class="auth-badge auth-badge--primary-email">{% translate "Primary" %}</span>
-                                                    {% endif %}
-                                                </div>
-                                            </label>
-                                        </div>
-                                    {% endwith %}
-                                {% endfor %}
-                            </div>
-                            <div class="auth-email-actions">
-                                <button type="submit"
-                                        name="action_primary"
-                                        class="auth-email-btn auth-email-btn--primary">
-                                    {% trans 'Make Primary' %}
-                                </button>
-                                <button type="submit"
-                                        name="action_send"
-                                        class="auth-email-btn auth-email-btn--secondary">
-                                    {% trans 'Re-send Verification' %}
-                                </button>
-                                <button type="submit"
-                                        name="action_remove"
-                                        class="auth-email-btn auth-email-btn--danger">{% trans 'Remove' %}</button>
-                            </div>
-                        </form>
-                    </div>
+                    {% url 'account_email' as email_url %}
+                    <form action="{{ email_url }}" method="post" class="auth-form">
+                        {% csrf_token %}
+                        <div class="auth-radio-list">
+                            {% for radio in emailaddress_radios %}
+                                {% with emailaddress=radio.emailaddress %}
+                                    <div class="auth-radio-item">
+                                        <input type="radio"
+                                               name="email"
+                                               value="{{ emailaddress.email }}"
+                                               id="{{ radio.id }}"
+                                               class="auth-radio"
+                                               {% if radio.checked %}checked{% endif %}>
+                                        <label for="{{ radio.id }}" class="auth-radio-label">
+                                            <span class="auth-radio-email">{{ emailaddress.email }}</span>
+                                            <div class="auth-badge-group">
+                                                {% if emailaddress.verified %}
+                                                    <span class="auth-badge auth-badge--verified">{% translate "Verified" %}</span>
+                                                {% else %}
+                                                    <span class="auth-badge auth-badge--unverified">{% translate "Unverified" %}</span>
+                                                {% endif %}
+                                                {% if emailaddress.primary %}
+                                                    <span class="auth-badge auth-badge--primary-email">{% translate "Primary" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                        <div class="auth-actions auth-actions-row">
+                            {% include "allauth/components/submit_button.html" with text_key="Make Primary" button_type="submit" name="action_primary" %}
+                            {% include "allauth/components/submit_button.html" with text_key="Re-send Verification" button_type="submit" name="action_send" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text_key="Remove" button_type="submit" name="action_remove" variant="danger" %}
+                        </div>
+                    </form>
                 {% else %}
-                    <div class="auth-email-section auth-email-section--bordered">
-                        <div class="auth-email-warn">{% include "account/snippets/warn_no_email.html" %}</div>
-                    </div>
+                    <div class="auth-warn">{% include "account/snippets/warn_no_email.html" %}</div>
                 {% endif %}
                 {% if can_add_email %}
-                    <div class="auth-email-section auth-email-section--bordered">
-                        <h2 class="auth-email-add-heading">{% trans "Add Email Address" %}</h2>
+                    <div class="auth-section-divider">
+                        <h2 class="auth-subheading">{% trans "Add Email Address" %}</h2>
                         {% url 'account_email' as action_url %}
                         <form method="post" action="{{ action_url }}" class="auth-form">
                             {% csrf_token %}
@@ -106,10 +94,7 @@
                                 {% endif %}
                             {% endfor %}
                             <div class="auth-actions">
-                                <button type="submit" name="action_add" class="auth-btn">
-                                    <div class="auth-btn-glow"></div>
-                                    <div class="auth-btn-inner">{% trans "Add Email" %}</div>
-                                </button>
+                                {% include "allauth/components/submit_button.html" with text_key="Add Email" button_type="submit" name="action_add" %}
                             </div>
                         </form>
                     </div>
