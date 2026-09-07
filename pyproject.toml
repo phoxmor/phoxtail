@@ -35,7 +35,7 @@ dependencies = [
     # Upper bound is deliberate: mcp 2.0 renamed FastMCP to MCPServer and
     # dropped the ambient request context our tools read the caller's Bearer
     # from. Lift it once fastmcp (via pydantic-ai) supports mcp 2.x.
-    "mcp>=1.29.0,<2",
+    "mcp>=1.29.0,<3",
 ]
 
 [project.optional-dependencies]
