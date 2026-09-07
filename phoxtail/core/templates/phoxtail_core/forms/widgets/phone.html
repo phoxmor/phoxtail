@@ -1,0 +1,51 @@
+{% load phoxtail_core_tags %}
+{% comment %}
+MD3 outlined field pair for a split phone number (see select.html for the
+anatomy notes, duplicated here for the same reason single_select_search.html
+duplicates it: the label/outline must wrap each control individually).
+
+The control is a MultiWidget — a country-prefix <select> plus the national
+number — so the controls are rendered by the field itself: hand-written markup
+would post a single "phone_number" key that the field never reads. They get
+one shell each rather than one shared outline; a native <select> cannot
+ellipsis, so a long country name in a shared row hides the number entirely.
+
+Optional context:
+    - prefix_label: label for the country-code shell (default "Country code")
+{% endcomment %}
+<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div class="fw-phone-row">
+        <div class="fw-md3-outlined fw-phone-row__prefix">
+            {% subwidget field 0 "fw-md3-control" %}
+            <label for="{{ field.auto_id }}_0" class="fw-md3-label">{{ prefix_label|default:"Country code" }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
+            <fieldset class="fw-md3-outline" aria-hidden="true">
+                <legend class="fw-md3-notch">
+                    <span>{{ prefix_label|default:"Country code" }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>
+                </legend>
+            </fieldset>
+            <svg class="fw-md3-trailing" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7 10l5 5 5-5z"/>
+            </svg>
+        </div>
+        <div class="fw-md3-outlined fw-phone-row__number">
+            {% subwidget field 1 "fw-md3-control" %}
+            {% if show_label != False and label != "" %}
+                <label for="{{ field.auto_id }}_1" class="fw-md3-label">
+                    {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
+                </label>
+            {% endif %}
+            <fieldset class="fw-md3-outline" aria-hidden="true">
+                <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+                    {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
+                </legend>
+            </fieldset>
+        </div>
+    </div>
+    {% if field.errors %}
+        <div class="fw-md3-supporting" id="{{ field.auto_id }}_supporting">
+            {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
+        </div>
+    {% elif show_help_text != False and help_text|default:field.help_text %}
+        <div class="fw-md3-supporting" id="{{ field.auto_id }}_supporting">{{ help_text|default:field.help_text }}</div>
+    {% endif %}
+</div>

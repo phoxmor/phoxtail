@@ -12,14 +12,17 @@ User = get_user_model()
 
 
 class CustomPrefixChoiceField(PrefixChoiceField):
-    """Custom prefix field with user-friendly empty label."""
+    """Prefix field whose blank choice names itself instead of dashes.
+
+    Kept short: the label sits in a narrow column, and a native <select>
+    truncates rather than wraps, so a longer prompt would be cut off.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.empty_label = _("Select country code")
         if self.choices and self.choices[0][0] == "":
             choices_list = list(self.choices)
-            choices_list[0] = ("", str(_("Select country code")))
+            choices_list[0] = ("", str(_("Country code")))
             self.choices = choices_list
 
 
@@ -89,7 +92,9 @@ class UserProfileForm(forms.ModelForm):
         label=_("Last Name"),
         widget=forms.TextInput(attrs={"placeholder": _("Enter your last name")}),
     )
-    phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"))
+    # Optional here, unlike signup: the model allows a blank number, so an
+    # edit form that cannot clear one would trap whatever is stored.
+    phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"), required=False)
 
     class Meta:
         model = User

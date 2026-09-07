@@ -1021,6 +1021,35 @@ input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
     color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
+/* Split phone field: the country prefix and the national number are separate
+   controls, each in its own outline, side by side. Below the breakpoint the
+   prefix would clip its country name against the number, so the pair stacks
+   instead. Containment sits on .fw-field, not the row: a container query
+   cannot size an element against a context that element establishes. */
+.fw-field:has(.fw-phone-row) {
+    container-type: inline-size;
+}
+
+.fw-phone-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+}
+
+@container (min-width: 380px) {
+    .fw-phone-row {
+        grid-template-columns: 11rem minmax(0, 1fr);
+    }
+}
+
+@supports not (container-type: inline-size) {
+    @media (min-width: 380px) {
+        .fw-phone-row {
+            grid-template-columns: 11rem minmax(0, 1fr);
+        }
+    }
+}
+
 /* Multiline variant: the container grows with the textarea and the resting
    label pins to the first text line instead of the vertical center. */
 .fw-md3-outlined--textarea {

@@ -1,0 +1,60 @@
+{% comment %}
+The form alone, so a failed save can re-render it in place through an
+out-of-band swap: re-rendering the whole drawer would tear the modal out
+of the DOM and replay its open animation on every error.
+{% endcomment %}
+<form id="profile-update-form"
+      method="POST"
+      enctype="multipart/form-data"
+      hx-post="{% url 'users:profile_update' %}"
+      hx-target="#core-modal-placeholder-wrapper"
+      hx-swap="none">
+    {% csrf_token %}
+    {{ form.media }}
+    <div class="phoxtail-form-stack">
+        {% include "phoxtail_core/forms/widgets/input.html" with field=form.first_name show_label=True show_help_text=False %}
+        {% include "phoxtail_core/forms/widgets/input.html" with field=form.last_name show_label=True show_help_text=False %}
+        {% include "phoxtail_core/forms/widgets/date.html" with field=form.born_at %}
+        {% include "phoxtail_core/forms/widgets/select.html" with field=form.gender %}
+        {% include "phoxtail_core/forms/widgets/select.html" with field=form.country %}
+        {% include "phoxtail_core/forms/widgets/phone.html" with field=form.phone_number show_label=True show_help_text=False %}
+        <div class="usr-form-group">
+            <label for="{{ form.avatar.id_for_label }}" class="usr-label">
+                Avatar
+                {% if form.avatar.field.required %}<span class="usr-required">*</span>{% endif %}
+            </label>
+            <input type="file"
+                   name="{{ form.avatar.name }}"
+                   id="{{ form.avatar.id_for_label }}"
+                   accept="image/*"
+                   onchange="previewAvatar(event)"
+                   class="usr-file-input">
+            {% if user.avatar %}
+                <label class="usr-checkbox-group">
+                    <input type="checkbox"
+                           name="{{ form.avatar.name }}-clear"
+                           id="avatar-clear-checkbox"
+                           onchange="handleClearAvatar(event)"
+                           class="usr-checkbox">
+                    <span class="usr-label">Clear current avatar</span>
+                </label>
+            {% endif %}
+            {% if form.avatar.errors %}
+                <p class="usr-error-text">
+                    {% for error in form.avatar.errors %}
+                        {{ error }}
+                        {% if not forloop.last %}<br>{% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+        </div>
+        {% if form.non_field_errors %}
+            <div class="usr-error-box">
+                <h3 class="usr-error-box__title">Please correct the errors below:</h3>
+                <ul class="usr-error-box__list">
+                    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</form>

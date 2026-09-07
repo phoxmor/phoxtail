@@ -50,6 +50,9 @@ engine = [
     "django-htmx>=1.29.0",
     "django-countries>=9.0.0",
     "django-phonenumber-field[phonenumbers]>=8.4.0",
+    # The split phone field builds its country-prefix choices with babel,
+    # which django-phonenumber-field leaves to the caller to install.
+    "babel>=2.17.0",
     "django-filter>=25.2",
     "wagtail-color-panel>=1.8.1",
     "wagtailmedia>=0.18.1",
