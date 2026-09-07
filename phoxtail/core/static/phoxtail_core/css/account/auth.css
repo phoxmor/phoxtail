@@ -116,26 +116,25 @@
     display: none;
 }
 
+/* Borderless: the card is a shape defined by its fill against the blurred
+   page behind it, not a box with a line drawn round it. */
 .auth-card {
     position: relative;
     z-index: 10;
     background: var(--auth-card-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgb(var(--color-surface-200) / 0.5);
     border-radius: 1.5rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     padding: 2rem;
     transition: all 0.5s ease;
 }
 
+/* Stays in the surface-50 family rather than going to pure white: the pointer
+   rests on the card for the whole time a form is being filled, so this is the
+   state that is actually seen. */
 .auth-card:hover {
-    background: rgba(255, 255, 255, 0.9);
-}
-
-@keyframes laser {
-    0% { left: -150%; }
-    100% { left: 150%; }
+    background: rgb(var(--color-surface-50) / 0.92);
 }
 
 
@@ -170,48 +169,6 @@
     .auth-logo-img {
         max-height: 6rem;
     }
-}
-
-.auth-logo-divider {
-    position: relative;
-    z-index: 50;
-    height: 1px;
-    width: 2.5rem;
-    margin: 0 auto 2rem;
-    border-radius: 9999px;
-    background: rgb(var(--color-surface-300));
-    overflow: hidden;
-}
-
-.auth-logo-divider-laser {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    animation: laser 5s linear infinite;
-}
-
-.auth-logo-divider-glow {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to right,
-        transparent,
-        rgb(var(--color-primary-400) / 0.6),
-        transparent
-    );
-    filter: blur(2px);
-}
-
-.auth-logo-divider-core {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to right,
-        transparent,
-        rgb(var(--color-primary-600)),
-        transparent
-    );
 }
 
 
@@ -469,31 +426,27 @@ select.auth-input option {
     opacity: 0.6;
 }
 
+/* One pill, every page. 0.75rem of padding on a 1.25 line-height 14px label
+   lands on a 44px control: short and quiet like a YouTube action chip, but
+   still on the 44px touch target a full-width form CTA has to hold. Weight
+   500 rather than 600 — at this size 600 reads as shouting. */
 .auth-btn-inner {
     position: relative;
     background: rgb(var(--color-primary-600));
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     border-radius: calc(infinity * 1px);
     color: white;
-    font-weight: 600;
-    font-size: 1rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25;
     text-align: center;
-    box-shadow:
-        0 10px 15px -3px rgba(0, 0, 0, 0.1),
-        0 4px 6px -2px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
 }
 
 .auth-btn:hover .auth-btn-inner {
-    transform: scale(1.01);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
     background: rgb(var(--color-primary-700));
-}
-
-.auth-btn:active .auth-btn-inner {
-    transform: scale(0.98);
 }
 
 .auth-btn:focus-visible .auth-btn-inner {
@@ -511,26 +464,33 @@ select.auth-input option {
     display: none;
 }
 
+/* One quiet button. Both variants share every box property; only the label
+   colour tells them apart, so a destructive action reads as the same weight
+   of choice as a plain alternative.
+
+   The outline is the widgets' own field border (surface-400 light, surface-600
+   dark, hovering to on-surface) written out in surface tokens, because the
+   --md-sys-* tokens are scoped to .fw-md3 and do not resolve here. An opaque
+   fill would blend into the card, so the button is a hairline on nothing —
+   exactly what the inputs above it look like. */
+.auth-btn--secondary .auth-btn-inner,
+.auth-btn--danger .auth-btn-inner {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-400));
+}
+
+.auth-btn--secondary:hover .auth-btn-inner,
+.auth-btn--danger:hover .auth-btn-inner {
+    background: rgb(var(--color-surface-100) / 0.7);
+    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-900));
+}
+
 .auth-btn--secondary .auth-btn-inner {
-    background: rgb(var(--color-surface-50) / 0.6);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
     color: rgb(var(--color-surface-700));
 }
 
-.auth-btn--secondary:hover .auth-btn-inner {
-    background: rgb(var(--color-surface-50) / 0.9);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-400) / 0.7);
-}
-
 .auth-btn--danger .auth-btn-inner {
-    background: rgb(var(--color-surface-50) / 0.6);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
-    color: rgb(220, 38, 38);
-}
-
-.auth-btn--danger:hover .auth-btn-inner {
-    background: rgba(254, 242, 242, 0.8);
-    box-shadow: inset 0 0 0 1px rgb(252, 165, 165);
+    color: rgb(var(--color-destructive-600));
 }
 
 
@@ -545,21 +505,12 @@ select.auth-input option {
     z-index: 10;
 }
 
+/* Every action keeps its own full-width row at every width: side-by-side
+   pills made the secondary ones read as fragments of the primary. */
 .auth-actions-row .auth-btn {
     flex: 1;
 }
 
-/* Three actions abreast need a tighter pill than a lone full-width submit. */
-.auth-actions-row .auth-btn-inner {
-    font-size: 0.875rem;
-    padding: 0.875rem 1.25rem;
-}
-
-@media (min-width: 640px) {
-    .auth-actions-row {
-        flex-direction: row;
-    }
-}
 
 
 /* ========================================
@@ -601,6 +552,15 @@ select.auth-input option {
     line-height: 1.625;
     color: rgb(var(--color-surface-700));
     text-align: center;
+}
+
+.auth-note p + p {
+    margin-top: 0.5rem;
+}
+
+/* inside a form the `> * + *` rhythm already spaces the note from what follows */
+.auth-form > .auth-note {
+    margin-bottom: 0;
 }
 
 
@@ -735,21 +695,12 @@ select.auth-input option {
     }
 
     /* Card */
-    .auth-card {
-        border-color: rgb(var(--color-surface-800) / 0.4);
-    }
-
     .auth-card:hover {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgb(var(--color-surface-50) / 0.08);
     }
 
     .auth-card-shimmer {
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-    }
-
-    /* Logo divider */
-    .auth-logo-divider {
-        background: rgb(var(--color-surface-800));
     }
 
     /* Typography */
@@ -848,6 +799,7 @@ select.auth-input option {
         opacity: 0.2;
     }
 
+    /* Same inversion, read from the other end of the ramp. */
     .auth-btn-inner {
         background: rgb(var(--color-primary-500));
         color: white;
@@ -857,26 +809,24 @@ select.auth-input option {
         background: rgb(var(--color-primary-400));
     }
 
-    .auth-btn--secondary .auth-btn-inner {
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600));
-        color: rgb(var(--color-surface-300));
-    }
-
-    .auth-btn--secondary:hover .auth-btn-inner {
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-500));
-    }
-
+    .auth-btn--secondary .auth-btn-inner,
     .auth-btn--danger .auth-btn-inner {
         background: rgba(255, 255, 255, 0.05);
         box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600));
-        color: rgb(248, 113, 113);
     }
 
+    .auth-btn--secondary:hover .auth-btn-inner,
     .auth-btn--danger:hover .auth-btn-inner {
-        background: rgba(127, 29, 29, 0.2);
-        box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.3);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-100));
+    }
+
+    .auth-btn--secondary .auth-btn-inner {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .auth-btn--danger .auth-btn-inner {
+        color: rgb(var(--color-destructive-400));
     }
 
     /* Links */

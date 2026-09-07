@@ -1022,8 +1022,8 @@ input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
 }
 
 /* Split phone field: the country prefix and the national number are separate
-   controls, each in its own outline, side by side. Below the breakpoint the
-   prefix would clip its country name against the number, so the pair stacks
+   controls, each in its own outline, sharing the row evenly. Below the
+   breakpoint an even half would clip the country name, so the pair stacks
    instead. Containment sits on .fw-field, not the row: a container query
    cannot size an element against a context that element establishes. */
 .fw-field:has(.fw-phone-row) {
@@ -1033,19 +1033,21 @@ input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
 .fw-phone-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
+    /* The same rhythm the surrounding stack uses between fields, so the pair
+       reads as two fields on one line rather than one split control. */
+    gap: 1.5rem;
 }
 
 @container (min-width: 380px) {
     .fw-phone-row {
-        grid-template-columns: 11rem minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 }
 
 @supports not (container-type: inline-size) {
     @media (min-width: 380px) {
         .fw-phone-row {
-            grid-template-columns: 11rem minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         }
     }
 }

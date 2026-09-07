@@ -1,21 +1,5 @@
 /* core/static/core/css/account/signup.css */
 
-.auth-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-
-@media (min-width: 768px) {
-    .auth-form-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-.auth-form-grid-full {
-    grid-column: 1 / -1;
-}
-
 .auth-error-box {
     padding: 1rem;
     background: rgb(254, 226, 226);

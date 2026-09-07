@@ -1,5 +1,5 @@
 {% extends "account/base_entrance.html" %}
-{% load static allauth i18n phoxtail_core_tags %}
+{% load static allauth i18n %}
 {% block head_title %}
     {% trans "Email Addresses" %}
 {% endblock head_title %}
@@ -67,32 +67,7 @@
                         {% url 'account_email' as action_url %}
                         <form method="post" action="{{ action_url }}" class="auth-form">
                             {% csrf_token %}
-                            {% for field in form %}
-                                {% if not field.is_hidden %}
-                                    <div class="auth-field">
-                                        <label for="{{ field.id_for_label }}" class="auth-label">
-                                            {{ field.label }}
-                                            {% if field.field.required %}<span class="auth-required">*</span>{% endif %}
-                                        </label>
-                                        <div class="auth-input-wrapper">
-                                            {{ field|add_class:"auth-input" }}
-                                            <div class="auth-input-glow"></div>
-                                            {% if field.errors %}
-                                                <div class="auth-errors-block">
-                                                    {% for error in field.errors %}
-                                                        <p class="auth-error">
-                                                            <span class="auth-error-dot"></span>
-                                                            {{ error }}
-                                                        </p>
-                                                    {% endfor %}
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    {{ field }}
-                                {% endif %}
-                            {% endfor %}
+                            {% include "phoxtail_core/forms/widgets/input.html" with field=form.email %}
                             <div class="auth-actions">
                                 {% include "allauth/components/submit_button.html" with text_key="Add Email" button_type="submit" name="action_add" %}
                             </div>

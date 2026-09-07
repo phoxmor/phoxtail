@@ -34,7 +34,7 @@
     flex-direction: column;
     justify-content: space-between;
     gap: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgb(var(--color-surface-50) / 0.6);
     border: 1px solid rgb(var(--color-surface-300) / 0.6);
     border-radius: 0.75rem;
     backdrop-filter: blur(4px);

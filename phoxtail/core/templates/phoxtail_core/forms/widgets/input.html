@@ -7,13 +7,17 @@ visible on focus (CSS hides it while the label rests in its place, per MD3).
 {% endcomment %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined">
-        <input type="{{ input_type|default:'text' }}"
+        <input type="{{ input_type|default:field.field.widget.input_type|default:'text' }}"
                name="{{ field.html_name }}"
                id="{{ field.id_for_label }}"
                {# emptiness is None, not falsiness: real values like Decimal("0") must render #}
                value="{% if field.value is not None %}{{ field.value }}{% endif %}"
                placeholder="{{ placeholder|default:' ' }}"
                class="fw-md3-control{% if field.field.disabled %} fw-md3-control--readonly{% endif %}"
+               {# the field owns these; hand-written markup would drop what the form declared #}
+               {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
+               {% if field.field.widget.attrs.minlength %}minlength="{{ field.field.widget.attrs.minlength }}"{% endif %}
+               {% if field.field.widget.attrs.maxlength %}maxlength="{{ field.field.widget.attrs.maxlength }}"{% endif %}
                {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
                {% if field.errors %}aria-invalid="true"{% endif %}
                {% if field.field.required %}required{% endif %}

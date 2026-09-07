@@ -16,8 +16,8 @@
                     <h1 class="auth-heading">{% translate "Account Inactive" %}</h1>
                     <p class="auth-subtitle">{% translate "This account is inactive." %}</p>
                 </div>
-                <div class="auth-text-center auth-mt-6">
-                    <a href="/" class="auth-link" tags="link">{% translate "Go back to homepage" %}</a>
+                <div class="auth-actions auth-actions-row">
+                    {% include "allauth/components/submit_button.html" with text_key="Go back to homepage" button_type="link" url="/" %}
                 </div>
             </div>
         </div>

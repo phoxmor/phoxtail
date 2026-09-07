@@ -1,6 +1,5 @@
 {% extends "account/base_entrance.html" %}
 {% load i18n allauth account %}
-
 {% block head_title %}
     {% translate "Send me a sign-in code" %}
 {% endblock head_title %}
@@ -32,39 +31,21 @@
                             </p>
                         {% endfor %}
                     {% endif %}
-                    <div class="auth-field">
-                        <label for="{{ form.email.id_for_label }}" class="auth-label">
-                            {{ form.email.label }}
-                            {% if form.email.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            <input type="text"
-                                   name="{{ form.email.html_name }}"
-                                   id="{{ form.email.id_for_label }}"
-                                   value="{{ form.email.value|default_if_none:'' }}"
-                                   class="auth-input{% if form.email.errors %} auth-input--error{% endif %}">
-                            <div class="auth-input-glow"></div>
-                            {% if form.email.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.email.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>
-                                            {{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {# allauth drops email when phone is the only login method, and only adds phone when it is one #}
+                    {% if form.email %}
+                        {% include "phoxtail_core/forms/widgets/input.html" with field=form.email autofocus=True %}
+                    {% endif %}
+                    {% if form.phone %}
+                        {# allauth's PhoneField is a plain TextInput, so the widget cannot infer the tel type #}
+                        {% include "phoxtail_core/forms/widgets/input.html" with field=form.phone input_type="tel" %}
+                    {% endif %}
                     {{ redirect_field }}
                     <div class="auth-actions">
                         {% include "allauth/components/submit_button.html" with text_key="Request Code" button_type="submit" %}
                     </div>
                 </form>
                 {% url 'account_login' as login_url %}
-                <div class="auth-text-center auth-mt-6"
-                     style="position: relative;
-                            z-index: 10">
+                <div class="auth-text-center auth-mt-6">
                     <a href="{{ login_url }}" class="auth-link" tags="link">{% translate "Other sign-in options" %}</a>
                 </div>
             </div>

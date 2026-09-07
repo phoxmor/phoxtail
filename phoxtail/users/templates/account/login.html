@@ -1,7 +1,6 @@
 {% extends "account/base_entrance.html" %}
 {% load static i18n %}
 {% load allauth account %}
-{% load phoxtail_core_tags %}
 {% block head_title %}
     {% trans "Sign In" %}
 {% endblock head_title %}
@@ -45,78 +44,35 @@
                             </p>
                         {% endfor %}
                     {% endif %}
-                    <div class="auth-field">
-                        <label for="{{ form.login.id_for_label }}" class="auth-label">
-                            {{ form.login.label }}
-                            {% if form.login.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            {{ form.login|add_class:"auth-input" }}
-                            <div class="auth-input-glow"></div>
-                            {% if form.login.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.login.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>
-                                            {{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
+                    {% include "phoxtail_core/forms/widgets/input.html" with field=form.login autofocus=True %}
+                    {# help_text is allauth's own "Forgot your password?" anchor; the styled link below replaces it #}
+                    {% include "phoxtail_core/forms/widgets/password.html" with field=form.password show_help_text=False %}
+                    <div class="auth-pt-2 auth-text-center">
+                        <a href="{% url 'account_reset_password' %}"
+                           class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>
                     </div>
-                    <div class="auth-field">
-                        <label for="{{ form.password.id_for_label }}" class="auth-label">
-                            {{ form.password.label }}
-                            {% if form.password.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            {{ form.password|add_class:"auth-input" }}
-                            <div class="auth-input-glow"></div>
-                            {% if form.password.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.password.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>
-                                            {{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="auth-pt-2 auth-text-center">
-                            <a href="{% url 'account_reset_password' %}"
-                               class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>
-                        </div>
-                    </div>
-                    <div class="auth-checkbox-row">
-                        <input type="checkbox"
-                               name="{{ form.remember.html_name }}"
-                               id="{{ form.remember.id_for_label }}"
-                               class="auth-checkbox"
-                               {% if form.remember.value %}checked{% endif %}>
-                        <label for="{{ form.remember.id_for_label }}" class="auth-checkbox-label">{{ form.remember.label }}</label>
-                    </div>
+                    {# allauth drops this field entirely when SESSION_REMEMBER is set #}
+                    {% if form.remember %}
+                        {% include "phoxtail_core/forms/widgets/checkbox.html" with field=form.remember %}
+                    {% endif %}
                     {{ redirect_field }}
-                    <div class="auth-actions">
+                    {# the alternatives belong in Login's stack, not behind a divider #}
+                    <div class="auth-actions auth-actions-row">
                         {% include "allauth/components/submit_button.html" with text_key="Login" button_type="submit" %}
-                    </div>
-                </form>
-                {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
-                    <div class="auth-section-divider">
                         {% if PASSKEY_LOGIN_ENABLED %}
-                            {% include "allauth/components/submit_button.html" with text_key="Sign in with a passkey" button_type="submit" form_id="mfa_login" button_id="passkey_login" %}
+                            {% include "allauth/components/submit_button.html" with text_key="Sign in with a passkey" button_type="submit" form_id="mfa_login" button_id="passkey_login" variant="secondary" %}
                         {% endif %}
                         {% if LOGIN_BY_CODE_ENABLED %}
-                            {% include "allauth/components/submit_button.html" with text_key="Send me a sign-in code" button_type="link" url=request_login_code_url %}
+                            {% include "allauth/components/submit_button.html" with text_key="Send me a sign-in code" button_type="link" url=request_login_code_url variant="secondary" %}
                         {% endif %}
                     </div>
-                {% endif %}
+                </form>
                 {% if SOCIALACCOUNT_ENABLED %}
                     <div class="auth-section-divider">{% include "socialaccount/snippets/login.html" with page_layout="entrance" %}</div>
                 {% endif %}
             </div>
         </div>
+    </div>
 {% endblock body %}
 {% block extra_body %}
     {{ block.super }}

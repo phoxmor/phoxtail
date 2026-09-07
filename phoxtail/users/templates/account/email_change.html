@@ -1,5 +1,5 @@
 {% extends "account/base_manage_email.html" %}
-{% load static i18n allauth phoxtail_core_tags %}
+{% load static i18n allauth %}
 {% block head_title %}
     {% trans "Email Address" %}
 {% endblock head_title %}
@@ -31,74 +31,47 @@
                             </p>
                         {% endfor %}
                     {% endif %}
+                    {# the settled and the pending address are read-only facts, not form fields #}
                     {% if current_emailaddress %}
-                        <div class="auth-field">
-                            <label for="current_email" class="auth-label">{% trans "Current email" %}:</label>
-                            <div class="auth-input-wrapper">
-                                <input type="email"
-                                       id="current_email"
-                                       disabled
-                                       value="{{ current_emailaddress.email }}"
-                                       class="auth-input">
-                            </div>
+                        <div class="auth-note">
+                            <p>
+                                {% trans "Current email" %}:
+                                <span class="auth-radio-email">{{ current_emailaddress.email }}</span>
+                            </p>
                         </div>
                     {% endif %}
                     {% if new_emailaddress %}
-                        <div class="auth-field">
-                            <label for="new_email" class="auth-label">
+                        <div class="auth-note">
+                            <p>
                                 {% if not current_emailaddress %}
                                     {% trans "Current email" %}:
                                 {% else %}
                                     {% trans "Changing to" %}:
                                 {% endif %}
-                            </label>
-                            <div class="auth-input-wrapper">
-                                <input type="email"
-                                       id="new_email"
-                                       disabled
-                                       value="{{ new_emailaddress.email }}"
-                                       class="auth-input">
-                            </div>
+                                <span class="auth-radio-email">{{ new_emailaddress.email }}</span>
+                                <span class="auth-badge auth-badge--unverified">{% translate "Unverified" %}</span>
+                            </p>
                             <p class="auth-text-muted">
                                 {% blocktranslate %}Your email address is still pending verification.{% endblocktranslate %}
                             </p>
-                            <div class="auth-actions-row">
-                                {% include "allauth/components/submit_button.html" with text_key="Re-send Verification" button_type="submit" form_id="pending-email" name="action_send" variant="secondary" %}
-                                {% if current_emailaddress %}
-                                    {% include "allauth/components/submit_button.html" with text_key="Cancel Change" button_type="submit" form_id="pending-email" name="action_remove" variant="danger" %}
-                                {% endif %}
-                            </div>
                         </div>
-                    {% endif %}
-                    <div class="auth-field">
-                        <label for="{{ form.email.id_for_label }}" class="auth-label">
-                            {% trans "Change to" %}:
-                            {% if form.email.field.required %}<span class="auth-required">*</span>{% endif %}
-                        </label>
-                        <div class="auth-input-wrapper">
-                            {{ form.email|add_class:"auth-input" }}
-                            <div class="auth-input-glow"></div>
-                            {% if form.email.errors %}
-                                <div class="auth-errors-block">
-                                    {% for error in form.email.errors %}
-                                        <p class="auth-error">
-                                            <span class="auth-error-dot"></span>
-                                            {{ error }}
-                                        </p>
-                                    {% endfor %}
-                                </div>
+                        <div class="auth-actions-row">
+                            {% include "allauth/components/submit_button.html" with text_key="Re-send Verification" button_type="submit" form_id="pending-email" name="action_send" variant="secondary" %}
+                            {% if current_emailaddress %}
+                                {% include "allauth/components/submit_button.html" with text_key="Cancel Change" button_type="submit" form_id="pending-email" name="action_remove" variant="danger" %}
                             {% endif %}
                         </div>
-                    </div>
+                    {% endif %}
+                    {% include "phoxtail_core/forms/widgets/input.html" with field=form.email label=_("Change to") %}
                     <div class="auth-actions">
                         {% include "allauth/components/submit_button.html" with text_key="Change Email" button_type="submit" name="action_add" %}
                     </div>
                 </form>
                 {% if new_emailaddress %}
-                    <form style="display: none"
-                          id="pending-email"
+                    <form id="pending-email"
                           method="post"
-                          action="{% url 'account_email' %}">
+                          action="{% url 'account_email' %}"
+                          class="auth-hidden">
                         {% csrf_token %}
                         <input type="hidden" name="email" value="{{ new_emailaddress.email }}">
                     </form>
