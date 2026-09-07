@@ -16,14 +16,17 @@ updates:
   # manifest: `phoxtail[...]~={{ phoxtail_version }}` is not a PEP 508
   # specifier, and the parser raises InvalidRequirement rather than skipping it.
   #
-  # `widen` rather than the default `increase`, because a floor here is a
-  # promise about the oldest version a user may bring, and every one of them is
-  # a version the test suite actually installs (see the Floors workflow).
-  # Raising a floor to chase a release would break that claim and fail CI; this
-  # raises the ceiling and leaves the floor where it was measured.
+  # `increase-if-necessary` rather than the default `increase`, because a floor
+  # here is a promise about the oldest version a user may bring, and every one
+  # of them is a version the test suite actually installs (see the Floors
+  # workflow). The default raises a floor to chase each release, which would
+  # falsify that claim and turn the job red. This one leaves a constraint alone
+  # while the new version still satisfies it — which, with every dependency
+  # declared as a `>=x,<y` range, is the ordinary case.
+  # (`widen` is not accepted for pip; it is a composer/npm value.)
   - package-ecosystem: pip
     directory: /
-    versioning-strategy: widen
+    versioning-strategy: increase-if-necessary
     exclude-paths:
       - phoxtail/project_template/**
     schedule:
