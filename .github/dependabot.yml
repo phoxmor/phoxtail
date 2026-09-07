@@ -9,3 +9,24 @@ updates:
       interval: weekly
     commit-message:
       prefix: ci
+
+  # Python, added because the dependency-graph job scans this repository whether
+  # it is declared here or not — and failed on every run until it was, because
+  # phoxtail/project_template/pyproject.toml is a Jinja template rather than a
+  # manifest: `phoxtail[...]~={{ phoxtail_version }}` is not a PEP 508
+  # specifier, and the parser raises InvalidRequirement rather than skipping it.
+  #
+  # `widen` rather than the default `increase`, because a floor here is a
+  # promise about the oldest version a user may bring, and every one of them is
+  # a version the test suite actually installs (see the Floors workflow).
+  # Raising a floor to chase a release would break that claim and fail CI; this
+  # raises the ceiling and leaves the floor where it was measured.
+  - package-ecosystem: pip
+    directory: /
+    versioning-strategy: widen
+    exclude-paths:
+      - phoxtail/project_template/**
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build
