@@ -54,6 +54,12 @@
     padding-bottom: var(--phoxtail-bar-reserved, 0px);
     overflow-y: auto;
     background-color: rgb(var(--color-surface-50));
+    /* This is the only scrollbar the shell ever shows, so it is themed by
+       hand rather than left to the UA. scrollbar-color and
+       ::-webkit-scrollbar are mutually exclusive in Chrome 121+ — setting
+       the former disables the latter, so only the former is used here. */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--color-surface-300)) transparent;
 }
 
 @media (min-width: 1024px) and (max-width: 1279px) {
@@ -1477,6 +1483,7 @@
     /* Content area */
     .dash-content {
         background-color: rgb(var(--color-surface-950));
+        scrollbar-color: rgb(var(--color-surface-700)) transparent;
     }
 
     /* Desktop sidebar */
