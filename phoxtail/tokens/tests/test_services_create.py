@@ -30,7 +30,7 @@ class TestCreateValidation:
         silently honouring one of them would mislead whoever reads the
         token later."""
         with pytest.raises(ValidationError) as exc:
-            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["a.b"], unrestricted=True)
+            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=[REAL_SCOPE], unrestricted=True)
         assert "scopes" in exc.value.message_dict
 
     def test_unrestricted_without_scopes_is_allowed(self, user):
@@ -74,7 +74,7 @@ class TestCreateDefaults:
         assert "scopes" in exc.value.message_dict
 
     def test_unrestricted_defaults_off(self, user):
-        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["a.b"])
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", scopes=[REAL_SCOPE])
         assert token.unrestricted is False
 
     def test_default_token_type_personal(self, user):
@@ -162,3 +162,45 @@ class TestCreatePersistence:
         when = timezone.now() + timedelta(days=7)
         token, _ = AccessTokenService().admin.create(unrestricted=True, user_id=user.id, name="t", expires_at=when)
         assert token.expires_at == when
+
+
+REAL_SCOPE = "wagtailcore.publish_page"
+
+
+class TestScopesMustNameRealPermissions:
+    """A scope that matches nothing is not a smaller grant — it is a
+    silent one. It stores cleanly and survives forever, and once
+    enforcement lands the token quietly does less than whoever issued it
+    believed, looking like a permissions problem rather than the typo it
+    is. The only place it can still be caught is the door.
+    """
+
+    def test_a_real_permission_codename_is_accepted(self, user):
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", scopes=[REAL_SCOPE])
+        assert token.scopes == [REAL_SCOPE]
+
+    def test_an_invented_scope_is_refused(self, user):
+        with pytest.raises(ValidationError) as exc:
+            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["nope.not_a_permission"])
+        assert "scopes" in exc.value.message_dict
+
+    def test_a_typo_is_refused_and_the_real_spelling_offered(self, user):
+        """The reply to a near-miss is the correct spelling, not a
+        restatement of the rule."""
+        with pytest.raises(ValidationError) as exc:
+            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["wagtailcore.publish_pge"])
+        message = " ".join(exc.value.message_dict["scopes"])
+        assert REAL_SCOPE in message
+
+    def test_one_bad_scope_refuses_the_whole_token(self, user):
+        """Partial acceptance would issue a credential that differs from
+        the one that was asked for, silently."""
+        with pytest.raises(ValidationError):
+            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=[REAL_SCOPE, "nope.not_a_permission"])
+        assert not AccessToken.objects.filter(name="t").exists()
+
+    def test_unrestricted_tokens_skip_the_check(self, user):
+        """There are no scopes to validate, and requiring some would
+        contradict what unrestricted means."""
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", unrestricted=True)
+        assert token.scopes == []

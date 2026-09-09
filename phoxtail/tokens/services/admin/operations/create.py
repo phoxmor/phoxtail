@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from ....constants import TokenType
 from ....models import AccessToken
+from ....scopes import known_scopes, suggest, unknown_scopes
 
 if TYPE_CHECKING:
     from ...base import AccessTokenService
@@ -78,6 +79,27 @@ class AccessTokenServiceAdminCreate:
             raise ValidationError({"scopes": "At least one scope is required, or mark the token unrestricted."})
         if not all(isinstance(s, str) and s for s in scopes):
             raise ValidationError({"scopes": "Scopes must be non-empty strings."})
+
+        # Checked at the door because a scope that matches no permission
+        # cannot be noticed later: it stores cleanly, and once enforcement
+        # lands the token quietly does less than intended while looking
+        # like a permissions problem rather than the typo it is.
+        known = known_scopes()
+        if unknown := unknown_scopes(scopes, known):
+            details = []
+            for scope in unknown:
+                close = suggest(scope, known)
+                details.append(
+                    f"{scope!r} (did you mean {', '.join(repr(c) for c in close)}?)" if close else repr(scope)
+                )
+            raise ValidationError(
+                {
+                    "scopes": (
+                        "Unknown scope: " + "; ".join(details) + ". Scopes are Django permission codenames, e.g. "
+                        "'phoxtail_streams.change_blockvariant'."
+                    )
+                }
+            )
 
         if expires_at is not None and expires_at <= timezone.now():
             raise ValidationError({"expires_at": "Expiry must be in the future."})
