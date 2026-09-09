@@ -263,7 +263,7 @@ def delete_user(request: HttpRequest, user_uuid: UUID):
 
     user = resolve_user(user_uuid)
     try:
-        user.service.admin.delete(acting_user=request.auth)
+        user.service.admin.delete(acting_user=request.auth.user)
     except ProtectedError as exc:
         raise HttpError(
             409,

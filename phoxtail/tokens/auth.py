@@ -18,7 +18,12 @@ _LAST_USED_THROTTLE = timedelta(seconds=60)
 
 
 def authenticate(raw_token: str):
-    """Return the user for a valid raw token, or ``None``.
+    """Return the :class:`AccessToken` for a valid raw token, or ``None``.
+
+    Returns the token rather than its user because the credential is what
+    was looked up, and callers need more of it than the owner: scopes,
+    type and expiry all live here. ``token.user`` is select_related, so
+    reading the owner costs no extra query.
 
     A token is valid iff:
       - it parses (non-empty, minimum length)
@@ -52,4 +57,4 @@ def authenticate(raw_token: str):
         # fields and to skip auto_now hooks we don't have anyway.
         AccessToken.objects.filter(pk=token.pk).update(last_used_at=now)
 
-    return token.user
+    return token

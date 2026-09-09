@@ -130,24 +130,24 @@ def resolve_page_for_read(page_id: int) -> Page:
 
 
 def require_publish_permission(request: HttpRequest, page: Page) -> None:
-    """Raise 403 if ``request.auth`` cannot publish the page."""
-    user = request.auth
+    """Raise 403 if ``request.auth.user`` cannot publish the page."""
+    user = request.auth.user
     perms = page.permissions_for_user(user)
     if not perms.can_publish():
         raise HttpError(403, "User cannot publish this page.")
 
 
 def require_edit_permission(request: HttpRequest, page: Page) -> None:
-    """Raise 403 if ``request.auth`` cannot edit the page."""
-    user = request.auth
+    """Raise 403 if ``request.auth.user`` cannot edit the page."""
+    user = request.auth.user
     perms = page.permissions_for_user(user)
     if not perms.can_edit():
         raise HttpError(403, "User cannot edit this page.")
 
 
 def require_delete_permission(request: HttpRequest, page: Page) -> None:
-    """Raise 403 if ``request.auth`` cannot delete the page."""
-    user = request.auth
+    """Raise 403 if ``request.auth.user`` cannot delete the page."""
+    user = request.auth.user
     perms = page.permissions_for_user(user)
     if not perms.can_delete():
         raise HttpError(403, "User cannot delete this page.")

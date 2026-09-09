@@ -69,7 +69,7 @@ def put_body(
         # save_revision() saves the full in-memory state as a draft.
         # We do NOT call page.save() — that would make the new body live
         # immediately, bypassing the Wagtail revision/publish workflow.
-        page.save_revision(user=request.auth)
+        page.save_revision(user=request.auth.user)
 
     response["ETag"] = page_etag(page)
     return {"body": serialize_body(page, field_name)}

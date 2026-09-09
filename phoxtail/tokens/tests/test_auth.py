@@ -40,9 +40,17 @@ class TestAuthenticateValidToken:
         token = AccessTokenFactory(user=user, expires_at=timezone.now() - timedelta(minutes=1))
         assert authenticate(token._raw_token) is None
 
-    def test_returns_user_when_expiry_in_future(self, user):
+    def test_returns_token_when_expiry_in_future(self, user):
         token = AccessTokenFactory(user=user, expires_at=timezone.now() + timedelta(days=1))
-        assert authenticate(token._raw_token) == user
+        assert authenticate(token._raw_token) == token
+
+    def test_returns_the_credential_not_its_owner(self, user):
+        """The caller needs the token's scopes and type, not only who owns
+        it — returning the user is what discarded that for years."""
+        token = AccessTokenFactory(user=user)
+        resolved = authenticate(token._raw_token)
+        assert resolved.pk == token.pk
+        assert resolved.user == user
 
 
 class TestLastUsedThrottle:

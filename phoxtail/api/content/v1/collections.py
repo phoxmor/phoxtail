@@ -248,7 +248,7 @@ def list_collections(request: HttpRequest):
     summary="Create a collection",
 )
 def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
-    if not request.auth.has_perm("wagtailcore.add_collection"):
+    if not request.auth.user.has_perm("wagtailcore.add_collection"):
         raise HttpError(403, "User does not have permission to create collections.")
 
     parent = _resolve_parent(payload.parent_id)
@@ -313,7 +313,7 @@ def patch_collection(
     collection_id: int,
     payload: CollectionPatch,
 ):
-    if not request.auth.has_perm("wagtailcore.change_collection"):
+    if not request.auth.user.has_perm("wagtailcore.change_collection"):
         raise HttpError(403, "User does not have permission to change collections.")
 
     from wagtail.models import Collection, CollectionViewRestriction
@@ -380,7 +380,7 @@ def patch_collection(
     summary="Delete a collection (refused if non-empty)",
 )
 def delete_collection(request: HttpRequest, collection_id: int):
-    if not request.auth.has_perm("wagtailcore.delete_collection"):
+    if not request.auth.user.has_perm("wagtailcore.delete_collection"):
         raise HttpError(403, "User does not have permission to delete collections.")
 
     from wagtail.models import CollectionViewRestriction

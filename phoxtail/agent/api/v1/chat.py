@@ -448,7 +448,7 @@ def get_conversation(request, uuid: str):
         UserPromptPart,
     )
 
-    user = request.auth
+    user = request.auth.user
     if not user or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
         raise HttpError(403, "Access denied.")
     try:
@@ -515,7 +515,7 @@ def get_conversation(request, uuid: str):
 def chat_stream(request, payload: StreamRequest):
     from ninja.errors import HttpError
 
-    user = request.auth
+    user = request.auth.user
     if not user or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
         raise HttpError(403, "Access denied.")
     message = payload.message.strip()

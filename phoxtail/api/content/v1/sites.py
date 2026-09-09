@@ -192,7 +192,7 @@ def list_sites(request: HttpRequest):
 def create_site(request: HttpRequest, response: HttpResponse, payload: SiteCreate):
     from wagtail.models import Site
 
-    if not request.auth.has_perm("wagtailcore.add_site"):
+    if not request.auth.user.has_perm("wagtailcore.add_site"):
         raise HttpError(403, "User does not have permission to create sites.")
 
     data = payload.model_dump()
@@ -232,7 +232,7 @@ def patch_site(
     site_id: int,
     payload: SitePatch,
 ):
-    if not request.auth.has_perm("wagtailcore.change_site"):
+    if not request.auth.user.has_perm("wagtailcore.change_site"):
         raise HttpError(403, "User does not have permission to change sites.")
 
     site = _resolve_site(site_id)
@@ -250,7 +250,7 @@ def patch_site(
     summary="Delete a site",
 )
 def delete_site(request: HttpRequest, site_id: int):
-    if not request.auth.has_perm("wagtailcore.delete_site"):
+    if not request.auth.user.has_perm("wagtailcore.delete_site"):
         raise HttpError(403, "User does not have permission to delete sites.")
 
     site = _resolve_site(site_id)

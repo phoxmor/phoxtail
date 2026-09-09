@@ -10,18 +10,20 @@ from __future__ import annotations
 
 from ninja.security import APIKeyHeader
 
+from phoxtail.core.authorization import AuthorizationContext
+
 from .auth import authenticate
 
 _BEARER_PREFIX = "Bearer "
 
 
 class PhoxtailTokenAuth(APIKeyHeader):
-    """Resolve an ``Authorization: Bearer <raw_token>`` header to a User.
+    """Resolve an ``Authorization: Bearer <raw_token>`` header to a caller.
 
-    Ninja treats the returned value as ``request.auth``. We return the
-    ``User`` instance so endpoints can read ``request.auth`` directly
-    rather than having to re-fetch it. Returning ``None`` makes ninja
-    respond with 401.
+    Ninja treats the returned value as ``request.auth``, so endpoints read
+    ``request.auth.user`` for the person and ``request.auth.token`` for the
+    credential they arrived with. Returning ``None`` makes ninja respond
+    with 401.
     """
 
     param_name = "Authorization"
@@ -30,4 +32,7 @@ class PhoxtailTokenAuth(APIKeyHeader):
         if not key or not key.startswith(_BEARER_PREFIX):
             return None
         raw_token = key[len(_BEARER_PREFIX) :]
-        return authenticate(raw_token)
+        token = authenticate(raw_token)
+        if token is None:
+            return None
+        return AuthorizationContext(user=token.user, token=token)

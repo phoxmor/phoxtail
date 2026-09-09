@@ -154,7 +154,7 @@ def _commit_body(
     """Replace body, save draft revision, set ETag header.  Returns fresh ETag."""
     with transaction.atomic():
         replace_body(page, new_body, field_name)
-        page.save_revision(user=request.auth)
+        page.save_revision(user=request.auth.user)
     etag = page_etag(page)
     response["ETag"] = etag
     return etag
@@ -216,7 +216,7 @@ def patch_block(
     canonical_body = serialize_body(page, field_name)
     _, saved_block = _find_block(canonical_body, block_uuid)
     with transaction.atomic():
-        page.save_revision(user=request.auth)
+        page.save_revision(user=request.auth.user)
     etag = page_etag(page)
     response["ETag"] = etag
     return {"block": saved_block, "_etag": etag}
@@ -262,7 +262,7 @@ def add_block(
     canonical_body = serialize_body(page, field_name)
     _, saved_block = _find_block(canonical_body, new_uuid)
     with transaction.atomic():
-        page.save_revision(user=request.auth)
+        page.save_revision(user=request.auth.user)
     etag = page_etag(page)
     response["ETag"] = etag
     response.status_code = 201

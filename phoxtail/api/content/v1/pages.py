@@ -156,7 +156,7 @@ def create_page(
 
     # Resolve parent.
     parent = _get_parent_page(parent_id)
-    perms = parent.permissions_for_user(request.auth)
+    perms = parent.permissions_for_user(request.auth.user)
     if not perms.can_add_subpage():
         raise HttpError(403, "User cannot add pages under that parent.")
 
@@ -187,7 +187,7 @@ def create_page(
         apply_contributed_patch(page, contributed)
         try:
             parent.add_child(instance=page)
-            page.save_revision(user=request.auth)
+            page.save_revision(user=request.auth.user)
         except DjangoValidationError as exc:
             raise HttpError(400, "; ".join(exc.messages)) from exc
 
@@ -248,7 +248,7 @@ def patch_page(
         # updates latest_revision_created_at on the page row. We do NOT call
         # page.save() — that would write changes directly to the live page
         # row, bypassing the Wagtail revision/publish workflow.
-        page.save_revision(user=request.auth)
+        page.save_revision(user=request.auth.user)
 
     # Return the in-memory page (draft state) so the agent sees its changes.
     # The ETag is based on latest_revision_created_at which save_revision()
@@ -284,7 +284,7 @@ def publish_page(
             409,
             "Page has no revisions yet — edit it at least once before publishing.",
         )
-    latest.publish(user=request.auth)
+    latest.publish(user=request.auth.user)
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
     return serialize_page_detail(fresh)
@@ -304,7 +304,7 @@ def unpublish_page(
     require_publish_permission(request, page)
     require_if_match(request, page)
 
-    page.unpublish(user=request.auth)
+    page.unpublish(user=request.auth.user)
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
     return serialize_page_detail(fresh)
@@ -349,7 +349,7 @@ def copy_page_for_translation(
         copy_parents=payload.copy_parents,
         alias=payload.alias,
         include_subtree=payload.include_subtree,
-        user=request.auth,
+        user=request.auth.user,
     )
     try:
         with transaction.atomic():
@@ -410,7 +410,7 @@ def move_page(
 
     _check_move_constraints(page.specific, parent_after)
 
-    action = MovePageAction(page=page.specific, target=target, pos=payload.position, user=request.auth)
+    action = MovePageAction(page=page.specific, target=target, pos=payload.position, user=request.auth.user)
     try:
         with transaction.atomic():
             action.execute()

@@ -331,8 +331,11 @@ def _authenticate_screenshot_request(request):
     from phoxtail.agent.permissions import agent_permission_policy
     from phoxtail.tokens.auth import authenticate
 
-    user = authenticate(request.GET.get("token", ""))
-    if user is None or not agent_permission_policy.user_has_permission(user, "access_chatbot"):
+    token = authenticate(request.GET.get("token", ""))
+    if token is None:
+        return None
+    user = token.user
+    if not agent_permission_policy.user_has_permission(user, "access_chatbot"):
         return None
     return user
 

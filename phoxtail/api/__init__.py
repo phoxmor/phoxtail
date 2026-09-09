@@ -26,9 +26,8 @@ import importlib
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI
-from ninja.security import SessionAuth
 
-from phoxtail.api.auth import Authorize, is_superuser
+from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, is_superuser
 from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.api.design.v1 import router as design_v1_router
 from phoxtail.api.streams.v1 import router as streams_v1_router
@@ -55,7 +54,7 @@ api = NinjaAPI(
     # Default-deny: every endpoint requires authentication unless it explicitly
     # opts out with ``auth=None``. Token auth is tried first (CLI, MCP); session
     # auth is the fallback for browser clients (e.g. the phoxtail bar).
-    auth=[PhoxtailTokenAuth(), SessionAuth()],
+    auth=[PhoxtailTokenAuth(), PhoxtailSessionAuth()],
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])
@@ -72,7 +71,7 @@ api.add_router(
     users_v1_router,
     auth=[
         Authorize(PhoxtailTokenAuth(), is_superuser, detail=_superuser_detail),
-        Authorize(SessionAuth(), is_superuser, detail=_superuser_detail),
+        Authorize(PhoxtailSessionAuth(), is_superuser, detail=_superuser_detail),
     ],
     tags=["users/v1"],
 )
