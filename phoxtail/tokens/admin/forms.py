@@ -39,7 +39,8 @@ class AccessTokenCreateForm(forms.Form):
         required=False,
         help_text=_(
             "Let this token do anything you can do, now and in future. Right "
-            "for your own machine; too broad for a service or a phone."
+            "on your own machine; too broad for anything you hand to another "
+            "system."
         ),
     )
     scopes = forms.CharField(

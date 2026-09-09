@@ -64,7 +64,13 @@
                         <div class="tka-section-card__fields">
                             <div class="tka-detail-row">
                                 <span class="tka-detail-row__label">Scopes</span>
-                                <span class="tka-detail-row__value">{{ token.scopes|join:", " }}</span>
+                                <span class="tka-detail-row__value">
+                                    {% if token.unrestricted %}
+                                        Unrestricted — anything its owner can do
+                                    {% else %}
+                                        {{ token.scopes|join:", " }}
+                                    {% endif %}
+                                </span>
                             </div>
                             <div class="tka-detail-row">
                                 <span class="tka-detail-row__label">Expires</span>

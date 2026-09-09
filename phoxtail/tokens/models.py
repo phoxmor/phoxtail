@@ -49,9 +49,9 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
         default=False,
         help_text=_(
             "Let this token do anything its owner can do, including "
-            "capabilities added to this site in future. Convenient for your "
-            "own machine; too broad for anything you hand to a service or "
-            "connect from a phone. Leave off and choose scopes instead."
+            "capabilities added to this site in future. Convenient on your "
+            "own machine; too broad for anything you hand to another "
+            "system. Leave off and choose scopes instead."
         ),
     )
 

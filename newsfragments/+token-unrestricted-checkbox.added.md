@@ -1,0 +1,1 @@
+The API token create form now offers the **Unrestricted** checkbox, so a token can be issued with the owner's full ceiling instead of a scope list; the token detail panel says so in place of the scopes.
