@@ -17,8 +17,10 @@ class AccessTokenCreateForm(forms.Form):
     """Fields a human fills in when issuing a new AccessToken.
 
     ``scopes`` is a comma-separated text field for now — a proper multi-
-    select will land when the scope vocabulary is formalized. An empty
-    value resolves to ``['*']`` at the service layer.
+    select will land when the scope vocabulary is formalized. Leaving it
+    empty is not "full access": the token must either carry scopes or be
+    explicitly marked unrestricted, and the service layer rejects both
+    neither and both.
     """
 
     name = forms.CharField(
@@ -32,10 +34,23 @@ class AccessTokenCreateForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text=_("Optional. What will this token be used for?"),
     )
+    unrestricted = forms.BooleanField(
+        label=_("Unrestricted"),
+        required=False,
+        help_text=_(
+            "Let this token do anything you can do, now and in future. Right "
+            "for your own machine; too broad for a service or a phone."
+        ),
+    )
     scopes = forms.CharField(
         label=_("Scopes"),
         required=False,
-        help_text=_("Comma-separated list of scopes. Leave empty for full access ('*')."),
+        help_text=_(
+            "Comma-separated permission codenames, e.g. "
+            "phoxtail_streams.change_blockvariant. Required unless the token "
+            "is unrestricted. Scopes only narrow — a token can never do "
+            "something you cannot."
+        ),
     )
     expires_at = forms.DateTimeField(
         label=_("Expires at"),
@@ -46,5 +61,4 @@ class AccessTokenCreateForm(forms.Form):
 
     def clean_scopes(self) -> list[str]:
         raw = self.cleaned_data.get("scopes", "") or ""
-        scopes = [s.strip() for s in raw.split(",") if s.strip()]
-        return scopes or ["*"]
+        return [s.strip() for s in raw.split(",") if s.strip()]

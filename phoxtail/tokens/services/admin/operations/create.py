@@ -58,15 +58,24 @@ class AccessTokenServiceAdminCreate:
         self,
         name: str,
         scopes: list[str],
+        unrestricted: bool,
         expires_at: datetime | None,
     ) -> None:
         if not name or not name.strip():
             raise ValidationError({"name": "Name is required."})
 
-        if not isinstance(scopes, list) or not scopes:
-            # Empty scopes would be a footgun: the token exists but can do
-            # nothing. "*" is the explicit wildcard; callers must opt in.
-            raise ValidationError({"scopes": "At least one scope is required. Use ['*'] for full access."})
+        # A ceiling and "no ceiling" are mutually exclusive, and neither is
+        # a safe default: a token with no scopes could do nothing, and one
+        # that silently meant "everything" is how over-broad credentials
+        # get issued by accident. Make the caller say which they want.
+        if not isinstance(scopes, list):
+            raise ValidationError({"scopes": "Scopes must be a list."})
+        if unrestricted and scopes:
+            raise ValidationError(
+                {"scopes": "An unrestricted token cannot also carry scopes — it is already unlimited."}
+            )
+        if not unrestricted and not scopes:
+            raise ValidationError({"scopes": "At least one scope is required, or mark the token unrestricted."})
         if not all(isinstance(s, str) and s for s in scopes):
             raise ValidationError({"scopes": "Scopes must be non-empty strings."})
 
@@ -79,6 +88,7 @@ class AccessTokenServiceAdminCreate:
         name: str,
         description: str,
         scopes: list[str],
+        unrestricted: bool,
         expires_at: datetime | None,
         token_type: str,
     ) -> tuple[AccessToken, str]:
@@ -95,6 +105,7 @@ class AccessTokenServiceAdminCreate:
                 suffix=raw_token[-4:],
                 digest=digest,
                 scopes=scopes,
+                unrestricted=unrestricted,
                 expires_at=expires_at,
             )
 
@@ -105,6 +116,7 @@ class AccessTokenServiceAdminCreate:
         user_id: int,
         name: str,
         scopes: list[str] | None = None,
+        unrestricted: bool = False,
         description: str = "",
         expires_at: datetime | None = None,
         token_type: str | None = None,
@@ -112,20 +124,28 @@ class AccessTokenServiceAdminCreate:
         User = get_user_model()
         user = User.objects.get(pk=user_id)
 
-        resolved_scopes = scopes if scopes is not None else ["*"]
+        # No implicit full access: omitting scopes now fails validation
+        # rather than quietly minting an unlimited token.
+        resolved_scopes = scopes if scopes is not None else []
         # TextChoices members are plain strings at runtime; without Django
         # stubs a type checker reads the attribute as the (value, label)
         # tuple it was assigned from.
         resolved_type: str = token_type or TokenType.PERSONAL  # type: ignore[assignment]
 
         self.authorize()
-        self.validate(name=name, scopes=resolved_scopes, expires_at=expires_at)
+        self.validate(
+            name=name,
+            scopes=resolved_scopes,
+            unrestricted=unrestricted,
+            expires_at=expires_at,
+        )
 
         return self.perform(
             user=user,
             name=name,
             description=description,
             scopes=resolved_scopes,
+            unrestricted=unrestricted,
             expires_at=expires_at,
             token_type=resolved_type,
         )

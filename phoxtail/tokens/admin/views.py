@@ -123,6 +123,7 @@ def admin_token_create_view(request):
                 name=form.cleaned_data["name"],
                 description=form.cleaned_data["description"],
                 scopes=form.cleaned_data["scopes"],
+                unrestricted=form.cleaned_data["unrestricted"],
                 expires_at=form.cleaned_data["expires_at"],
             )
             created = True

@@ -30,7 +30,8 @@ class AccessTokenFactory(factory.django.DjangoModelFactory):
     name = factory.Sequence(lambda n: f"Token {n}")
     description = ""
     token_type = TokenType.PERSONAL
-    scopes = factory.LazyFunction(lambda: ["*"])
+    unrestricted = True
+    scopes = factory.LazyFunction(list)
     expires_at = None
     revoked_at = None
 

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from wagtail.search import index
 
 from phoxtail.core.mixins import AdminURLMixin, UUIDMixin
@@ -38,11 +39,35 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
     # infeasible; slow KDFs (bcrypt/argon2) exist for low-entropy passwords.
     digest = models.CharField(max_length=64, unique=True)
 
-    # Scope vocabulary is not enforced yet; the field exists so tokens
-    # created today already carry scope metadata once enforcement lands.
-    # "*" is the explicit wildcard; an empty list is invalid at the service
-    # layer.
-    scopes = models.JSONField(default=list)
+    # A token is either unrestricted or carries an explicit ceiling; the
+    # two are mutually exclusive and the service layer enforces that.
+    # There is deliberately no wildcard scope: a "*" would keep granting
+    # capabilities that did not exist when the token was issued, so every
+    # app installed later would silently widen every old token. A ceiling
+    # that rises on its own is not a ceiling.
+    unrestricted = models.BooleanField(
+        default=False,
+        help_text=_(
+            "Let this token do anything its owner can do, including "
+            "capabilities added to this site in future. Convenient for your "
+            "own machine; too broad for anything you hand to a service or "
+            "connect from a phone. Leave off and choose scopes instead."
+        ),
+    )
+
+    # Scope vocabulary is Django permission codenames
+    # ("phoxtail_streams.change_blockvariant"), so there is one vocabulary
+    # to learn and none to invent. Not enforced yet; the field exists so
+    # tokens created today already carry the metadata enforcement needs.
+    scopes = models.JSONField(
+        default=list,
+        help_text=_(
+            "The permissions this token may use, as codenames such as "
+            "phoxtail_streams.change_blockvariant. Scopes only ever narrow: "
+            "a token can never do something its owner cannot. Required "
+            "unless the token is unrestricted."
+        ),
+    )
 
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -60,6 +85,7 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
         index.AutocompleteField("user_last_name"),
         index.FilterField("user"),
         index.FilterField("token_type"),
+        index.FilterField("unrestricted"),
         index.FilterField("revoked_at"),
         index.FilterField("expires_at"),
         index.FilterField("created_at"),

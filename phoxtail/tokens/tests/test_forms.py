@@ -15,15 +15,24 @@ class TestAccessTokenCreateForm:
         assert not form.is_valid()
         assert "name" in form.errors
 
-    def test_blank_scopes_resolves_to_wildcard(self):
+    def test_blank_scopes_stays_empty(self):
+        """No implicit full access: emptiness is not a grant. The service
+        layer decides whether an empty list is acceptable, and it is only
+        acceptable alongside `unrestricted`."""
         form = AccessTokenCreateForm({"name": "t", "scopes": ""})
         assert form.is_valid()
-        assert form.cleaned_data["scopes"] == ["*"]
+        assert form.cleaned_data["scopes"] == []
 
-    def test_only_whitespace_scopes_resolves_to_wildcard(self):
+    def test_only_whitespace_scopes_stays_empty(self):
         form = AccessTokenCreateForm({"name": "t", "scopes": "   ,  ,"})
         assert form.is_valid()
-        assert form.cleaned_data["scopes"] == ["*"]
+        assert form.cleaned_data["scopes"] == []
+
+    def test_unrestricted_defaults_off(self):
+        """The broad option must be chosen, never arrived at."""
+        form = AccessTokenCreateForm({"name": "t", "scopes": "a"})
+        assert form.is_valid()
+        assert form.cleaned_data["unrestricted"] is False
 
     def test_comma_separated_scopes_split(self):
         form = AccessTokenCreateForm({"name": "t", "scopes": "read:streams, write:design , publish"})
