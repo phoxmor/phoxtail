@@ -1,6 +1,6 @@
 """Phoxtail MCP server — the AI-agent interface to a Phoxtail project.
 
-A single :class:`~mcp.server.fastmcp.FastMCP` instance is defined here.
+A single :class:`~fastmcp.FastMCP` instance is defined here.
 Core domain sub-packages (``studio``, ``content``) import it and register
 their tools via ``@mcp_server.tool()``. Optional apps contribute
 additional tools via the ``phoxtail.mcp_modules`` entry-point group —
@@ -19,7 +19,7 @@ import sys
 from importlib.metadata import entry_points
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 
 # In dev mode the project root is bind-mounted read-write at /app, so mkdir
 # here propagates to the host. Guard with is_dir() so this is a no-op on the

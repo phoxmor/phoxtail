@@ -45,25 +45,28 @@ def serve(
         return
 
     import uvicorn
-    from mcp.server.transport_security import TransportSecuritySettings
 
     from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
 
-    # The SDK's DNS-rebinding protection rejects any Host header not
-    # allowlisted (421). Loopback covers direct local runs; the project's
-    # own MCP hostname covers both real paths — Traefik forwards it from
-    # the host, siblings send it via the network alias. No Origin is
-    # allowed at all: MCP clients don't send one, browsers must not call
-    # this directly.
+    # DNS-rebinding protection rejects any Host header not allowlisted
+    # (421). Loopback covers direct local runs; the project's own MCP
+    # hostname covers both real paths — Traefik forwards it from the host,
+    # siblings send it via the network alias. No Origin is allowed at all:
+    # MCP clients don't send one, browsers must not call this directly.
     allowed_hosts = ["localhost", "localhost:*", "127.0.0.1", "127.0.0.1:*"]
     if find_config_file() is not None:
         slug = slugify(get_project_name())
         allowed_hosts += [f"mcp.{slug}.localhost", f"mcp.{slug}.localhost:*"]
-    mcp_server.settings.transport_security = TransportSecuritySettings(
-        enable_dns_rebinding_protection=True,
+
+    # host_origin_protection is passed explicitly because it defaults to
+    # False: an app built with allowed_hosts alone installs no guard at
+    # all and answers every Host with 200, silently.
+    app = mcp_server.http_app(
+        path="/mcp",
         allowed_hosts=allowed_hosts,
         allowed_origins=[],
+        host_origin_protection=True,
     )
 
     sys.stderr.write(f"Phoxtail MCP server starting (streamable-http on {host}:{port}, path /mcp)...\n")
-    uvicorn.run(mcp_server.streamable_http_app(), host=host, port=port, log_level="warning")
+    uvicorn.run(app, host=host, port=port, log_level="warning")

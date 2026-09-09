@@ -32,10 +32,12 @@ dependencies = [
     "jinja2>=3.1.6",
     "pyyaml>=6.0.3",
     "httpx>=0.28.1",
-    # Upper bound is deliberate: mcp 2.0 renamed FastMCP to MCPServer and
-    # dropped the ambient request context our tools read the caller's Bearer
-    # from. Lift it once fastmcp (via pydantic-ai) supports mcp 2.x.
-    "mcp>=1.29.0,<2",
+    # The server, the peer client and the caller-identity gate all come
+    # from fastmcp, so it is one dependency rather than three. The slim
+    # distribution is the one pydantic-ai already resolves for its own MCP
+    # client; [server] adds the ASGI stack `phoxtail mcp serve --http`
+    # needs, and brings mcp 2.x (the stateless protocol) with it.
+    "fastmcp-slim[server]>=4.0.0,<5",
 ]
 
 [project.optional-dependencies]

@@ -6,32 +6,32 @@ attributed to whoever actually asked. The MCP layer never validates the
 token; the API is the sole authority.
 """
 
+import asyncio
+import json
+from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
-
-from mcp.server.lowlevel.server import request_ctx
-from mcp.shared.context import RequestContext
 
 from phoxtail.mcp._http import caller_bearer, outbound_token, request, serving_over_http
 
 
+@contextmanager
 def _serving(headers: dict[str, str]):
-    """Enter the SDK's per-request context as the HTTP transport would.
+    """Present an inbound HTTP request the way the transport would.
 
-    The single place in this file that knows *how* an inbound HTTP request
+    The single place in this file that knows *how* a served HTTP request
     is made visible to the tool layer. Everything below asserts behaviour
     through the public gate functions, so a change of SDK moves this
     helper and nothing else.
+
+    Stubs the lookup rather than standing up a server: what the gate
+    functions do with an inbound request is the subject here. That the
+    lookup itself answers correctly per transport — populated over HTTP,
+    absent over stdio — is a property of fastmcp, verified against both
+    real transports before this migration.
     """
-    return request_ctx.set(
-        RequestContext(
-            request_id=1,
-            meta=None,
-            session=None,
-            lifespan_context=None,
-            request=SimpleNamespace(headers=headers),
-        )
-    )
+    with patch("phoxtail.mcp._http._inbound_http_request", return_value=SimpleNamespace(headers=headers)):
+        yield
 
 
 class TestCallerBearer:
@@ -40,40 +40,28 @@ class TestCallerBearer:
         assert caller_bearer() is None
 
     def test_reads_the_bearer_of_the_request_being_served(self):
-        token = _serving({"authorization": "Bearer phxt_abc"})
-        try:
+        with _serving({"authorization": "Bearer phxt_abc"}):
             assert caller_bearer() == "phxt_abc"
-        finally:
-            request_ctx.reset(token)
 
     def test_ignores_non_bearer_schemes(self):
-        token = _serving({"authorization": "Basic dXNlcjpwdw=="})
-        try:
+        with _serving({"authorization": "Basic dXNlcjpwdw=="}):
             assert caller_bearer() is None
-        finally:
-            request_ctx.reset(token)
 
     def test_none_when_no_authorization_header(self):
-        token = _serving({})
-        try:
+        with _serving({}):
             assert caller_bearer() is None
-        finally:
-            request_ctx.reset(token)
 
 
 class TestRequestIdentity:
     def test_caller_token_wins_over_the_stored_one(self):
         """Pass-through identity: the API must see the caller, not this
         process's own credentials."""
-        token = _serving({"authorization": "Bearer phxt_caller"})
-        try:
+        with _serving({"authorization": "Bearer phxt_caller"}):
             with (
                 patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored") as stored,
                 patch("phoxtail.mcp._http.httpx.request") as mock_request,
             ):
                 request("GET", "/api/streams/v1/blocks/")
-        finally:
-            request_ctx.reset(token)
 
         sent = mock_request.call_args.kwargs["headers"]
         assert sent["Authorization"] == "Bearer phxt_caller"
@@ -95,40 +83,16 @@ class TestRequestIdentity:
         """An HTTP request context with no Authorization header must not
         fall back to this machine's own stored token — that would let
         anyone reachable on the network borrow the operator's identity."""
-        token = _serving({})
-        try:
+        with _serving({}):
             with (
                 patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored") as stored,
                 patch("phoxtail.mcp._http.httpx.request") as mock_request,
             ):
                 request("GET", "/api/streams/v1/blocks/")
-        finally:
-            request_ctx.reset(token)
 
         sent = mock_request.call_args.kwargs["headers"] or {}
         assert "Authorization" not in sent
         stored.assert_not_called()
-
-
-class TestServingOverHttp:
-    """The branch every other guarantee here rests on.
-
-    ``outbound_token`` trusts this function to say whether an ambient,
-    operator-owned credential is safe to fall back on. A wrong ``False``
-    is silent — no exception, no failing call — and hands the operator's
-    identity to anyone who can reach the port. Assert it directly rather
-    than only through its consequences.
-    """
-
-    def test_false_without_an_inbound_http_request(self):
-        assert serving_over_http() is False
-
-    def test_true_while_serving_one(self):
-        token = _serving({})
-        try:
-            assert serving_over_http() is True
-        finally:
-            request_ctx.reset(token)
 
 
 class TestOutboundToken:
@@ -141,24 +105,18 @@ class TestOutboundToken:
     """
 
     def test_forwards_the_caller_over_http(self):
-        token = _serving({"authorization": "Bearer phxt_caller"})
-        try:
+        with _serving({"authorization": "Bearer phxt_caller"}):
             with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored") as stored:
                 assert outbound_token() == "phxt_caller"
             stored.assert_not_called()
-        finally:
-            request_ctx.reset(token)
 
     def test_yields_nothing_when_an_http_caller_sends_no_bearer(self):
         """The borrowed-identity guard, at the gate itself: a caller who
         brought no credential gets none, and the API refuses them."""
-        token = _serving({})
-        try:
+        with _serving({}):
             with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored") as stored:
                 assert outbound_token() is None
             stored.assert_not_called()
-        finally:
-            request_ctx.reset(token)
 
     def test_uses_the_ambient_token_over_stdio(self):
         with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored"):
@@ -183,19 +141,156 @@ class TestOutboundTokenForAPeer:
         stored.assert_called_once_with("http://beta-site.localhost")
 
     def test_ignores_the_peer_address_over_http(self):
-        token = _serving({"authorization": "Bearer phxt_caller"})
-        try:
+        with _serving({"authorization": "Bearer phxt_caller"}):
             with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_peer") as stored:
                 assert outbound_token("http://beta-site.localhost") == "phxt_caller"
             stored.assert_not_called()
-        finally:
-            request_ctx.reset(token)
 
     def test_yields_nothing_for_an_unauthenticated_http_caller(self):
-        token = _serving({})
-        try:
+        with _serving({}):
             with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_peer") as stored:
                 assert outbound_token("http://beta-site.localhost") is None
             stored.assert_not_called()
-        finally:
-            request_ctx.reset(token)
+
+
+class TestAgainstRealTransports:
+    """The gate driven end-to-end, over transports rather than stubs.
+
+    Everything above stubs the request lookup, which is right for asking
+    what the gate *does* with an inbound request — but it cannot catch the
+    failure that matters most: an SDK whose lookup stops distinguishing
+    the transports. Then ``serving_over_http()`` answers False under HTTP,
+    ``outbound_token()`` falls back to this machine's stored token, and
+    every anonymous caller on the network acts as the operator. Nothing
+    raises; no stubbed test fails.
+
+    So these run phoxtail's own gate functions inside a real MCP server,
+    reached once over streamable-http and once not. The HTTP side goes
+    through an in-process ASGI transport: real headers and a real request
+    object, but no port to bind and no thread to race.
+    """
+
+    @staticmethod
+    def _probe_server():
+        from fastmcp import FastMCP
+
+        server = FastMCP("identity-probe")
+
+        @server.tool
+        def probe() -> str:
+            import json
+
+            return json.dumps(
+                {
+                    "over_http": serving_over_http(),
+                    "bearer": caller_bearer(),
+                    "outbound": outbound_token(),
+                }
+            )
+
+        return server
+
+    @staticmethod
+    def _call(server, transport):
+        import json
+
+        from fastmcp import Client
+
+        async def run():
+            async with Client(transport) as client:
+                result = await client.call_tool("probe")
+            return json.loads(result.content[0].text)
+
+        return asyncio.run(run())
+
+    def test_a_streamable_http_caller_is_seen_as_one(self):
+        import httpx2
+        from fastmcp import Client
+        from fastmcp.client.transports import StreamableHttpTransport
+
+        server = self._probe_server()
+        app = server.http_app(path="/mcp")
+
+        def factory(**kwargs):
+            kwargs.pop("transport", None)
+            return httpx2.AsyncClient(
+                transport=httpx2.ASGITransport(app=app),
+                base_url="http://identity-probe",
+                **kwargs,
+            )
+
+        async def run(headers):
+            transport = StreamableHttpTransport(
+                "http://identity-probe/mcp", headers=headers, httpx_client_factory=factory
+            )
+            async with app.router.lifespan_context(app):
+                async with Client(transport) as client:
+                    result = await client.call_tool("probe")
+            return json.loads(result.content[0].text)
+
+        with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored"):
+            seen = asyncio.run(run({"Authorization": "Bearer phxt_caller"}))
+            assert seen == {"over_http": True, "bearer": "phxt_caller", "outbound": "phxt_caller"}
+
+            # The borrowed-identity case, end to end: a caller who brought
+            # no credential must not be handed the operator's.
+            anonymous = asyncio.run(run(None))
+            assert anonymous == {"over_http": True, "bearer": None, "outbound": None}
+
+    def test_a_non_http_caller_is_not(self):
+        from fastmcp.client.transports import FastMCPTransport
+
+        server = self._probe_server()
+        with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored"):
+            seen = self._call(server, FastMCPTransport(server))
+        assert seen == {"over_http": False, "bearer": None, "outbound": "phxt_stored"}
+
+    def test_concurrent_callers_do_not_see_each_others_identity(self):
+        """Two overlapping HTTP calls, two different Bearers.
+
+        The gate reads an ambient per-request context rather than taking
+        the token as an argument, so "which request am I serving" is
+        answered by machinery this project does not own. If that context
+        were shared instead of per-task, one caller would act as another —
+        the worst failure this module can have, and a silent one.
+        """
+        import httpx2
+        from fastmcp import Client, FastMCP
+        from fastmcp.client.transports import StreamableHttpTransport
+
+        server = FastMCP("identity-probe")
+
+        @server.tool
+        async def slow_probe(delay: float) -> str:
+            # Overlap the two calls inside the server: each must still
+            # read its own request while the other is in flight.
+            await asyncio.sleep(delay)
+            return json.dumps({"bearer": caller_bearer(), "outbound": outbound_token()})
+
+        app = server.http_app(path="/mcp")
+
+        def factory(**kwargs):
+            kwargs.pop("transport", None)
+            return httpx2.AsyncClient(
+                transport=httpx2.ASGITransport(app=app), base_url="http://identity-probe", **kwargs
+            )
+
+        async def call(token, delay):
+            transport = StreamableHttpTransport(
+                "http://identity-probe/mcp",
+                headers={"Authorization": f"Bearer {token}"},
+                httpx_client_factory=factory,
+            )
+            async with Client(transport) as client:
+                result = await client.call_tool("slow_probe", {"delay": delay})
+            return json.loads(result.content[0].text)
+
+        async def both():
+            async with app.router.lifespan_context(app):
+                return await asyncio.gather(call("phxt_alice", 0.10), call("phxt_bob", 0.01))
+
+        with patch("phoxtail.mcp._http.resolve_token", return_value="phxt_stored"):
+            alice, bob = asyncio.run(both())
+
+        assert alice == {"bearer": "phxt_alice", "outbound": "phxt_alice"}
+        assert bob == {"bearer": "phxt_bob", "outbound": "phxt_bob"}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from mcp.server.fastmcp import Image as MCPImage
+from fastmcp.utilities.types import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.content._http import request

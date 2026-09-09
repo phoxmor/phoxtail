@@ -35,18 +35,22 @@ def api_base_url() -> str:
 def _inbound_http_request():
     """The underlying HTTP request for the MCP call being served, if any.
 
-    The SDK sets its per-request context for *every* transport, not just
-    HTTP — ``request_ctx.get()`` alone cannot tell stdio from HTTP. But
-    ``RequestContext.request`` defaults to ``None`` and is only populated
-    by the streamable-http transport, so probing that field is the actual
-    signal. ``LookupError`` covers a tool being called completely outside
-    a request (e.g. directly in a test).
-    """
-    try:
-        from mcp.server.lowlevel.server import request_ctx
+    ``get_http_request()`` raises rather than returning ``None`` when no
+    HTTP request is in flight, and that is exactly the signal wanted: it
+    is populated only by the streamable-http transport, so a raise means
+    stdio, an in-process call, or a direct call in a test. Verified
+    against both real transports, since a wrong answer here is silent —
+    see the tests in ``test_mcp_http_identity``.
 
-        return request_ctx.get().request
-    except LookupError:
+    Not ``get_http_headers()``: that helper strips ``authorization`` from
+    what it returns, which would quietly reduce every HTTP caller to
+    having sent no credential.
+    """
+    from fastmcp.server.dependencies import get_http_request
+
+    try:
+        return get_http_request()
+    except RuntimeError:
         return None
 
 
@@ -71,9 +75,10 @@ def caller_bearer() -> str | None:
     tell those apart should check :func:`serving_over_http` first. The
     MCP layer never validates this token — tools forward it to the API,
     which is the sole authority, so a caller acts on this project exactly
-    as far as this project's Django lets that token act. Reads the SDK's
-    per-request context, which is set around each tool invocation, so
-    concurrent sessions cannot see each other's identity.
+    as far as this project's Django lets that token act. Reads the
+    per-request context established around each tool invocation; that
+    concurrent callers cannot see each other's identity is asserted by
+    test, not assumed.
     """
     http_request = _inbound_http_request()
     if http_request is None:

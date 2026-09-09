@@ -113,7 +113,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
         conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
         artifact = await sync_to_async(ModelArtifact.objects.select_related("provider").get)(pk=artifact_pk)
         history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
-        agent = get_agent(artifact)
+        agent = await get_agent(artifact)
     except Exception:
         out.put(_sse("error", {"message": "An error occurred. Please try again."}))
         out.put(_SENTINEL)

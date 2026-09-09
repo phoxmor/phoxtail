@@ -12,6 +12,7 @@ app is required.
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 from pytest_httpx import HTTPXMock
@@ -228,7 +229,7 @@ class TestMCPToolRegistration:
             "phoxtail_font_weights_delete",
         }
         expected = studio_tools | pages_tools | content_tools | cms_tools | design_tools
-        registered = set(mcp_server._tool_manager._tools.keys())
+        registered = {t.name for t in asyncio.run(mcp_server.list_tools())}
         # Optional installed apps contribute extra tools
         # via entry points; use subset check so those don't cause false failures.
         assert expected <= registered
@@ -667,7 +668,7 @@ class TestSchemaResource:
         assert "char_field" in result["field_types"]
 
     def test_registered(self):
-        resources = mcp_server._resource_manager._resources
+        resources = {str(r.uri) for r in asyncio.run(mcp_server.list_resources())}
         assert "phoxtail://schema-reference" in resources
 
 
@@ -693,7 +694,7 @@ class TestDesignBlockPrompt:
         assert "Reference" not in result
 
     def test_registered(self):
-        prompts = mcp_server._prompt_manager._prompts
+        prompts = {p.name for p in asyncio.run(mcp_server.list_prompts())}
         assert "design_block" in prompts
 
 

@@ -18,8 +18,8 @@ from __future__ import annotations
 import json
 from contextlib import asynccontextmanager
 
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from fastmcp import Client
+from fastmcp.client.transports import StreamableHttpTransport
 
 from phoxtail.cli.utils.net import Peer, UnknownPeer, list_peers, resolve_peer
 from phoxtail.mcp import mcp_server
@@ -52,10 +52,8 @@ async def _peer_session(peer: Peer):
     """
     token = outbound_token(peer.address)
     headers = {"Authorization": f"Bearer {token}"} if token else None
-    async with streamablehttp_client(peer.mcp_url, headers=headers) as (read, write, _):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            yield session
+    async with Client(StreamableHttpTransport(peer.mcp_url, headers=headers)) as client:
+        yield client
 
 
 @mcp_server.tool(
@@ -104,7 +102,7 @@ async def peer_tools(peer: str, search: str | None = None) -> str:
     # paying for every peer's full schema catalogue on one turn.
     catalogue = [
         {"name": t.name, "description": ((t.description or "").strip().splitlines() or [""])[0]}
-        for t in listed.tools
+        for t in listed
         if not t.name.startswith(PEER_TOOL_PREFIX)
     ]
     if search:
@@ -152,11 +150,14 @@ async def peer_call(peer: str, tool: str, arguments: dict | None = None) -> str:
 
     try:
         async with _peer_session(target) as session:
-            result = await session.call_tool(tool, arguments or {})
+            # raise_on_error=False: a tool that fails on the peer is an
+            # answer to relay, not a transport failure — the model needs
+            # the peer's own message to correct itself.
+            result = await session.call_tool(tool, arguments or {}, raise_on_error=False)
     except Exception as exc:
         return json.dumps({"error": f"{tool} against {peer}: {exc}"})
 
     text = "\n".join(block.text for block in result.content if getattr(block, "text", None))
-    if result.isError:
+    if result.is_error:
         return json.dumps({"error": text or f"{tool} failed on {peer}."})
-    return text or json.dumps(result.structuredContent or {})
+    return text or json.dumps(result.structured_content or {})

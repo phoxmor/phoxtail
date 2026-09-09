@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from mcp.server.fastmcp import Image as MCPImage
+from fastmcp.utilities.types import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import api_base_url, outbound_token

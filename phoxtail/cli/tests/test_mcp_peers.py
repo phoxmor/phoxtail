@@ -25,13 +25,13 @@ INVOICES = Peer("invoices-site", None, True)
 def _text_result(text, is_error=False):
     return SimpleNamespace(
         content=[SimpleNamespace(text=text)],
-        isError=is_error,
-        structuredContent=None,
+        is_error=is_error,
+        structured_content=None,
     )
 
 
 class _FakeSession:
-    """Stands in for a ClientSession against a peer's MCP server."""
+    """Stands in for a client against a peer's MCP server."""
 
     def __init__(self, call_result=None, tools=(), raises=None):
         self.call_result = call_result or _text_result("{}")
@@ -39,7 +39,7 @@ class _FakeSession:
         self.raises = raises
         self.seen_call = None
 
-    async def call_tool(self, name, arguments):
+    async def call_tool(self, name, arguments, *, raise_on_error=True):
         if self.raises is not None:
             raise self.raises
         self.seen_call = (name, arguments)
@@ -48,7 +48,7 @@ class _FakeSession:
     async def list_tools(self):
         if self.raises is not None:
             raise self.raises
-        return SimpleNamespace(tools=self.tools)
+        return self.tools
 
 
 def _session_patch(session):
@@ -244,7 +244,7 @@ class TestRegisteredOnMcpServer:
     def test_all_peer_tools_are_registered(self):
         from phoxtail.mcp import mcp_server
 
-        registered = mcp_server._tool_manager._tools
+        registered = {t.name for t in _run(mcp_server.list_tools())}
         assert "phoxtail_peer_list" in registered
         assert "phoxtail_peer_tools" in registered
         assert "phoxtail_peer_call" in registered

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -21,10 +22,32 @@ def _import_pydantic_ai() -> None:
     from pydantic_ai import RunContext, Tool, ToolDefinition
 
 
-def _get_mcp_tools() -> dict:
-    from phoxtail.mcp import mcp_server
+_mcp_tools: list | None = None
+_prime_lock: asyncio.Lock | None = None
 
-    return mcp_server._tool_manager._tools
+
+async def prime_tools() -> None:
+    """Fetch the registered FastMCP tools into a module-level cache.
+
+    Reading the registry is async — ``list_tools`` applies the server's
+    transforms and filtering — but the agent factory below it is a
+    synchronous, memoised function that cannot await. Registration happens
+    once at import time and never changes afterwards, so priming the cache
+    once per process is both correct and cheap; callers await this before
+    building an agent.
+    """
+    global _mcp_tools, _prime_lock
+    if _mcp_tools is not None:
+        return
+    # Built lazily: the lock must belong to the running loop, and there is
+    # none at import time.
+    if _prime_lock is None:
+        _prime_lock = asyncio.Lock()
+    async with _prime_lock:
+        if _mcp_tools is None:
+            from phoxtail.mcp import mcp_server
+
+            _mcp_tools = list(await mcp_server.list_tools())
 
 
 def _make_tool(mcp_tool) -> Tool:
@@ -34,8 +57,9 @@ def _make_tool(mcp_tool) -> Tool:
         import json
 
         try:
-            result = await mcp_tool.run(kwargs, context=None, convert_result=False)
-            return result if isinstance(result, str) else json.dumps(result)
+            result = await mcp_tool.run(kwargs)
+            text = "\n".join(b.text for b in result.content if getattr(b, "text", None))
+            return text or json.dumps(result.structured_content or {})
         except Exception as exc:
             return json.dumps({"error": str(exc)})
 
@@ -53,4 +77,6 @@ def _make_tool(mcp_tool) -> Tool:
 
 def get_tools() -> list[Tool]:
     _import_pydantic_ai()
-    return [_make_tool(t) for t in _get_mcp_tools().values()]
+    if _mcp_tools is None:
+        raise RuntimeError("prime_tools() must be awaited before get_tools().")
+    return [_make_tool(t) for t in _mcp_tools]

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from .chat_blocks import get_chat_block_tools
 from .models import ModelArtifact
-from .tools import get_tools
+from .tools import get_tools, prime_tools
 
 if TYPE_CHECKING:
     from pydantic_ai import Agent
@@ -47,7 +47,10 @@ def _build_agent(
     )
 
 
-def get_agent(artifact: ModelArtifact) -> Agent:
+async def get_agent(artifact: ModelArtifact) -> Agent:
+    # Fill the tool cache first: reading FastMCP's registry is async, and
+    # the memoised _build_agent below it cannot await.
+    await prime_tools()
     provider = artifact.provider
     return _build_agent(
         model_prefix=provider.model_prefix or "",
