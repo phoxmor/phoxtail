@@ -23,6 +23,7 @@ from ninja.errors import HttpError
 from ninja.security import SessionAuth
 
 from phoxtail.core.authorization import AuthorizationContext
+from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
 
 class PhoxtailSessionAuth(SessionAuth):
@@ -80,3 +81,52 @@ def is_superuser(context) -> bool:
     """Predicate for surfaces restricted to active superusers."""
     user = context.user
     return bool(user.is_active and user.is_superuser)
+
+
+def has_no_ceiling(context) -> bool:
+    """Whether the caller brought no self-imposed limit.
+
+    True for a browser session (nothing to narrow) and for an unrestricted
+    token. False for a token carrying scopes — which is what makes an
+    endpoint that declares no scope unreachable to one.
+    """
+    token = context.token
+    return token is None or token.unrestricted
+
+
+def has_scope(*codenames: str) -> Callable[[Any], bool]:
+    """Predicate: the caller's credential permits *all* of *codenames*.
+
+    A session has no credential to narrow by and passes; so does an
+    unrestricted token. A scoped token must name every codename asked
+    for — a partial match is a refusal, since the endpoint declared what
+    it needs and half of it is not it.
+
+    This is only the credential's half of the question. Whether the
+    *person* may act is decided where it already is, and often far more
+    finely than a codename can express.
+    """
+
+    def predicate(context) -> bool:
+        if has_no_ceiling(context):
+            return True
+        return all(codename in context.token.scopes for codename in codenames)
+
+    return predicate
+
+
+def scoped(*codenames: str, detail: str | None = None) -> list[Authorize]:
+    """The ``auth=`` for an endpoint a scoped token may reach.
+
+    Used as ``auth=scoped("wagtailcore.publish_page")``. Endpoints that
+    declare nothing keep the API-wide default, which admits sessions and
+    unrestricted tokens and refuses scoped ones — so forgetting to
+    annotate leaves a door closed rather than open.
+    """
+    if detail is None:
+        detail = "This token's scopes do not cover " + ", ".join(codenames) + "."
+    predicate = has_scope(*codenames)
+    return [
+        Authorize(PhoxtailTokenAuth(), predicate, detail=detail),
+        Authorize(PhoxtailSessionAuth(), predicate, detail=detail),
+    ]

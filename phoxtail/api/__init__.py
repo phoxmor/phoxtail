@@ -27,7 +27,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI
 
-from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, is_superuser
+from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling, is_superuser
 from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.api.design.v1 import router as design_v1_router
 from phoxtail.api.streams.v1 import router as streams_v1_router
@@ -39,6 +39,14 @@ from phoxtail.users.api.v1 import router as users_v1_router
 # close both when DEBUG is off. Passing ``openapi_url=None`` disables the
 # schema, which also disables the docs UI that renders it.
 _docs_enabled = bool(getattr(settings, "DEBUG", False))
+
+# Names the reason rather than the rule: a caller who deliberately narrowed
+# their token needs to know the endpoint has not opted in yet, not to be
+# told again what a scope is.
+_undeclared_detail = (
+    "This endpoint declares no scope, so a token carrying scopes cannot reach "
+    "it. Use an unrestricted token, or add auth=scoped(...) to the endpoint."
+)
 
 api = NinjaAPI(
     title="Phoxtail API",
@@ -54,7 +62,15 @@ api = NinjaAPI(
     # Default-deny: every endpoint requires authentication unless it explicitly
     # opts out with ``auth=None``. Token auth is tried first (CLI, MCP); session
     # auth is the fallback for browser clients (e.g. the phoxtail bar).
-    auth=[PhoxtailTokenAuth(), PhoxtailSessionAuth()],
+    #
+    # An endpoint that declares no scope is reachable by sessions and
+    # unrestricted tokens — everything that works today — and refuses a
+    # token carrying a ceiling. Endpoints opt in with ``auth=scoped(...)``,
+    # so forgetting to annotate one leaves a door closed rather than open.
+    auth=[
+        Authorize(PhoxtailTokenAuth(), has_no_ceiling, detail=_undeclared_detail),
+        PhoxtailSessionAuth(),
+    ],
 )
 
 api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])

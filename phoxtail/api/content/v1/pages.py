@@ -23,6 +23,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.models import Page
 
+from phoxtail.api.auth import scoped
 from phoxtail.api.content.v1._helpers import (
     _check_move_constraints,
     apply_common_patch,
@@ -268,6 +269,15 @@ def patch_page(
         428: Error,
     },
     summary="Publish the latest draft revision",
+    # Wagtail still decides whether this user may publish *this* page, per
+    # subtree, and that check is unchanged. This only asks whether the
+    # credential they arrived with may be used to publish at all.
+    #
+    # The codename is read here as the name of an act, not as a claim that
+    # the holder has Wagtail's global "Publish any page" permission — a
+    # section editor publishes through subtree grants and holds no global
+    # one, yet must still be able to scope a token to publishing.
+    auth=scoped("wagtailcore.publish_page"),
 )
 def publish_page(
     request: HttpRequest,

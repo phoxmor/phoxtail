@@ -12,8 +12,18 @@ a spelling. The permission asks whether the *person* may act, and some
 apps answer it far more finely than a codename can — Wagtail decides
 publishing per page subtree. The scope asks only whether the *credential*
 they arrived with is allowed to be used for that kind of act at all. Both
-must pass, and the scope is always the coarser of the two: it can narrow
-what its owner may do and can never widen it.
+must pass, and the scope is always the coarser of the two.
+
+Which is what makes a scope safe to hold without holding the permission it
+is named after. A scope is not a grant and is never checked as one: it can
+only ever subtract from what the person may already do, because the
+person's own check runs regardless and answers independently. So a section
+editor may scope a token to ``wagtailcore.publish_page`` while holding no
+global publish permission — Wagtail still decides, per page, whether that
+particular publish is allowed. Minting therefore checks that a scope names
+something real, not that the person minting it holds that permission;
+requiring the latter would lock out exactly the users whose rights an app
+models per object rather than per codename.
 """
 
 from __future__ import annotations
