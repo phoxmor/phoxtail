@@ -22,10 +22,12 @@ all — the app declares its router on its ``PhoxtailAppConfig``.
 from __future__ import annotations
 
 import importlib
+from datetime import datetime
+from uuid import UUID
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling, is_superuser
 from phoxtail.api.content.v1 import router as content_v1_router
@@ -96,6 +98,57 @@ api.add_router(
 @api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
 def ping(request):
     return {"ok": True}
+
+
+class WhoAmI(Schema):
+    """What a caller is, as this project sees them."""
+
+    username: str
+    # Users are addressed by uuid everywhere else the API and the MCP
+    # tools name one, so a caller can use this answer as an argument.
+    user_uuid: UUID
+    is_superuser: bool
+    # False means the credential carries a ceiling and ``scopes`` lists it.
+    # True means it carries none; ``scopes`` is then empty and meaningless.
+    unrestricted: bool
+    scopes: list[str]
+    # None for a browser session, which has no credential to expire.
+    expires_at: datetime | None
+
+
+@api.get(
+    "/whoami/",
+    response=WhoAmI,
+    tags=["meta"],
+    summary="The identity and ceiling of the current credential",
+    # The one endpoint that must admit every credential, including narrowly
+    # scoped ones: a caller cannot discover its own limits if the endpoint
+    # that reports them is behind those limits. Declared explicitly rather
+    # than inheriting, because the API-wide default refuses scoped tokens.
+    auth=[PhoxtailTokenAuth(), PhoxtailSessionAuth()],
+)
+def whoami(request):
+    """Answer "who is this, and what may they do" for the caller's own token.
+
+    Exists for callers that hold a credential without being able to read
+    it — the MCP server forwards an opaque Bearer and is, by design, never
+    the authority on what it contains. Asking the authority is how it
+    learns; deciding for itself is what it must never do.
+
+    Reports the credential's ceiling, not the person's permissions. What
+    the *user* may do is answered per action, where the action happens,
+    and is often finer than any list could be.
+    """
+    context = request.auth
+    token = context.token
+    return {
+        "username": context.user.get_username(),
+        "user_uuid": context.user.uuid,
+        "is_superuser": bool(context.user.is_superuser),
+        "unrestricted": token is None or bool(token.unrestricted),
+        "scopes": list(token.scopes) if token is not None else [],
+        "expires_at": token.expires_at if token is not None else None,
+    }
 
 
 @api.exception_handler(DjangoValidationError)
