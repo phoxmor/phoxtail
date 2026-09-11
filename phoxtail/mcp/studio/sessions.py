@@ -23,6 +23,7 @@ from pathlib import Path
 
 from phoxtail.cli.studio import session as _session
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import local_only
 from phoxtail.mcp.studio._http import request
 
 _NEXT_STEPS = (
@@ -104,6 +105,7 @@ def _resolve(session_id: str | None) -> str | dict:
 
 
 @mcp_server.tool(
+    auth=[local_only],
     name="phoxtail_studio_open_variant",
     description=(
         "Open a variant for session-based editing. Fetches the variant from the "
@@ -199,6 +201,7 @@ def _render_context(variant_data: dict) -> str:
 
 
 @mcp_server.tool(
+    auth=[local_only],
     name="phoxtail_studio_commit_variant",
     description=(
         "Write an open session's local files back to the database. "
@@ -302,6 +305,7 @@ def commit_variant(
 
 
 @mcp_server.tool(
+    auth=[local_only],
     name="phoxtail_studio_discard_variant",
     description=(
         "Discard an open session without saving any changes. "
@@ -324,6 +328,7 @@ def discard_variant(session_id: str | None = None) -> str:
 
 
 @mcp_server.tool(
+    auth=[local_only],
     name="phoxtail_studio_list_sessions",
     description=(
         "List all open editing sessions for the current project. "
@@ -345,6 +350,7 @@ def list_sessions() -> str:
 
 
 @mcp_server.tool(
+    auth=[local_only],
     name="phoxtail_studio_refresh_session",
     description=(
         "Re-fetch the current ETag for a session's variant from the server "
