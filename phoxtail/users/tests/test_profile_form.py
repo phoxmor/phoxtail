@@ -14,18 +14,18 @@ User = get_user_model()
 @pytest.fixture
 def user(db):
     return User.objects.create_user(
-        username="evangelos",
-        email="evangelos@example.com",
-        first_name="Evangelos",
-        last_name="Pisinas",
+        username="member",
+        email="member@example.com",
+        first_name="Given",
+        last_name="Family",
         phone_number="+306912345678",
     )
 
 
 def _payload(**overrides):
     return {
-        "first_name": "Evangelos",
-        "last_name": "Pisinas",
+        "first_name": "Given",
+        "last_name": "Family",
         "phone_number_0": "GR",
         "phone_number_1": "6912345678",
         **overrides,
