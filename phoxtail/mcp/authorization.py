@@ -35,6 +35,7 @@ from datetime import datetime
 import httpx
 from fastmcp.exceptions import FastMCPError
 from fastmcp.server.auth import AccessToken, AuthContext, TokenVerifier
+from fastmcp.utilities.authorization import _RequireScopes
 
 from phoxtail.mcp._http import serving_over_http, url
 
@@ -68,6 +69,72 @@ def local_only(context: AuthContext) -> bool:
     that, and it belongs inside, where the path is known.
     """
     return not serving_over_http()
+
+
+class _Scoped(_RequireScopes):
+    """All of these codenames, or a credential that names no ceiling at all.
+
+    fastmcp's own ``require_scopes`` reads the scope list and nothing else,
+    which is the whole answer for OAuth, where a token without a scope was
+    not granted it. A phoxtail token has a second shape: ``unrestricted``
+    is a flag, and such a token carries an *empty* scope list — not because
+    it is permitted nothing but because there is no ceiling to write down.
+    Expanding it into every codename in the project is what this project
+    removed deliberately; it would freeze at issue time and keep granting
+    capabilities installed afterwards. So the flag stays a flag, and the
+    bypass lives here.
+
+    Subclassing rather than writing a plain callable is what keeps the
+    check *scope-aware*. fastmcp tests that with ``isinstance``, and a
+    check that fails it is opaque: it denies without saying what is
+    missing, and — because one opaque check withholds the whole list — it
+    silences its siblings too. Opaque is the right answer for
+    :func:`local_only`, whose denial no scope would fix. It is the wrong
+    answer here, where the shortfall is exactly the thing a caller can act
+    on.
+    """
+
+    def __call__(self, ctx: AuthContext) -> bool:
+        if ctx.token is not None and ctx.token.claims.get("unrestricted"):
+            return True
+        return super().__call__(ctx)
+
+    def missing_scopes(self, ctx: AuthContext) -> set[str]:
+        """Nothing is missing from a credential that has no ceiling.
+
+        The inherited comparison is ``required - token.scopes``, and an
+        unrestricted token's scopes are empty — so left alone it would
+        report every codename as missing for a caller it had just
+        admitted. ``run_auth_checks_with_shortfall`` would mask that,
+        since it only unions shortfalls once something has failed, but
+        ``scope_requirements`` computes from the token and component
+        without running any check. That is the path that would read a
+        phantom shortfall off the one credential that has none.
+        """
+        if ctx.token is not None and ctx.token.claims.get("unrestricted"):
+            return set()
+        return super().missing_scopes(ctx)
+
+
+def scoped(*codenames: str) -> _Scoped:
+    """Offer this component to a credential permitting acts of this kind.
+
+    Used as ``auth=[scoped("wagtailcore.publish_page")]``. Deliberately
+    the same name as :func:`phoxtail.api.auth.scoped`, at the same level
+    — the thing that goes in ``auth=`` — because it is the same idea, and
+    the two must name the same codename for a given act or the catalogue
+    and the doors that open will disagree.
+
+    Returns the concrete check rather than ``AuthCheck``, which is only
+    ``Callable[[AuthContext], bool]``: reading ``missing_scopes`` off the
+    result is the point, and the annotation should say so.
+
+    Only the credential's half of the question, and the coarser half. The
+    endpoint this component reaches asks it again, alongside whether the
+    *person* may act, which is answered where the act happens and is often
+    finer than a codename can express.
+    """
+    return _Scoped(codenames)
 
 
 def _epoch(expires_at: str | None) -> int | None:
