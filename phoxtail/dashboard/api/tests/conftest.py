@@ -36,7 +36,9 @@ def raw_client():
 
 @pytest.fixture
 def client(raw_client, db, django_user_model):
-    user = django_user_model.objects.create_superuser(email="menus@example.com", password="pw")
+    user = django_user_model.objects.create_superuser(
+        username="menus-admin", email="admin@example.invalid", password="pw"
+    )
     return AuthedClient(raw_client, user)
 
 
@@ -53,3 +55,32 @@ def locale(db):
 @pytest.fixture
 def greek(db):
     return Locale.objects.create(language_code="el")
+
+
+@pytest.fixture
+def outsider(raw_client, db, django_user_model):
+    """A logged-in account holding no menu permissions.
+
+    Every menu endpoint was reachable by any authenticated caller until
+    the endpoints named their codenames, so this fixture is what proves
+    the gate exists rather than that it is spelled a particular way.
+    """
+    user = django_user_model.objects.create_user(
+        username="menus-outsider", email="outsider@example.invalid", password="pw"
+    )
+    return AuthedClient(raw_client, user)
+
+
+@pytest.fixture
+def menu_editor(raw_client, db, django_user_model):
+    """An account granted exactly the four menu permissions."""
+    from django.contrib.auth.models import Permission
+
+    user = django_user_model.objects.create_user(username="menus-editor", email="editor@example.invalid", password="pw")
+    user.user_permissions.add(
+        *Permission.objects.filter(
+            content_type__app_label="phoxtail_dashboard",
+            codename__in=["view_menu", "add_menu", "change_menu", "delete_menu"],
+        )
+    )
+    return AuthedClient(raw_client, django_user_model.objects.get(pk=user.pk))

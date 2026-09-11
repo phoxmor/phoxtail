@@ -12,6 +12,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import guarded
 from phoxtail.dashboard.api.v1.schemas import (
     Error,
     Menu,
@@ -129,7 +130,12 @@ def _format_validation_error(exc: ValidationError) -> str:
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
 
 
-@router.get("/", response={200: MenuList}, summary="List dashboard menus")
+@router.get(
+    "/",
+    response={200: MenuList, 403: Error},
+    auth=guarded("phoxtail_dashboard.view_menu"),
+    summary="List dashboard menus",
+)
 def list_menus(
     request: HttpRequest,
     site: int | None = Query(None, description="Filter by site ID."),
@@ -146,7 +152,8 @@ def list_menus(
 
 @router.get(
     "/{menu_uuid}/",
-    response={200: Menu, 404: Error},
+    response={200: Menu, 403: Error, 404: Error},
+    auth=guarded("phoxtail_dashboard.view_menu"),
     summary="Show a dashboard menu",
 )
 def get_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID):
@@ -157,7 +164,8 @@ def get_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID):
 
 @router.post(
     "/",
-    response={201: Menu, 422: Error, 404: Error, 409: Error},
+    response={201: Menu, 403: Error, 422: Error, 404: Error, 409: Error},
+    auth=guarded("phoxtail_dashboard.add_menu"),
     summary="Create a dashboard menu",
 )
 def create_menu(request: HttpRequest, response: HttpResponse, payload: MenuCreate):
@@ -198,7 +206,8 @@ def create_menu(request: HttpRequest, response: HttpResponse, payload: MenuCreat
 
 @router.patch(
     "/{menu_uuid}/",
-    response={200: Menu, 422: Error, 404: Error, 412: Error, 428: Error},
+    response={200: Menu, 403: Error, 422: Error, 404: Error, 412: Error, 428: Error},
+    auth=guarded("phoxtail_dashboard.change_menu"),
     summary="Update a dashboard menu's entries",
 )
 def update_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID, payload: MenuUpdate):
@@ -234,7 +243,8 @@ def update_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID, p
 
 @router.delete(
     "/{menu_uuid}/",
-    response={204: None, 404: Error},
+    response={204: None, 403: Error, 404: Error},
+    auth=guarded("phoxtail_dashboard.delete_menu"),
     summary="Delete a dashboard menu",
 )
 def delete_menu(request: HttpRequest, menu_uuid: UUID):

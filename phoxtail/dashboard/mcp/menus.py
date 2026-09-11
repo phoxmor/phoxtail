@@ -7,6 +7,7 @@ import json
 from phoxtail.dashboard.mcp._error import error_envelope
 from phoxtail.dashboard.mcp._http import get_json, request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 ENTRY_SHAPES = (
     "Entries are stream data: a list of {'type': ..., 'value': {...}} objects. "
@@ -24,6 +25,7 @@ ENTRY_SHAPES = (
 
 @mcp_server.tool(
     name="phoxtail_dashboard_list_menus",
+    auth=[scoped("phoxtail_dashboard.view_menu")],
     description=(
         "List the menus shown along the top of the dashboard. A menu belongs to one "
         "site in one language. Optionally filter by `site` or `locale` ID. Returns a "
@@ -37,6 +39,7 @@ def list_menus(site: int | None = None, locale: int | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_dashboard_get_menu",
+    auth=[scoped("phoxtail_dashboard.view_menu")],
     description=(
         "Get one dashboard menu with all of its entries as JSON. Also returns the "
         "current ETag, which MUST be passed to phoxtail_dashboard_update_menu for "
@@ -56,6 +59,7 @@ def get_menu(menu_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_dashboard_create_menu",
+    auth=[scoped("phoxtail_dashboard.add_menu")],
     description=(
         "Write the dashboard menu for one site in one language. A site and language "
         "can hold a single menu, so this fails with a conflict if one already exists "
@@ -78,6 +82,7 @@ def create_menu(site_id: int, locale_id: int, items: list[dict] | None = None) -
 
 @mcp_server.tool(
     name="phoxtail_dashboard_update_menu",
+    auth=[scoped("phoxtail_dashboard.change_menu")],
     description=(
         "Replace a dashboard menu's entries. Requires the ETag from a prior "
         "phoxtail_dashboard_get_menu call. `items` is the complete new list — entries "
@@ -102,6 +107,7 @@ def update_menu(menu_uuid: str, etag: str, items: list[dict]) -> str:
 
 @mcp_server.tool(
     name="phoxtail_dashboard_delete_menu",
+    auth=[scoped("phoxtail_dashboard.delete_menu")],
     description=(
         "Delete a dashboard menu. The dashboard stays readable in that language — it simply shows no menu bar."
     ),

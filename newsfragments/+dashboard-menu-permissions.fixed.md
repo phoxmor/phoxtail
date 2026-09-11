@@ -1,0 +1,1 @@
+Dashboard menu endpoints now require the matching menu permission. They previously performed no check on the person behind the request, so any authenticated caller could read, create, change or delete a site's menu. Their MCP tools name the same permissions, so a key is offered only the menu tools it can actually use.

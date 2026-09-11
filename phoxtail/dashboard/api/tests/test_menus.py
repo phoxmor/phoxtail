@@ -103,3 +103,51 @@ def test_an_unknown_type_inside_a_dropdown_is_refused(client, site, locale):
 
     assert response.status_code == 422
     assert "items[0].items[0]" in response.json()["detail"]
+
+
+class TestWhoMayAct:
+    """The person's half of authorization, which these endpoints lacked.
+
+    Until they named their codenames, a menu could be read, written and
+    deleted by anyone with a session — the API-wide default refuses a
+    *scoped token* everywhere unannotated, but says nothing about the
+    person behind it.
+    """
+
+    def test_a_stranger_is_refused_everywhere(self, outsider, client, site, locale):
+        created = client.post("/dashboard/v1/menus/", json={"site_id": site.id, "locale_id": locale.id})
+        menu_uuid = created.json()["uuid"]
+        one = f"/dashboard/v1/menus/{menu_uuid}/"
+
+        assert outsider.get("/dashboard/v1/menus/").status_code == 403
+        assert outsider.get(one).status_code == 403
+        assert (
+            outsider.post("/dashboard/v1/menus/", json={"site_id": site.id, "locale_id": locale.id}).status_code == 403
+        )
+        assert outsider.patch(one, json={"items": HOME}, headers={"If-Match": created["ETag"]}).status_code == 403
+        assert outsider.delete(one).status_code == 403
+
+    def test_the_granted_four_are_the_right_four(self, menu_editor, site, locale):
+        """Names the codenames from the other side.
+
+        A superuser passes any codename, including a misspelled one, so
+        the CRUD tests above cannot show that these endpoints ask for the
+        permissions Django actually creates for this model.
+        """
+        created = menu_editor.post(
+            "/dashboard/v1/menus/",
+            json={"site_id": site.id, "locale_id": locale.id},
+        )
+        assert created.status_code == 201
+        menu_uuid = created.json()["uuid"]
+
+        assert menu_editor.get("/dashboard/v1/menus/").status_code == 200
+        assert menu_editor.get(f"/dashboard/v1/menus/{menu_uuid}/").status_code == 200
+
+        updated = menu_editor.patch(
+            f"/dashboard/v1/menus/{menu_uuid}/",
+            json={"items": HOME},
+            headers={"If-Match": created["ETag"]},
+        )
+        assert updated.status_code == 200
+        assert menu_editor.delete(f"/dashboard/v1/menus/{menu_uuid}/").status_code == 204
