@@ -150,6 +150,14 @@ testpaths = ["phoxtail"]
 # this, a run pointed at the root would collect the tests vendored inside it.
 norecursedirs = [".floors-venv", ".venv", "build", "dist"]
 DJANGO_SETTINGS_MODULE = "phoxtail.core.tests.settings"
+# The settings module is named right above, so there is no project to go
+# looking for — and looking is actively harmful here. pytest-django's search
+# stops at the first directory containing a `manage.py` and puts it on
+# `sys.path`; ours is `phoxtail/cli/manage.py`, which lands `phoxtail/cli/`
+# there, and `phoxtail/cli/mcp.py` then shadows the `mcp` distribution that
+# fastmcp imports. Every test touching `phoxtail.mcp` fails at collection
+# with "No module named 'mcp.server'".
+django_find_project = false
 
 # Migrations are generated and the project template is scaffolding rendered into
 # someone else's repository; neither is code anyone would act on a number for.
