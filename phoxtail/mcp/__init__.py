@@ -28,8 +28,17 @@ _container_root = Path("/app")
 if _container_root.is_dir():
     (_container_root / ".phoxtail" / "mcp" / "uploads").mkdir(parents=True, exist_ok=True)
 
+# Imported before the server is built: `auth` cannot be attached
+# afterwards, because it is what decides whether the HTTP route is wrapped
+# in a challenge at all.
+from phoxtail.mcp.authorization import WhoamiVerifier  # noqa: E402
+
 mcp_server = FastMCP(
     "phoxtail",
+    # Only the HTTP transport consults this. Over stdio there is no inbound
+    # credential and nothing to resolve — the process already runs as
+    # whoever started it, and fastmcp skips authorization there entirely.
+    auth=WhoamiVerifier(),
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
