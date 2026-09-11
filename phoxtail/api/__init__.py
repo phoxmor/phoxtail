@@ -103,7 +103,11 @@ def ping(request):
 class WhoAmI(Schema):
     """What a caller is, as this project sees them."""
 
-    username: str
+    # The address, not the `username` column. `USERNAME_FIELD` is `email`
+    # here, so the email is what a person signs in with and what names
+    # them in an audit line; the inherited `username` column is left
+    # empty by `create_user` and identifies nobody.
+    email: str
     # Users are addressed by uuid everywhere else the API and the MCP
     # tools name one, so a caller can use this answer as an argument.
     user_uuid: UUID
@@ -142,7 +146,7 @@ def whoami(request):
     context = request.auth
     token = context.token
     return {
-        "username": context.user.get_username(),
+        "email": context.user.email,
         "user_uuid": context.user.uuid,
         "is_superuser": bool(context.user.is_superuser),
         "unrestricted": token is None or bool(token.unrestricted),

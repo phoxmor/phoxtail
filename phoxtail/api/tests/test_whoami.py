@@ -34,10 +34,24 @@ class TestWhatItReports:
 
         result = _call(AuthorizationContext(user=user, token=token))
 
-        assert result["username"] == user.get_username()
+        assert result["email"] == user.email
         assert result["user_uuid"] == user.uuid
         assert result["unrestricted"] is False
         assert result["scopes"] == [PUBLISH]
+
+    def test_the_caller_is_named_by_the_address_they_sign_in_with(self):
+        """Not the inherited `username` column, which names nobody.
+
+        `USERNAME_FIELD` is `email`, and `create_user` never populates
+        `username`, so a caller told its "username" would be told either
+        an email under the wrong name or an empty string.
+        """
+        user = UserFactory(username="not-the-answer")
+
+        result = _call(AuthorizationContext(user=user))
+
+        assert result["email"] == user.email
+        assert "not-the-answer" not in result.values()
 
     def test_an_unrestricted_token_reports_no_ceiling(self):
         user = UserFactory()
