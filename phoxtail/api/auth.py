@@ -26,6 +26,16 @@ from phoxtail.core.authorization import AuthorizationContext
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
 
+class Refused(Exception):
+    """A predicate declining, in its own words.
+
+    A predicate normally answers yes or no and :class:`Authorize` supplies
+    the message. One that can distinguish *why* raises this instead, and
+    the wrapper uses its text — so a caller learns whether to widen their
+    credential or to go and be granted a permission.
+    """
+
+
 class PhoxtailSessionAuth(SessionAuth):
     """Ninja's session auth, resolving the same shape as token auth.
 
@@ -67,7 +77,17 @@ class Authorize:
         context = self.authenticator(request)
         if not context:
             return None
-        if not self.predicate(context):
+        try:
+            permitted = self.predicate(context)
+        except Refused as refusal:
+            # The predicate knew something this wrapper does not: which of
+            # the two halves failed. Saying so is the difference between
+            # "widen your token" and "ask an administrator", which are not
+            # the same instruction and cannot be told apart from a shared
+            # message. A predicate that simply returns False is unchanged
+            # and still refuses with ``detail``.
+            raise HttpError(403, str(refusal)) from None
+        if not permitted:
             raise HttpError(403, self.detail)
         return context
 
@@ -113,6 +133,75 @@ def has_scope(*codenames: str) -> Callable[[Any], bool]:
         return all(codename in context.token.scopes for codename in codenames)
 
     return predicate
+
+
+def has_permission(*codenames: str) -> Callable[[Any], bool]:
+    """Predicate: the *person* holds all of *codenames*.
+
+    The other half of the question :func:`has_scope` asks. A credential
+    can only ever narrow its owner, so this is what establishes there was
+    something to narrow — without it a token naming a codename would grant
+    it, and minting deliberately does not require the minter to hold what
+    they name (see ``phoxtail.tokens.scopes``).
+
+    Superusers pass, as they do everywhere in Django.
+
+    **Only for permissions Django answers globally.** Where an app decides
+    per object — Wagtail grants ``publish_page`` per page subtree, through
+    ``GroupPagePermission`` rows that ``has_perm`` never reads — this
+    returns ``False`` for someone genuinely allowed. Those endpoints ask
+    their own authority, in the body, where the object is known.
+    """
+
+    def predicate(context) -> bool:
+        # Every backend resolves a context around a real user or returns
+        # None instead, so there is no authenticated caller without one.
+        user = context.user
+        if not user.is_active:
+            return False
+        return all(user.has_perm(codename) for codename in codenames)
+
+    return predicate
+
+
+def guarded(*codenames: str) -> list[Authorize]:
+    """The ``auth=`` for an endpoint, naming the codename of its act once.
+
+    Used as ``auth=guarded("phoxtail_dashboard.delete_menu")``. Both halves
+    of authorization are asked of the same codename:
+
+    1. may this *person* act — their Django permissions;
+    2. may this *credential* be used for it — the token's scopes, where a
+       session or an unrestricted token carries no ceiling.
+
+    Both must pass. The two refusals are not the same event and do not
+    share a message: a narrowed credential is the system working, and its
+    owner can mint a wider one; a missing permission is not theirs to fix.
+
+    Writing the codename once is the point. The endpoint's permission and
+    the scope its MCP tool names must agree, and the surest way for two
+    things to agree is for there to be one of them.
+
+    Where the permission is finer than a codename, use :func:`scoped` and
+    ask the finer authority inside the endpoint — see
+    :func:`has_permission`.
+
+    Takes no ``detail``, where :func:`scoped` does: this predicate always
+    declines in its own words, so there is no message left for the wrapper
+    to supply.
+    """
+
+    def predicate(context) -> bool:
+        if not has_permission(*codenames)(context):
+            raise Refused("Your account does not have permission to " + ", ".join(codenames) + ".")
+        if not has_scope(*codenames)(context):
+            raise Refused("This token's scopes do not cover " + ", ".join(codenames) + ".")
+        return True
+
+    return [
+        Authorize(PhoxtailTokenAuth(), predicate),
+        Authorize(PhoxtailSessionAuth(), predicate),
+    ]
 
 
 def scoped(*codenames: str, detail: str | None = None) -> list[Authorize]:
