@@ -8,7 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.design.v1._helpers import (
+from phoxtail.design.api.v1._helpers import (
     palette_etag,
     palette_summary,
     require_if_match,

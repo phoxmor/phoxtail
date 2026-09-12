@@ -13,7 +13,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import File, Query, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 
-from phoxtail.api.design.v1._helpers import (
+from phoxtail.design.api.v1._helpers import (
     font_weight_etag,
     font_weight_summary,
     require_if_match,

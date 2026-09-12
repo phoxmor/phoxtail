@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from phoxtail.core.app_config import PhoxtailAppConfig
 
 
-class PhoxtailDesignConfig(AppConfig):
+class PhoxtailDesignConfig(PhoxtailAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "phoxtail.design"
     label = "phoxtail_design"
