@@ -16,6 +16,10 @@ EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
 API_PREFIX = "/api/content/v1"
+# Media is its own app and serves its own surface: the image, document, video
+# and audio models belong to phoxtail.media, which Wagtail reaches through its
+# swappable getters.
+MEDIA_API_PREFIX = "/api/media/v1"
 DEFAULT_TIMEOUT = 30.0
 
 console = Console()
@@ -25,8 +29,8 @@ def _api_base_url() -> str:
     return get_api_base_url()
 
 
-def _url(path: str) -> str:
-    return f"{_api_base_url()}{API_PREFIX}{path}"
+def _url(path: str, prefix: str = API_PREFIX) -> str:
+    return f"{_api_base_url()}{prefix}{path}"
 
 
 def request(
@@ -34,6 +38,7 @@ def request(
     path: str,
     *,
     params: dict[str, Any] | None = None,
+    prefix: str = API_PREFIX,
 ) -> httpx.Response:
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     token = resolve_token(_api_base_url())
@@ -41,7 +46,7 @@ def request(
     try:
         response = httpx.request(
             method,
-            _url(path),
+            _url(path, prefix),
             params=clean_params or None,
             headers=headers or None,
             timeout=DEFAULT_TIMEOUT,
@@ -50,7 +55,7 @@ def request(
     except httpx.ConnectError as exc:
         console.print(
             "[red]Error:[/red] could not reach the Phoxtail API at "
-            f"[bold]{_api_base_url()}{API_PREFIX}[/bold]. "
+            f"[bold]{_api_base_url()}{prefix}[/bold]. "
             "Is the dev server running ([bold]docker compose up[/bold])?"
         )
         raise typer.Exit(code=EXIT_ENVIRONMENT) from exc
@@ -108,19 +113,19 @@ def list_pages(
 
 
 def list_images(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/media/images/", params={"search": search, "limit": limit}).json()
+    return request("GET", "/images/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
 
 
 def list_documents(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/media/documents/", params={"search": search, "limit": limit}).json()
+    return request("GET", "/documents/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
 
 
 def list_videos(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/media/videos/", params={"search": search, "limit": limit}).json()
+    return request("GET", "/videos/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
 
 
 def list_audio(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/media/audio/", params={"search": search, "limit": limit}).json()
+    return request("GET", "/audio/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
 
 
 def list_locales() -> dict[str, Any]:

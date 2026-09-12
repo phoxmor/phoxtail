@@ -59,7 +59,7 @@ def render_locales(data: dict[str, Any], console: Console) -> None:
 
 
 def render_images(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/media/images/``."""
+    """Render the output of ``GET /api/media/v1/images/``."""
     items = data.get("items", [])
     total = data.get("total", len(items))
     if not items:
@@ -89,7 +89,7 @@ def render_images(data: dict[str, Any], console: Console) -> None:
 
 
 def render_documents(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/media/documents/``."""
+    """Render the output of ``GET /api/media/v1/documents/``."""
     items = data.get("items", [])
     total = data.get("total", len(items))
     if not items:
@@ -118,7 +118,7 @@ def render_documents(data: dict[str, Any], console: Console) -> None:
 
 
 def render_videos(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/media/videos/``."""
+    """Render the output of ``GET /api/media/v1/videos/``."""
     items = data.get("items", [])
     total = data.get("total", len(items))
     if not items:
@@ -148,7 +148,7 @@ def render_videos(data: dict[str, Any], console: Console) -> None:
 
 
 def render_audio(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/media/audio/``."""
+    """Render the output of ``GET /api/media/v1/audio/``."""
     items = data.get("items", [])
     total = data.get("total", len(items))
     if not items:

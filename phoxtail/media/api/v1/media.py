@@ -10,7 +10,7 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Query, Router, UploadedFile
 
-from phoxtail.api.content.v1.schemas import (
+from phoxtail.media.api.v1.schemas import (
     AudioItem,
     AudioList,
     AudioPatch,

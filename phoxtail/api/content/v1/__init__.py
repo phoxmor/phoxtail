@@ -18,7 +18,6 @@ from phoxtail.api.content.v1.body import router as body_router
 from phoxtail.api.content.v1.collections import router as collections_router
 from phoxtail.api.content.v1.internal_links import router as internal_links_router
 from phoxtail.api.content.v1.locales import router as locales_router
-from phoxtail.api.content.v1.media import router as media_router
 from phoxtail.api.content.v1.page_types import router as page_types_router
 from phoxtail.api.content.v1.pages import router as pages_router
 from phoxtail.api.content.v1.sites import router as sites_router
@@ -31,7 +30,6 @@ router.add_router("/pages", body_router)
 # Per-block endpoints: /pages/{id}/blocks/...
 router.add_router("/pages", blocks_router)
 router.add_router("/collections", collections_router)
-router.add_router("/media", media_router)
 router.add_router("/page-types", page_types_router)
 router.add_router("/locales", locales_router)
 router.add_router("/sites", sites_router)

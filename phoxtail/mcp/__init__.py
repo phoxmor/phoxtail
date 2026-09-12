@@ -105,7 +105,6 @@ def _register_unmigrated_tools() -> None:
     import phoxtail.mcp.content.body  # noqa: F401
     import phoxtail.mcp.content.collections  # noqa: F401
     import phoxtail.mcp.content.internal_links  # noqa: F401
-    import phoxtail.mcp.content.media  # noqa: F401
     import phoxtail.mcp.content.pages  # noqa: F401
     import phoxtail.mcp.content.resources  # noqa: F401
     import phoxtail.mcp.content.sites  # noqa: F401

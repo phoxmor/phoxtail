@@ -8,8 +8,8 @@ from pathlib import Path
 from fastmcp.utilities.types import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.content._http import request
 from phoxtail.mcp.content.pages import _write_error_envelope
+from phoxtail.media.mcp._http import request
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
 # run on the host. In dev mode the project root is bind-mounted at /app, so a
@@ -66,7 +66,7 @@ def list_images(
         params["search"] = search
     if collection is not None:
         params["collection"] = collection
-    resp = request("GET", "/media/images/", params=params)
+    resp = request("GET", "/images/", params=params)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -109,7 +109,7 @@ def upload_image(file_path: str, title: str, collection_id: int | None = None) -
 
     with path.open("rb") as f:
         resp = httpx.post(
-            url("/api/content/v1/media/images/"),
+            url("/api/media/v1/images/"),
             files={"file": (path.name, f, mime)},
             data=form_data,
             headers=headers,
@@ -134,7 +134,7 @@ def upload_image(file_path: str, title: str, collection_id: int | None = None) -
     ),
 )
 def get_image(image_id: int) -> str:
-    resp = request("GET", f"/media/images/{image_id}/")
+    resp = request("GET", f"/images/{image_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -151,7 +151,7 @@ def get_image(image_id: int) -> str:
     ),
 )
 def view_image(image_id: int):
-    resp = request("GET", f"/media/images/{image_id}/view/")
+    resp = request("GET", f"/images/{image_id}/view/")
     if resp.status_code != 200:
         return json.dumps({"error": f"Image {image_id} not found or unavailable"})
     return MCPImage(data=resp.content, format="jpeg")
@@ -192,7 +192,7 @@ def update_image(
         payload["focal_point"] = focal_point
     if collection_id is not None:
         payload["collection_id"] = collection_id
-    resp = request("PATCH", f"/media/images/{image_id}/", json_body=payload)
+    resp = request("PATCH", f"/images/{image_id}/", json_body=payload)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -207,7 +207,7 @@ def update_image(
     ),
 )
 def delete_image(image_id: int) -> str:
-    resp = request("DELETE", f"/media/images/{image_id}/")
+    resp = request("DELETE", f"/images/{image_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -244,7 +244,7 @@ def list_documents(
         params["search"] = search
     if collection is not None:
         params["collection"] = collection
-    resp = request("GET", "/media/documents/", params=params)
+    resp = request("GET", "/documents/", params=params)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -260,7 +260,7 @@ def list_documents(
     ),
 )
 def get_document(document_id: int) -> str:
-    resp = request("GET", f"/media/documents/{document_id}/")
+    resp = request("GET", f"/documents/{document_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -308,7 +308,7 @@ def upload_document(
 
     with path.open("rb") as f:
         resp = httpx.post(
-            url("/api/content/v1/media/documents/"),
+            url("/api/media/v1/documents/"),
             files={"file": (path.name, f, mime)},
             data=form_data,
             headers=headers,
@@ -348,7 +348,7 @@ def update_document(
         payload["tags"] = tags
     if collection_id is not None:
         payload["collection_id"] = collection_id
-    resp = request("PATCH", f"/media/documents/{document_id}/", json_body=payload)
+    resp = request("PATCH", f"/documents/{document_id}/", json_body=payload)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -363,7 +363,7 @@ def update_document(
     ),
 )
 def delete_document(document_id: int) -> str:
-    resp = request("DELETE", f"/media/documents/{document_id}/")
+    resp = request("DELETE", f"/documents/{document_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -398,7 +398,7 @@ def list_videos(
         params["search"] = search
     if collection is not None:
         params["collection"] = collection
-    resp = request("GET", "/media/videos/", params=params)
+    resp = request("GET", "/videos/", params=params)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -414,7 +414,7 @@ def list_videos(
     ),
 )
 def get_video(video_id: int) -> str:
-    resp = request("GET", f"/media/videos/{video_id}/")
+    resp = request("GET", f"/videos/{video_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -468,7 +468,7 @@ def upload_video(
 
     with path.open("rb") as f:
         resp = httpx.post(
-            url("/api/content/v1/media/videos/"),
+            url("/api/media/v1/videos/"),
             files={"file": (path.name, f, mime)},
             data=data,
             headers=headers,
@@ -516,7 +516,7 @@ def update_video(
         payload["height"] = height
     if collection_id is not None:
         payload["collection_id"] = collection_id
-    resp = request("PATCH", f"/media/videos/{video_id}/", json_body=payload)
+    resp = request("PATCH", f"/videos/{video_id}/", json_body=payload)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -531,7 +531,7 @@ def update_video(
     ),
 )
 def delete_video(video_id: int) -> str:
-    resp = request("DELETE", f"/media/videos/{video_id}/")
+    resp = request("DELETE", f"/videos/{video_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -565,7 +565,7 @@ def list_audio(
         params["search"] = search
     if collection is not None:
         params["collection"] = collection
-    resp = request("GET", "/media/audio/", params=params)
+    resp = request("GET", "/audio/", params=params)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -580,7 +580,7 @@ def list_audio(
     ),
 )
 def get_audio(audio_id: int) -> str:
-    resp = request("GET", f"/media/audio/{audio_id}/")
+    resp = request("GET", f"/audio/{audio_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -631,7 +631,7 @@ def upload_audio(
 
     with path.open("rb") as f:
         resp = httpx.post(
-            url("/api/content/v1/media/audio/"),
+            url("/api/media/v1/audio/"),
             files={"file": (path.name, f, mime)},
             data=form_data,
             headers=headers,
@@ -673,7 +673,7 @@ def update_audio(
         payload["duration"] = duration
     if collection_id is not None:
         payload["collection_id"] = collection_id
-    resp = request("PATCH", f"/media/audio/{audio_id}/", json_body=payload)
+    resp = request("PATCH", f"/audio/{audio_id}/", json_body=payload)
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
@@ -688,7 +688,7 @@ def update_audio(
     ),
 )
 def delete_audio(audio_id: int) -> str:
-    resp = request("DELETE", f"/media/audio/{audio_id}/")
+    resp = request("DELETE", f"/audio/{audio_id}/")
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope
