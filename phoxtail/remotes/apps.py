@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from phoxtail.core.app_config import PhoxtailAppConfig
 
 
-class PhoxtailRemotesConfig(AppConfig):
+class PhoxtailRemotesConfig(PhoxtailAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "phoxtail.remotes"
     label = "phoxtail_remotes"
