@@ -125,6 +125,11 @@ class BodyReplace(Schema):
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Page-types discovery
+# ---------------------------------------------------------------------------
+
+
 class PageTypeEntry(Schema):
     content_type: str
     writable_fields: dict[str, dict]
@@ -138,31 +143,6 @@ class PageTypeCatalog(Schema):
 # ---------------------------------------------------------------------------
 # InternalLink
 # ---------------------------------------------------------------------------
-
-
-class InternalLinkItem(Schema):
-    id: int
-    uuid: str
-    label: str
-    url_name: str
-    url: str
-    created_at: str
-    updated_at: str
-
-
-class InternalLinkList(Schema):
-    items: list[InternalLinkItem]
-    total: int
-
-
-class InternalLinkCreate(Schema):
-    label: str
-    url_name: str
-
-
-class InternalLinkPatch(Schema):
-    label: str | None = None
-    url_name: str | None = None
 
 
 # ---------------------------------------------------------------------------

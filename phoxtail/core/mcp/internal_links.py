@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.core.mcp._http import get_json, request
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.content._http import get_json, request
 
 
 @mcp_server.tool(

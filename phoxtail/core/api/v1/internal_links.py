@@ -1,4 +1,4 @@
-"""``/api/content/v1/internal-links`` — InternalLink endpoints."""
+"""``/api/core/v1/internal-links`` — InternalLink endpoints."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.content.v1.schemas import (
+from phoxtail.core.api.v1.schemas import (
     Error,
     InternalLinkCreate,
     InternalLinkItem,
