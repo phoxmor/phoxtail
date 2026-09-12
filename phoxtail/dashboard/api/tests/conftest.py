@@ -1,8 +1,8 @@
 """Fixtures for dashboard v1 API tests.
 
 Run against the real shared ``phoxtail.api`` instance so the tests exercise
-the production wiring — the dashboard router auto-mounted at
-``/dashboard/v1/`` from ``PhoxtailDashboardConfig.api_version_router``.
+the production wiring — the dashboard router found at ``/dashboard/v1/``
+because the app ships ``phoxtail/dashboard/api/`` declaring ``versions``.
 """
 
 from __future__ import annotations
