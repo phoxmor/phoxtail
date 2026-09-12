@@ -85,7 +85,7 @@ def _register_unmigrated_tools() -> None:
     TRANSITIONAL. Two reasons a module is listed here rather than discovered:
 
     * the code sits under ``phoxtail/mcp/`` instead of in the app package —
-      cms owns ``content`` and ``cms``, and streams owns ``studio``;
+      cms owns ``content`` and ``cms``;
     * or the app is not a ``PhoxtailAppConfig`` yet, so discovery cannot see
       it at all. That is why ``phoxtail.users.mcp`` is here despite already
       living inside its app.
@@ -110,17 +110,6 @@ def _register_unmigrated_tools() -> None:
     import phoxtail.mcp.content.resources  # noqa: F401
     import phoxtail.mcp.content.sites  # noqa: F401
     import phoxtail.mcp.peers  # noqa: F401
-    import phoxtail.mcp.studio.block_categories  # noqa: F401
-    import phoxtail.mcp.studio.blocks  # noqa: F401
-    import phoxtail.mcp.studio.capture_previews  # noqa: F401
-    import phoxtail.mcp.studio.collections  # noqa: F401
-    import phoxtail.mcp.studio.context  # noqa: F401
-    import phoxtail.mcp.studio.prompts  # noqa: F401
-    import phoxtail.mcp.studio.render  # noqa: F401
-    import phoxtail.mcp.studio.resources  # noqa: F401
-    import phoxtail.mcp.studio.sessions  # noqa: F401
-    import phoxtail.mcp.studio.shared_blocks  # noqa: F401
-    import phoxtail.mcp.studio.variants  # noqa: F401
     import phoxtail.users.mcp.genders  # noqa: F401
     import phoxtail.users.mcp.users  # noqa: F401
 

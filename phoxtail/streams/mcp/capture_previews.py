@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.studio._http import request as studio_request
+from phoxtail.streams.mcp._http import request as studio_request
 
 _COLLECTION_NAME = "Block Variant Preview Shots"
 

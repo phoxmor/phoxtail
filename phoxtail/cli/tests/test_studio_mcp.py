@@ -22,24 +22,24 @@ from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import url
 from phoxtail.mcp.content.pages import translate_page
 from phoxtail.mcp.content.resources import locales_list
-from phoxtail.mcp.studio.blocks import (
+from phoxtail.streams.mcp.blocks import (
     create_block,
     get_block,
     list_blocks,
     update_block,
 )
-from phoxtail.mcp.studio.collections import get_collection, list_collections
-from phoxtail.mcp.studio.context import get_context
-from phoxtail.mcp.studio.prompts import design_block
-from phoxtail.mcp.studio.resources import schema_reference
-from phoxtail.mcp.studio.sessions import (
+from phoxtail.streams.mcp.collections import get_collection, list_collections
+from phoxtail.streams.mcp.context import get_context
+from phoxtail.streams.mcp.prompts import design_block
+from phoxtail.streams.mcp.resources import schema_reference
+from phoxtail.streams.mcp.sessions import (
     commit_variant,
     discard_variant,
     list_sessions,
     open_variant,
     refresh_session,
 )
-from phoxtail.mcp.studio.variants import (
+from phoxtail.streams.mcp.variants import (
     create_variant,
     diff_variant,
     get_variant,

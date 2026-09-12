@@ -24,7 +24,7 @@ from pathlib import Path
 from phoxtail.cli.studio import session as _session
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import local_only
-from phoxtail.mcp.studio._http import request
+from phoxtail.streams.mcp._http import request
 
 _NEXT_STEPS = (
     "Paths in `files` are relative to the project root — the MCP server runs "

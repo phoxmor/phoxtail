@@ -10,7 +10,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.studio._http import get_json, request
+from phoxtail.streams.mcp._http import get_json, request
 
 
 @mcp_server.tool(
