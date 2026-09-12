@@ -8,10 +8,10 @@ from pathlib import Path
 
 import httpx
 
+from phoxtail.design.mcp._error import error_envelope
+from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import outbound_token, url
-from phoxtail.mcp.design._error import error_envelope
-from phoxtail.mcp.design._http import request
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
 # run on the host. In dev mode the project root is bind-mounted at /app, so a

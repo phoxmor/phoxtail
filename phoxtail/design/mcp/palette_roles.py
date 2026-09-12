@@ -1,29 +1,29 @@
-"""``phoxtail_font_roles_*`` MCP tools for font role management."""
+"""``phoxtail_palette_roles_*`` MCP tools for palette role management."""
 
 from __future__ import annotations
 
 import json
 
+from phoxtail.design.mcp._error import error_envelope
+from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.design._error import error_envelope
-from phoxtail.mcp.design._http import request
 
 
 @mcp_server.tool(
-    name="phoxtail_font_roles_list",
+    name="phoxtail_palette_roles_list",
     description=(
-        "List all semantic font roles in the design system "
-        "(e.g., 'heading', 'body', 'monospace'). "
-        "Roles define how font families map to CSS variable namespaces "
-        "like --font-{identifier}-*. "
-        "Read these before assigning fonts to understand design system semantics."
+        "List all semantic palette roles in the design system "
+        "(e.g., 'primary', 'surface', 'accent'). "
+        "Roles define how palettes map to CSS variable namespaces "
+        "like --color-{identifier}-{shade}. "
+        "Read these before creating palettes to understand the design system semantics."
     ),
 )
-def font_roles_list(search: str | None = None) -> str:
+def palette_roles_list(search: str | None = None) -> str:
     params = {}
     if search:
         params["search"] = search
-    resp = request("GET", "/font-roles/", params=params)
+    resp = request("GET", "/palette-roles/", params=params)
     env = error_envelope(resp)
     if env is not None:
         return env
@@ -31,15 +31,15 @@ def font_roles_list(search: str | None = None) -> str:
 
 
 @mcp_server.tool(
-    name="phoxtail_font_roles_get",
+    name="phoxtail_palette_roles_get",
     description=(
-        "Get a single font role by id. "
+        "Get a single palette role by id. "
         "Returns id, name, identifier, and description. "
-        "Response includes `_etag` for write operations."
+        "The response includes `_etag` for write operations."
     ),
 )
-def font_roles_get(role_id: int) -> str:
-    resp = request("GET", f"/font-roles/{role_id}/")
+def palette_roles_get(role_id: int) -> str:
+    resp = request("GET", f"/palette-roles/{role_id}/")
     env = error_envelope(resp)
     if env is not None:
         return env
@@ -49,22 +49,22 @@ def font_roles_get(role_id: int) -> str:
 
 
 @mcp_server.tool(
-    name="phoxtail_font_roles_create",
+    name="phoxtail_palette_roles_create",
     description=(
-        "Create a new semantic font role. "
-        "`identifier` becomes the CSS namespace (e.g., 'heading' → "
-        "--font-heading-*). "
-        "`description` should explain where this role is used typographically."
+        "Create a new semantic palette role. "
+        "`identifier` is the CSS namespace key (e.g., 'primary' → "
+        "--color-primary-500). "
+        "`description` should explain light/dark mode shade mapping semantics."
     ),
 )
-def font_roles_create(
+def palette_roles_create(
     name: str,
     identifier: str,
     description: str = "",
 ) -> str:
     resp = request(
         "POST",
-        "/font-roles/",
+        "/palette-roles/",
         json_body={"name": name, "identifier": identifier, "description": description},
     )
     env = error_envelope(resp)
@@ -76,14 +76,14 @@ def font_roles_create(
 
 
 @mcp_server.tool(
-    name="phoxtail_font_roles_update",
+    name="phoxtail_palette_roles_update",
     description=(
-        "Update a font role. Requires `etag` from phoxtail_font_roles_get. "
+        "Update a palette role. Requires `etag` from phoxtail_palette_roles_get. "
         "WARNING: changing `identifier` renames the CSS variable namespace — "
         "update any template references too."
     ),
 )
-def font_roles_update(
+def palette_roles_update(
     role_id: int,
     etag: str,
     name: str | None = None,
@@ -100,7 +100,7 @@ def font_roles_update(
 
     resp = request(
         "PATCH",
-        f"/font-roles/{role_id}/",
+        f"/palette-roles/{role_id}/",
         json_body=fields,
         headers={"If-Match": etag},
     )
@@ -113,17 +113,17 @@ def font_roles_update(
 
 
 @mcp_server.tool(
-    name="phoxtail_font_roles_delete",
+    name="phoxtail_palette_roles_delete",
     description=(
-        "Delete a font role. Requires `etag` from phoxtail_font_roles_get. "
+        "Delete a palette role. Requires `etag` from phoxtail_palette_roles_get. "
         "WARNING: this removes a CSS variable namespace from the design system — "
         "verify no templates reference this role before deleting."
     ),
 )
-def font_roles_delete(role_id: int, etag: str) -> str:
+def palette_roles_delete(role_id: int, etag: str) -> str:
     resp = request(
         "DELETE",
-        f"/font-roles/{role_id}/",
+        f"/palette-roles/{role_id}/",
         headers={"If-Match": etag},
     )
     env = error_envelope(resp)

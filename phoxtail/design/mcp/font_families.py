@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.design.mcp._error import error_envelope
+from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.design._error import error_envelope
-from phoxtail.mcp.design._http import request
 
 _CATEGORIES = "serif, sans-serif, monospace, display, handwriting"
 
