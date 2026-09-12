@@ -1,27 +1,26 @@
 """Phoxtail API — the single HTTP surface for every Phoxtail app.
 
-This package is the API counterpart to the app packages at the top level
-(``phoxtail/streams/``, ``phoxtail/design/``, ``phoxtail/booking/``, ...).
-Core domains (``streams``, ``content``) ship their routers here; every
-optional app that declares ``api_version_router`` on its
-``PhoxtailAppConfig`` is auto-mounted at ``/api/<short_label>/v1/``
-after Django's app registry is ready.
+The ``NinjaAPI`` instance lives here, along with the project-wide concerns
+that belong to no single app: the authentication defaults, ``/ping/``,
+``/whoami/``, and the exception handler every router inherits.
 
-URL shape:
+Which routers are mounted is not decided here. An app that subclasses
+``PhoxtailAppConfig`` and ships ``<pkg>/api/`` declaring ``versions`` is
+mounted at ``/api/<name>/<version>/`` once the app registry is ready, where
+``name`` is its label without the ``phoxtail_`` prefix. See
+:mod:`phoxtail.core.discovery`.
 
-    /api/streams/v1/...     — core studio API (block variants, collections)
-    /api/content/v1/...     — core content API (pages, sites, locales)
-    /api/<label>/v1/...     — contributed by any optional app
+URL shape::
 
-Per-app versioning means ``streams`` can ship a v2 without dragging every
-other app along. Adding a new core domain is a two-line change in this
-file; adding a new app-contributed surface requires no changes here at
-all — the app declares its router on its ``PhoxtailAppConfig``.
+    /api/<name>/v1/...   — one app's surface, versioned on its own
+
+Per-app versioning means one app can ship a v2 without dragging every other
+app along. Adding a surface needs no change to this file at all.
 """
 
 from __future__ import annotations
 
-import importlib
+import re
 from datetime import datetime
 from uuid import UUID
 
@@ -169,67 +168,55 @@ def handle_django_validation_error(request, exc: DjangoValidationError):
     return api.create_response(request, {"detail": exc.messages}, status=422)
 
 
-# Core router short labels — contributors cannot reuse these, or they
-# would shadow a core domain.
+# Core domains still mounted by hand above. As each moves into its own app
+# (cms, streams, design), its name leaves this set and the hand-written
+# add_router call goes with it. The set is deleted when it empties.
 _CORE_SHORT_LABELS = frozenset({"streams", "content", "design", "pages", "users"})
 
 
-def _short_label(config) -> str:
-    """Strip the ``phoxtail_`` prefix from an app label for URL scoping.
+# A key of `versions` is spliced straight into the URL.
+_VERSION_SEGMENT = re.compile(r"v[0-9]+")
 
-    ``phoxtail_blog`` → ``blog``. Apps whose label does not start with
-    ``phoxtail_`` use the label verbatim.
-    """
-    return config.label.removeprefix("phoxtail_")
+_discovered_mounted = False
 
 
-def collect_contributed_routers():
-    """Yield ``(short_label, router)`` for every contributed app router.
+def mount_discovered_routers() -> None:
+    """Mount the HTTP face of every discoverable phoxtail app.
 
-    Walks ``django_apps.get_app_configs()``, filters to
-    ``PhoxtailAppConfig`` instances with ``api_version_router`` set, and
-    imports the dotted path. Collisions with a core short label raise
-    ``RuntimeError``.
-    """
-    from django.apps import apps as django_apps
-
-    from phoxtail.core.app_config import PhoxtailAppConfig
-
-    seen: set[str] = set()
-    for config in django_apps.get_app_configs():
-        if not isinstance(config, PhoxtailAppConfig):
-            continue
-        dotted = config.api_version_router
-        if not dotted:
-            continue
-        short = _short_label(config)
-        if short in _CORE_SHORT_LABELS:
-            raise RuntimeError(
-                f"App '{config.label}' tries to mount /api/{short}/v1/ but that namespace is reserved by a core domain."
-            )
-        if short in seen:
-            raise RuntimeError(f"Two apps both try to mount /api/{short}/v1/.")
-        module_path, _, attr = dotted.rpartition(".")
-        sub_router = getattr(importlib.import_module(module_path), attr)
-        seen.add(short)
-        yield short, sub_router
-
-
-_contributed_mounted = False
-
-
-def mount_contributed_routers() -> None:
-    """Mount every contributed ``api_version_router`` onto the shared API.
+    An app is discoverable by subclassing ``PhoxtailAppConfig``; it is mounted
+    by shipping ``<pkg>/api/`` declaring ``versions``. Nothing else is
+    consulted — there is no registry to append to and no dotted string to
+    declare. See :mod:`phoxtail.core.discovery`.
 
     Idempotent — safe to call multiple times (a second call is a no-op).
-    Invoked by ``PhoxtailCoreConfig.ready()`` so the mount happens
-    exactly once, after Django's app registry is fully populated.
-    Callers who import ``phoxtail.api`` before ``django.setup()``
-    (unusual) will not see contributed routers until ``ready()`` fires.
+    Invoked by ``PhoxtailCoreConfig.ready()`` so the mount happens exactly
+    once, after Django's app registry is fully populated. Callers who import
+    ``phoxtail.api`` before ``django.setup()`` (unusual) will not see
+    discovered routers until ``ready()`` fires.
     """
-    global _contributed_mounted
-    if _contributed_mounted:
+    global _discovered_mounted
+    if _discovered_mounted:
         return
-    for short, sub_router in collect_contributed_routers():
-        api.add_router(f"/{short}/v1/", sub_router, tags=[f"{short}/v1"])
-    _contributed_mounted = True
+
+    from phoxtail.core.discovery import versioned_routers
+
+    seen: set[str] = set()
+    for name, versions in versioned_routers():
+        if name in _CORE_SHORT_LABELS:
+            raise RuntimeError(
+                f"App '{name}' tries to mount /api/{name}/ but that namespace is reserved by a core domain."
+            )
+        if name in seen:
+            raise RuntimeError(f"Two apps both try to mount /api/{name}/.")
+        seen.add(name)
+        for version, sub_router in versions.items():
+            # The key becomes a path segment, so a stray space or an empty
+            # string mounts a URL nobody can reach and nothing reports. Say so
+            # here, where the name is still attached to the app that wrote it.
+            if not _VERSION_SEGMENT.fullmatch(version):
+                raise RuntimeError(
+                    f"App '{name}' declares API version {version!r}, which is not a version segment like 'v1'."
+                )
+            api.add_router(f"/{name}/{version}/", sub_router, tags=[f"{name}/{version}"])
+
+    _discovered_mounted = True

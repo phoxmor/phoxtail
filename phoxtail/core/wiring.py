@@ -111,9 +111,10 @@ def collect_url_patterns():
     their copy of src/urls.py, so this has to arrive here rather than in the
     project template, or existing sites would never see it.
     """
-    from django.apps import apps
     from django.conf.urls.i18n import i18n_patterns
     from django.urls import include, path
+
+    from phoxtail.core.discovery import phoxtail_app_configs
 
     def mount_path(mount):
         if mount.namespace:
@@ -122,9 +123,7 @@ def collect_url_patterns():
 
     patterns = []
     localized = []
-    for config in apps.get_app_configs():
-        if not isinstance(config, PhoxtailAppConfig):
-            continue
+    for config in phoxtail_app_configs():
         mount = config.url_mount
         if mount is None:
             continue

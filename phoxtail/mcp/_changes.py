@@ -6,10 +6,9 @@ arguments differ from tool to tool (``create_page`` takes a parent,
 the tree position at all. So tools say it themselves, on their own
 result, and readers pick it up without a tool-name map.
 
-That keeps the mechanism open to contributed apps. A tool registered
-through the ``phoxtail.mcp_modules`` entry-point group declares a change
-exactly the way a core one does, and nothing in phoxtail needs to know
-the tool exists.
+That keeps the mechanism open to every app. A tool discovered in some
+app's ``mcp/`` package declares a change exactly the way a core one does,
+and nothing in phoxtail needs to know the tool exists.
 
 Two markers, for the two shapes of change:
 

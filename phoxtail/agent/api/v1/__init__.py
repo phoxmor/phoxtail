@@ -1,7 +1,9 @@
 """v1 of the agent API.
 
-Mounted automatically at ``/api/agent/v1/`` via
-``PhoxtailAgentConfig.api_version_router``.
+Mounted at ``/api/agent/v1/``. This app has not moved to the ``<pkg>/api/``
+convention yet: its surface is gated on whether the chatbot's optional
+dependency is installed, and that gate has nowhere to live under a convention
+that reads only whether a module exists.
 """
 
 from __future__ import annotations

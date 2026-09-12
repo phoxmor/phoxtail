@@ -24,6 +24,20 @@ depends_on = ["cms"]
 """
 
 
+@pytest.fixture(scope="session", autouse=True)
+def mcp_tools_registered():
+    """Register the MCP surface once, for tests that assert on the catalogue.
+
+    The server discovers its tools from the app registry at startup rather
+    than registering them when ``phoxtail.mcp`` is imported, so a test that
+    inspects the catalogue has to ask for it the same way the server does.
+    Idempotent — see ``phoxtail.mcp.register_tools``.
+    """
+    from phoxtail.mcp import register_tools
+
+    register_tools()
+
+
 @pytest.fixture(autouse=True)
 def project_dir(tmp_path, monkeypatch):
     """Create a temporary phoxtail project directory with phoxtail.toml.

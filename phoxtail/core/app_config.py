@@ -39,24 +39,22 @@ class PhoxtailAppConfig(AppConfig):
     middleware: list[str] = []
     default_settings: dict = {}
 
-    # API + pages-domain contribution hooks. All optional.
-    #
-    # api_version_router: dotted path to a ninja.Router. Mounted by
-    #   phoxtail.api at /api/<short_label>/v1/, where
-    #   short_label = self.label.removeprefix("phoxtail_").
+    # Neither surface is declared here. Subclassing this class is what makes
+    # an app discoverable, and its two surfaces are then found by name:
+    # <pkg>/api/ is mounted at /api/<label minus phoxtail_>/<version>/, and
+    # every module in <pkg>/mcp/ is imported so its tools register. See
+    # phoxtail.core.discovery.
     #
     # page_schema_contributors: dotted paths to zero-arg callables
     #   returning a phoxtail.api.content.v1.contrib.PageSchemaContribution.
     #   Consumed by the pages domain to power /page-types/,
     #   GET /pages/{id}/ per-type fields, and PATCH validation.
-    #
-    # MCP tool modules are NOT declared here — they are discovered via
-    # the ``phoxtail.mcp_modules`` Python entry-point group declared in
-    # the distributing package's ``pyproject.toml``. See
-    # ``phoxtail/docs/docs/mcp/pages-domain.md`` ("MCP registration")
-    # for the full rationale.
-    api_version_router: str | None = None
     page_schema_contributors: list[str] = []
+
+    # TRANSITIONAL: the superseded way to declare an HTTP surface, still
+    # honoured for apps that have not moved to <pkg>/api/ yet. Delete with the
+    # second loop in phoxtail.core.discovery.versioned_routers.
+    api_version_router: str | None = None
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

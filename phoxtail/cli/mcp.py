@@ -6,11 +6,59 @@ server for AI-agent clients (Claude Code, Claude Desktop, etc.).
 
 from __future__ import annotations
 
+import os
 import sys
 
 import typer
 
 app = typer.Typer(help="MCP server for AI agents.")
+
+
+def _setup_django() -> None:
+    """Boot Django the way the project's own ``manage.py`` does.
+
+    The tool surface is discovered from the app registry, so the registry has
+    to exist before any tool module is imported.
+
+    Deliberately the same two moves ``manage.py`` and ``wsgi.py`` make, rather
+    than new configuration: the project root goes on ``sys.path`` so ``src``
+    is importable, and ``DJANGO_ENV`` names the settings module. A console
+    script's ``sys.path[0]`` is the directory the script lives in, not the
+    working directory, which is the whole reason the first move is needed and
+    ``manage.py`` — run as a file from the project root — never was.
+
+    ``setdefault`` throughout, so an operator who has already set either one
+    keeps their answer.
+    """
+    import django
+    from django.core.exceptions import ImproperlyConfigured
+
+    from phoxtail.cli.utils.config import find_config_file
+
+    config_file = find_config_file()
+    if config_file is not None:
+        project_root = str(config_file.parent)
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+    django_env = os.environ.get("DJANGO_ENV", "development")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"src.settings.{django_env}")
+
+    try:
+        django.setup()
+    except (ImproperlyConfigured, ModuleNotFoundError) as exc:
+        # Only the two failures that mean "the project is not here". Django's
+        # own message names an environment variable without saying which
+        # process could not find the project, and that is the actual problem.
+        #
+        # Deliberately narrow: an app raising during setup is a broken app, and
+        # telling its author to cd somewhere else would send them looking in
+        # the wrong place. That one keeps its own traceback.
+        raise typer.BadParameter(
+            f"The MCP server needs the project's Django settings and cannot load "
+            f"them from here: {exc} Run it from the project directory, or from "
+            f"its container with `docker compose exec web phoxtail mcp serve`."
+        ) from exc
 
 
 @app.command("serve")
@@ -37,7 +85,16 @@ def serve(
     forwarded to the project API, which validates it, so callers
     authenticate with the same tokens ``phoxtail auth login`` stores.
     """
-    from phoxtail.mcp import mcp_server
+    # Django first: the tool surface is discovered from the app registry
+    # (see phoxtail.core.discovery), so the registry has to exist before any
+    # tool module is imported. Done here, at the process entry point, rather
+    # than as an import side-effect of phoxtail.mcp — that module is also
+    # imported by tests and by the web process, which set themselves up.
+    _setup_django()
+
+    from phoxtail.mcp import mcp_server, register_tools
+
+    register_tools()
 
     if not http:
         sys.stderr.write("Phoxtail MCP server starting (stdio)...\n")

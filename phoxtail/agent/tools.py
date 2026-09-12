@@ -45,8 +45,12 @@ async def prime_tools() -> None:
         _prime_lock = asyncio.Lock()
     async with _prime_lock:
         if _mcp_tools is None:
-            from phoxtail.mcp import mcp_server
+            from phoxtail.mcp import mcp_server, register_tools
 
+            # The tool surface is discovered from the app registry rather
+            # than registered when phoxtail.mcp is imported, so ask for it.
+            # Idempotent, and the registry is long since populated here.
+            register_tools()
             _mcp_tools = list(await mcp_server.list_tools())
 
 

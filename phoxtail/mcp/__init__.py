@@ -1,11 +1,18 @@
 """Phoxtail MCP server — the AI-agent interface to a Phoxtail project.
 
-A single :class:`~fastmcp.FastMCP` instance is defined here.
-Core domain sub-packages (``studio``, ``content``) import it and register
-their tools via ``@mcp_server.tool()``. Optional apps contribute
-additional tools via the ``phoxtail.mcp_modules`` entry-point group —
-each entry point is a dotted module path that is imported once at
-startup, triggering its tool/resource/prompt registration.
+A single :class:`~fastmcp.FastMCP` instance is defined here. Tools,
+resources and prompts register themselves on it by import side-effect, via
+``@mcp_server.tool()`` and friends.
+
+Which modules get imported is not decided here. :func:`register_tools`
+delegates to :mod:`phoxtail.core.discovery`, which walks every app that
+subclasses ``PhoxtailAppConfig`` and imports what it finds in ``<pkg>/mcp/``.
+Subclassing is the registration — there is no list in this module to append
+to, and adding a file to an app's ``mcp/`` package is all it takes for its
+tools to appear.
+
+``register_tools`` needs a populated app registry, so the caller runs
+``django.setup()`` first. ``phoxtail.cli.mcp.serve`` is that caller.
 
 Usage::
 
@@ -39,6 +46,14 @@ mcp_server = FastMCP(
     # credential and nothing to resolve — the process already runs as
     # whoever started it, and fastmcp skips authorization there entirely.
     auth=WhoamiVerifier(),
+    # Two tools may not share a name. fastmcp's own default for a component
+    # store is "error"; FastMCP softens that to "warn", which registers the
+    # second one over the first and logs a line nobody reads. That is the wrong
+    # trade now that a tool exists because a file exists: a copy-pasted module,
+    # or two apps reaching for the same name, would silently replace a core
+    # tool with no way to notice. Refusing at startup is how the collision
+    # reaches a person.
+    on_duplicate="error",
     instructions=(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
@@ -64,16 +79,26 @@ mcp_server = FastMCP(
 )
 
 
-def _register_core_tools() -> None:
-    """Import core domain modules to trigger tool/resource/prompt registration.
+def _register_unmigrated_tools() -> None:
+    """Import the tool modules that do not yet live inside their own app.
 
-    Some domains keep their tools under ``phoxtail/mcp/<domain>/``, others
-    (agent, users) inside their own app package as a vertical slice.
+    TRANSITIONAL. Two reasons a module is listed here rather than discovered:
+
+    * the code sits under ``phoxtail/mcp/`` instead of in the app package —
+      cms owns ``content`` and ``cms``, streams owns ``studio``, design owns
+      ``design``;
+    * or the app is not a ``PhoxtailAppConfig`` yet, so discovery cannot see
+      it at all. That is why ``phoxtail.users.mcp`` is here despite already
+      living inside its app.
+
+    As each app is migrated, its lines are deleted from here — in the same
+    commit as the move. A module that is both listed here and discovered in
+    its app is registered twice, and two tools may not share a name, so the
+    server refuses to start. That is the behaviour we want and it reads as
+    "phoxtail will not boot", so: move and delete together.
+
+    This function goes away when the list empties.
     """
-    import phoxtail.agent.mcp.artifacts  # noqa: F401
-    import phoxtail.agent.mcp.providers  # noqa: F401
-    import phoxtail.agent.mcp.settings  # noqa: F401
-    import phoxtail.dashboard.mcp.menus  # noqa: F401
     import phoxtail.mcp.cms.site_setting_fonts  # noqa: F401
     import phoxtail.mcp.cms.site_setting_palettes  # noqa: F401
     import phoxtail.mcp.cms.site_settings  # noqa: F401
@@ -144,9 +169,30 @@ def _register_contributed_tools() -> None:
         importlib.import_module(dotted)
 
 
-def _register_tools() -> None:
-    _register_core_tools()
+_registered = False
+
+
+def register_tools() -> None:
+    """Register every tool, resource and prompt this project exposes.
+
+    Call after ``django.setup()`` — discovery reads the app registry.
+    Registration happens as a side effect of importing a module, so the loop
+    has nothing to do. Idempotent: the MCP server calls it at startup, and the
+    chatbot calls it the first time it needs the catalogue, and neither has to
+    know about the other.
+
+    Discovery is the rule; the two other calls are transitional scaffolding for
+    surfaces that have not moved into their app yet.
+    """
+    global _registered
+    if _registered:
+        return
+
+    from phoxtail.core.discovery import discover_submodules
+
+    _register_unmigrated_tools()
+    for _name, _module in discover_submodules("mcp"):
+        pass
     _register_contributed_tools()
 
-
-_register_tools()
+    _registered = True
