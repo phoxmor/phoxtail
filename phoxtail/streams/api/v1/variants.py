@@ -15,7 +15,7 @@ from ninja.errors import HttpError
 from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     build_variant_envelope,
     etag_matches,
     resolve_variant_by_pk,
@@ -23,7 +23,7 @@ from phoxtail.api.streams.v1._helpers import (
     variant_etag,
     variant_summary,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     Error,
     PushPayload,
     PushResponse,

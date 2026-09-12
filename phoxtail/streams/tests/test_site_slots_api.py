@@ -5,15 +5,15 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 from ninja.errors import HttpError
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     block_detail,
     block_summary,
     build_variant_envelope,
     shared_block_etag,
     shared_block_summary,
 )
-from phoxtail.api.streams.v1.schemas import SharedBlockCreate, SharedBlockUpdate
-from phoxtail.api.streams.v1.shared_blocks import (
+from phoxtail.streams.api.v1.schemas import SharedBlockCreate, SharedBlockUpdate
+from phoxtail.streams.api.v1.shared_blocks import (
     create_shared_block,
     update_shared_block_by_id,
 )

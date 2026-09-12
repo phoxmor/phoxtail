@@ -1,7 +1,7 @@
-from django.apps import AppConfig
+from phoxtail.core.app_config import PhoxtailAppConfig
 
 
-class PhoxtailStreamsConfig(AppConfig):
+class PhoxtailStreamsConfig(PhoxtailAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "phoxtail.streams"
     label = "phoxtail_streams"

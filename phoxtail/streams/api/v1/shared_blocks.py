@@ -8,7 +8,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     etag_matches,
     resolve_block_by_pk,
     resolve_locale,
@@ -19,7 +19,7 @@ from phoxtail.api.streams.v1._helpers import (
     shared_block_etag,
     shared_block_summary,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     Error,
     SharedBlock,
     SharedBlockCreate,

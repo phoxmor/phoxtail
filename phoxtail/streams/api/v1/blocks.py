@@ -10,7 +10,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     block_detail,
     block_etag,
     block_summary,
@@ -18,7 +18,7 @@ from phoxtail.api.streams.v1._helpers import (
     resolve_block_by_pk,
     resolve_page_types,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     Block,
     BlockCreate,
     BlockList,

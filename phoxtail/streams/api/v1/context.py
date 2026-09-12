@@ -17,16 +17,16 @@ import json
 from django.http import HttpRequest
 from ninja import Router
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.design.models import FontRole, PaletteRole
+from phoxtail.streams.api.v1._helpers import (
     resolve_block_by_pk,
     resolve_collection_by_pk,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     ContextRequest,
     ContextResponse,
     Error,
 )
-from phoxtail.design.models import FontRole, PaletteRole
 from phoxtail.streams.models import BlockVariant
 
 router = Router()

@@ -160,7 +160,7 @@ class StreamsSyncService:
         return apply_variant_envelope(envelope)
 
     def push(self, variant_id: int) -> PushResult:
-        from phoxtail.api.streams.v1._helpers import build_variant_envelope
+        from phoxtail.streams.api.v1._helpers import build_variant_envelope
         from phoxtail.streams.models import BlockVariant
 
         try:

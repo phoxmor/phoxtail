@@ -10,14 +10,14 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     collection_detail,
     collection_etag,
     collection_summary,
     etag_matches,
     resolve_collection_by_pk,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     CollectionCreate,
     CollectionList,
     CollectionSummary,

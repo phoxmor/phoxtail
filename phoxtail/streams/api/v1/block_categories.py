@@ -8,14 +8,14 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
-from phoxtail.api.streams.v1._helpers import (
+from phoxtail.streams.api.v1._helpers import (
     block_category_detail,
     block_category_etag,
     etag_matches,
     resolve_block_by_pk,
     resolve_block_category_by_pk,
 )
-from phoxtail.api.streams.v1.schemas import (
+from phoxtail.streams.api.v1.schemas import (
     BlockCategoryCreate,
     BlockCategoryItem,
     BlockCategoryList,

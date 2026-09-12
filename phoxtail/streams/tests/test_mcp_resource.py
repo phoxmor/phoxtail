@@ -7,7 +7,7 @@ CLI tests (``make test-cli -p no:django``).
 
 from __future__ import annotations
 
-from phoxtail.api.streams.v1.schema_catalog import get_schema_catalog
+from phoxtail.streams.api.v1.schema_catalog import get_schema_catalog
 
 
 class TestSchemaCatalog:

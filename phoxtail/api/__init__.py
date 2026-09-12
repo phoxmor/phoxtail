@@ -30,7 +30,6 @@ from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling, is_superuser
 from phoxtail.api.content.v1 import router as content_v1_router
-from phoxtail.api.streams.v1 import router as streams_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.users.api.v1 import router as users_v1_router
 
@@ -73,7 +72,6 @@ api = NinjaAPI(
     ],
 )
 
-api.add_router("/streams/v1/", streams_v1_router, tags=["streams/v1"])
 api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
 
 # The users surface is superuser-only until scoped tokens land: the same
@@ -169,7 +167,7 @@ def handle_django_validation_error(request, exc: DjangoValidationError):
 # Core domains still mounted by hand above. As each moves into its own app
 # (cms, streams, design), its name leaves this set and the hand-written
 # add_router call goes with it. The set is deleted when it empties.
-_CORE_SHORT_LABELS = frozenset({"streams", "content", "pages", "users"})
+_CORE_SHORT_LABELS = frozenset({"content", "pages", "users"})
 
 
 # A key of `versions` is spliced straight into the URL.
