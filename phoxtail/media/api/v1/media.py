@@ -1,4 +1,4 @@
-"""``/api/content/v1/media/`` — image, document, video, and audio endpoints.
+"""``/api/media/v1/`` — image, document, video, and audio endpoints.
 
 The pages domain owns these because ``wagtailimages``, ``wagtaildocs``, and
 ``wagtailmedia`` are required by every Phoxtail engine install. FK lookups

@@ -46,7 +46,7 @@ class PhoxtailAppConfig(AppConfig):
     # phoxtail.core.discovery.
     #
     # page_schema_contributors: dotted paths to zero-arg callables
-    #   returning a phoxtail.api.content.v1.contrib.PageSchemaContribution.
+    #   returning a phoxtail.cms.api.v1.contrib.PageSchemaContribution.
     #   Consumed by the pages domain to power /page-types/,
     #   GET /pages/{id}/ per-type fields, and PATCH validation.
     page_schema_contributors: list[str] = []

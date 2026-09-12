@@ -7,8 +7,8 @@ from pathlib import Path
 
 from fastmcp.utilities.types import Image as MCPImage
 
+from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.content.pages import _write_error_envelope
 from phoxtail.media.mcp._http import request
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents

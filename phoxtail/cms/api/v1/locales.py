@@ -1,4 +1,4 @@
-"""``/api/content/v1/locales/`` — Wagtail Locale listing endpoint."""
+"""``/api/cms/v1/locales/`` — Wagtail Locale listing endpoint."""
 
 from __future__ import annotations
 

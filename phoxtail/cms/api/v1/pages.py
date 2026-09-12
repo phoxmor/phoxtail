@@ -1,4 +1,4 @@
-"""``/api/content/v1/pages/`` — generic Wagtail Page endpoints.
+"""``/api/cms/v1/pages/`` — generic Wagtail Page endpoints.
 
 Endpoints:
 - ``GET    /``     — list pages (?type, ?parent, ?live, ?search, ?locale, ?site)
@@ -24,7 +24,7 @@ from ninja.errors import HttpError
 from wagtail.models import Page
 
 from phoxtail.api.auth import scoped
-from phoxtail.api.content.v1._helpers import (
+from phoxtail.cms.api.v1._helpers import (
     _check_move_constraints,
     apply_common_patch,
     apply_contributed_patch,
@@ -39,7 +39,7 @@ from phoxtail.api.content.v1._helpers import (
     serialize_page_detail,
     serialize_page_summary,
 )
-from phoxtail.api.content.v1.schemas import (
+from phoxtail.cms.api.v1.schemas import (
     BodyResponse,  # noqa: F401 — re-exported for Ninja docs
     CopyForTranslationPayload,
     Error,
@@ -182,7 +182,7 @@ def create_page(
     # Apply per-type contributed fields (remaining keys).
     from django.core.exceptions import ValidationError as DjangoValidationError
 
-    from phoxtail.api.content.v1._helpers import apply_contributed_patch
+    from phoxtail.cms.api.v1._helpers import apply_contributed_patch
 
     with transaction.atomic():
         apply_contributed_patch(page, contributed)

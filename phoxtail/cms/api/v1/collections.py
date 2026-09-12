@@ -1,4 +1,4 @@
-"""``/api/content/v1/collections/`` — Wagtail Collection CRUD.
+"""``/api/cms/v1/collections/`` — Wagtail Collection CRUD.
 
 Collections form a tree (treebeard MP_Node). The root node (depth=1) is
 Wagtail-managed and included in list/get responses so that agents can

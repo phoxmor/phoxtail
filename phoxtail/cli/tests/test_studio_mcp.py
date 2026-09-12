@@ -18,10 +18,10 @@ import json
 from pytest_httpx import HTTPXMock
 from typer.testing import CliRunner
 
+from phoxtail.cms.mcp.pages import translate_page
+from phoxtail.cms.mcp.resources import locales_list
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import url
-from phoxtail.mcp.content.pages import translate_page
-from phoxtail.mcp.content.resources import locales_list
 from phoxtail.streams.mcp.blocks import (
     create_block,
     get_block,
@@ -712,7 +712,7 @@ class TestLocalesList:
             ],
             "total": 2,
         }
-        httpx_mock.add_response(url=url("/api/content/v1/locales/"), json=payload)
+        httpx_mock.add_response(url=url("/api/cms/v1/locales/"), json=payload)
         result = json.loads(locales_list())
         assert result["total"] == 2
         assert result["locales"][0]["language_code"] == "en"
@@ -742,7 +742,7 @@ SAMPLE_PAGE_DETAIL = {
 class TestTranslatePage:
     def test_success_returns_page_with_etag(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(
-            url=url("/api/content/v1/pages/10/copy_for_translation/"),
+            url=url("/api/cms/v1/pages/10/copy_for_translation/"),
             status_code=201,
             json=SAMPLE_PAGE_DETAIL,
             headers={"ETag": 'W/"abc123"'},

@@ -16,7 +16,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
-from phoxtail.cms.api.v1._helpers import (
+from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
     resolve_site_font,

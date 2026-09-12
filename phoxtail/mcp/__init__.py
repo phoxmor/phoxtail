@@ -98,15 +98,6 @@ def _register_unmigrated_tools() -> None:
 
     This function goes away when the list empties.
     """
-    import phoxtail.mcp.cms.site_setting_fonts  # noqa: F401
-    import phoxtail.mcp.cms.site_setting_palettes  # noqa: F401
-    import phoxtail.mcp.cms.site_settings  # noqa: F401
-    import phoxtail.mcp.content.blocks  # noqa: F401
-    import phoxtail.mcp.content.body  # noqa: F401
-    import phoxtail.mcp.content.collections  # noqa: F401
-    import phoxtail.mcp.content.pages  # noqa: F401
-    import phoxtail.mcp.content.resources  # noqa: F401
-    import phoxtail.mcp.content.sites  # noqa: F401
     import phoxtail.mcp.peers  # noqa: F401
     import phoxtail.users.mcp.genders  # noqa: F401
     import phoxtail.users.mcp.users  # noqa: F401

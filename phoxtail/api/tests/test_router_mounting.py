@@ -32,13 +32,14 @@ def _routers(*pairs):
 
 
 class TestRefusingACollision:
-    def test_a_core_namespace_cannot_be_taken(self, fresh_mount):
-        """``/api/content/`` belongs to a core domain mounted by hand.
+    def test_a_reserved_namespace_cannot_be_taken(self, fresh_mount):
+        """``/api/users/`` is still mounted by hand, so it is still reserved.
 
-        An app that lands there would shadow it, and the first sign would be a
-        core endpoint answering something else.
+        An app landing there would shadow it, and the first sign would be a
+        users endpoint answering something else. The set shrinks as each
+        hand-mounted surface moves into its app; this test follows it.
         """
-        with _routers(("content", {"v1": Router()})):
+        with _routers(("users", {"v1": Router()})):
             with pytest.raises(RuntimeError, match="reserved by a core domain"):
                 mount_discovered_routers()
 

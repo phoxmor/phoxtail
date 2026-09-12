@@ -11,7 +11,7 @@ from wagtail.search.backends import get_search_backend
 
 from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_required
-from phoxtail.api.content.v1._helpers import body_field_name_for, resolve_page_for_read
+from phoxtail.cms.api.v1._helpers import body_field_name_for, resolve_page_for_read
 
 
 @agent_permission_required("access_chatbot")

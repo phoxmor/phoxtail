@@ -406,12 +406,12 @@
 
     function _pageAction(action) {
         var pageId = manifest.id;
-        fetch('/api/content/v1/pages/' + pageId + '/', {
+        fetch('/api/cms/v1/pages/' + pageId + '/', {
             headers: { 'Accept': 'application/json' },
         }).then(function (res) {
             if (!res.ok) { return Promise.reject('GET failed: ' + res.status); }
             var etag = res.headers.get('ETag');
-            return fetch('/api/content/v1/pages/' + pageId + '/' + action + '/', {
+            return fetch('/api/cms/v1/pages/' + pageId + '/' + action + '/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': _getCsrfToken(),

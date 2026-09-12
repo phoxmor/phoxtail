@@ -31,7 +31,7 @@ EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
 API_PREFIX = "/api/streams/v1"
-CONTENT_API_PREFIX = "/api/content/v1"
+CONTENT_API_PREFIX = "/api/cms/v1"
 CONTENT_IMAGES_PATH = "/media/images/"
 
 # Module-level override set by commands that accept a --peer flag.

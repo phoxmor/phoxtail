@@ -1,4 +1,4 @@
-"""``/api/content/v1/pages/{page_id}/blocks/`` — per-block CRUD endpoints.
+"""``/api/cms/v1/pages/{page_id}/blocks/`` — per-block CRUD endpoints.
 
 All mutating endpoints require an ``If-Match`` ETag header (page-level ETag),
 create a draft revision, and do **not** publish.
@@ -17,7 +17,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
-from phoxtail.api.content.v1._helpers import (
+from phoxtail.cms.api.v1._helpers import (
     body_field_name_for,
     page_etag,
     replace_body,

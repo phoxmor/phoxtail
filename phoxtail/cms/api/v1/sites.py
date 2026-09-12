@@ -1,4 +1,4 @@
-"""``/api/content/v1/sites/`` — Wagtail Site CRUD endpoints.
+"""``/api/cms/v1/sites/`` — Wagtail Site CRUD endpoints.
 
 Endpoints:
 - GET    /           — list all sites

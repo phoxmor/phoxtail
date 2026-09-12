@@ -1,6 +1,6 @@
-"""Regression test for ``PUT /content/v1/pages/{id}/body/``.
+"""Regression test for ``PUT /cms/v1/pages/{id}/body/``.
 
-Guards the fix in ``phoxtail.api.content.v1._helpers.replace_body``: a
+Guards the fix in ``phoxtail.cms.api.v1._helpers.replace_body``: a
 malformed nested block value (a StreamBlock field inside a StructBlock
 given ``[None, None]`` instead of proper ``{type, value, id}`` entries)
 must be rejected with a 400 *before* anything is persisted, not accepted
@@ -92,7 +92,7 @@ def widget_schema(monkeypatch):
 
 
 def test_put_body_rejects_malformed_nested_block(client, site_page, widget_schema):
-    etag = client.get(f"/content/v1/pages/{site_page.pk}/body/").headers["ETag"]
+    etag = client.get(f"/cms/v1/pages/{site_page.pk}/body/").headers["ETag"]
 
     bad_body = {
         "body": [
@@ -104,7 +104,7 @@ def test_put_body_rejects_malformed_nested_block(client, site_page, widget_schem
         ]
     }
     response = client.put(
-        f"/content/v1/pages/{site_page.pk}/body/",
+        f"/cms/v1/pages/{site_page.pk}/body/",
         json=bad_body,
         headers={"If-Match": etag},
     )
@@ -115,7 +115,7 @@ def test_put_body_rejects_malformed_nested_block(client, site_page, widget_schem
 
 
 def test_put_body_accepts_well_formed_nested_block(client, site_page, widget_schema):
-    etag = client.get(f"/content/v1/pages/{site_page.pk}/body/").headers["ETag"]
+    etag = client.get(f"/cms/v1/pages/{site_page.pk}/body/").headers["ETag"]
 
     good_body = {
         "body": [
@@ -132,7 +132,7 @@ def test_put_body_accepts_well_formed_nested_block(client, site_page, widget_sch
         ]
     }
     response = client.put(
-        f"/content/v1/pages/{site_page.pk}/body/",
+        f"/cms/v1/pages/{site_page.pk}/body/",
         json=good_body,
         headers={"If-Match": etag},
     )

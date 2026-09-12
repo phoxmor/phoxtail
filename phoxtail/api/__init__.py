@@ -29,7 +29,6 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling, is_superuser
-from phoxtail.api.content.v1 import router as content_v1_router
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.users.api.v1 import router as users_v1_router
 
@@ -72,7 +71,6 @@ api = NinjaAPI(
     ],
 )
 
-api.add_router("/content/v1/", content_v1_router, tags=["content/v1"])
 
 # The users surface is superuser-only until scoped tokens land: the same
 # authenticators as everywhere else, wrapped with an authorization predicate.
@@ -164,10 +162,11 @@ def handle_django_validation_error(request, exc: DjangoValidationError):
     return api.create_response(request, {"detail": exc.messages}, status=422)
 
 
-# Core domains still mounted by hand above. As each moves into its own app
-# (cms, streams, design), its name leaves this set and the hand-written
-# add_router call goes with it. The set is deleted when it empties.
-_CORE_SHORT_LABELS = frozenset({"content", "pages", "users"})
+# The one surface still mounted by hand above, because its router carries a
+# superuser rule this file applies and the convention has nowhere to put.
+# When that rule moves onto its endpoints, users joins the rest and this set
+# goes away.
+_CORE_SHORT_LABELS = frozenset({"users"})
 
 
 # A key of `versions` is spliced straight into the URL.

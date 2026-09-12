@@ -15,7 +15,7 @@ from phoxtail.cli.utils.credentials import resolve_token
 EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
 
-API_PREFIX = "/api/content/v1"
+API_PREFIX = "/api/cms/v1"
 # Media is its own app and serves its own surface: the image, document, video
 # and audio models belong to phoxtail.media, which Wagtail reaches through its
 # swappable getters.

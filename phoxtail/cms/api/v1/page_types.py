@@ -1,4 +1,4 @@
-"""``/api/content/v1/page-types/`` — discovery endpoint.
+"""``/api/cms/v1/page-types/`` — discovery endpoint.
 
 Lists every page type the contribution registry knows about, along
 with its writable fields and FK-lookup tool names. The agent reads
@@ -14,9 +14,9 @@ from __future__ import annotations
 from django.http import HttpRequest
 from ninja import Router
 
-from phoxtail.api.content.v1._helpers import contribution_as_dict
-from phoxtail.api.content.v1.contrib import collect_page_schemas
-from phoxtail.api.content.v1.schemas import PageTypeCatalog
+from phoxtail.cms.api.v1._helpers import contribution_as_dict
+from phoxtail.cms.api.v1.contrib import collect_page_schemas
+from phoxtail.cms.api.v1.schemas import PageTypeCatalog
 
 router = Router()
 

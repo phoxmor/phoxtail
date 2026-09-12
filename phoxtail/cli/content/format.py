@@ -9,7 +9,7 @@ from rich.table import Table
 
 
 def render_pages(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/pages/``."""
+    """Render the output of ``GET /api/cms/v1/pages/``."""
     pages = data.get("pages", [])
     total = data.get("total", len(pages))
     if not pages:
@@ -43,7 +43,7 @@ def render_pages(data: dict[str, Any], console: Console) -> None:
 
 
 def render_locales(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/locales/``."""
+    """Render the output of ``GET /api/cms/v1/locales/``."""
     locales = data.get("locales", [])
     if not locales:
         console.print("[dim]No locales found.[/dim]")
@@ -204,7 +204,7 @@ def _format_size(size: int | None) -> str:
 
 
 def render_sites(data: dict[str, Any], console: Console) -> None:
-    """Render the output of ``GET /api/content/v1/sites/``."""
+    """Render the output of ``GET /api/cms/v1/sites/``."""
     sites = data.get("sites", [])
     if not sites:
         console.print("[dim]No sites found.[/dim]")

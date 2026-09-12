@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.cms.mcp._error import error_envelope
+from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
-from phoxtail.mcp.cms._error import error_envelope
-from phoxtail.mcp.cms._http import request
 
 
 @mcp_server.tool(

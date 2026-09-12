@@ -490,7 +490,7 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
             # block machinery, not a ValidationError — left uncaught, that
             # escapes clean() and surfaces as an unhandled 500 instead of a
             # normal validation error. See the equivalent guard in
-            # ``phoxtail.api.content.v1._helpers.replace_body``.
+            # ``phoxtail.cms.api.v1._helpers.replace_body``.
             try:
                 content_block_type = self.content[0].block_type
             except (TypeError, KeyError, AttributeError, ValueError) as exc:
