@@ -9,6 +9,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     font_family_etag,
     font_family_summary,
@@ -65,7 +66,12 @@ class Error(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: FontFamilyList}, summary="List font families")
+@router.get(
+    "/",
+    response={200: FontFamilyList},
+    summary="List font families",
+    auth=guarded("phoxtail_design.view_fontfamily"),
+)
 def list_font_families(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on font name."),
@@ -86,6 +92,7 @@ def list_font_families(
     "/",
     response={201: FontFamilySummary, 400: Error, 409: Error},
     summary="Create a font family",
+    auth=guarded("phoxtail_design.add_fontfamily"),
 )
 def create_font_family(request: HttpRequest, response: HttpResponse, payload: FontFamilyCreate):
     from phoxtail.design.models import FontFamily
@@ -111,6 +118,7 @@ def create_font_family(request: HttpRequest, response: HttpResponse, payload: Fo
     "/{font_id}/",
     response={200: FontFamilySummary, 404: Error},
     summary="Get a font family",
+    auth=guarded("phoxtail_design.view_fontfamily"),
 )
 def get_font_family(request: HttpRequest, response: HttpResponse, font_id: int):
     ff = resolve_font_family(font_id)
@@ -129,6 +137,7 @@ def get_font_family(request: HttpRequest, response: HttpResponse, font_id: int):
         428: Error,
     },
     summary="Update a font family",
+    auth=guarded("phoxtail_design.change_fontfamily"),
 )
 def patch_font_family(
     request: HttpRequest,
@@ -159,6 +168,7 @@ def patch_font_family(
     "/{font_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a font family",
+    auth=guarded("phoxtail_design.delete_fontfamily"),
 )
 def delete_font_family(request: HttpRequest, font_id: int):
     ff = resolve_font_family(font_id)

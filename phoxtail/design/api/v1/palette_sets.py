@@ -8,6 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     palette_set_etag,
     palette_set_summary,
@@ -59,7 +60,12 @@ class Error(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: PaletteSetList}, summary="List palette sets")
+@router.get(
+    "/",
+    response={200: PaletteSetList},
+    summary="List palette sets",
+    auth=guarded("phoxtail_design.view_paletteset"),
+)
 def list_palette_sets(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on name and identifier."),
@@ -79,6 +85,7 @@ def list_palette_sets(
     "/",
     response={201: PaletteSetSummary, 400: Error, 409: Error},
     summary="Create a palette set",
+    auth=guarded("phoxtail_design.add_paletteset"),
 )
 def create_palette_set(request: HttpRequest, response: HttpResponse, payload: PaletteSetCreate):
     from phoxtail.design.models import PaletteSet
@@ -102,6 +109,7 @@ def create_palette_set(request: HttpRequest, response: HttpResponse, payload: Pa
     "/{palette_set_id}/",
     response={200: PaletteSetSummary, 404: Error},
     summary="Get a palette set",
+    auth=guarded("phoxtail_design.view_paletteset"),
 )
 def get_palette_set(request: HttpRequest, response: HttpResponse, palette_set_id: int):
     from django.db.models import Count
@@ -127,6 +135,7 @@ def get_palette_set(request: HttpRequest, response: HttpResponse, palette_set_id
         428: Error,
     },
     summary="Update a palette set",
+    auth=guarded("phoxtail_design.change_paletteset"),
 )
 def patch_palette_set(
     request: HttpRequest,
@@ -153,6 +162,7 @@ def patch_palette_set(
     "/{palette_set_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a palette set",
+    auth=guarded("phoxtail_design.delete_paletteset"),
 )
 def delete_palette_set(request: HttpRequest, palette_set_id: int):
     ps = resolve_palette_set(palette_set_id)

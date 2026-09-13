@@ -8,6 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     palette_role_etag,
     palette_role_summary,
@@ -56,7 +57,12 @@ class Error(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: PaletteRoleList}, summary="List palette roles")
+@router.get(
+    "/",
+    response={200: PaletteRoleList},
+    summary="List palette roles",
+    auth=guarded("phoxtail_design.view_paletterole"),
+)
 def list_palette_roles(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on name and identifier."),
@@ -74,6 +80,7 @@ def list_palette_roles(
     "/",
     response={201: PaletteRoleSummary, 400: Error, 409: Error},
     summary="Create a palette role",
+    auth=guarded("phoxtail_design.add_paletterole"),
 )
 def create_palette_role(request: HttpRequest, response: HttpResponse, payload: PaletteRoleCreate):
     from phoxtail.design.models import PaletteRole
@@ -97,6 +104,7 @@ def create_palette_role(request: HttpRequest, response: HttpResponse, payload: P
     "/{role_id}/",
     response={200: PaletteRoleSummary, 404: Error},
     summary="Get a palette role",
+    auth=guarded("phoxtail_design.view_paletterole"),
 )
 def get_palette_role(request: HttpRequest, response: HttpResponse, role_id: int):
     r = resolve_palette_role(role_id)
@@ -115,6 +123,7 @@ def get_palette_role(request: HttpRequest, response: HttpResponse, role_id: int)
         428: Error,
     },
     summary="Update a palette role",
+    auth=guarded("phoxtail_design.change_paletterole"),
 )
 def patch_palette_role(
     request: HttpRequest,
@@ -141,6 +150,7 @@ def patch_palette_role(
     "/{role_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a palette role",
+    auth=guarded("phoxtail_design.delete_paletterole"),
 )
 def delete_palette_role(request: HttpRequest, role_id: int):
     r = resolve_palette_role(role_id)

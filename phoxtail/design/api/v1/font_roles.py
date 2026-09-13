@@ -8,6 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     font_role_etag,
     font_role_summary,
@@ -56,7 +57,12 @@ class Error(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: FontRoleList}, summary="List font roles")
+@router.get(
+    "/",
+    response={200: FontRoleList},
+    summary="List font roles",
+    auth=guarded("phoxtail_design.view_fontrole"),
+)
 def list_font_roles(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on name and identifier."),
@@ -74,6 +80,7 @@ def list_font_roles(
     "/",
     response={201: FontRoleSummary, 400: Error, 409: Error},
     summary="Create a font role",
+    auth=guarded("phoxtail_design.add_fontrole"),
 )
 def create_font_role(request: HttpRequest, response: HttpResponse, payload: FontRoleCreate):
     from phoxtail.design.models import FontRole
@@ -97,6 +104,7 @@ def create_font_role(request: HttpRequest, response: HttpResponse, payload: Font
     "/{role_id}/",
     response={200: FontRoleSummary, 404: Error},
     summary="Get a font role",
+    auth=guarded("phoxtail_design.view_fontrole"),
 )
 def get_font_role(request: HttpRequest, response: HttpResponse, role_id: int):
     r = resolve_font_role(role_id)
@@ -115,6 +123,7 @@ def get_font_role(request: HttpRequest, response: HttpResponse, role_id: int):
         428: Error,
     },
     summary="Update a font role",
+    auth=guarded("phoxtail_design.change_fontrole"),
 )
 def patch_font_role(
     request: HttpRequest,
@@ -141,6 +150,7 @@ def patch_font_role(
     "/{role_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a font role",
+    auth=guarded("phoxtail_design.delete_fontrole"),
 )
 def delete_font_role(request: HttpRequest, role_id: int):
     r = resolve_font_role(role_id)

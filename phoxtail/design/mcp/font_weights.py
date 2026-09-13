@@ -12,6 +12,7 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import outbound_token, url
+from phoxtail.mcp.authorization import scoped
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
 # run on the host. In dev mode the project root is bind-mounted at /app, so a
@@ -41,6 +42,7 @@ def _auth_headers() -> dict:
 
 @mcp_server.tool(
     name="phoxtail_font_weights_list",
+    auth=[scoped("phoxtail_design.view_fontweight")],
     description=(
         "List font weight entries. "
         "Pass `font_family_id` to filter to a specific family. "
@@ -60,6 +62,7 @@ def font_weights_list(font_family_id: int | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_font_weights_get",
+    auth=[scoped("phoxtail_design.view_fontweight")],
     description=("Get a single font weight by id. Response includes `_etag` needed for delete."),
 )
 def font_weights_get(weight_id: int) -> str:
@@ -74,6 +77,7 @@ def font_weights_get(weight_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_font_weights_upload",
+    auth=[scoped("phoxtail_design.add_fontweight")],
     description=(
         "Upload a font weight file (WOFF2, TTF, or OTF) for a font family. "
         "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
@@ -118,6 +122,7 @@ def font_weights_upload(
 
 @mcp_server.tool(
     name="phoxtail_font_weights_create_from_url",
+    auth=[scoped("phoxtail_design.add_fontweight")],
     description=(
         "Fetch a font file from a URL and add it as a weight for a font family. "
         "Accepts https:// URLs only (SSRF-protected). Pass the direct file URL "
@@ -154,6 +159,7 @@ def font_weights_create_from_url(
 
 @mcp_server.tool(
     name="phoxtail_font_weights_delete",
+    auth=[scoped("phoxtail_design.delete_fontweight")],
     description=(
         "Delete a font weight entry and its file. "
         "Requires `etag` from phoxtail_font_weights_get. "

@@ -7,10 +7,12 @@ import json
 from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_list",
+    auth=[scoped("phoxtail_design.view_paletteset")],
     description=(
         "List all palette sets in the project. "
         "A palette set groups related palettes under a shared concept "
@@ -31,6 +33,7 @@ def palette_sets_list(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_get",
+    auth=[scoped("phoxtail_design.view_paletteset")],
     description=(
         "Get a single palette set by id. "
         "The response includes `_etag` which MUST be passed to "
@@ -49,6 +52,7 @@ def palette_sets_get(palette_set_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_create",
+    auth=[scoped("phoxtail_design.add_paletteset")],
     description=(
         "Create a new palette set. "
         "`name` is the human-readable label (e.g., 'Tailwind'). "
@@ -77,6 +81,7 @@ def palette_sets_create(
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_update",
+    auth=[scoped("phoxtail_design.change_paletteset")],
     description=(
         "Update a palette set's fields. Pass only the fields to change — "
         "omitted fields are left untouched. "
@@ -116,6 +121,7 @@ def palette_sets_update(
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_delete",
+    auth=[scoped("phoxtail_design.delete_paletteset")],
     description=(
         "Permanently delete a palette set and all its palettes. "
         "Requires `etag` from a prior phoxtail_palette_sets_get call. "

@@ -7,12 +7,14 @@ import json
 from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 _CATEGORIES = "serif, sans-serif, monospace, display, handwriting"
 
 
 @mcp_server.tool(
     name="phoxtail_font_families_list",
+    auth=[scoped("phoxtail_design.view_fontfamily")],
     description=(
         "List all font families in the design system. "
         "Use `category` to filter (choices: " + _CATEGORIES + "). "
@@ -37,6 +39,7 @@ def font_families_list(
 
 @mcp_server.tool(
     name="phoxtail_font_families_get",
+    auth=[scoped("phoxtail_design.view_fontfamily")],
     description=(
         "Get a single font family by id. "
         "Returns id, name, description, category, fallback, weight_count. "
@@ -55,6 +58,7 @@ def font_families_get(font_family_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_font_families_create",
+    auth=[scoped("phoxtail_design.add_fontfamily")],
     description=(
         "Create a new font family entry. "
         "category choices: " + _CATEGORIES + ". "
@@ -88,6 +92,7 @@ def font_families_create(
 
 @mcp_server.tool(
     name="phoxtail_font_families_update",
+    auth=[scoped("phoxtail_design.change_fontfamily")],
     description=(
         "Update a font family's metadata. "
         "Requires `etag` from phoxtail_font_families_get. "
@@ -128,6 +133,7 @@ def font_families_update(
 
 @mcp_server.tool(
     name="phoxtail_font_families_delete",
+    auth=[scoped("phoxtail_design.delete_fontfamily")],
     description=(
         "Delete a font family and all its weight entries. "
         "Requires `etag` from phoxtail_font_families_get. "

@@ -7,10 +7,12 @@ import json
 from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_list",
+    auth=[scoped("phoxtail_design.view_paletterole")],
     description=(
         "List all semantic palette roles in the design system "
         "(e.g., 'primary', 'surface', 'accent'). "
@@ -32,6 +34,7 @@ def palette_roles_list(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_get",
+    auth=[scoped("phoxtail_design.view_paletterole")],
     description=(
         "Get a single palette role by id. "
         "Returns id, name, identifier, and description. "
@@ -50,6 +53,7 @@ def palette_roles_get(role_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_create",
+    auth=[scoped("phoxtail_design.add_paletterole")],
     description=(
         "Create a new semantic palette role. "
         "`identifier` is the CSS namespace key (e.g., 'primary' → "
@@ -77,6 +81,7 @@ def palette_roles_create(
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_update",
+    auth=[scoped("phoxtail_design.change_paletterole")],
     description=(
         "Update a palette role. Requires `etag` from phoxtail_palette_roles_get. "
         "WARNING: changing `identifier` renames the CSS variable namespace — "
@@ -114,6 +119,7 @@ def palette_roles_update(
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_delete",
+    auth=[scoped("phoxtail_design.delete_paletterole")],
     description=(
         "Delete a palette role. Requires `etag` from phoxtail_palette_roles_get. "
         "WARNING: this removes a CSS variable namespace from the design system — "

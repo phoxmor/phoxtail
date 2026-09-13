@@ -13,6 +13,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import File, Query, Router, Schema, UploadedFile
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     font_weight_etag,
     font_weight_summary,
@@ -159,7 +160,12 @@ def _fetch_url(font_url: str) -> bytes:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: FontWeightList}, summary="List font weights")
+@router.get(
+    "/",
+    response={200: FontWeightList},
+    summary="List font weights",
+    auth=guarded("phoxtail_design.view_fontweight"),
+)
 def list_font_weights(
     request: HttpRequest,
     font_family_id: int | None = Query(None, description="Filter by font family."),
@@ -177,6 +183,7 @@ def list_font_weights(
     "/{weight_id}/",
     response={200: FontWeightSummary, 404: Error},
     summary="Get a font weight",
+    auth=guarded("phoxtail_design.view_fontweight"),
 )
 def get_font_weight(request: HttpRequest, response: HttpResponse, weight_id: int):
     w = resolve_font_weight(weight_id)
@@ -188,6 +195,7 @@ def get_font_weight(request: HttpRequest, response: HttpResponse, weight_id: int
     "/",
     response={201: FontWeightSummary, 400: Error, 409: Error},
     summary="Upload a font weight file",
+    auth=guarded("phoxtail_design.add_fontweight"),
 )
 def upload_font_weight(
     request: HttpRequest,
@@ -232,6 +240,7 @@ def upload_font_weight(
     "/from-url/",
     response={201: FontWeightSummary, 400: Error, 409: Error},
     summary="Ingest a font weight from a URL",
+    auth=guarded("phoxtail_design.add_fontweight"),
 )
 def ingest_font_weight_from_url(
     request: HttpRequest,
@@ -276,6 +285,7 @@ def ingest_font_weight_from_url(
     "/{weight_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a font weight",
+    auth=guarded("phoxtail_design.delete_fontweight"),
 )
 def delete_font_weight(request: HttpRequest, weight_id: int):
     w = resolve_font_weight(weight_id)

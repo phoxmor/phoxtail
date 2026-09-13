@@ -8,6 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.design.api.v1._helpers import (
     palette_etag,
     palette_summary,
@@ -87,7 +88,12 @@ class Error(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: PaletteList}, summary="List palettes")
+@router.get(
+    "/",
+    response={200: PaletteList},
+    summary="List palettes",
+    auth=guarded("phoxtail_design.view_palette"),
+)
 def list_palettes(
     request: HttpRequest,
     palette_set_id: int | None = Query(None, description="Filter by palette set."),
@@ -108,6 +114,7 @@ def list_palettes(
     "/",
     response={201: PaletteSummary, 400: Error, 404: Error, 409: Error},
     summary="Create a palette",
+    auth=guarded("phoxtail_design.add_palette"),
 )
 def create_palette(request: HttpRequest, response: HttpResponse, payload: PaletteCreate):
     from phoxtail.design.models import Palette, PaletteSet
@@ -136,6 +143,7 @@ def create_palette(request: HttpRequest, response: HttpResponse, payload: Palett
     "/{palette_id}/",
     response={200: PaletteSummary, 404: Error},
     summary="Get a palette",
+    auth=guarded("phoxtail_design.view_palette"),
 )
 def get_palette(request: HttpRequest, response: HttpResponse, palette_id: int):
     p = resolve_palette(palette_id)
@@ -154,6 +162,7 @@ def get_palette(request: HttpRequest, response: HttpResponse, palette_id: int):
         428: Error,
     },
     summary="Update a palette",
+    auth=guarded("phoxtail_design.change_palette"),
 )
 def patch_palette(
     request: HttpRequest,
@@ -191,6 +200,7 @@ def patch_palette(
     "/{palette_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Delete a palette",
+    auth=guarded("phoxtail_design.delete_palette"),
 )
 def delete_palette(request: HttpRequest, palette_id: int):
     p = resolve_palette(palette_id)
