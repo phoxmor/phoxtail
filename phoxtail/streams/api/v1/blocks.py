@@ -10,6 +10,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.streams.api.v1._helpers import (
     block_detail,
     block_etag,
@@ -30,7 +31,12 @@ from phoxtail.streams.models import Block as BlockModel
 router = Router()
 
 
-@router.get("/", response={200: BlockList}, summary="List Blocks")
+@router.get(
+    "/",
+    response={200: BlockList},
+    summary="List Blocks",
+    auth=guarded("phoxtail_streams.view_block"),
+)
 def list_blocks(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on block name and identifier."),
@@ -46,6 +52,7 @@ def list_blocks(
     "/{block_id}/",
     response={200: Block, 404: Error},
     summary="Show a Block by numeric ID",
+    auth=guarded("phoxtail_streams.view_block"),
 )
 def get_block_by_id(request: HttpRequest, response: HttpResponse, block_id: int):
     b = resolve_block_by_pk(block_id)
@@ -57,6 +64,7 @@ def get_block_by_id(request: HttpRequest, response: HttpResponse, block_id: int)
     "/{block_id}/",
     response={200: Block, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a Block by numeric ID",
+    auth=guarded("phoxtail_streams.change_block"),
 )
 def update_block_by_id(
     request: HttpRequest,
@@ -133,6 +141,7 @@ def update_block_by_id(
     "/",
     response={201: Block, 400: Error, 409: Error},
     summary="Create a Block",
+    auth=guarded("phoxtail_streams.add_block"),
 )
 def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCreate):
     if BlockModel.objects.filter(Q(identifier=payload.identifier) | Q(name=payload.name)).exists():
@@ -176,6 +185,7 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
     "/{block_id}/",
     response={204: None, 404: Error},
     summary="Delete a Block by numeric ID",
+    auth=guarded("phoxtail_streams.delete_block"),
 )
 def delete_block(request: HttpRequest, block_id: int):
     b = resolve_block_by_pk(block_id)

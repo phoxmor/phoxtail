@@ -15,6 +15,7 @@ from ninja.errors import HttpError
 from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.streams.api.v1._helpers import (
     build_variant_envelope,
     etag_matches,
@@ -62,6 +63,7 @@ def push_variant(request: HttpRequest, payload: PushPayload):
     "/",
     response={200: VariantList},
     summary="List BlockVariants",
+    auth=guarded("phoxtail_streams.view_blockvariant"),
 )
 def list_variants(
     request: HttpRequest,
@@ -98,6 +100,7 @@ def list_variants(
     "/",
     response={201: Variant, 400: Error, 404: Error, 409: Error},
     summary="Create a BlockVariant",
+    auth=guarded("phoxtail_streams.add_blockvariant"),
 )
 def create_variant(
     request: HttpRequest,
@@ -141,6 +144,7 @@ def create_variant(
     "/{variant_id}/",
     response={200: Variant, 404: Error},
     summary="Show a BlockVariant by numeric ID",
+    auth=guarded("phoxtail_streams.view_blockvariant"),
 )
 def get_variant_by_id(
     request: HttpRequest,
@@ -156,6 +160,7 @@ def get_variant_by_id(
     "/{variant_id}/",
     response={200: Variant, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a BlockVariant by numeric ID (optimistic concurrency)",
+    auth=guarded("phoxtail_streams.change_blockvariant"),
 )
 def update_variant_by_id(
     request: HttpRequest,
@@ -265,6 +270,7 @@ def update_variant_by_id(
     "/{variant_id}/",
     response={204: None, 404: Error},
     summary="Delete a BlockVariant by numeric ID",
+    auth=guarded("phoxtail_streams.delete_blockvariant"),
 )
 def delete_variant(request: HttpRequest, variant_id: int):
     v = resolve_variant_by_pk(variant_id)

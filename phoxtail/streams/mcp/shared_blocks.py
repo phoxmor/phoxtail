@@ -6,11 +6,13 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
 
 
 @mcp_server.tool(
     name="phoxtail_studio_list_shared_blocks",
+    auth=[scoped("phoxtail_streams.view_sharedblock")],
     description=(
         "List all shared blocks. Optionally filter by block_id, site_id, or "
         "locale_id. A shared block holds the site-scoped content for a Block "
@@ -34,6 +36,7 @@ def list_shared_blocks(
 
 @mcp_server.tool(
     name="phoxtail_studio_get_shared_block",
+    auth=[scoped("phoxtail_streams.view_sharedblock")],
     description=(
         "Get the full detail of a single shared block, including its content. "
         "Also returns the current ETag which MUST be passed to "
@@ -51,6 +54,7 @@ def get_shared_block(shared_block_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_create_shared_block",
+    auth=[scoped("phoxtail_streams.add_sharedblock")],
     description=(
         "Create a new shared block. Requires block_id (must have is_shared=True — "
         "use phoxtail_studio_list_blocks to find eligible blocks), site_id, and "
@@ -104,6 +108,7 @@ def create_shared_block(
 
 @mcp_server.tool(
     name="phoxtail_studio_update_shared_block",
+    auth=[scoped("phoxtail_streams.change_sharedblock")],
     description=(
         "Update a shared block's content and/or variant. Requires the ETag from "
         "a prior phoxtail_studio_get_shared_block call for optimistic concurrency "
@@ -173,6 +178,7 @@ def update_shared_block(
 
 @mcp_server.tool(
     name="phoxtail_studio_delete_shared_block",
+    auth=[scoped("phoxtail_streams.delete_sharedblock")],
     description=(
         "Delete a shared block by numeric ID. This removes the site-scoped content "
         "for the (block, site, locale) triplet. The block definition itself is not "

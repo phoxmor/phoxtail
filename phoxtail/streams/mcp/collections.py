@@ -6,11 +6,13 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
 
 
 @mcp_server.tool(
     name="phoxtail_studio_list_collections",
+    auth=[scoped("phoxtail_streams.view_variantcollection")],
     description=(
         "List all variant collections in the project. "
         "A collection groups variants under a shared design system "
@@ -23,6 +25,7 @@ def list_collections(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_get_collection",
+    auth=[scoped("phoxtail_streams.view_variantcollection")],
     description=(
         "Get a collection's full detail — name, identifier, and description. "
         "Also returns the current ETag which MUST be passed to "
@@ -42,6 +45,7 @@ def get_collection(collection_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_create_collection",
+    auth=[scoped("phoxtail_streams.add_variantcollection")],
     description=(
         "Create a new variant collection — an optional ad-hoc design-system "
         "label that variants can belong to (e.g. 'Material Design 3', 'HIG'). "
@@ -86,6 +90,7 @@ def create_collection(
 
 @mcp_server.tool(
     name="phoxtail_studio_update_collection",
+    auth=[scoped("phoxtail_streams.change_variantcollection")],
     description=(
         "Update a collection's metadata. "
         "Requires the ETag from a prior phoxtail_studio_get_collection call "
@@ -162,6 +167,7 @@ def update_collection(
 
 @mcp_server.tool(
     name="phoxtail_studio_delete_collection",
+    auth=[scoped("phoxtail_streams.delete_variantcollection")],
     description=(
         "Permanently delete a variant collection by its numeric ID. "
         "WARNING: variants that belong to this collection will have their "

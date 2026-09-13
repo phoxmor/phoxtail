@@ -10,11 +10,13 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
 
 
 @mcp_server.tool(
     name="phoxtail_studio_list_block_categories",
+    auth=[scoped("phoxtail_streams.view_blockcategory")],
     description=(
         "List all block categories. Call this before assigning categories to a block "
         "to avoid creating duplicates. Categories represent broad purpose groupings "
@@ -28,6 +30,7 @@ def list_block_categories(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_get_block_category",
+    auth=[scoped("phoxtail_streams.view_blockcategory")],
     description=(
         "Get a block category by its numeric ID. Returns the category object plus an "
         "_etag field that MUST be passed to phoxtail_studio_update_block_category for "
@@ -44,6 +47,7 @@ def get_block_category(category_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_create_block_category",
+    auth=[scoped("phoxtail_streams.add_blockcategory")],
     description=(
         "Create a new block category. Call phoxtail_studio_list_block_categories first "
         "to confirm an equivalent category does not already exist. "
@@ -73,6 +77,7 @@ def create_block_category(
 
 @mcp_server.tool(
     name="phoxtail_studio_update_block_category",
+    auth=[scoped("phoxtail_streams.change_blockcategory")],
     description=(
         "Update a block category. Requires the ETag from a prior "
         "phoxtail_studio_get_block_category call for optimistic concurrency control. "
@@ -128,6 +133,7 @@ def update_block_category(
 
 @mcp_server.tool(
     name="phoxtail_studio_delete_block_category",
+    auth=[scoped("phoxtail_streams.delete_blockcategory")],
     description="Delete a block category by its numeric ID.",
 )
 def delete_block_category(category_id: int) -> str:
@@ -138,6 +144,7 @@ def delete_block_category(category_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_set_block_categories",
+    auth=[scoped("phoxtail_streams.change_block")],
     description=(
         "Replace the full set of categories assigned to a block. "
         "Pass a list of category IDs — existing assignments not in the list will be removed. "
@@ -152,6 +159,7 @@ def set_block_categories(block_id: int, category_ids: list[int]) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_add_block_category",
+    auth=[scoped("phoxtail_streams.change_block")],
     description=(
         "Add a single category to a block. Returns 409 if the category is already assigned. "
         "Call phoxtail_studio_list_block_categories first to get a valid category_id."
@@ -167,6 +175,7 @@ def add_block_category(block_id: int, category_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_remove_block_category",
+    auth=[scoped("phoxtail_streams.change_block")],
     description="Remove a single category from a block. Returns 404 if the category is not currently assigned.",
 )
 def remove_block_category(block_id: int, category_id: int) -> str:

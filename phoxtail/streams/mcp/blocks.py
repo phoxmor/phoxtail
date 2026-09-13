@@ -6,11 +6,13 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
 
 
 @mcp_server.tool(
     name="phoxtail_studio_list_blocks",
+    auth=[scoped("phoxtail_streams.view_block")],
     description=(
         "List all blocks in the project. "
         "A block is a structural schema (e.g. 'header_section', 'hero') "
@@ -23,6 +25,7 @@ def list_blocks(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_get_block",
+    auth=[scoped("phoxtail_streams.view_block")],
     description=(
         "Get the full detail of a single block, including its field schema, "
         "page types, variants, and metadata. Also returns the current ETag "
@@ -41,6 +44,7 @@ def get_block(block_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_create_block",
+    auth=[scoped("phoxtail_streams.add_block")],
     description=(
         "Create a new block with its field schema. Requires an identifier "
         "(unique, lowercase_with_underscores), a human-readable name, and "
@@ -113,6 +117,7 @@ def create_block(
 
 @mcp_server.tool(
     name="phoxtail_studio_update_block",
+    auth=[scoped("phoxtail_streams.change_block")],
     description=(
         "Update any mutable field on a block: identifier, name, description, "
         "icon, group, is_shared, site_slot, slot_order, render_in_preview, "
@@ -219,6 +224,7 @@ def update_block(
 
 @mcp_server.tool(
     name="phoxtail_studio_delete_block",
+    auth=[scoped("phoxtail_streams.delete_block")],
     description=(
         "Permanently delete a block by its numeric ID. "
         "WARNING: this also deletes all variants belonging to the block. "

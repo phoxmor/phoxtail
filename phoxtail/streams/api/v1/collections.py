@@ -10,6 +10,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.streams.api.v1._helpers import (
     collection_detail,
     collection_etag,
@@ -29,7 +30,12 @@ from phoxtail.streams.models import VariantCollection
 router = Router()
 
 
-@router.get("/", response={200: CollectionList}, summary="List VariantCollections")
+@router.get(
+    "/",
+    response={200: CollectionList},
+    summary="List VariantCollections",
+    auth=guarded("phoxtail_streams.view_variantcollection"),
+)
 def list_collections(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on collection name and identifier."),
@@ -45,6 +51,7 @@ def list_collections(
     "/{collection_id}/",
     response={200: CollectionSummary, 404: Error},
     summary="Show a VariantCollection by numeric ID",
+    auth=guarded("phoxtail_streams.view_variantcollection"),
 )
 def get_collection_by_id(request: HttpRequest, response: HttpResponse, collection_id: int):
     c = resolve_collection_by_pk(collection_id)
@@ -56,6 +63,7 @@ def get_collection_by_id(request: HttpRequest, response: HttpResponse, collectio
     "/{collection_id}/",
     response={200: CollectionSummary, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a VariantCollection by numeric ID",
+    auth=guarded("phoxtail_streams.change_variantcollection"),
 )
 def update_collection_by_id(
     request: HttpRequest,
@@ -106,6 +114,7 @@ def update_collection_by_id(
     "/",
     response={201: CollectionSummary, 400: Error, 409: Error},
     summary="Create a VariantCollection",
+    auth=guarded("phoxtail_streams.add_variantcollection"),
 )
 def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
     if VariantCollection.objects.filter(Q(identifier=payload.identifier) | Q(name=payload.name)).exists():
@@ -136,6 +145,7 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
     "/{collection_id}/",
     response={204: None, 404: Error},
     summary="Delete a VariantCollection by numeric ID",
+    auth=guarded("phoxtail_streams.delete_variantcollection"),
 )
 def delete_collection(request: HttpRequest, collection_id: int):
     c = resolve_collection_by_pk(collection_id)

@@ -8,6 +8,7 @@ from ninja import Query, Router, Schema
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.streams.api.v1._helpers import (
     block_category_detail,
     block_category_etag,
@@ -37,7 +38,12 @@ class _CategoryIdsPayload(Schema):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: BlockCategoryList}, summary="List BlockCategories")
+@router.get(
+    "/",
+    response={200: BlockCategoryList},
+    summary="List BlockCategories",
+    auth=guarded("phoxtail_streams.view_blockcategory"),
+)
 def list_block_categories(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on category name."),
@@ -55,6 +61,7 @@ def list_block_categories(
     "/",
     response={201: BlockCategoryItem, 400: Error, 409: Error},
     summary="Create a BlockCategory",
+    auth=guarded("phoxtail_streams.add_blockcategory"),
 )
 def create_block_category(request: HttpRequest, response: HttpResponse, payload: BlockCategoryCreate):
     if BlockCategory.objects.filter(slug=payload.slug).exists():
@@ -76,6 +83,7 @@ def create_block_category(request: HttpRequest, response: HttpResponse, payload:
     "/{category_id}/",
     response={200: BlockCategoryItem, 404: Error},
     summary="Get a BlockCategory",
+    auth=guarded("phoxtail_streams.view_blockcategory"),
 )
 def get_block_category(request: HttpRequest, response: HttpResponse, category_id: int):
     c = resolve_block_category_by_pk(category_id)
@@ -87,6 +95,7 @@ def get_block_category(request: HttpRequest, response: HttpResponse, category_id
     "/{category_id}/",
     response={200: BlockCategoryItem, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a BlockCategory",
+    auth=guarded("phoxtail_streams.change_blockcategory"),
 )
 def update_block_category(
     request: HttpRequest,
@@ -133,6 +142,7 @@ def update_block_category(
     "/{category_id}/",
     response={204: None, 404: Error},
     summary="Delete a BlockCategory",
+    auth=guarded("phoxtail_streams.delete_blockcategory"),
 )
 def delete_block_category(request: HttpRequest, category_id: int):
     c = resolve_block_category_by_pk(category_id)
@@ -149,6 +159,7 @@ def delete_block_category(request: HttpRequest, category_id: int):
     "/{block_id}/categories/",
     response={200: BlockCategoryList, 404: Error},
     summary="List categories assigned to a block",
+    auth=guarded("phoxtail_streams.view_block"),
 )
 def list_block_categories_for_block(request: HttpRequest, block_id: int):
     b = resolve_block_by_pk(block_id)
@@ -160,6 +171,7 @@ def list_block_categories_for_block(request: HttpRequest, block_id: int):
     "/{block_id}/categories/",
     response={200: BlockCategoryList, 400: Error, 404: Error},
     summary="Replace the full category set for a block",
+    auth=guarded("phoxtail_streams.change_block"),
 )
 def set_block_categories(request: HttpRequest, block_id: int, payload: _CategoryIdsPayload):
     b = resolve_block_by_pk(block_id)
@@ -175,6 +187,7 @@ def set_block_categories(request: HttpRequest, block_id: int, payload: _Category
     "/{block_id}/categories/{category_id}/",
     response={201: BlockCategoryItem, 404: Error, 409: Error},
     summary="Add one category to a block",
+    auth=guarded("phoxtail_streams.change_block"),
 )
 def add_block_category(request: HttpRequest, response: HttpResponse, block_id: int, category_id: int):
     b = resolve_block_by_pk(block_id)
@@ -189,6 +202,7 @@ def add_block_category(request: HttpRequest, response: HttpResponse, block_id: i
     "/{block_id}/categories/{category_id}/",
     response={204: None, 404: Error},
     summary="Remove one category from a block",
+    auth=guarded("phoxtail_streams.change_block"),
 )
 def remove_block_category(request: HttpRequest, block_id: int, category_id: int):
     b = resolve_block_by_pk(block_id)

@@ -7,6 +7,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
 
 # -- Listing ---------------------------------------------------------------
@@ -14,6 +15,7 @@ from phoxtail.streams.mcp._http import get_json, request
 
 @mcp_server.tool(
     name="phoxtail_studio_list_variants",
+    auth=[scoped("phoxtail_streams.view_blockvariant")],
     description=(
         "List all block variants in the project. "
         "Optionally filter by block identifier and/or collection identifier. "
@@ -37,6 +39,7 @@ def list_variants(
 
 @mcp_server.tool(
     name="phoxtail_studio_get_variant",
+    auth=[scoped("phoxtail_streams.view_blockvariant")],
     description=(
         "Get the full detail of a single block variant, including its HTML, "
         "CSS, and JavaScript content. Also returns the current ETag which "
@@ -60,6 +63,7 @@ def get_variant(variant_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_studio_diff_variant",
+    auth=[scoped("phoxtail_streams.view_blockvariant")],
     description=(
         "Show a unified diff between a variant's current content in the "
         "database and proposed new content. Pass the fields you intend to "
@@ -112,6 +116,7 @@ def diff_variant(
 
 @mcp_server.tool(
     name="phoxtail_studio_update_variant",
+    auth=[scoped("phoxtail_streams.change_blockvariant")],
     description=(
         "Update any mutable field on a variant: identifier, name, description, "
         "collection_id (move to a different design system collection), "
@@ -219,6 +224,7 @@ def update_variant(
 
 @mcp_server.tool(
     name="phoxtail_studio_create_variant",
+    auth=[scoped("phoxtail_streams.add_blockvariant")],
     description=(
         "Create a new block variant. Requires an identifier (unique within "
         "the block+collection pair), a human-readable name, and the numeric "
@@ -281,6 +287,7 @@ def create_variant(
 
 @mcp_server.tool(
     name="phoxtail_studio_delete_variant",
+    auth=[scoped("phoxtail_streams.delete_blockvariant")],
     description=(
         "Permanently delete a block variant by its numeric ID. "
         "WARNING: page StreamField bodies reference variants by integer ID — "

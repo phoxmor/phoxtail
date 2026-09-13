@@ -8,6 +8,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import guarded
 from phoxtail.streams.api.v1._helpers import (
     etag_matches,
     resolve_block_by_pk,
@@ -31,7 +32,12 @@ from phoxtail.streams.models import SharedBlock as SharedBlockModel
 router = Router()
 
 
-@router.get("/", response={200: SharedBlockList}, summary="List SharedBlocks")
+@router.get(
+    "/",
+    response={200: SharedBlockList},
+    summary="List SharedBlocks",
+    auth=guarded("phoxtail_streams.view_sharedblock"),
+)
 def list_shared_blocks(
     request: HttpRequest,
     block: int | None = Query(None, description="Filter by block ID."),
@@ -55,6 +61,7 @@ def list_shared_blocks(
     "/{shared_block_id}/",
     response={200: SharedBlock, 404: Error},
     summary="Show a SharedBlock by numeric ID",
+    auth=guarded("phoxtail_streams.view_sharedblock"),
 )
 def get_shared_block_by_id(request: HttpRequest, response: HttpResponse, shared_block_id: int):
     sb = resolve_shared_block_by_pk(shared_block_id)
@@ -66,6 +73,7 @@ def get_shared_block_by_id(request: HttpRequest, response: HttpResponse, shared_
     "/",
     response={201: SharedBlock, 400: Error, 404: Error, 409: Error},
     summary="Create a SharedBlock",
+    auth=guarded("phoxtail_streams.add_sharedblock"),
 )
 def create_shared_block(request: HttpRequest, response: HttpResponse, payload: SharedBlockCreate):
     block = resolve_block_by_pk(payload.block_id)
@@ -107,6 +115,7 @@ def create_shared_block(request: HttpRequest, response: HttpResponse, payload: S
     "/{shared_block_id}/",
     response={200: SharedBlock, 400: Error, 404: Error, 412: Error, 428: Error},
     summary="Update a SharedBlock's content or variant by numeric ID",
+    auth=guarded("phoxtail_streams.change_sharedblock"),
 )
 def update_shared_block_by_id(
     request: HttpRequest,
@@ -155,6 +164,7 @@ def update_shared_block_by_id(
     "/{shared_block_id}/",
     response={204: None, 404: Error},
     summary="Delete a SharedBlock by numeric ID",
+    auth=guarded("phoxtail_streams.delete_sharedblock"),
 )
 def delete_shared_block_by_id(request: HttpRequest, shared_block_id: int):
     sb = resolve_shared_block_by_pk(shared_block_id)
