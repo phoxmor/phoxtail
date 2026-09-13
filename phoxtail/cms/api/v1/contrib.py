@@ -71,25 +71,21 @@ _cache: dict[str, PageSchemaContribution] | None = None
 def collect_page_schemas() -> dict[str, PageSchemaContribution]:
     """Return a mapping of ``content_type`` → contribution.
 
-    Walks ``apps.get_app_configs()``, filters to ``PhoxtailAppConfig``
-    instances with ``page_schema_contributors`` declared, imports each
-    dotted path, and invokes it. Duplicates (two apps contributing the
-    same ``content_type``) raise ``RuntimeError`` — that almost
-    certainly indicates a copy-paste bug rather than a legitimate
+    Asks :func:`~phoxtail.core.discovery.phoxtail_app_configs` which apps are
+    ours — subclassing ``PhoxtailAppConfig`` is that answer everywhere — then
+    imports each declared dotted path and invokes it. Duplicates (two apps
+    contributing the same ``content_type``) raise ``RuntimeError``, which
+    almost certainly indicates a copy-paste bug rather than a legitimate
     override.
     """
     global _cache
     if _cache is not None:
         return _cache
 
-    from django.apps import apps as django_apps
-
-    from phoxtail.core.app_config import PhoxtailAppConfig
+    from phoxtail.core.discovery import phoxtail_app_configs
 
     result: dict[str, PageSchemaContribution] = {}
-    for config in django_apps.get_app_configs():
-        if not isinstance(config, PhoxtailAppConfig):
-            continue
+    for config in phoxtail_app_configs():
         for dotted in config.page_schema_contributors:
             factory = _import_dotted(dotted)
             contribution = factory()
