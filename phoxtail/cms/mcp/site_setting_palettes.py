@@ -7,10 +7,12 @@ import json
 from phoxtail.cms.mcp._error import error_envelope
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_site_setting_palettes_list",
+    auth=[scoped("phoxtail_cms.view_sitesetting")],
     description=(
         "List palette assignments for a site. "
         "Each assignment maps a Palette to a semantic PaletteRole "
@@ -30,6 +32,7 @@ def site_setting_palettes_list(site_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_site_setting_palettes_get",
+    auth=[scoped("phoxtail_cms.view_sitesetting")],
     description=(
         "Get a single palette assignment by id. "
         "Use phoxtail_site_setting_palettes_list to find assignment IDs. "
@@ -50,6 +53,7 @@ def site_setting_palettes_get(site_id: int, palette_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_site_setting_palettes_add",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Assign a palette to a semantic role on a site. "
         "Use phoxtail_palettes_list to find palette_id values. "
@@ -84,6 +88,7 @@ def site_setting_palettes_add(
 
 @mcp_server.tool(
     name="phoxtail_site_setting_palettes_update",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Update a palette assignment. Pass only the fields you want to change — "
         "omitted fields are left untouched. "
@@ -126,6 +131,7 @@ def site_setting_palettes_update(
 
 @mcp_server.tool(
     name="phoxtail_site_setting_palettes_remove",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Remove a palette assignment from a site. "
         "Requires `etag` from a prior phoxtail_site_setting_palettes_get call. "

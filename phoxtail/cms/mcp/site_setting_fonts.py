@@ -7,10 +7,12 @@ import json
 from phoxtail.cms.mcp._error import error_envelope
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_site_setting_fonts_list",
+    auth=[scoped("phoxtail_cms.view_sitesetting")],
     description=(
         "List font assignments for a site. "
         "Each assignment maps a FontFamily to a semantic FontRole "
@@ -30,6 +32,7 @@ def site_setting_fonts_list(site_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_site_setting_fonts_get",
+    auth=[scoped("phoxtail_cms.view_sitesetting")],
     description=(
         "Get a single font assignment by id. "
         "Use phoxtail_site_setting_fonts_list to find assignment IDs. "
@@ -49,6 +52,7 @@ def site_setting_fonts_get(site_id: int, font_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_site_setting_fonts_add",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Assign a font family to a semantic role on a site. "
         "Use phoxtail_font_families_list to find font_family_id values. "
@@ -83,6 +87,7 @@ def site_setting_fonts_add(
 
 @mcp_server.tool(
     name="phoxtail_site_setting_fonts_update",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Update a font assignment. Pass only the fields you want to change — "
         "omitted fields are left untouched. "
@@ -125,6 +130,7 @@ def site_setting_fonts_update(
 
 @mcp_server.tool(
     name="phoxtail_site_setting_fonts_remove",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Remove a font assignment from a site. "
         "Requires `etag` from a prior phoxtail_site_setting_fonts_get call. "

@@ -7,10 +7,12 @@ import json
 from phoxtail.cms.mcp._error import error_envelope
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_site_settings_get",
+    auth=[scoped("phoxtail_cms.view_sitesetting")],
     description=(
         "Get the branding and theming settings for a Wagtail site. "
         "Auto-creates a blank SiteSetting if none exists yet. "
@@ -33,6 +35,7 @@ def site_settings_get(site_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_site_settings_update",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Update branding images for a site. Pass only the image IDs you want to set — "
         "omitted fields are left untouched. "
@@ -92,6 +95,7 @@ def site_settings_update(
 
 @mcp_server.tool(
     name="phoxtail_site_settings_clear_image",
+    auth=[scoped("phoxtail_cms.change_sitesetting")],
     description=(
         "Clear (set to null) one or more branding image fields on a site's settings. "
         "Requires `etag` from a prior phoxtail_site_settings_get call. "

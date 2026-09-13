@@ -107,3 +107,58 @@ def may_move(user, collection) -> bool:
         return True
     grants = collection_policy()._get_user_permission_objects_for_actions(user, {"add", "change", "delete"})
     return not any(grant.collection_id == collection.pk for grant in grants)
+
+
+# ---------------------------------------------------------------------------
+# Site settings — granted per site
+# ---------------------------------------------------------------------------
+
+# Wagtail's settings surface asks for exactly one action. ``permission_required
+# = "change"`` on its EditView is the only permission it names, and a grep of
+# ``wagtail/contrib/settings`` finds **no reference to a view action at all**.
+# There is no read-only settings view, so reading is what changing permits —
+# the same asymmetry wagtailmedia has, where a chooser asks change/delete
+# because no ``choose`` row exists. Copying it is the point.
+SETTINGS_ACTION = "change"
+
+
+def settings_policy():
+    """The policy Wagtail's own settings admin resolves for this model.
+
+    Wagtail 8 grants settings **per site**, through ``GroupSitePermission``
+    rows and ``SitePermissionPolicy``. Verified on a running project on
+    2026-09-13:
+
+        Granted change_sitesetting on one site:
+          user.has_perm('phoxtail_cms.change_sitesetting')      -> False
+          policy.user_has_permission_for_instance(…, 'change')  -> True
+          sites_user_has_permission_for(…, 'change')            -> [that site]
+
+    The policy still honours a *global* grant as well — it ORs the user's own
+    permissions, their groups' permissions and their groups' per-site rows —
+    so ``guarded()`` would have admitted the globally granted and refused
+    everyone the admin had granted per site.
+    """
+    from wagtail.permissions import policy_registry
+
+    from phoxtail.cms.models import SiteSetting
+
+    return policy_registry.get_by_type(SiteSetting)
+
+
+def require_settings_access(user, setting) -> None:
+    """403 unless *user* may act on this site's settings.
+
+    Takes the ``SiteSetting`` rather than the site: the policy reads the
+    instance's ``site`` field itself, and passing the object we actually
+    serve keeps the question about the thing being served.
+
+    403 rather than 404, which is the opposite of what :func:`manageable`
+    does for collections — and it is Wagtail's answer. Its settings view
+    raises ``PermissionDenied``, and there is no narrowed listing of
+    settings to resolve within: a settings record is reached by naming a
+    site, and which sites exist is a question ``/sites/`` already answers
+    under its own permission.
+    """
+    if not settings_policy().user_has_permission_for_instance(user, SETTINGS_ACTION, setting):
+        raise HttpError(403, "User cannot change settings for that site.")

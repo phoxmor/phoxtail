@@ -16,6 +16,8 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import scoped
+from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
@@ -72,11 +74,13 @@ class Error(Schema):
     "/{site_id}/palettes/",
     response={200: SiteSettingPaletteList, 404: Error},
     summary="List palette assignments for a site",
+    auth=scoped("phoxtail_cms.view_sitesetting"),
 )
 def list_site_palettes(request: HttpRequest, site_id: int):
     from phoxtail.cms.models import SiteSettingPalette
 
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
     qs = SiteSettingPalette.objects.select_related("palette", "role").filter(config=setting).order_by("sort_order")
     items = [serialize_site_palette(sp) for sp in qs]
     return {"palettes": items, "total": len(items)}
@@ -86,6 +90,7 @@ def list_site_palettes(request: HttpRequest, site_id: int):
     "/{site_id}/palettes/",
     response={201: SiteSettingPaletteItem, 400: Error, 404: Error, 409: Error},
     summary="Add a palette assignment to a site",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def create_site_palette(
     request: HttpRequest,
@@ -97,6 +102,7 @@ def create_site_palette(
     from phoxtail.design.models import Palette, PaletteRole
 
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
 
     try:
         Palette.objects.get(pk=payload.palette_id)
@@ -136,9 +142,11 @@ def create_site_palette(
     "/{site_id}/palettes/{palette_id}/",
     response={200: SiteSettingPaletteItem, 404: Error},
     summary="Get a palette assignment",
+    auth=scoped("phoxtail_cms.view_sitesetting"),
 )
 def get_site_palette(request: HttpRequest, response: HttpResponse, site_id: int, palette_id: int):
-    _, sp = resolve_site_palette(site_id, palette_id)
+    setting, sp = resolve_site_palette(site_id, palette_id)
+    require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_palette_etag(sp)
     return serialize_site_palette(sp)
 
@@ -154,6 +162,7 @@ def get_site_palette(request: HttpRequest, response: HttpResponse, site_id: int,
         428: Error,
     },
     summary="Update a palette assignment",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def patch_site_palette(
     request: HttpRequest,
@@ -164,7 +173,8 @@ def patch_site_palette(
 ):
     from phoxtail.design.models import Palette, PaletteRole
 
-    _, sp = resolve_site_palette(site_id, palette_id)
+    setting, sp = resolve_site_palette(site_id, palette_id)
+    require_settings_access(request.auth.user, setting)
     require_if_match(request, site_setting_palette_etag(sp))
 
     data = payload.model_dump(exclude_unset=True)
@@ -201,9 +211,11 @@ def patch_site_palette(
     "/{site_id}/palettes/{palette_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Remove a palette assignment",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def delete_site_palette(request: HttpRequest, site_id: int, palette_id: int):
-    _, sp = resolve_site_palette(site_id, palette_id)
+    setting, sp = resolve_site_palette(site_id, palette_id)
+    require_settings_access(request.auth.user, setting)
     require_if_match(request, site_setting_palette_etag(sp))
     sp.delete()
     return 204, None

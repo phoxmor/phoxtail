@@ -41,12 +41,28 @@ PAIRS = {
     "phoxtail_collections_create": "create_collection",
     "phoxtail_collections_update": "patch_collection",
     "phoxtail_collections_delete": "delete_collection",
+    "phoxtail_site_settings_get": "get_site_setting",
+    "phoxtail_site_settings_update": "patch_site_setting",
+    "phoxtail_site_setting_fonts_list": "list_site_fonts",
+    "phoxtail_site_setting_fonts_get": "get_site_font",
+    "phoxtail_site_setting_fonts_add": "create_site_font",
+    "phoxtail_site_setting_fonts_update": "patch_site_font",
+    "phoxtail_site_setting_fonts_remove": "delete_site_font",
+    "phoxtail_site_setting_palettes_list": "list_site_palettes",
+    "phoxtail_site_setting_palettes_get": "get_site_palette",
+    "phoxtail_site_setting_palettes_add": "create_site_palette",
+    "phoxtail_site_setting_palettes_update": "patch_site_palette",
+    "phoxtail_site_setting_palettes_remove": "delete_site_palette",
 }
 
 # Tools with no endpoint of their own. Each names what it actually reaches:
 # an MCP tool naming no codename is offered to *every* credential, the
 # opposite of the API's default, where declaring nothing closes the door.
-TOOLS_WITHOUT_AN_ENDPOINT: dict[str, tuple[str, ...]] = {}
+TOOLS_WITHOUT_AN_ENDPOINT: dict[str, tuple[str, ...]] = {
+    # A second tool on patch_site_setting rather than an endpoint of its own:
+    # it PATCHes the same URL with nulls, so it names the same codename.
+    "phoxtail_site_settings_clear_image": ("phoxtail_cms.change_sitesetting",),
+}
 
 # Endpoints that name no codename because there is none to name, and say so
 # with ``authenticated()`` rather than by staying silent. ``list_page_types``
@@ -67,19 +83,6 @@ TOOLS_WITHOUT_A_CODENAME = {"phoxtail_page_types_list"}
 # Shrinks to nothing as cms lands, family by family. Kept so that a
 # half-annotated domain cannot be mistaken for a finished one.
 ENDPOINTS_NOT_YET_ANNOTATED = {
-    # site settings, fonts, palettes — per-site grants
-    "get_site_setting",
-    "patch_site_setting",
-    "list_site_fonts",
-    "create_site_font",
-    "get_site_font",
-    "patch_site_font",
-    "delete_site_font",
-    "list_site_palettes",
-    "create_site_palette",
-    "get_site_palette",
-    "patch_site_palette",
-    "delete_site_palette",
     # pages, body, blocks — per-subtree grants
     "list_pages",
     "create_page",
@@ -190,6 +193,11 @@ def test_every_tool_is_accounted_for():
     assert still_owed, "every cms tool is scoped — fold this into test_every_tool_is_scoped"
 
 
+def test_every_scoped_tool_is_one_we_named():
+    """No tool scopes itself outside the two tables above."""
+    assert set(_tool_codenames()) == set(PAIRS) | set(TOOLS_WITHOUT_AN_ENDPOINT)
+
+
 def test_the_bare_pair_is_the_only_bare_pair():
     """A tool may be bare only because its endpoint deliberately is too.
 
@@ -202,6 +210,29 @@ def test_the_bare_pair_is_the_only_bare_pair():
 @pytest.mark.parametrize("tool,endpoint", sorted(PAIRS.items()))
 def test_the_tool_names_what_its_endpoint_names(tool, endpoint):
     assert _tool_codenames()[tool] == _endpoint_codenames()[endpoint]
+
+
+@pytest.mark.parametrize("tool,codenames", sorted(TOOLS_WITHOUT_AN_ENDPOINT.items()))
+def test_a_tool_without_an_endpoint_names_what_it_reaches(tool, codenames):
+    """A second tool on someone else's endpoint still has to name its act.
+
+    ``PAIRS`` cannot hold it — the endpoint is already spoken for — so
+    without this the tool's codename would be checked by nothing.
+    """
+    found = _tool_codenames()[tool]
+    # Parenthesised deliberately: without them Python reads this as
+    # ``(found,) if ... else (found == codenames)``, and a single-codename
+    # tool would assert a non-empty tuple — always true, never a test.
+    assert ((found,) if isinstance(found, str) else found) == codenames
+
+
+def test_a_second_tool_on_an_endpoint_agrees_with_the_first():
+    """clear_image PATCHes the same URL as update, so it asks the same thing.
+
+    Naming anything else would let a token reach one and not the other
+    while both end up at the same door.
+    """
+    assert _tool_codenames()["phoxtail_site_settings_clear_image"] == _endpoint_codenames()["patch_site_setting"]
 
 
 @pytest.mark.parametrize("tool", sorted(TOOLS_WITHOUT_A_CODENAME))

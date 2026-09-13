@@ -16,6 +16,8 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import scoped
+from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
@@ -72,11 +74,13 @@ class Error(Schema):
     "/{site_id}/fonts/",
     response={200: SiteSettingFontList, 404: Error},
     summary="List font assignments for a site",
+    auth=scoped("phoxtail_cms.view_sitesetting"),
 )
 def list_site_fonts(request: HttpRequest, site_id: int):
     from phoxtail.cms.models import SiteSettingFont
 
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
     qs = SiteSettingFont.objects.select_related("font_family", "role").filter(config=setting).order_by("sort_order")
     items = [serialize_site_font(sf) for sf in qs]
     return {"fonts": items, "total": len(items)}
@@ -86,6 +90,7 @@ def list_site_fonts(request: HttpRequest, site_id: int):
     "/{site_id}/fonts/",
     response={201: SiteSettingFontItem, 400: Error, 404: Error, 409: Error},
     summary="Add a font assignment to a site",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def create_site_font(
     request: HttpRequest,
@@ -97,6 +102,7 @@ def create_site_font(
     from phoxtail.design.models import FontFamily, FontRole
 
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
 
     try:
         FontFamily.objects.get(pk=payload.font_family_id)
@@ -136,9 +142,11 @@ def create_site_font(
     "/{site_id}/fonts/{font_id}/",
     response={200: SiteSettingFontItem, 404: Error},
     summary="Get a font assignment",
+    auth=scoped("phoxtail_cms.view_sitesetting"),
 )
 def get_site_font(request: HttpRequest, response: HttpResponse, site_id: int, font_id: int):
-    _, sf = resolve_site_font(site_id, font_id)
+    setting, sf = resolve_site_font(site_id, font_id)
+    require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_font_etag(sf)
     return serialize_site_font(sf)
 
@@ -154,6 +162,7 @@ def get_site_font(request: HttpRequest, response: HttpResponse, site_id: int, fo
         428: Error,
     },
     summary="Update a font assignment",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def patch_site_font(
     request: HttpRequest,
@@ -164,7 +173,8 @@ def patch_site_font(
 ):
     from phoxtail.design.models import FontFamily, FontRole
 
-    _, sf = resolve_site_font(site_id, font_id)
+    setting, sf = resolve_site_font(site_id, font_id)
+    require_settings_access(request.auth.user, setting)
     require_if_match(request, site_setting_font_etag(sf))
 
     data = payload.model_dump(exclude_unset=True)
@@ -201,9 +211,11 @@ def patch_site_font(
     "/{site_id}/fonts/{font_id}/",
     response={204: None, 404: Error, 412: Error, 428: Error},
     summary="Remove a font assignment",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def delete_site_font(request: HttpRequest, site_id: int, font_id: int):
-    _, sf = resolve_site_font(site_id, font_id)
+    setting, sf = resolve_site_font(site_id, font_id)
+    require_settings_access(request.auth.user, setting)
     require_if_match(request, site_setting_font_etag(sf))
     sf.delete()
     return 204, None

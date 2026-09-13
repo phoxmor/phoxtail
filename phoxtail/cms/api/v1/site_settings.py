@@ -14,6 +14,8 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import scoped
+from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
@@ -101,9 +103,11 @@ def _validate_image_ids(data: dict) -> None:
     "/{site_id}/",
     response={200: SiteSettingDetail, 404: Error},
     summary="Get site settings",
+    auth=scoped("phoxtail_cms.view_sitesetting"),
 )
 def get_site_setting(request: HttpRequest, response: HttpResponse, site_id: int):
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_etag(setting)
     return serialize_setting(setting)
 
@@ -118,6 +122,7 @@ def get_site_setting(request: HttpRequest, response: HttpResponse, site_id: int)
         428: Error,
     },
     summary="Update site branding images",
+    auth=scoped("phoxtail_cms.change_sitesetting"),
 )
 def patch_site_setting(
     request: HttpRequest,
@@ -126,6 +131,7 @@ def patch_site_setting(
     payload: SiteSettingPatch,
 ):
     setting = resolve_setting(site_id)
+    require_settings_access(request.auth.user, setting)
     require_if_match(request, site_setting_etag(setting))
 
     data = payload.model_dump(exclude_unset=True)
