@@ -8,10 +8,12 @@ from typing import Any
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_pages_get_body",
+    auth=[scoped("wagtailcore.view_page")],
     description=(
         "Fetch a page's StreamField body as a list of {type, value, id} "
         "blocks. Returns an object with `body` and `_etag` — the ETag "
@@ -31,6 +33,7 @@ def get_body(page_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_replace_body",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Replace a page's body wholesale with a new list of blocks. "
         "Use this only when creating a page from scratch or performing a "

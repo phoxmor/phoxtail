@@ -17,6 +17,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import scoped
 from phoxtail.cms.api.v1._helpers import (
     body_field_name_for,
     page_etag,
@@ -27,6 +28,7 @@ from phoxtail.cms.api.v1._helpers import (
     resolve_page_for_read,
     serialize_body,
 )
+from phoxtail.cms.api.v1._permissions import require_page_readable
 
 router = Router()
 
@@ -169,6 +171,7 @@ def _commit_body(
     "/{page_id}/blocks/{block_uuid}/",
     response={200: dict, 404: dict},
     summary="Get a single block by UUID",
+    auth=scoped("wagtailcore.view_page"),
 )
 def get_block(
     request: HttpRequest,
@@ -177,6 +180,10 @@ def get_block(
     block_uuid: str,
 ):
     live = resolve_page(page_id)
+    # Same gate as GET /pages/{id}/ — it is the same content through another
+    # URL, and it is the *draft* of it, so the question is who may read this
+    # page's unreviewed edits.
+    require_page_readable(request.auth.user, live)
     response["ETag"] = page_etag(live)
     draft = resolve_page_for_read(page_id)
     body = serialize_body(draft, body_field_name_for(draft))
@@ -193,6 +200,7 @@ def get_block(
     "/{page_id}/blocks/{block_uuid}/",
     response={200: dict, 400: dict, 403: dict, 404: dict, 412: dict, 428: dict},
     summary="Update a single block's value (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def patch_block(
     request: HttpRequest,
@@ -231,6 +239,7 @@ def patch_block(
     "/{page_id}/blocks/",
     response={201: dict, 400: dict, 403: dict, 404: dict, 412: dict, 428: dict},
     summary="Add a new block to the body (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def add_block(
     request: HttpRequest,
@@ -278,6 +287,7 @@ def add_block(
     "/{page_id}/blocks/{block_uuid}/",
     response={200: dict, 403: dict, 404: dict, 412: dict, 428: dict},
     summary="Remove a block from the body (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def delete_block(
     request: HttpRequest,
@@ -307,6 +317,7 @@ def delete_block(
     "/{page_id}/blocks/{block_uuid}/move/",
     response={200: dict, 400: dict, 403: dict, 404: dict, 412: dict, 428: dict},
     summary="Reorder a block within the body (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def move_block(
     request: HttpRequest,

@@ -8,6 +8,7 @@ from typing import Any
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._changes import mark_changed_pages
+from phoxtail.mcp.authorization import scoped
 
 # ---------------------------------------------------------------------------
 # List / get
@@ -16,6 +17,7 @@ from phoxtail.mcp._changes import mark_changed_pages
 
 @mcp_server.tool(
     name="phoxtail_pages_list_pages",
+    auth=[scoped("wagtailcore.view_page")],
     description=(
         "List Wagtail pages in the project. Optional filters: `type` "
         "(e.g. 'phoxtail_blog.BlogPostPage'), `parent` (parent page id), "
@@ -57,6 +59,7 @@ def list_pages(
 
 @mcp_server.tool(
     name="phoxtail_pages_get_page",
+    auth=[scoped("wagtailcore.view_page")],
     description=(
         "Get the full detail of a single page: common Wagtail fields, "
         "per-page-type fields contributed by the owning app, and the "
@@ -139,6 +142,7 @@ def _write_error_envelope(resp) -> str | None:
 
 @mcp_server.tool(
     name="phoxtail_pages_update_page",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Patch a page's scalar fields (title, slug, seo_title, "
         "search_description, plus any per-type fields contributed by the "
@@ -177,6 +181,7 @@ def update_page(
 
 @mcp_server.tool(
     name="phoxtail_pages_publish",
+    auth=[scoped("wagtailcore.publish_page")],
     description=(
         "Publish the latest draft revision of a page. Requires the "
         "ETag from a prior phoxtail_pages_get_page call. On success, "
@@ -205,6 +210,7 @@ def publish_page(page_id: int, etag: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_create_page",
+    auth=[scoped("wagtailcore.add_page")],
     description=(
         "Create a new Wagtail page as a draft under a given parent. "
         "Before calling this tool: (1) call phoxtail_page_types_list to "
@@ -252,6 +258,7 @@ def create_page(
 
 @mcp_server.tool(
     name="phoxtail_pages_move_page",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Move a page to a new position in the Wagtail page tree. "
         "Use this when the user says 'move X under Y' or 'move X before/after Y'. "
@@ -290,6 +297,7 @@ def move_page(
 
 @mcp_server.tool(
     name="phoxtail_pages_delete_page",
+    auth=[scoped("wagtailcore.bulk_delete_page")],
     description=(
         "Permanently delete a page. Requires the ETag from a prior "
         "phoxtail_pages_get_page call. Pass force=true to also delete all "
@@ -312,6 +320,7 @@ def delete_page(page_id: int, etag: str, force: bool = False) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_translate_page",
+    auth=[scoped("wagtailcore.add_page")],
     description=(
         "Copy a Wagtail page into a new locale using simple_translation. "
         "Before calling: use phoxtail_locales_list to discover available "
@@ -353,6 +362,7 @@ def translate_page(
 
 @mcp_server.tool(
     name="phoxtail_pages_unpublish",
+    auth=[scoped("wagtailcore.publish_page")],
     description=("Take a page offline. Requires the ETag from a prior phoxtail_pages_get_page call."),
 )
 def unpublish_page(page_id: int, etag: str) -> str:

@@ -53,6 +53,22 @@ PAIRS = {
     "phoxtail_site_setting_palettes_add": "create_site_palette",
     "phoxtail_site_setting_palettes_update": "patch_site_palette",
     "phoxtail_site_setting_palettes_remove": "delete_site_palette",
+    "phoxtail_pages_list_pages": "list_pages",
+    "phoxtail_pages_get_page": "get_page",
+    "phoxtail_pages_create_page": "create_page",
+    "phoxtail_pages_update_page": "patch_page",
+    "phoxtail_pages_publish": "publish_page",
+    "phoxtail_pages_unpublish": "unpublish_page",
+    "phoxtail_pages_translate_page": "copy_page_for_translation",
+    "phoxtail_pages_move_page": "move_page",
+    "phoxtail_pages_delete_page": "delete_page",
+    "phoxtail_pages_get_body": "get_body",
+    "phoxtail_pages_replace_body": "put_body",
+    "phoxtail_pages_get_block": "get_block",
+    "phoxtail_pages_update_block": "patch_block",
+    "phoxtail_pages_add_block": "add_block",
+    "phoxtail_pages_delete_block": "delete_block",
+    "phoxtail_pages_move_block": "move_block",
 }
 
 # Tools with no endpoint of their own. Each names what it actually reaches:
@@ -79,28 +95,6 @@ ENDPOINTS_WITHOUT_A_CODENAME = {"list_page_types"}
 # would have admitted; a guarded endpoint with a bare tool would offer a
 # tool that is then refused. Both halves bare is the only consistent pair.
 TOOLS_WITHOUT_A_CODENAME = {"phoxtail_page_types_list"}
-
-# Shrinks to nothing as cms lands, family by family. Kept so that a
-# half-annotated domain cannot be mistaken for a finished one.
-ENDPOINTS_NOT_YET_ANNOTATED = {
-    # pages, body, blocks — per-subtree grants
-    "list_pages",
-    "create_page",
-    "get_page",
-    "patch_page",
-    "publish_page",
-    "unpublish_page",
-    "copy_page_for_translation",
-    "move_page",
-    "delete_page",
-    "get_body",
-    "put_body",
-    "get_block",
-    "patch_block",
-    "add_block",
-    "delete_block",
-    "move_block",
-}
 
 
 def _endpoint_codenames() -> dict[str, str | tuple[str, ...]]:
@@ -162,35 +156,20 @@ def _served_endpoints() -> set[str]:
 
 
 def test_every_endpoint_is_accounted_for():
-    """Annotated, deliberately bare, or still owed — never simply forgotten."""
-    unaccounted = (
-        _served_endpoints() - set(_endpoint_codenames()) - ENDPOINTS_WITHOUT_A_CODENAME - ENDPOINTS_NOT_YET_ANNOTATED
-    )
-    assert unaccounted == set()
+    """Annotated or deliberately bare — never simply forgotten.
 
-
-def test_nothing_is_still_waiting_to_be_annotated():
-    """Fails on purpose when cms finishes.
-
-    When the last family lands this set empties, this test fails, and both
-    it and the set are deleted. That failure is the reminder, not a defect.
+    Nothing is pending any more: the set that held the deferrals is gone,
+    and so is the test that refused to let it be forgotten. It failed on
+    cue when the last family landed, which is how it was meant to end.
     """
-    assert ENDPOINTS_NOT_YET_ANNOTATED, (
-        "Every cms endpoint is annotated. Delete ENDPOINTS_NOT_YET_ANNOTATED and this test."
-    )
-
-
-def test_the_deferral_set_names_only_real_endpoints():
-    """A typo here would hide a genuinely unannotated endpoint forever."""
-    assert ENDPOINTS_NOT_YET_ANNOTATED <= _served_endpoints()
+    unaccounted = _served_endpoints() - set(_endpoint_codenames()) - ENDPOINTS_WITHOUT_A_CODENAME
+    assert unaccounted == set()
 
 
 def test_every_tool_is_accounted_for():
     """Scoped, or deliberately bare — a tool that is neither is offered to all."""
     still_owed = _declared_tools() - set(_tool_codenames()) - TOOLS_WITHOUT_A_CODENAME
-    # Tools whose endpoint has not landed yet are bare for now, and named by
-    # the endpoint deferral set rather than a second list of their own.
-    assert still_owed, "every cms tool is scoped — fold this into test_every_tool_is_scoped"
+    assert still_owed == set()
 
 
 def test_every_scoped_tool_is_one_we_named():

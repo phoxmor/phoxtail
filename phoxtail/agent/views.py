@@ -340,6 +340,23 @@ def _authenticate_screenshot_request(request):
     return user
 
 
+def _may_read_page(user, page) -> bool:
+    """Whether *user* may read this page, asked exactly as the API asks it.
+
+    ``access_chatbot`` says the caller may drive the renderer. It says
+    nothing about *which* pages, and Wagtail grants pages per subtree — so
+    without this, anyone holding chatbot access could photograph any page by
+    id, including an unpublished draft in a subtree they were never granted.
+    ``page_id`` is a plain integer, so nothing stopped that being swept.
+
+    The same gate as ``GET /cms/v1/pages/{id}/``, because this renders the
+    same ``resolve_page_for_read`` draft; 404 for the same reason.
+    """
+    from phoxtail.cms.api.v1._permissions import readable_pages
+
+    return readable_pages(user).filter(pk=page.pk).exists()
+
+
 def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpResponse:
     """Render the full page HTML so Playwright can screenshot a specific block.
 
@@ -353,6 +370,8 @@ def render_page_for_screenshot(request, page_id: int, block_uuid: str) -> HttpRe
 
     request.user = user
     draft = resolve_page_for_read(page_id)
+    if not _may_read_page(user, draft):
+        return HttpResponse(status=404)
     _apply_page_site(request, draft)
 
     return render(
@@ -373,6 +392,8 @@ def render_page_for_viewport_screenshot(request, page_id: int) -> HttpResponse:
 
     request.user = user
     draft = resolve_page_for_read(page_id)
+    if not _may_read_page(user, draft):
+        return HttpResponse(status=404)
     _apply_page_site(request, draft)
 
     return render(

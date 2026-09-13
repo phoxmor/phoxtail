@@ -39,6 +39,7 @@ from phoxtail.cms.api.v1._helpers import (
     serialize_page_detail,
     serialize_page_summary,
 )
+from phoxtail.cms.api.v1._permissions import readable_pages, require_page_readable
 from phoxtail.cms.api.v1.schemas import (
     BodyResponse,  # noqa: F401 — re-exported for Ninja docs
     CopyForTranslationPayload,
@@ -57,6 +58,11 @@ router = Router()
     "/",
     response={200: PageList, 400: Error, 404: Error},
     summary="List pages",
+    # Only the credential's half at the door. Wagtail grants pages per
+    # subtree, so has_perm() would refuse people it genuinely permits; the
+    # person's half is the narrowing below. view_page names the act rather
+    # than gating it — Wagtail references that codename nowhere.
+    auth=scoped("wagtailcore.view_page"),
 )
 def list_pages(
     request: HttpRequest,
@@ -72,11 +78,18 @@ def list_pages(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    qs = Page.objects.exclude(depth=1).order_by("path")
+    # Narrowed rather than refused: being shown fewer pages is a true answer
+    # to "which may I read", where a 403 would claim the act was forbidden.
+    permitted = readable_pages(request.auth.user)
+    qs = permitted.exclude(depth=1).order_by("path")
     if type:
         qs = filter_by_content_type(qs, type)
     if parent is not None:
-        qs = qs.child_of(_get_parent_page(parent))
+        # Resolved within the permitted set too. Narrowing only the results
+        # would still leak the tree: an unreadable parent id would answer
+        # 404 where an unknown one answers 404 and a readable-but-empty one
+        # answers [], and the difference maps pages the caller cannot see.
+        qs = qs.child_of(_get_parent_page(parent, within=permitted))
     if live is not None:
         qs = qs.filter(live=live)
     if locale:
@@ -113,9 +126,15 @@ def _filter_by_site(qs, site_pk: int):
     return qs.descendant_of(site.root_page, inclusive=True)
 
 
-def _get_parent_page(parent_pk: int) -> Page:
+def _get_parent_page(parent_pk: int, within=None) -> Page:
+    """Resolve a parent page, optionally only from a permitted queryset.
+
+    Passing *within* makes a parent the caller may not read answer exactly
+    as an absent one does, so the filter cannot be used to probe the tree.
+    """
+    qs = Page.objects.all() if within is None else within
     try:
-        return Page.objects.get(pk=parent_pk)
+        return qs.get(pk=parent_pk)
     except Page.DoesNotExist as exc:
         raise HttpError(400, f"Parent page {parent_pk} not found.") from exc
 
@@ -124,6 +143,7 @@ def _get_parent_page(parent_pk: int) -> Page:
     "/",
     response={201: PageDetail, 400: Error, 403: Error, 404: Error},
     summary="Create a new page as a draft under a given parent",
+    auth=scoped("wagtailcore.add_page"),
 )
 def create_page(
     request: HttpRequest,
@@ -204,6 +224,7 @@ def create_page(
     "/{page_id}/",
     response={200: PageDetail, 404: Error},
     summary="Get a page (common + contributed fields + body)",
+    auth=scoped("wagtailcore.view_page"),
 )
 def get_page(
     request: HttpRequest,
@@ -214,6 +235,7 @@ def get_page(
     # timestamp); serialized payload reflects the latest draft so
     # PATCH→GET round-trips return the writer's changes.
     live = resolve_page(page_id)
+    require_page_readable(request.auth.user, live)
     response["ETag"] = page_etag(live)
     return serialize_page_detail(resolve_page_for_read(page_id))
 
@@ -229,6 +251,7 @@ def get_page(
         428: Error,
     },
     summary="Patch a page's scalar fields (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def patch_page(
     request: HttpRequest,
@@ -304,6 +327,7 @@ def publish_page(
     "/{page_id}/unpublish/",
     response={200: PageDetail, 403: Error, 404: Error, 412: Error, 428: Error},
     summary="Take a page offline (post-MVP)",
+    auth=scoped("wagtailcore.publish_page"),
 )
 def unpublish_page(
     request: HttpRequest,
@@ -324,6 +348,7 @@ def unpublish_page(
     "/{page_id}/copy_for_translation/",
     response={201: PageDetail, 400: Error, 403: Error, 404: Error, 409: Error},
     summary="Copy a page into a new locale (requires simple_translation)",
+    auth=scoped("wagtailcore.add_page"),
 )
 def copy_page_for_translation(
     request: HttpRequest,
@@ -388,6 +413,7 @@ def copy_page_for_translation(
     "/{page_id}/move/",
     response={200: PageDetail, 400: Error, 403: Error, 404: Error, 412: Error, 428: Error},
     summary="Move a page to a new position in the tree",
+    auth=scoped("wagtailcore.change_page"),
 )
 def move_page(
     request: HttpRequest,
@@ -441,6 +467,12 @@ def move_page(
     "/{page_id}/",
     response={204: None, 400: Error, 403: Error, 404: Error, 412: Error, 428: Error},
     summary="Delete a page (and its children if force=true)",
+    # bulk_delete_page, not delete_page. Wagtail has no delete action -
+    # can_delete() reads bulk_delete along with change and add - and
+    # wagtailcore.delete_page is a Django default row it references nowhere.
+    # Where a live codename exists, name it; view_page is a label only
+    # because Wagtail has no read action at all to name instead.
+    auth=scoped("wagtailcore.bulk_delete_page"),
 )
 def delete_page(
     request: HttpRequest,

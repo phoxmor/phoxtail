@@ -10,6 +10,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from ninja import Router
 
+from phoxtail.api.auth import scoped
 from phoxtail.cms.api.v1._helpers import (
     body_field_name_for,
     page_etag,
@@ -20,6 +21,7 @@ from phoxtail.cms.api.v1._helpers import (
     resolve_page_for_read,
     serialize_body,
 )
+from phoxtail.cms.api.v1._permissions import require_page_readable
 from phoxtail.cms.api.v1.schemas import BodyReplace, BodyResponse, Error
 
 router = Router()
@@ -29,6 +31,7 @@ router = Router()
     "/{page_id}/body/",
     response={200: BodyResponse, 404: Error},
     summary="Get a page's StreamField body",
+    auth=scoped("wagtailcore.view_page"),
 )
 def get_body(
     request: HttpRequest,
@@ -36,6 +39,10 @@ def get_body(
     page_id: int,
 ):
     live = resolve_page(page_id)
+    # Same gate as GET /pages/{id}/ — it is the same content through another
+    # URL, and it is the *draft* of it, so the question is who may read this
+    # page's unreviewed edits.
+    require_page_readable(request.auth.user, live)
     response["ETag"] = page_etag(live)
     draft = resolve_page_for_read(page_id)
     return {"body": serialize_body(draft, body_field_name_for(draft))}
@@ -52,6 +59,7 @@ def get_body(
         428: Error,
     },
     summary="Replace a page's body wholesale (creates a draft revision)",
+    auth=scoped("wagtailcore.change_page"),
 )
 def put_body(
     request: HttpRequest,

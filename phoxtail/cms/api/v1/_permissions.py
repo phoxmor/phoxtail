@@ -162,3 +162,80 @@ def require_settings_access(user, setting) -> None:
     """
     if not settings_policy().user_has_permission_for_instance(user, SETTINGS_ACTION, setting):
         raise HttpError(403, "User cannot change settings for that site.")
+
+
+# ---------------------------------------------------------------------------
+# Pages — granted per subtree
+# ---------------------------------------------------------------------------
+
+
+def page_policy():
+    """Wagtail's own page policy — grants live in ``GroupPagePermission``.
+
+    A row names a group, a page and an action, and the grant covers that
+    page's whole subtree. ``has_perm`` never reads those rows. Verified on a
+    running project on 2026-09-13, granted change_page on one branch:
+
+        user.has_perm('wagtailcore.change_page')  -> False
+        policy.user_has_permission(user, 'change') -> True
+
+    **There are six actions and no more**: ``PAGE_PERMISSION_TYPES`` is add,
+    bulk_delete, change, lock, publish, unlock. ``wagtailcore.view_page`` and
+    ``wagtailcore.delete_page`` exist because Django creates default
+    permissions, and a grep of the installed wagtail package finds *no*
+    non-test reference to ``view_page`` at all. Every ``Page`` subclass
+    resolves its codenames through ``base_page_model`` to those same six, so
+    ``view_sitepage`` and friends are dead rows too.
+    """
+    from wagtail.permissions import page_permission_policy
+
+    return page_permission_policy
+
+
+def page_actions() -> set[str]:
+    """The six actions Wagtail actually grants, read from Wagtail.
+
+    Derived rather than copied, so a Wagtail release that adds a seventh —
+    a read action, say — reaches this list without anyone remembering to.
+    """
+    from wagtail.models import PAGE_PERMISSION_TYPES
+
+    return {codename for codename, *_ in PAGE_PERMISSION_TYPES}
+
+
+def readable_pages(user):
+    """The pages *user* may read, as a queryset.
+
+    **Not** ``explorable_instances``, and the difference matters. That set
+    adds the *ancestors* of every granted page, and Wagtail says why in its
+    own comment: "This will allow deeply nested pages to be accessed in the
+    explorer... they will be able to navigate to D without having explicit
+    access to A, B or C." It exists so a tree can be walked to reach your
+    subtree — it is a navigation set, not a content set.
+
+    These endpoints serve content, and they serve the *latest draft* of it
+    (``resolve_page_for_read``). So the question is not "may I see this page
+    listed" but "may I see this page's unreviewed edits", and answering it
+    with the explorer's set would hand a section editor the drafts of every
+    page above them. Verified on a running project: granted change_page on
+    one branch, ``explorable_instances`` returned the site homepage, whose
+    ``can_edit()`` for that same user was False.
+
+    So this is the permission set proper: every page under a grant, and
+    nothing else.
+    """
+    return page_policy().instances_user_has_any_permission_for(user, page_actions())
+
+
+def require_page_readable(user, page) -> None:
+    """404 unless *user* may read this page.
+
+    404 rather than 403, as media and collections do for reads: a lookup
+    resolves within the permitted set, so a page outside it is a page that
+    is not there, and ids cannot be swept to map a tree you cannot see.
+    The write paths answer 403 instead, because they are reached by someone
+    already holding a write credential and telling them the act was refused
+    is more useful than pretending the page is gone.
+    """
+    if not readable_pages(user).filter(pk=page.pk).exists():
+        raise HttpError(404, f"Page {page.pk} not found.")

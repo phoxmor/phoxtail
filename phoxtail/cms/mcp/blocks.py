@@ -9,10 +9,12 @@ from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._changes import mark_changed_blocks
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_pages_get_block",
+    auth=[scoped("wagtailcore.view_page")],
     description=(
         "Fetch a single block from a page's StreamField body by its UUID. "
         "Returns {block: {type, value, id}, _etag}. "
@@ -30,6 +32,7 @@ def get_block(page_id: int, block_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_update_block",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Update the value of a single block in-place, identified by its UUID. "
         "Finds the block, replaces its value, saves a draft revision. "
@@ -56,6 +59,7 @@ def update_block(page_id: int, block_uuid: str, etag: str, value: dict[str, Any]
 
 @mcp_server.tool(
     name="phoxtail_pages_add_block",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Add a new block to a page's StreamField body. "
         "Pass etag from a prior get call. "
@@ -93,6 +97,7 @@ def add_block(
 
 @mcp_server.tool(
     name="phoxtail_pages_delete_block",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Remove a block from a page's StreamField body by its UUID. "
         "Creates a draft revision. Does NOT publish. "
@@ -117,6 +122,7 @@ def delete_block(page_id: int, block_uuid: str, etag: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_move_block",
+    auth=[scoped("wagtailcore.change_page")],
     description=(
         "Reorder a block within a page's StreamField body. "
         "Pass etag from a prior get call. "
