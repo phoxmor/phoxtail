@@ -1,7 +1,7 @@
 """The dashboard's HTTP face.
 
 Found because ``PhoxtailDashboardConfig`` subclasses ``PhoxtailAppConfig``.
-Nothing registers this module: declaring ``versions`` is the whole contract,
+Nothing registers this module: declaring ``versions`` is the routing contract,
 and each key becomes a path segment under ``/api/dashboard/``.
 """
 

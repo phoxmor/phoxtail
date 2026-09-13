@@ -1,7 +1,7 @@
 """``phoxtail_page_types_list`` MCP tool.
 
 Discovery tool — enumerates every page type that some installed app has
-contributed via ``PhoxtailAppConfig.page_schema_contributors``. Agents
+contributed through ``page_schemas`` in its ``api/`` package. Agents
 call this before creating or editing pages to learn which fields each
 page type exposes, which are required on creation, and which MCP tool
 resolves each FK field to an integer ID.

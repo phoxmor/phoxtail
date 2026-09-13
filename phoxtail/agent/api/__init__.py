@@ -1,7 +1,7 @@
 """The agent app's HTTP face.
 
 Found because ``PhoxtailAgentConfig`` subclasses ``PhoxtailAppConfig``.
-Declaring ``versions`` is the whole contract, and each key becomes a path
+Declaring ``versions`` is the routing contract, and each key becomes a path
 segment under ``/api/agent/``.
 """
 

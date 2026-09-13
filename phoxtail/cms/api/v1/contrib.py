@@ -1,9 +1,9 @@
 """Registry for per-page-type contributions from Phoxtail apps.
 
-Apps that ship their own ``wagtail.models.Page`` subclasses declare
-``page_schema_contributors`` on their ``PhoxtailAppConfig``. Each
-contributor is a zero-arg callable returning a
-:class:`PageSchemaContribution`. The pages domain calls
+Apps that ship their own ``wagtail.models.Page`` subclasses list their
+contributors in ``page_schemas`` in their ``<pkg>/api/`` package, beside the
+``versions`` that declare their routers. Each contributor is a zero-arg
+callable returning a :class:`PageSchemaContribution`. The pages domain calls
 :func:`collect_page_schemas` at runtime to:
 
 1. Enumerate the ``phoxtail://page-types`` discovery resource.
@@ -18,7 +18,6 @@ the pages domain from leaking app-specific knowledge into core.
 
 from __future__ import annotations
 
-import importlib
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -71,26 +70,36 @@ _cache: dict[str, PageSchemaContribution] | None = None
 def collect_page_schemas() -> dict[str, PageSchemaContribution]:
     """Return a mapping of ``content_type`` → contribution.
 
-    Asks :func:`~phoxtail.core.discovery.phoxtail_app_configs` which apps are
-    ours — subclassing ``PhoxtailAppConfig`` is that answer everywhere — then
-    imports each declared dotted path and invokes it. Duplicates (two apps
-    contributing the same ``content_type``) raise ``RuntimeError``, which
-    almost certainly indicates a copy-paste bug rather than a legitimate
-    override.
+    Walks the same ``<pkg>/api/`` packages discovery already mounts routers
+    from, and reads ``page_schemas`` off each. The contributors are ordinary
+    imports there, so a renamed factory is an ImportError at startup rather
+    than a surface that quietly goes missing.
+
+    Duplicates — two apps contributing the same ``content_type`` — raise
+    ``RuntimeError``, which almost certainly indicates a copy-paste bug rather
+    than a legitimate override.
+
+    One consequence worth knowing: the contributors are imported when the
+    ``api`` package is, which is at ``django.setup()`` rather than on the first
+    call here. Every app that ships page schemas ships a router too, so those
+    modules were already loading then; an app that ships schemas and no router
+    would newly pay that cost at startup.
     """
     global _cache
     if _cache is not None:
         return _cache
 
-    from phoxtail.core.discovery import phoxtail_app_configs
+    from phoxtail.core.discovery import discover
 
     result: dict[str, PageSchemaContribution] = {}
-    for config in phoxtail_app_configs():
-        for dotted in config.page_schema_contributors:
-            factory = _import_dotted(dotted)
+    for name, module in discover("api"):
+        for factory in getattr(module, "page_schemas", ()):
             contribution = factory()
             if not isinstance(contribution, PageSchemaContribution):
-                raise TypeError(f"{dotted} must return a PageSchemaContribution, got {type(contribution).__name__}")
+                raise TypeError(
+                    f"{name}: {factory.__name__} must return a PageSchemaContribution, "
+                    f"got {type(contribution).__name__}"
+                )
             if contribution.content_type in result:
                 raise RuntimeError(
                     f"Duplicate page_schema contribution for "
@@ -124,14 +133,3 @@ def reset_cache() -> None:
 
 def _content_type_for(page_cls: type[Page]) -> str:
     return f"{page_cls._meta.app_label}.{page_cls._meta.model_name}"
-
-
-def _import_dotted(dotted: str):
-    module_path, _, attr = dotted.rpartition(".")
-    if not module_path:
-        raise ImportError(f"Invalid dotted path for contributor: '{dotted}'")
-    module = importlib.import_module(module_path)
-    try:
-        return getattr(module, attr)
-    except AttributeError as exc:
-        raise ImportError(f"Module '{module_path}' has no attribute '{attr}'") from exc

@@ -39,17 +39,13 @@ class PhoxtailAppConfig(AppConfig):
     middleware: list[str] = []
     default_settings: dict = {}
 
-    # Neither surface is declared here. Subclassing this class is what makes
-    # an app discoverable, and its two surfaces are then found by name:
-    # <pkg>/api/ is mounted at /api/<label minus phoxtail_>/<version>/, and
-    # every module in <pkg>/mcp/ is imported so its tools register. See
+    # What is left above is one idea: what the project must know before Django
+    # starts and cannot work out for itself. Nothing about the app's surfaces
+    # belongs here. Subclassing this class is what makes an app discoverable,
+    # and its surfaces are then found by name — <pkg>/api/ declares its routers
+    # in `versions` and its page-type contributions in `page_schemas`, and every
+    # module in <pkg>/mcp/ is imported so its tools register. See
     # phoxtail.core.discovery.
-    #
-    # page_schema_contributors: dotted paths to zero-arg callables
-    #   returning a phoxtail.cms.api.v1.contrib.PageSchemaContribution.
-    #   Consumed by the pages domain to power /page-types/,
-    #   GET /pages/{id}/ per-type fields, and PATCH validation.
-    page_schema_contributors: list[str] = []
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
