@@ -436,8 +436,34 @@ class StreamRequest(Schema):
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
 
+def _require_chatbot_extra() -> None:
+    """Refuse a chat turn where the chatbot's dependency was never installed.
+
+    ``phoxtail.agent`` ships in every project but ``pydantic_ai`` arrives only
+    with the ``chatbot`` extra, so these two endpoints are the only part of the
+    app that can be asked for something the deployment cannot do. Everything
+    else here — providers, artifacts, settings — is plain model editing and
+    works without it.
+
+    Probed from package metadata rather than by importing: an import would cost
+    every process that merely handles the request the memory the deferred
+    imports exist to avoid.
+    """
+    from importlib.util import find_spec
+
+    if find_spec("pydantic_ai") is None:
+        from ninja.errors import HttpError
+
+        raise HttpError(
+            503,
+            "The chatbot is not installed in this project. Add the 'chatbot' extra to its dependencies to enable it.",
+        )
+
+
 @router.get("/conversations/{uuid}/", tags=["agent/v1"])
 def get_conversation(request, uuid: str):
+    _require_chatbot_extra()
+
     from ninja.errors import HttpError
     from pydantic_ai.messages import (
         ModelMessagesTypeAdapter,
@@ -513,6 +539,8 @@ def get_conversation(request, uuid: str):
 
 @router.post("/chat/stream/", tags=["agent/v1"])
 def chat_stream(request, payload: StreamRequest):
+    _require_chatbot_extra()
+
     from ninja.errors import HttpError
 
     user = request.auth.user
