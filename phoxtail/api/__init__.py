@@ -28,7 +28,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI, Schema
 
-from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling, is_superuser
+from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.users.api.v1 import router as users_v1_router
 
@@ -72,20 +72,10 @@ api = NinjaAPI(
 )
 
 
-# The users surface is superuser-only until scoped tokens land: the same
-# authenticators as everywhere else, wrapped with an authorization predicate.
-# Reads included — loosening reads later is a deliberate decision, not a
-# default.
-_superuser_detail = "The users API requires an active superuser account."
-api.add_router(
-    "/users/v1/",
-    users_v1_router,
-    auth=[
-        Authorize(PhoxtailTokenAuth(), is_superuser, detail=_superuser_detail),
-        Authorize(PhoxtailSessionAuth(), is_superuser, detail=_superuser_detail),
-    ],
-    tags=["users/v1"],
-)
+# Every users endpoint names the permission its act requires, so there is
+# nothing left for the mount to say. Kept hand-mounted only until the app
+# itself is discovered.
+api.add_router("/users/v1/", users_v1_router, tags=["users/v1"])
 
 
 @api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")

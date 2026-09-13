@@ -97,12 +97,6 @@ class Authorize:
         return getattr(self.authenticator, name)
 
 
-def is_superuser(context) -> bool:
-    """Predicate for surfaces restricted to active superusers."""
-    user = context.user
-    return bool(user.is_active and user.is_superuser)
-
-
 def has_no_ceiling(context) -> bool:
     """Whether the caller brought no self-imposed limit.
 

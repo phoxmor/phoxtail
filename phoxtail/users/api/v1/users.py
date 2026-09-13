@@ -34,6 +34,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.users.api.v1._helpers import (
     require_if_match,
     resolve_gender,
@@ -90,6 +91,7 @@ def _create_kwargs(payload: UserCreate) -> dict:
     "/",
     response={200: UserList, 403: Error},
     summary="List Users",
+    auth=guarded("phoxtail_users.view_user"),
 )
 def list_users(
     request: HttpRequest,
@@ -110,6 +112,7 @@ def list_users(
     "/",
     response={201: UserSchema, 403: Error, 404: Error, 422: Error},
     summary="Create a User (password-less, no email sent)",
+    auth=guarded("phoxtail_users.add_user"),
 )
 def create_user(
     request: HttpRequest,
@@ -125,6 +128,7 @@ def create_user(
     "/bulk/",
     response={200: UserBulkResult, 403: Error, 422: Error},
     summary="Bulk create Users (per-row results, no email sent)",
+    auth=guarded("phoxtail_users.add_user"),
 )
 def bulk_create_users(request: HttpRequest, payload: UserBulkCreate):
     """Create up to ``BULK_MAX_ROWS`` users in one request.
@@ -161,6 +165,7 @@ def bulk_create_users(request: HttpRequest, payload: UserBulkCreate):
     "/verify-emails/",
     response={200: EmailVerificationBulkResult, 403: Error, 422: Error},
     summary="Bulk verify email addresses (no email sent)",
+    auth=guarded("phoxtail_users.change_user"),
 )
 def bulk_verify_emails(request: HttpRequest, payload: EmailVerificationBulk):
     """Mark up to ``BULK_MAX_ROWS`` users' emails verified, independently per row."""
@@ -198,6 +203,7 @@ def bulk_verify_emails(request: HttpRequest, payload: EmailVerificationBulk):
     "/{user_uuid}/",
     response={200: UserSchema, 403: Error, 404: Error},
     summary="Show a User by UUID",
+    auth=guarded("phoxtail_users.view_user"),
 )
 def get_user(
     request: HttpRequest,
@@ -213,6 +219,7 @@ def get_user(
     "/{user_uuid}/",
     response={200: UserSchema, 403: Error, 404: Error, 412: Error, 422: Error, 428: Error},
     summary="Update a User by UUID (optimistic concurrency)",
+    auth=guarded("phoxtail_users.change_user"),
 )
 def update_user(
     request: HttpRequest,
@@ -244,6 +251,7 @@ def update_user(
     "/{user_uuid}/verify-email/",
     response={200: EmailVerification, 403: Error, 404: Error},
     summary="Verify a User's email address (no email sent)",
+    auth=guarded("phoxtail_users.change_user"),
 )
 def verify_email(request: HttpRequest, user_uuid: UUID):
     """Mark the allauth email record for ``user.email`` as verified + primary."""
@@ -256,6 +264,7 @@ def verify_email(request: HttpRequest, user_uuid: UUID):
     "/{user_uuid}/",
     response={204: None, 403: Error, 404: Error, 409: Error, 422: Error},
     summary="Delete a User by UUID (irreversible; cascades to related records)",
+    auth=guarded("phoxtail_users.delete_user"),
 )
 def delete_user(request: HttpRequest, user_uuid: UUID):
     """Permanently delete a user; refuses the acting account itself."""

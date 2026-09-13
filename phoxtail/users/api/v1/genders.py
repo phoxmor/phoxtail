@@ -20,6 +20,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.users.api.v1._helpers import (
     delete_guarded,
     gender_detail,
@@ -45,6 +46,7 @@ router = Router()
     "/",
     response={200: GenderList, 403: Error},
     summary="List Genders",
+    auth=guarded("phoxtail_users.view_gender"),
 )
 def list_genders(
     request: HttpRequest,
@@ -62,6 +64,7 @@ def list_genders(
     "/",
     response={201: GenderSchema, 403: Error, 422: Error},
     summary="Create a Gender",
+    auth=guarded("phoxtail_users.add_gender"),
 )
 def create_gender(
     request: HttpRequest,
@@ -81,6 +84,7 @@ def create_gender(
     "/{gender_uuid}/",
     response={200: GenderSchema, 403: Error, 404: Error},
     summary="Show a Gender by UUID",
+    auth=guarded("phoxtail_users.view_gender"),
 )
 def get_gender(
     request: HttpRequest,
@@ -96,6 +100,7 @@ def get_gender(
     "/{gender_uuid}/",
     response={200: GenderSchema, 403: Error, 404: Error, 412: Error, 422: Error, 428: Error},
     summary="Update a Gender by UUID (optimistic concurrency)",
+    auth=guarded("phoxtail_users.change_gender"),
 )
 def update_gender(
     request: HttpRequest,
@@ -122,6 +127,7 @@ def update_gender(
     "/{gender_uuid}/",
     response={204: None, 403: Error, 404: Error, 409: Error},
     summary="Delete a Gender by UUID (users referencing it are set to null)",
+    auth=guarded("phoxtail_users.delete_gender"),
 )
 def delete_gender(request: HttpRequest, gender_uuid: UUID):
     gender = resolve_gender(gender_uuid)
