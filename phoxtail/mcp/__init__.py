@@ -58,9 +58,7 @@ mcp_server = FastMCP(
         "Phoxtail tools for managing a Phoxtail project. Tools are "
         "organized by domain: studio (block + variant editing), content "
         "(Wagtail page read/write + body editing, sites, locales), users "
-        "(user + gender management, bulk user import, email verification — "
-        "every "
-        "phoxtail_users_* tool requires a superuser token/session), agent "
+        "(user + gender management, bulk user import, email verification), agent "
         "(the chatbot's inference providers, selectable models and per-site "
         "default model), dashboard (the menus shown on the platform's own "
         "screens). Optional "
@@ -82,13 +80,9 @@ mcp_server = FastMCP(
 def _register_unmigrated_tools() -> None:
     """Import the tool modules that do not yet live inside their own app.
 
-    TRANSITIONAL. Two reasons a module is listed here rather than discovered:
-
-    * the code sits under ``phoxtail/mcp/`` instead of in the app package —
-      cms owns ``content`` and ``cms``;
-    * or the app is not a ``PhoxtailAppConfig`` yet, so discovery cannot see
-      it at all. That is why ``phoxtail.users.mcp`` is here despite already
-      living inside its app.
+    TRANSITIONAL. A module is listed here when its code sits under
+    ``phoxtail/mcp/`` instead of inside the app package it belongs to, so
+    discovery has nowhere to find it.
 
     As each app is migrated, its lines are deleted from here — in the same
     commit as the move. A module that is both listed here and discovered in
@@ -99,8 +93,6 @@ def _register_unmigrated_tools() -> None:
     This function goes away when the list empties.
     """
     import phoxtail.mcp.peers  # noqa: F401
-    import phoxtail.users.mcp.genders  # noqa: F401
-    import phoxtail.users.mcp.users  # noqa: F401
 
 
 def _register_contributed_tools() -> None:

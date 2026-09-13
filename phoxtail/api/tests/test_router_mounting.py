@@ -2,11 +2,10 @@
 
 Mounting is derived, not declared: an app's name comes from its label and its
 versions come from its own ``api`` package. Nothing stops two apps arriving at
-the same path — two labels can strip to the same name, and an app can pick a
-name a core domain already owns. Both are silent by nature, because the second
-mount simply shadows the first.
+the same path, because two labels can strip to the same name — and nothing
+reports it either, because the second mount simply shadows the first.
 
-So both are refused, and both name the app that caused it.
+So it is refused, and the refusal names the app that caused it.
 """
 
 from __future__ import annotations
@@ -32,17 +31,6 @@ def _routers(*pairs):
 
 
 class TestRefusingACollision:
-    def test_a_reserved_namespace_cannot_be_taken(self, fresh_mount):
-        """``/api/users/`` is still mounted by hand, so it is still reserved.
-
-        An app landing there would shadow it, and the first sign would be a
-        users endpoint answering something else. The set shrinks as each
-        hand-mounted surface moves into its app; this test follows it.
-        """
-        with _routers(("users", {"v1": Router()})):
-            with pytest.raises(RuntimeError, match="reserved by a core domain"):
-                mount_discovered_routers()
-
     def test_two_apps_cannot_share_one_name(self, fresh_mount):
         """Reachable in practice: ``phoxtail_blog`` and a project's own ``blog``
         app both strip to ``blog``, and Django permits both labels."""

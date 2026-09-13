@@ -30,7 +30,6 @@ from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
-from phoxtail.users.api.v1 import router as users_v1_router
 
 # Swagger UI and the OpenAPI schema are development conveniences only; in
 # production they leak the endpoint surface with no runtime consumer, so we
@@ -70,12 +69,6 @@ api = NinjaAPI(
         PhoxtailSessionAuth(),
     ],
 )
-
-
-# Every users endpoint names the permission its act requires, so there is
-# nothing left for the mount to say. Kept hand-mounted only until the app
-# itself is discovered.
-api.add_router("/users/v1/", users_v1_router, tags=["users/v1"])
 
 
 @api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
@@ -152,13 +145,6 @@ def handle_django_validation_error(request, exc: DjangoValidationError):
     return api.create_response(request, {"detail": exc.messages}, status=422)
 
 
-# The one surface still mounted by hand above, because its router carries a
-# superuser rule this file applies and the convention has nowhere to put.
-# When that rule moves onto its endpoints, users joins the rest and this set
-# goes away.
-_CORE_SHORT_LABELS = frozenset({"users"})
-
-
 # A key of `versions` is spliced straight into the URL.
 _VERSION_SEGMENT = re.compile(r"v[0-9]+")
 
@@ -187,10 +173,6 @@ def mount_discovered_routers() -> None:
 
     seen: set[str] = set()
     for name, versions in versioned_routers():
-        if name in _CORE_SHORT_LABELS:
-            raise RuntimeError(
-                f"App '{name}' tries to mount /api/{name}/ but that namespace is reserved by a core domain."
-            )
         if name in seen:
             raise RuntimeError(f"Two apps both try to mount /api/{name}/.")
         seen.add(name)

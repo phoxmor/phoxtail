@@ -1,8 +1,8 @@
 """v1 of the users API.
 
-Builds a single ``Router`` that aggregates every resource in this version
-(users, genders). The aggregate router is mounted at ``/api/users/v1/``
-by ``phoxtail.api`` behind a superuser-only authorization stack.
+Aggregates the users sub-routers into the single ``Router`` this app offers
+as its ``v1``, served at ``/api/users/v1/``. Each endpoint names the
+permission its own act requires, so the mount decides nothing.
 """
 
 from __future__ import annotations
