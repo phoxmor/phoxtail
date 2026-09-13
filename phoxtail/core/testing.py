@@ -1,12 +1,15 @@
 """Django settings for testing phoxtail and anything built on it.
 
+Named ``testing`` rather than ``test_settings``: this module ships, and pytest
+collects anything called ``test_*`` it finds in site-packages.
+
 Shipped deliberately. A package that adds an app to phoxtail needs a Django
 configured the way phoxtail configures one, and the alternative is every such
 package keeping its own copy of this file and watching the copies drift.
 
 Use it as the base and append:
 
-    from phoxtail.core.test_settings import *  # noqa: F401, F403
+    from phoxtail.core.testing import *  # noqa: F401, F403
 
     INSTALLED_APPS = [*INSTALLED_APPS, "my_app"]  # noqa: F405
 
