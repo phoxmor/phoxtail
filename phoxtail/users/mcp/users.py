@@ -12,6 +12,7 @@ import json
 from typing import Any
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.users.mcp._error import error_envelope
 from phoxtail.users.mcp._http import request
 
@@ -24,6 +25,7 @@ def _with_etag(resp) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_list_users",
+    auth=[scoped("phoxtail_users.view_user")],
     description=(
         "List the project's users. Requires a superuser "
         "token/session. Optional filters: `search` (prefix search on email, "
@@ -44,6 +46,7 @@ def users_list_users(
 
 @mcp_server.tool(
     name="phoxtail_users_get_user",
+    auth=[scoped("phoxtail_users.view_user")],
     description=(
         "Get full details of a user by UUID: profile fields (born_at, gender, "
         "country, phone_number), login metadata (date_joined, last_login) and "
@@ -62,6 +65,7 @@ def users_get_user(user_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_create_user",
+    auth=[scoped("phoxtail_users.add_user")],
     description=(
         "Create a user without login access — no password is "
         "accepted or transported, and no email is sent. Requires a superuser "
@@ -110,6 +114,7 @@ def users_create_user(
 
 @mcp_server.tool(
     name="phoxtail_users_update_user",
+    auth=[scoped("phoxtail_users.change_user")],
     description=(
         "Update a user. Pass only the fields you want to change — omitted "
         "fields are left untouched. Requires a superuser token/session and "
@@ -177,6 +182,7 @@ def users_update_user(
 
 @mcp_server.tool(
     name="phoxtail_users_verify_email",
+    auth=[scoped("phoxtail_users.change_user")],
     description=(
         "Mark a user's email address as verified in allauth, by user UUID. "
         "Administrative bypass of the confirmation-email flow — no email is "
@@ -195,6 +201,7 @@ def users_verify_email(user_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_bulk_verify_emails",
+    auth=[scoped("phoxtail_users.change_user")],
     description=(
         "Mark many users' email addresses as verified in allauth. Pass "
         "`user_uuids` as a JSON array of user UUIDs (from "
@@ -216,6 +223,7 @@ def users_bulk_verify_emails(user_uuids: list[str]) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_delete_user",
+    auth=[scoped("phoxtail_users.delete_user")],
     description=(
         "PERMANENTLY delete a user by UUID. IRREVERSIBLE and destructive: "
         "records referencing the user in installed apps cascade away with "
@@ -238,6 +246,7 @@ def users_delete_user(user_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_bulk_create_users",
+    auth=[scoped("phoxtail_users.add_user")],
     description=(
         "Bulk create users — built for CSV imports. Requires a "
         "superuser token/session. Pass `users` as a JSON array of objects, "

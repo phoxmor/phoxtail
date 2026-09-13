@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.users.mcp._error import error_envelope
 from phoxtail.users.mcp._http import request
 
@@ -23,6 +24,7 @@ def _with_etag(resp) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_list_genders",
+    auth=[scoped("phoxtail_users.view_gender")],
     description=(
         "List the project's gender options with their UUIDs — use these "
         "UUIDs as `gender_uuid` in phoxtail_users_create_user, "
@@ -42,6 +44,7 @@ def users_list_genders(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_get_gender",
+    auth=[scoped("phoxtail_users.view_gender")],
     description=(
         "Get a gender option by UUID. Requires a superuser token/session. "
         "The response includes `_etag` which MUST be passed to "
@@ -58,6 +61,7 @@ def users_get_gender(gender_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_create_gender",
+    auth=[scoped("phoxtail_users.add_gender")],
     description=(
         "Create a gender option. Requires a superuser token/session. "
         "Required: name (unique, e.g. 'Female'). Optional: symbol (short "
@@ -78,6 +82,7 @@ def users_create_gender(name: str, symbol: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_users_update_gender",
+    auth=[scoped("phoxtail_users.change_gender")],
     description=(
         "Update a gender option. Pass only the fields you want to change. "
         "Requires a superuser token/session and `etag` from a prior "
@@ -116,6 +121,7 @@ def users_update_gender(
 
 @mcp_server.tool(
     name="phoxtail_users_delete_gender",
+    auth=[scoped("phoxtail_users.delete_gender")],
     description=(
         "Delete a gender option by UUID. Requires a superuser token/session. "
         "Safe for accounts: users referencing the gender keep their account "
