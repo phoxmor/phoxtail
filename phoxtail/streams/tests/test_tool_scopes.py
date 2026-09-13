@@ -73,16 +73,22 @@ ENDPOINTS_WITHOUT_A_CODENAME = {"schema_catalog", "list_page_type_app_labels"}
 # catalogues it reads real project data — a block, a collection, design
 # palette and font roles, reference variants — so "ungated" would be a
 # conclusion, not a deferral.
-ENDPOINTS_NOT_YET_ANNOTATED = {"push_variant", "pull_variant", "get_context"}
+ENDPOINTS_NOT_YET_ANNOTATED = {"get_context"}
 
 
-def _endpoint_codenames() -> dict[str, str]:
-    """``{view function: codename}`` for every guarded streams endpoint."""
-    found = {}
+def _endpoint_codenames() -> dict[str, str | tuple[str, ...]]:
+    """``{view function: codename}`` for every guarded streams endpoint.
+
+    An endpoint naming several codenames yields a tuple of them. Only
+    ``push_variant`` does, and it does so because its envelope writes three
+    models — see the annotation for why all six are required.
+    """
+    found: dict[str, str | tuple[str, ...]] = {}
     for path in _API.glob("*.py"):
         source = path.read_text()
-        for match in re.finditer(r'auth=guarded\("([^"]+)"\),\n\)\ndef (\w+)\(', source):
-            found[match.group(2)] = match.group(1)
+        for match in re.finditer(r"auth=guarded\(\s*((?:\s*\"[^\"]+\",?\s*)+)\),?\n\)\ndef (\w+)\(", source):
+            names = tuple(re.findall(r"\"([^\"]+)\"", match.group(1)))
+            found[match.group(2)] = names[0] if len(names) == 1 else names
     return found
 
 
@@ -94,6 +100,17 @@ def _tool_codenames() -> dict[str, str]:
         for match in re.finditer(r'name="(\w+)",\n\s+auth=\[scoped\("([^"]+)"\)\]', source):
             found[match.group(1)] = match.group(2)
     return found
+
+
+def _all_endpoint_codenames() -> set[str]:
+    """Every codename any endpoint names, flattened.
+
+    ``push_variant`` names six, so the values are not all strings.
+    """
+    flat: set[str] = set()
+    for value in _endpoint_codenames().values():
+        flat.update((value,) if isinstance(value, str) else value)
+    return flat
 
 
 def test_every_endpoint_is_accounted_for():
@@ -163,4 +180,4 @@ def test_every_codename_is_a_real_permission(db):
         f"phoxtail_streams.{p.codename}" for p in Permission.objects.filter(content_type__app_label="phoxtail_streams")
     }
     assert set(_tool_codenames().values()) <= real
-    assert set(_endpoint_codenames().values()) <= real
+    assert _all_endpoint_codenames() <= real

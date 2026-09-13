@@ -158,3 +158,86 @@ class TestTheCataloguesAreDeliberatelyUngated:
 def test_superuser_is_still_admitted(client):
     """Unchanged for them: Django answers has_perm True for a superuser."""
     assert client.get("/streams/v1/blocks/").status_code == 200
+
+
+class TestCrossProjectSync:
+    """Push and pull carry a person's token, so they ask a person's questions.
+
+    ``StreamsSyncService`` sends ``Authorization: Bearer <remote.token>`` —
+    a token belonging to someone on the other project, not a machine
+    credential. So these are not a privileged back channel: they are the
+    same acts, performed from further away, and they ask for what the same
+    acts ask for when typed here.
+    """
+
+    PUSH = "/streams/v1/variants/push/"
+
+    def test_pulling_needs_only_reading_a_variant(self, raw_client, regular_user, grant, block):
+        from phoxtail.streams.tests.factories import BlockVariantFactory
+
+        variant = BlockVariantFactory(block=block)
+        user = grant(regular_user, "view_blockvariant")
+        assert raw_client.get(f"/streams/v1/variants/{variant.id}/pull/", user=user).status_code == 200
+
+    def test_pulling_is_refused_without_it(self, raw_client, regular_user, block):
+        from phoxtail.streams.tests.factories import BlockVariantFactory
+
+        variant = BlockVariantFactory(block=block)
+        response = raw_client.get(f"/streams/v1/variants/{variant.id}/pull/", user=regular_user)
+        assert response.status_code == 403
+        assert "view_blockvariant" in response.json()["detail"]
+
+    def test_pushing_needs_every_model_the_envelope_writes(self, raw_client, regular_user, grant):
+        """Six codenames, and holding five is not enough.
+
+        The envelope creates or updates a collection, a block and a variant.
+        Which of those it actually touches depends on the payload, so the
+        endpoint asks for all of them — a caller who could not create a
+        block by hand should not create one by pushing.
+        """
+        needed = [
+            "add_variantcollection",
+            "change_variantcollection",
+            "add_block",
+            "change_block",
+            "add_blockvariant",
+            "change_blockvariant",
+        ]
+        user = regular_user
+        for codename in needed[:-1]:
+            user = grant(user, codename)
+
+        response = raw_client.post(self.PUSH, json={"install": {}}, user=user)
+        assert response.status_code == 403
+
+        # The refusal names the whole requirement rather than the one still
+        # missing, which is what an administrator needs in order to grant it
+        # in a single pass. Asserted in full: checking only the last codename
+        # would pass even if the annotation had lost the other five.
+        detail = response.json()["detail"]
+        for codename in needed:
+            assert f"phoxtail_streams.{codename}" in detail, codename
+
+    def test_holding_all_six_gets_past_the_guard(self, raw_client, regular_user, grant):
+        """Past authorization, into the envelope's own validation.
+
+        An empty envelope is rejected on its contents, which is the proof
+        that the permission check is no longer what stopped it.
+        """
+        user = regular_user
+        for codename in (
+            "add_variantcollection",
+            "change_variantcollection",
+            "add_block",
+            "change_block",
+            "add_blockvariant",
+            "change_blockvariant",
+        ):
+            user = grant(user, codename)
+
+        response = raw_client.post(self.PUSH, json={"install": {}}, user=user)
+        assert response.status_code != 403, response.content
+
+    def test_a_superuser_pushes_as_before(self, client):
+        response = client.post(self.PUSH, json={"install": {}})
+        assert response.status_code != 403

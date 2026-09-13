@@ -45,6 +45,23 @@ router = Router()
     "/push/",
     response={200: PushResponse, 400: Error},
     summary="Receive a pushed BlockVariant from a remote project",
+    # Six codenames, because the envelope writes three models and may
+    # create or update each: the collection it names, the block it belongs
+    # to, and the variant itself. guarded() requires all of them, which is
+    # the honest reading — the endpoint can do every one of those things,
+    # and which it does depends on a payload no decorator can see.
+    #
+    # A remote push is not a lesser act than doing it by hand. It arrives
+    # with the token of a person on the pushing project, and that person
+    # should need here what they would need if they typed it here.
+    auth=guarded(
+        "phoxtail_streams.add_variantcollection",
+        "phoxtail_streams.change_variantcollection",
+        "phoxtail_streams.add_block",
+        "phoxtail_streams.change_block",
+        "phoxtail_streams.add_blockvariant",
+        "phoxtail_streams.change_blockvariant",
+    ),
 )
 def push_variant(request: HttpRequest, payload: PushPayload):
     from django.core.exceptions import ValidationError
@@ -281,6 +298,11 @@ def delete_variant(request: HttpRequest, variant_id: int):
 @router.get(
     "/{variant_id}/pull/",
     summary="Pull a BlockVariant install payload",
+    # A read, and only of the variant: the block and collection travel
+    # inside the envelope as fields of it, not as rows the caller could
+    # have asked for separately. Naming view_block as well would charge for
+    # a door this endpoint never opens.
+    auth=guarded("phoxtail_streams.view_blockvariant"),
 )
 def pull_variant(request: HttpRequest, variant_id: int):
     """Return the full install envelope for cross-project variant sync.
