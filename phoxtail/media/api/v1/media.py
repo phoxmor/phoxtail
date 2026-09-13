@@ -10,6 +10,18 @@ from __future__ import annotations
 from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Query, Router, UploadedFile
 
+from phoxtail.api.auth import scoped
+from phoxtail.media.api.v1._permissions import (
+    DOCUMENT_CHOOSE,
+    IMAGE_CHOOSE,
+    MEDIA_CHOOSE,
+    choosable,
+    document_policy,
+    image_policy,
+    media_policy,
+    require_collection,
+    require_instance,
+)
 from phoxtail.media.api.v1.schemas import (
     AudioItem,
     AudioList,
@@ -44,6 +56,26 @@ def _resolve_collection_or_400(collection_id: int):
         raise HttpError(400, f"Collection {collection_id} not found.")
 
 
+def _upload_collection(collection_id: int | None):
+    """The collection an upload lands in, named rather than left implicit.
+
+    Wagtail's ``CollectionMember.collection`` field defaults to the root
+    collection. That default has to be resolved *here* rather than left to
+    ``save()``, because permission to add is asked of a collection and there
+    is no answering it while the collection is still None.
+
+    The default itself is read from Wagtail — ``get_root_collection_id`` is
+    the callable the field is declared with — so the API cannot drift from
+    where the admin would have put the same upload.
+    """
+    from wagtail.models import Collection
+    from wagtail.models.media import get_root_collection_id
+
+    if collection_id is None:
+        return Collection.objects.get(pk=get_root_collection_id())
+    return _resolve_collection_or_400(collection_id)
+
+
 # ---------------------------------------------------------------------------
 # Images
 # ---------------------------------------------------------------------------
@@ -53,6 +85,7 @@ def _resolve_collection_or_400(collection_id: int):
     "/images/",
     response={200: ImageList},
     summary="Search images by title",
+    auth=scoped("wagtailimages.choose_image"),
 )
 def list_images(
     request: HttpRequest,
@@ -61,10 +94,7 @@ def list_images(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    from wagtail.images import get_image_model
-
-    Image = get_image_model()
-    qs = Image.objects.all().order_by("-created_at")
+    qs = choosable(image_policy(), request.auth.user, IMAGE_CHOOSE).order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
     if collection is not None:
@@ -79,13 +109,14 @@ def list_images(
     "/images/{image_id}/",
     response={200: ImageItem, 404: dict},
     summary="Fetch a single image by ID",
+    auth=scoped("wagtailimages.choose_image"),
 )
 def get_image(request: HttpRequest, image_id: int):
     from wagtail.images import get_image_model
 
     Image = get_image_model()
     try:
-        img = Image.objects.get(pk=image_id)
+        img = choosable(image_policy(), request.auth.user, IMAGE_CHOOSE).get(pk=image_id)
     except Image.DoesNotExist:
         return 404, {"detail": "Image not found"}
 
@@ -96,6 +127,7 @@ def get_image(request: HttpRequest, image_id: int):
     "/images/",
     response={201: ImageItem},
     summary="Upload a new image to the Wagtail library",
+    auth=scoped("wagtailimages.add_image"),
 )
 def upload_image(
     request: HttpRequest,
@@ -106,9 +138,10 @@ def upload_image(
     from wagtail.images import get_image_model
 
     Image = get_image_model()
-    img = Image(title=title, file=file)
-    if collection_id is not None:
-        img.collection = _resolve_collection_or_400(collection_id)
+    collection = _upload_collection(collection_id)
+    require_collection(image_policy(), request.auth.user, collection)
+
+    img = Image(title=title, file=file, collection=collection)
     img.save()
     return 201, _serialize_image(img, request)
 
@@ -117,6 +150,7 @@ def upload_image(
     "/images/{image_id}/view/",
     response=None,
     summary="Return a JPEG rendition of an image (max 1024×1024)",
+    auth=scoped("wagtailimages.change_image"),
 )
 def view_image(request: HttpRequest, image_id: int):
     from wagtail.images import get_image_model
@@ -127,15 +161,27 @@ def view_image(request: HttpRequest, image_id: int):
     except Image.DoesNotExist:
         return HttpResponse(status=404)
 
-    rendition = img.get_rendition("max-1024x1024|format-jpeg")
+    # ``wagtail.images.views.images.preview`` asks "change" before handing
+    # back the bytes of one image, where the chooser asks "choose" for its
+    # metadata. Serving the file is the heavier act, and this follows it.
+    require_instance(image_policy(), request.auth.user, "change", img)
+
+    # ``preserve-svg`` is Wagtail's own answer to a raster directive meeting a
+    # vector file: it drops the rasterising operations for SVGs and leaves
+    # them alone for everything else. Without it this raised
+    # InvalidFilterSpecError and the endpoint answered 500 for every SVG in
+    # the library — which is most logos.
+    rendition = img.get_rendition("max-1024x1024|format-jpeg|preserve-svg")
+    content_type = "image/svg+xml" if img.is_svg() else "image/jpeg"
     with rendition.file.open("rb") as f:
-        return HttpResponse(f.read(), content_type="image/jpeg")
+        return HttpResponse(f.read(), content_type=content_type)
 
 
 @router.patch(
     "/images/{image_id}/",
     response={200: ImageItem, 404: dict},
     summary="Update image metadata (description, tags, focal point)",
+    auth=scoped("wagtailimages.change_image"),
 )
 def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body(...)):
     from wagtail.images import get_image_model
@@ -145,6 +191,9 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
         img = Image.objects.get(pk=image_id)
     except Image.DoesNotExist:
         return 404, {"detail": "Image not found"}
+
+    policy = image_policy()
+    require_instance(policy, request.auth.user, "change", img)
 
     update_fields: list[str] = []
     if payload.title is not None:
@@ -167,7 +216,11 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
             ]
         )
     if payload.collection_id is not None:
-        img.collection = _resolve_collection_or_400(payload.collection_id)
+        # Moving a file is adding it somewhere, so the destination is asked
+        # its own question. Otherwise change-here would imply add-anywhere.
+        destination = _resolve_collection_or_400(payload.collection_id)
+        require_collection(policy, request.auth.user, destination)
+        img.collection = destination
         update_fields.append("collection")
     if update_fields:
         img.save(update_fields=update_fields)
@@ -181,6 +234,7 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
     "/images/{image_id}/",
     response={204: None, 404: dict},
     summary="Delete an image from the Wagtail library",
+    auth=scoped("wagtailimages.delete_image"),
 )
 def delete_image(request: HttpRequest, image_id: int):
     from wagtail.images import get_image_model
@@ -191,6 +245,7 @@ def delete_image(request: HttpRequest, image_id: int):
     except Image.DoesNotExist:
         return 404, {"detail": "Image not found"}
 
+    require_instance(image_policy(), request.auth.user, "delete", img)
     img.delete()
     return 204, None
 
@@ -204,6 +259,7 @@ def delete_image(request: HttpRequest, image_id: int):
     "/documents/",
     response={200: DocumentList},
     summary="Search documents by title",
+    auth=scoped("wagtaildocs.choose_document"),
 )
 def list_documents(
     request: HttpRequest,
@@ -212,10 +268,7 @@ def list_documents(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    from wagtail.documents import get_document_model
-
-    Document = get_document_model()
-    qs = Document.objects.all().order_by("-created_at")
+    qs = choosable(document_policy(), request.auth.user, DOCUMENT_CHOOSE).order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
     if collection is not None:
@@ -230,13 +283,14 @@ def list_documents(
     "/documents/{document_id}/",
     response={200: DocumentItem, 404: dict},
     summary="Fetch a single document by ID",
+    auth=scoped("wagtaildocs.choose_document"),
 )
 def get_document(request: HttpRequest, document_id: int):
     from wagtail.documents import get_document_model
 
     Document = get_document_model()
     try:
-        doc = Document.objects.get(pk=document_id)
+        doc = choosable(document_policy(), request.auth.user, DOCUMENT_CHOOSE).get(pk=document_id)
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
@@ -247,6 +301,7 @@ def get_document(request: HttpRequest, document_id: int):
     "/documents/",
     response={201: DocumentItem},
     summary="Upload a new document to the Wagtail library",
+    auth=scoped("wagtaildocs.add_document"),
 )
 def upload_document(
     request: HttpRequest,
@@ -258,11 +313,12 @@ def upload_document(
     from wagtail.documents import get_document_model
 
     Document = get_document_model()
-    doc = Document(title=title, file=file)
+    collection = _upload_collection(collection_id)
+    require_collection(document_policy(), request.auth.user, collection)
+
+    doc = Document(title=title, file=file, collection=collection)
     if description:
         doc.description = description
-    if collection_id is not None:
-        doc.collection = _resolve_collection_or_400(collection_id)
     doc.save()
     doc.get_file_size()
     return 201, _serialize_document(doc, request)
@@ -272,6 +328,7 @@ def upload_document(
     "/documents/{document_id}/",
     response={200: DocumentItem, 404: dict},
     summary="Update document metadata (title, tags)",
+    auth=scoped("wagtaildocs.change_document"),
 )
 def update_document(request: HttpRequest, document_id: int, payload: DocumentPatch = Body(...)):
     from wagtail.documents import get_document_model
@@ -282,6 +339,9 @@ def update_document(request: HttpRequest, document_id: int, payload: DocumentPat
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
+    policy = document_policy()
+    require_instance(policy, request.auth.user, "change", doc)
+
     doc_update_fields: list[str] = []
     if payload.title is not None:
         doc.title = payload.title
@@ -290,7 +350,9 @@ def update_document(request: HttpRequest, document_id: int, payload: DocumentPat
         doc.description = payload.description
         doc_update_fields.append("description")
     if payload.collection_id is not None:
-        doc.collection = _resolve_collection_or_400(payload.collection_id)
+        destination = _resolve_collection_or_400(payload.collection_id)
+        require_collection(policy, request.auth.user, destination)
+        doc.collection = destination
         doc_update_fields.append("collection")
     if doc_update_fields:
         doc.save(update_fields=doc_update_fields)
@@ -304,6 +366,7 @@ def update_document(request: HttpRequest, document_id: int, payload: DocumentPat
     "/documents/{document_id}/",
     response={204: None, 404: dict},
     summary="Delete a document from the Wagtail library",
+    auth=scoped("wagtaildocs.delete_document"),
 )
 def delete_document(request: HttpRequest, document_id: int):
     from wagtail.documents import get_document_model
@@ -314,6 +377,7 @@ def delete_document(request: HttpRequest, document_id: int):
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
+    require_instance(document_policy(), request.auth.user, "delete", doc)
     doc.delete()
     return 204, None
 
@@ -327,6 +391,7 @@ def delete_document(request: HttpRequest, document_id: int):
     "/videos/",
     response={200: VideoList},
     summary="Search videos by title",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def list_videos(
     request: HttpRequest,
@@ -335,10 +400,7 @@ def list_videos(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    from wagtailmedia.models import get_media_model
-
-    Media = get_media_model()
-    qs = Media.objects.filter(type="video").order_by("-created_at")
+    qs = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).filter(type="video").order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
     if collection is not None:
@@ -353,13 +415,14 @@ def list_videos(
     "/videos/{video_id}/",
     response={200: VideoItem, 404: dict},
     summary="Fetch a single video by ID",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def get_video(request: HttpRequest, video_id: int):
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
     try:
-        m = Media.objects.get(pk=video_id, type="video")
+        m = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).get(pk=video_id, type="video")
     except Media.DoesNotExist:
         return 404, {"detail": "Video not found"}
 
@@ -370,6 +433,7 @@ def get_video(request: HttpRequest, video_id: int):
     "/videos/",
     response={201: VideoItem},
     summary="Upload a new video to the Wagtail media library",
+    auth=scoped("wagtailmedia.add_media"),
 )
 def upload_video(
     request: HttpRequest,
@@ -384,6 +448,9 @@ def upload_video(
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
+    collection = _upload_collection(collection_id)
+    require_collection(media_policy(), request.auth.user, collection)
+
     m = Media(
         title=title,
         file=file,
@@ -391,11 +458,10 @@ def upload_video(
         duration=duration,
         width=width,
         height=height,
+        collection=collection,
     )
     if description:
         m.description = description
-    if collection_id is not None:
-        m.collection = _resolve_collection_or_400(collection_id)
     m.save()
     return 201, _serialize_video(m, request)
 
@@ -404,6 +470,7 @@ def upload_video(
     "/videos/{video_id}/",
     response={200: VideoItem, 404: dict},
     summary="Update video metadata (title, tags, duration, dimensions)",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body(...)):
     from wagtailmedia.models import get_media_model
@@ -414,6 +481,9 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
     except Media.DoesNotExist:
         return 404, {"detail": "Video not found"}
 
+    policy = media_policy()
+    require_instance(policy, request.auth.user, "change", m)
+
     update_fields: list[str] = []
     for field in ("title", "description", "duration", "width", "height"):
         val = getattr(payload, field)
@@ -421,7 +491,9 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
             setattr(m, field, val)
             update_fields.append(field)
     if payload.collection_id is not None:
-        m.collection = _resolve_collection_or_400(payload.collection_id)
+        destination = _resolve_collection_or_400(payload.collection_id)
+        require_collection(policy, request.auth.user, destination)
+        m.collection = destination
         update_fields.append("collection")
     if update_fields:
         m.save(update_fields=update_fields)
@@ -435,6 +507,7 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
     "/videos/{video_id}/",
     response={204: None, 404: dict},
     summary="Delete a video from the Wagtail media library",
+    auth=scoped("wagtailmedia.delete_media"),
 )
 def delete_video(request: HttpRequest, video_id: int):
     from wagtailmedia.models import get_media_model
@@ -445,6 +518,7 @@ def delete_video(request: HttpRequest, video_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Video not found"}
 
+    require_instance(media_policy(), request.auth.user, "delete", m)
     m.delete()
     return 204, None
 
@@ -458,6 +532,7 @@ def delete_video(request: HttpRequest, video_id: int):
     "/audio/",
     response={200: AudioList},
     summary="Search audio files by title",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def list_audio(
     request: HttpRequest,
@@ -466,10 +541,7 @@ def list_audio(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ):
-    from wagtailmedia.models import get_media_model
-
-    Media = get_media_model()
-    qs = Media.objects.filter(type="audio").order_by("-created_at")
+    qs = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).filter(type="audio").order_by("-created_at")
     if search:
         qs = qs.filter(title__icontains=search)
     if collection is not None:
@@ -484,13 +556,14 @@ def list_audio(
     "/audio/{audio_id}/",
     response={200: AudioItem, 404: dict},
     summary="Fetch a single audio file by ID",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def get_audio(request: HttpRequest, audio_id: int):
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
     try:
-        m = Media.objects.get(pk=audio_id, type="audio")
+        m = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).get(pk=audio_id, type="audio")
     except Media.DoesNotExist:
         return 404, {"detail": "Audio not found"}
 
@@ -501,6 +574,7 @@ def get_audio(request: HttpRequest, audio_id: int):
     "/audio/",
     response={201: AudioItem},
     summary="Upload a new audio file to the Wagtail media library",
+    auth=scoped("wagtailmedia.add_media"),
 )
 def upload_audio(
     request: HttpRequest,
@@ -513,11 +587,12 @@ def upload_audio(
     from wagtailmedia.models import get_media_model
 
     Media = get_media_model()
-    m = Media(title=title, file=file, type="audio", duration=duration)
+    collection = _upload_collection(collection_id)
+    require_collection(media_policy(), request.auth.user, collection)
+
+    m = Media(title=title, file=file, type="audio", duration=duration, collection=collection)
     if description:
         m.description = description
-    if collection_id is not None:
-        m.collection = _resolve_collection_or_400(collection_id)
     m.save()
     return 201, _serialize_audio(m, request)
 
@@ -526,6 +601,7 @@ def upload_audio(
     "/audio/{audio_id}/",
     response={200: AudioItem, 404: dict},
     summary="Update audio metadata (title, tags, duration)",
+    auth=scoped("wagtailmedia.change_media"),
 )
 def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body(...)):
     from wagtailmedia.models import get_media_model
@@ -536,6 +612,9 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
     except Media.DoesNotExist:
         return 404, {"detail": "Audio not found"}
 
+    policy = media_policy()
+    require_instance(policy, request.auth.user, "change", m)
+
     update_fields: list[str] = []
     for field in ("title", "description", "duration"):
         val = getattr(payload, field)
@@ -543,7 +622,9 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
             setattr(m, field, val)
             update_fields.append(field)
     if payload.collection_id is not None:
-        m.collection = _resolve_collection_or_400(payload.collection_id)
+        destination = _resolve_collection_or_400(payload.collection_id)
+        require_collection(policy, request.auth.user, destination)
+        m.collection = destination
         update_fields.append("collection")
     if update_fields:
         m.save(update_fields=update_fields)
@@ -557,6 +638,7 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
     "/audio/{audio_id}/",
     response={204: None, 404: dict},
     summary="Delete an audio file from the Wagtail media library",
+    auth=scoped("wagtailmedia.delete_media"),
 )
 def delete_audio(request: HttpRequest, audio_id: int):
     from wagtailmedia.models import get_media_model
@@ -567,6 +649,7 @@ def delete_audio(request: HttpRequest, audio_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Audio not found"}
 
+    require_instance(media_policy(), request.auth.user, "delete", m)
     m.delete()
     return 204, None
 

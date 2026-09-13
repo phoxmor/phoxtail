@@ -9,6 +9,7 @@ from fastmcp.utilities.types import Image as MCPImage
 
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.media.mcp._http import request
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
@@ -41,6 +42,7 @@ def _resolve_upload_path(file_path: str) -> Path:
 
 @mcp_server.tool(
     name="phoxtail_pages_list_images",
+    auth=[scoped("wagtailimages.choose_image")],
     description=(
         "Search images in the media library by title. "
         "Returns {items: [{id, title, width, height, description, tags, focal_point, "
@@ -75,6 +77,7 @@ def list_images(
 
 @mcp_server.tool(
     name="phoxtail_images_upload",
+    auth=[scoped("wagtailimages.add_image")],
     description=(
         "Upload a new image to the media library from a local file path. "
         "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
@@ -124,6 +127,7 @@ def upload_image(file_path: str, title: str, collection_id: int | None = None) -
 
 @mcp_server.tool(
     name="phoxtail_images_get",
+    auth=[scoped("wagtailimages.choose_image")],
     description=(
         "Fetch a single image by its numeric ID. "
         "Returns {id, title, width, height, description, tags, focal_point, file_url}. "
@@ -143,6 +147,7 @@ def get_image(image_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_images_view",
+    auth=[scoped("wagtailimages.change_image")],
     description=(
         "Fetch an image by numeric ID and return its visual content directly. "
         "Use this whenever you need to see what an image looks like — "
@@ -159,6 +164,7 @@ def view_image(image_id: int):
 
 @mcp_server.tool(
     name="phoxtail_images_update",
+    auth=[scoped("wagtailimages.change_image")],
     description=(
         "Update an image's metadata by numeric ID. All fields are optional; "
         "omitted fields are left untouched. "
@@ -201,6 +207,7 @@ def update_image(
 
 @mcp_server.tool(
     name="phoxtail_images_delete",
+    auth=[scoped("wagtailimages.delete_image")],
     description=(
         "Permanently delete an image by its numeric ID. "
         "This cannot be undone. Returns {deleted: true, id: <id>} on success."
@@ -221,6 +228,7 @@ def delete_image(image_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_pages_list_documents",
+    auth=[scoped("wagtaildocs.choose_document")],
     description=(
         "Search documents in the media library by title. "
         "Returns {items: [{id, title, tags, file_size, filename, file_extension, "
@@ -253,6 +261,7 @@ def list_documents(
 
 @mcp_server.tool(
     name="phoxtail_documents_get",
+    auth=[scoped("wagtaildocs.choose_document")],
     description=(
         "Fetch a single document by its numeric ID. "
         "Returns {id, title, description, tags, file_size, filename, "
@@ -269,6 +278,7 @@ def get_document(document_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_documents_upload",
+    auth=[scoped("wagtaildocs.add_document")],
     description=(
         "Upload a new document to the media library from a local file path. "
         "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
@@ -323,6 +333,7 @@ def upload_document(
 
 @mcp_server.tool(
     name="phoxtail_documents_update",
+    auth=[scoped("wagtaildocs.change_document")],
     description=(
         "Update a document's metadata by numeric ID. All fields are optional; "
         "omitted fields are left untouched. "
@@ -357,6 +368,7 @@ def update_document(
 
 @mcp_server.tool(
     name="phoxtail_documents_delete",
+    auth=[scoped("wagtaildocs.delete_document")],
     description=(
         "Permanently delete a document by its numeric ID. "
         "This cannot be undone. Returns {deleted: true, id: <id>} on success."
@@ -377,6 +389,7 @@ def delete_document(document_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_videos_list",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Search videos in the media library by title. "
         "Returns {items: [{id, title, duration, width, height, tags, file_url, "
@@ -407,6 +420,7 @@ def list_videos(
 
 @mcp_server.tool(
     name="phoxtail_videos_get",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Fetch a single video by its numeric ID. "
         "Returns {id, title, description, duration, width, height, tags, "
@@ -423,6 +437,7 @@ def get_video(video_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_videos_upload",
+    auth=[scoped("wagtailmedia.add_media")],
     description=(
         "Upload a new video to the media library from a local file path. "
         "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
@@ -483,6 +498,7 @@ def upload_video(
 
 @mcp_server.tool(
     name="phoxtail_videos_update",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Update a video's metadata by numeric ID. All fields are optional; "
         "omitted fields are left untouched. "
@@ -525,6 +541,7 @@ def update_video(
 
 @mcp_server.tool(
     name="phoxtail_videos_delete",
+    auth=[scoped("wagtailmedia.delete_media")],
     description=(
         "Permanently delete a video by its numeric ID. "
         "This cannot be undone. Returns {deleted: true, id: <id>} on success."
@@ -545,6 +562,7 @@ def delete_video(video_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_audio_list",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Search audio files in the media library by title. "
         "Returns {items: [{id, title, duration, tags, file_url, collection_id}, ...], total: N}. "
@@ -574,6 +592,7 @@ def list_audio(
 
 @mcp_server.tool(
     name="phoxtail_audio_get",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Fetch a single audio file by its numeric ID. "
         "Returns {id, title, description, duration, tags, file_url, collection_id}."
@@ -589,6 +608,7 @@ def get_audio(audio_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_audio_upload",
+    auth=[scoped("wagtailmedia.add_media")],
     description=(
         "Upload a new audio file to the media library from a local file path. "
         "IMPORTANT: The MCP server runs inside Docker. To upload a file from your host, "
@@ -646,6 +666,7 @@ def upload_audio(
 
 @mcp_server.tool(
     name="phoxtail_audio_update",
+    auth=[scoped("wagtailmedia.change_media")],
     description=(
         "Update a audio file's metadata by numeric ID. All fields are optional; "
         "omitted fields are left untouched. "
@@ -682,6 +703,7 @@ def update_audio(
 
 @mcp_server.tool(
     name="phoxtail_audio_delete",
+    auth=[scoped("wagtailmedia.delete_media")],
     description=(
         "Permanently delete a audio file by its numeric ID. "
         "This cannot be undone. Returns {deleted: true, id: <id>} on success."
