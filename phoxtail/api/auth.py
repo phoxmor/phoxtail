@@ -97,6 +97,22 @@ class Authorize:
         return getattr(self.authenticator, name)
 
 
+def is_superuser(context) -> bool:
+    """Predicate: the caller is an active superuser.
+
+    The blunt instrument, for a surface whose answer genuinely is "only an
+    operator". Prefer :func:`guarded`: a permission codename says what the act
+    is, so it can be granted to a person or a group, while this can only be
+    granted by making someone a superuser of everything.
+
+    Shipped rather than left to each app because an app writing it itself
+    reaches for ``user.is_superuser`` and misses ``is_active``, admitting a
+    deactivated operator.
+    """
+    user = context.user
+    return bool(user.is_active and user.is_superuser)
+
+
 def has_no_ceiling(context) -> bool:
     """Whether the caller brought no self-imposed limit.
 
