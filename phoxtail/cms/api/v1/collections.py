@@ -180,19 +180,29 @@ def _resolve_parent(parent_id: int | None):
     return _resolve_collection(parent_id)
 
 
-def _member_count(collection) -> int:
-    from wagtail.documents import get_document_model
-    from wagtail.images import get_image_model
-    from wagtailmedia.models import get_media_model
+def _collection_contents(collection) -> list[dict]:
+    """What is inside this collection, asked the way Wagtail asks it.
 
-    Image = get_image_model()
-    Document = get_document_model()
-    Media = get_media_model()
-    return (
-        Image.objects.filter(collection=collection).count()
-        + Document.objects.filter(collection=collection).count()
-        + Media.objects.filter(collection=collection).count()
-    )
+    Wagtail's own delete view calls the ``describe_collection_contents``
+    hook and refuses if anything answers. Counting images, documents and
+    media directly — which is what this used to do — misses two things:
+
+    * **descendant collections.** ``describe_collection_children`` is one
+      of the registered hooks, and it counts the whole subtree rather than
+      direct children, so it is stricter than the ``get_children()`` check
+      it replaces;
+    * **anything any other installed app keeps in collections.** The hook
+      is the extension point; a model that registers one is invisible to a
+      hand-written count, and the API would then delete a collection the
+      admin refuses to delete.
+
+    The ``item_type and item_type["count"] > 0`` filter is Wagtail's too: a
+    hook may answer ``None`` or a zero count, and neither means occupied.
+    """
+    from wagtail import hooks
+
+    described = [hook(collection) for hook in hooks.get_hooks("describe_collection_contents")]
+    return [item for item in described if item and item["count"] > 0]
 
 
 def _apply_restriction(c, vr_data: ViewRestrictionWrite | None) -> None:
@@ -449,17 +459,12 @@ def delete_collection(request: HttpRequest, collection_id: int):
     restriction = CollectionViewRestriction.objects.filter(collection=c).first()
     _require_if_match(request, c, restriction)
 
-    child_count = c.get_children().count()
-    member_count = _member_count(c)
-    if child_count or member_count:
-        parts: list[str] = []
-        if child_count:
-            parts.append(f"{child_count} child collection(s)")
-        if member_count:
-            parts.append(f"{member_count} media item(s)")
+    contents = _collection_contents(c)
+    if contents:
+        described = " and ".join(item["count_text"] for item in contents)
         raise HttpError(
             409,
-            f"Collection is not empty: contains {' and '.join(parts)}. Reassign or delete its contents first.",
+            f"Collection is not empty: contains {described}. Reassign or delete its contents first.",
         )
 
     c.delete()

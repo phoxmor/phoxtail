@@ -369,3 +369,81 @@ class TestTheCredentialHalf:
             headers={**headers, "If-Match": "*"},
         )
         assert response.status_code == 403
+
+
+@pytest.mark.urls("phoxtail.cms.tests.admin_urls")
+class TestDeletionAsksWagtailWhatIsInside:
+    """The API must refuse exactly what the admin refuses.
+
+    Runs under a urlconf that mounts the Wagtail admin, because the hooks
+    reverse admin routes to build the ``url`` on each answer — see that
+    module's docstring. The hooks run for real here rather than mocked.
+
+    ``delete_collection`` used to count images, documents and media itself.
+    Wagtail's own delete view asks the ``describe_collection_contents``
+    hook — the extension point any installed app may register against — so
+    a hand-written count silently misses whatever it does not know about,
+    and the API would delete a collection the admin refuses to.
+    """
+
+    def test_an_empty_collection_deletes(self, raw_client, superuser, branch):
+        empty = branch.add_child(name="Empty")
+        response = raw_client.delete(f"/cms/v1/collections/{empty.pk}/", headers={"If-Match": "*"}, user=superuser)
+        assert response.status_code == 204
+
+    def test_a_collection_with_a_descendant_is_refused(self, raw_client, superuser, branch):
+        """The hook counts the whole subtree, which is stricter than the
+        direct-children check it replaces."""
+        response = raw_client.delete(f"/cms/v1/collections/{branch.pk}/", headers={"If-Match": "*"}, user=superuser)
+        assert response.status_code == 409
+        assert "descendant collection" in response.json()["detail"]
+
+    def test_a_collection_holding_an_image_is_refused(self, raw_client, superuser, branch, db):
+        """The case the old count did get right, kept so the swap is safe."""
+        from wagtail.images import get_image_model
+
+        empty = branch.add_child(name="Has An Image")
+        get_image_model().objects.create(
+            title="logo", collection=empty, file="original_images/x.png", width=1, height=1
+        )
+
+        response = raw_client.delete(f"/cms/v1/collections/{empty.pk}/", headers={"If-Match": "*"}, user=superuser)
+        assert response.status_code == 409
+        assert "image" in response.json()["detail"]
+
+    def test_a_hook_answering_zero_does_not_block(self, raw_client, superuser, branch, monkeypatch):
+        """Wagtail's own filter: None, or a zero count, is not occupancy.
+
+        Dropping that filter would make every collection undeletable, and
+        only a hook that answers about an empty collection reveals it.
+        """
+        from wagtail import hooks
+
+        empty = branch.add_child(name="Empty")
+        real = hooks.get_hooks
+
+        def with_a_quiet_hook(name):
+            if name == "describe_collection_contents":
+                return [*real(name), lambda c: None, lambda c: {"count": 0, "count_text": "0 widgets"}]
+            return real(name)
+
+        monkeypatch.setattr(hooks, "get_hooks", with_a_quiet_hook)
+        response = raw_client.delete(f"/cms/v1/collections/{empty.pk}/", headers={"If-Match": "*"}, user=superuser)
+        assert response.status_code == 204
+
+    def test_a_third_party_hook_is_honoured(self, raw_client, superuser, branch, monkeypatch):
+        """The whole point: an app we know nothing about can refuse a delete."""
+        from wagtail import hooks
+
+        empty = branch.add_child(name="Empty")
+        real = hooks.get_hooks
+
+        def with_a_loud_hook(name):
+            if name == "describe_collection_contents":
+                return [*real(name), lambda c: {"count": 3, "count_text": "3 invoices"}]
+            return real(name)
+
+        monkeypatch.setattr(hooks, "get_hooks", with_a_loud_hook)
+        response = raw_client.delete(f"/cms/v1/collections/{empty.pk}/", headers={"If-Match": "*"}, user=superuser)
+        assert response.status_code == 409
+        assert "3 invoices" in response.json()["detail"]
