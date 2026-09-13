@@ -19,10 +19,12 @@ import json
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_collections_list",
+    auth=[scoped("wagtailcore.view_collection")],
     description=(
         "List all collections as a flat tree (root included). "
         "Returns each collection's id, name, depth, parent_id, and view_restriction. "
@@ -42,6 +44,7 @@ def collections_list() -> str:
 
 @mcp_server.tool(
     name="phoxtail_collections_get",
+    auth=[scoped("wagtailcore.view_collection")],
     description=(
         "Get the full detail of a single collection by id. "
         "Returns id, name, depth, parent_id, and view_restriction. "
@@ -63,6 +66,7 @@ def collections_get(collection_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_collections_create",
+    auth=[scoped("wagtailcore.add_collection")],
     description=(
         "Create a new collection. "
         "parent_id: the id of the parent collection. "
@@ -96,6 +100,7 @@ def collections_create(
 
 @mcp_server.tool(
     name="phoxtail_collections_update",
+    auth=[scoped("wagtailcore.change_collection")],
     description=(
         "Rename and/or reparent a collection. "
         "Requires `etag` from a prior phoxtail_collections_get call. "
@@ -140,6 +145,7 @@ def collections_update(
 
 @mcp_server.tool(
     name="phoxtail_collections_delete",
+    auth=[scoped("wagtailcore.delete_collection")],
     description=(
         "Permanently delete a collection. "
         "Requires `etag` from a prior phoxtail_collections_get call. "

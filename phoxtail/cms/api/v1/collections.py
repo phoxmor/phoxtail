@@ -23,6 +23,9 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import scoped
+from phoxtail.cms.api.v1._permissions import manageable, may_move, require_action
+
 router = Router()
 
 
@@ -153,11 +156,18 @@ def _serialize(c, parent_id: int | None, restriction=None) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _resolve_collection(collection_id: int):
+def _resolve_collection(collection_id: int, within=None):
+    """Fetch a collection, optionally only from a permitted queryset.
+
+    Passing *within* makes a collection the caller may not manage answer 404
+    rather than 403, which is how Wagtail's own choosers behave and what
+    keeps an unprivileged caller from mapping the tree by asking.
+    """
     from wagtail.models import Collection
 
+    qs = Collection.objects.all() if within is None else within
     try:
-        return Collection.objects.get(pk=collection_id)
+        return qs.get(pk=collection_id)
     except Collection.DoesNotExist:
         raise HttpError(404, f"Collection {collection_id} not found.")
 
@@ -215,10 +225,27 @@ def _apply_restriction(c, vr_data: ViewRestrictionWrite | None) -> None:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: CollectionList}, summary="List all collections")
+@router.get(
+    "/",
+    response={200: CollectionList},
+    summary="List all collections",
+    # Only the credential's half is asked here. Wagtail grants collections
+    # per collection, so has_perm() would refuse people it genuinely permits
+    # — the person's half is answered below, against the policy.
+    #
+    # view_collection is a Django default row that Wagtail references
+    # nowhere, so it names the act rather than gating it; the gate is the
+    # narrowing. See _permissions.py.
+    auth=scoped("wagtailcore.view_collection"),
+)
 def list_collections(request: HttpRequest):
     from wagtail.models import Collection, CollectionViewRestriction
 
+    # Narrowed rather than refused: being shown fewer collections is a true
+    # answer to "which may I manage", where a 403 would claim the act itself
+    # was forbidden. The parent ids below are resolved against the *whole*
+    # tree, so a visible child still reports the real parent it hangs from.
+    visible = set(manageable(request.auth.user).values_list("pk", flat=True))
     qs = list(Collection.objects.all().order_by("path"))
     if not qs:
         return {"items": [], "total": 0}
@@ -235,6 +262,8 @@ def list_collections(request: HttpRequest):
 
     items = []
     for c in qs:
+        if c.pk not in visible:
+            continue
         parent_path = c.path[:-step]
         parent_id = path_to_id.get(parent_path)
         items.append(_serialize(c, parent_id, restrictions.get(c.pk)))
@@ -246,12 +275,20 @@ def list_collections(request: HttpRequest):
     "/",
     response={201: CollectionItem, 400: Error, 403: Error, 409: Error},
     summary="Create a collection",
+    auth=scoped("wagtailcore.add_collection"),
 )
 def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
-    if not request.auth.user.has_perm("wagtailcore.add_collection"):
-        raise HttpError(403, "User does not have permission to create collections.")
-
     parent = _resolve_parent(payload.parent_id)
+    # Wagtail's Create view offers only the collections you may add under,
+    # so a parent outside that set is a refusal rather than a 404. Omitting
+    # parent_id means the root, which is itself only permitted to someone
+    # granted on the root.
+    require_action(
+        request.auth.user,
+        "add",
+        parent,
+        detail="User cannot add collections under that parent.",
+    )
 
     if parent.get_children().filter(name=payload.name).exists():
         raise HttpError(
@@ -277,11 +314,15 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
     "/{collection_id}/",
     response={200: CollectionItem, 404: Error},
     summary="Get a collection",
+    auth=scoped("wagtailcore.view_collection"),
 )
 def get_collection(request: HttpRequest, response: HttpResponse, collection_id: int):
     from wagtail.models import CollectionViewRestriction
 
-    c = _resolve_collection(collection_id)
+    # Resolved *within* the permitted set, so a collection the caller may not
+    # manage is a collection that is not there. 404 rather than 403 is what
+    # stops the ids being swept to map a tree you cannot see.
+    c = _resolve_collection(collection_id, within=manageable(request.auth.user))
     step = c.steplen
     parent_path = c.path[:-step]
     from wagtail.models import Collection
@@ -306,6 +347,7 @@ def get_collection(request: HttpRequest, response: HttpResponse, collection_id: 
         428: Error,
     },
     summary="Rename and/or reparent a collection",
+    auth=scoped("wagtailcore.change_collection"),
 )
 def patch_collection(
     request: HttpRequest,
@@ -313,12 +355,10 @@ def patch_collection(
     collection_id: int,
     payload: CollectionPatch,
 ):
-    if not request.auth.user.has_perm("wagtailcore.change_collection"):
-        raise HttpError(403, "User does not have permission to change collections.")
-
     from wagtail.models import Collection, CollectionViewRestriction
 
     c = _resolve_collection(collection_id)
+    require_action(request.auth.user, "change", c)
 
     restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
     _require_if_match(request, c, restriction)
@@ -348,6 +388,23 @@ def patch_collection(
                 )
             current_parent = c.get_parent()
             if current_parent is None or new_parent.pk != current_parent.pk:
+                # Two further asks, both Wagtail's. Landing somewhere needs
+                # the right to add there...
+                require_action(
+                    request.auth.user,
+                    "add",
+                    new_parent,
+                    detail="User cannot add collections under that parent.",
+                )
+                # ...and a collection carrying your own grant may not be
+                # moved at all: a grant flows down, so moving the node it
+                # names changes what it reaches. Wagtail drops the parent
+                # field from the form; we refuse the reparent.
+                if not may_move(request.auth.user, c):
+                    raise HttpError(
+                        403,
+                        "User cannot move a collection their own permissions are assigned on.",
+                    )
                 c.move(new_parent, pos="sorted-child")
 
         c.refresh_from_db()
@@ -378,14 +435,13 @@ def patch_collection(
         428: Error,
     },
     summary="Delete a collection (refused if non-empty)",
+    auth=scoped("wagtailcore.delete_collection"),
 )
 def delete_collection(request: HttpRequest, collection_id: int):
-    if not request.auth.user.has_perm("wagtailcore.delete_collection"):
-        raise HttpError(403, "User does not have permission to delete collections.")
-
     from wagtail.models import CollectionViewRestriction
 
     c = _resolve_collection(collection_id)
+    require_action(request.auth.user, "delete", c)
 
     if c.depth == 1:
         raise HttpError(400, "The root collection cannot be deleted.")

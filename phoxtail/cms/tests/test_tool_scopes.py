@@ -36,6 +36,11 @@ PAIRS = {
     "phoxtail_sites_update": "patch_site",
     "phoxtail_sites_delete": "delete_site",
     "phoxtail_locales_list": "list_locales",
+    "phoxtail_collections_list": "list_collections",
+    "phoxtail_collections_get": "get_collection",
+    "phoxtail_collections_create": "create_collection",
+    "phoxtail_collections_update": "patch_collection",
+    "phoxtail_collections_delete": "delete_collection",
 }
 
 # Tools with no endpoint of their own. Each names what it actually reaches:
@@ -62,12 +67,6 @@ TOOLS_WITHOUT_A_CODENAME = {"phoxtail_page_types_list"}
 # Shrinks to nothing as cms lands, family by family. Kept so that a
 # half-annotated domain cannot be mistaken for a finished one.
 ENDPOINTS_NOT_YET_ANNOTATED = {
-    # collections — per-collection grants, lands with its own bug fix
-    "list_collections",
-    "create_collection",
-    "get_collection",
-    "patch_collection",
-    "delete_collection",
     # site settings, fonts, palettes — per-site grants
     "get_site_setting",
     "patch_site_setting",

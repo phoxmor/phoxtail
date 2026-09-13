@@ -1,0 +1,109 @@
+"""Who may manage which collection, asked the way Wagtail asks it.
+
+Collections are granted **per collection**, not globally. A
+``GroupCollectionPermission`` row names a group, a collection and an action,
+and the grant flows down to every descendant. ``user.has_perm`` never reads
+those rows, so it answers False for someone Wagtail genuinely permits —
+verified against a running project on 2026-09-13:
+
+    Granted add_collection on one branch:
+      user.has_perm('wagtailcore.add_collection')     -> False
+      policy.user_has_permission(user, 'add')         -> True
+      instances_user_has_permission_for(…, 'add')     -> ['probe-branch']
+
+That is why these endpoints carry ``scoped()`` rather than ``guarded()``:
+the credential's half is answered at the door, and the person's half here,
+where the collection is known. Same shape as media and for the same reason.
+
+**Nothing here decides anything Wagtail has not already decided.** Each
+helper wraps the policy's own methods, and the *actions* each endpoint asks
+for are copied from the matching view in ``wagtail/admin/views/collections.py``
+rather than chosen:
+
+===============  =======================================================
+Wagtail view     What it asks
+===============  =======================================================
+``Index``        any of ``add``/``change``/``delete``, excluding the root
+``Create``       parent must be in the ``add`` set
+``Edit``         object must be in the ``change`` set, excluding the root
+``Edit`` (move)  new parent in the ``add`` set, plus :func:`may_move`
+``Delete``       object must be in the ``delete`` set, excluding the root
+===============  =======================================================
+
+**There is no ``view`` action.** ``wagtailcore.view_collection`` exists
+because Django creates default permissions, and a grep of the installed
+wagtail package finds **no non-test reference to it at all** — the same
+story as ``wagtailcore.view_page``. Wagtail answers "which collections may
+I see" with the add/change/delete grants, and so do we.
+
+**The root is narrowed, not excluded.** Wagtail drops ``depth=1`` from its
+management listing but keeps it in the parent chooser, and our listing is
+both — it is how an agent finds the id to create under. So it narrows by
+the policy and applies no depth filter: the root appears exactly when the
+caller holds a grant on it, which is exactly when they could use it as a
+parent. A caller with no grant on the root cannot create top-level
+collections, which is Wagtail's answer too.
+"""
+
+from __future__ import annotations
+
+from ninja.errors import HttpError
+
+# What "may see this collection" means, taken from Wagtail's own Index view.
+# There is no ``view`` action to ask for — see the module docstring.
+MANAGEABLE = ["add", "change", "delete"]
+
+
+def collection_policy():
+    from wagtail.permissions import collection_permission_policy
+
+    return collection_permission_policy
+
+
+def manageable(user):
+    """The collections *user* may act on at all, as a queryset.
+
+    A listing narrows to it and a lookup resolves within it, so a
+    collection the caller may not touch answers 404 rather than 403 — the
+    same split media uses, and for the same reason: reading is the path an
+    unprivileged caller would sweep to map the tree.
+    """
+    return collection_policy().instances_user_has_any_permission_for(user, MANAGEABLE)
+
+
+def require_action(user, action: str, collection, detail: str | None = None) -> None:
+    """403 unless *user* may perform *action* on this one collection.
+
+    Asked against the expanded set rather than the granted rows: a grant on
+    an ancestor covers everything beneath it, and only the policy knows how
+    far down that reaches.
+
+    *detail* overrides the message for the one case where the collection
+    being asked about is not the one being acted on — adding, where the
+    target is the parent the new child will hang from.
+    """
+    permitted = collection_policy().instances_user_has_permission_for(user, action)
+    if not permitted.filter(pk=collection.pk).exists():
+        raise HttpError(403, detail or f"User cannot {action} that collection.")
+
+
+def may_move(user, collection) -> bool:
+    """Whether *user* may move this collection to a different parent.
+
+    Copied from ``Edit._user_may_move_collection`` in
+    ``wagtail/admin/views/collections.py``. The guard is against privilege
+    escalation rather than tidiness: a grant flows *down*, so moving the
+    very collection that carries your own grant changes what that grant
+    reaches. Wagtail's answer is to drop the parent field from the form;
+    ours is to refuse the reparent.
+
+    Uses the policy's private ``_get_user_permission_objects_for_actions``
+    because Wagtail's own view does, and owning a second copy of its grant
+    resolution would be the more fragile choice. ``test_collections.py``
+    asserts the attribute still exists, so a rename in a Wagtail upgrade
+    fails loudly here rather than silently dropping the guard.
+    """
+    if user.is_active and user.is_superuser:
+        return True
+    grants = collection_policy()._get_user_permission_objects_for_actions(user, {"add", "change", "delete"})
+    return not any(grant.collection_id == collection.pk for grant in grants)
