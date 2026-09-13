@@ -85,9 +85,14 @@ TOOLS_WITHOUT_AN_ENDPOINT = {
     "phoxtail_studio_screenshot_page": ("phoxtail_agent.access_chatbot",),
 }
 
-# Endpoints that deliberately declare no codename — see the class in
-# ``api/tests/test_auth.py`` for why, and note that declaring nothing leaves
-# a door closed to scoped tokens rather than open.
+# Endpoints that name no codename because there is none to name, and say so
+# with ``authenticated()`` rather than by staying silent. Both return names
+# read out of installed code — schema field types, page-type app labels —
+# with no model and no permission behind them.
+#
+# Declaring nothing would not have meant "open": it keeps the API-wide
+# default, which refuses every scoped token. That is the right answer for an
+# endpoint someone forgot and the wrong one for these, so they say it aloud.
 ENDPOINTS_WITHOUT_A_CODENAME = {"schema_catalog", "list_page_type_app_labels"}
 
 
@@ -139,6 +144,17 @@ def _all_tool_codenames() -> set[str]:
     for value in _tool_codenames().values():
         flat.update((value,) if isinstance(value, str) else value)
     return flat
+
+
+def test_the_open_endpoints_say_so_rather_than_staying_silent():
+    """ "No codename" and "no annotation" are different, and only one is safe.
+
+    Asserting the absence of a codename would pass for both, so this reads
+    the annotation itself. A bare endpoint here would be closed to every
+    scoped token in the project while looking exactly like this one.
+    """
+    for module in ("schema_catalog", "page_types"):
+        assert "auth=authenticated()" in (_API / f"{module}.py").read_text(), module
 
 
 def test_every_endpoint_is_accounted_for():

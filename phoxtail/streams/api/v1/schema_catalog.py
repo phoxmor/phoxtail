@@ -7,6 +7,8 @@ from typing import Any
 from django.http import HttpRequest
 from ninja import Router
 
+from phoxtail.api.auth import authenticated
+
 router = Router()
 
 # Common parameters inherited from FieldSchemaBlock that every field type has.
@@ -97,6 +99,12 @@ def get_schema_catalog() -> dict[str, Any]:
 @router.get(
     "/",
     summary="Schema field type catalog",
+    # A vocabulary: the field types a block schema may use, read out of
+    # installed code. No rows, no permission to name. It declares
+    # authenticated() rather than nothing because declaring nothing keeps
+    # the API-wide default, which refuses a scoped token — and an agent
+    # reads this before it can phrase a schema at all.
+    auth=authenticated(),
     description=(
         "Returns the complete catalog of available schema field types and their parameters for designing block schemas."
     ),

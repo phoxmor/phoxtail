@@ -293,3 +293,30 @@ class TestAssemblingContext:
         tokens = raw_client.post(self.PATH, json=self._body(block), user=user).json()["design_tokens"]
         assert [r["identifier"] for r in tokens["palette_roles"]] == ["surface"]
         assert [r["identifier"] for r in tokens["font_roles"]] == ["heading"]
+
+
+class TestTheVocabulariesAreReachable:
+    """Both return names read out of installed code, and both mean to be open.
+
+    "Open" has to be declared. An endpoint that says nothing keeps the
+    API-wide default, which refuses a scoped token — so until these carried
+    ``authenticated()`` they were shut to every narrowed credential in the
+    project, and the CLI and the schema-reference resource could only reach
+    them with an unrestricted one.
+    """
+
+    PATHS = ("/streams/v1/schema-catalog/", "/streams/v1/page-types/")
+
+    @pytest.mark.parametrize("path", PATHS)
+    def test_any_authenticated_caller_may_read_it(self, raw_client, regular_user, path):
+        assert raw_client.get(path, user=regular_user).status_code == 200
+
+    @pytest.mark.parametrize("path", PATHS)
+    def test_a_narrowed_token_may_too(self, raw_client, regular_user, scoped_token, path):
+        headers = scoped_token(regular_user, "phoxtail_streams.view_block")
+        assert raw_client.get(path, headers=headers).status_code == 200
+
+    @pytest.mark.parametrize("path", PATHS)
+    def test_but_nobody_at_all_may_not(self, db, raw_client, path):
+        """``authenticated()`` is not ``auth=None``."""
+        assert raw_client.get(path).status_code == 401

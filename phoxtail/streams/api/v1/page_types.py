@@ -1,9 +1,19 @@
-"""``/api/streams/v1/page-types`` — installed page-type app labels."""
+"""``/api/streams/v1/page-types`` — installed page-type app labels.
+
+**Declares ``authenticated()`` rather than nothing.** What this returns is a
+list of app labels read out of the ContentType table — no permission names
+it, so there is nothing to ask for. But declaring *nothing* keeps the
+API-wide default, which refuses every scoped token, and the CLI reads this
+before loading a studio dump. Silence would have meant "closed"; this says
+"open" out loud.
+"""
 
 from __future__ import annotations
 
 from django.http import HttpRequest
 from ninja import Router
+
+from phoxtail.api.auth import authenticated
 
 router = Router()
 
@@ -12,6 +22,7 @@ router = Router()
     "/",
     response={200: dict},
     summary="List installed page-type app labels",
+    auth=authenticated(),
 )
 def list_page_type_app_labels(request: HttpRequest) -> dict:
     """Return the distinct app labels present in Django's ContentType table.

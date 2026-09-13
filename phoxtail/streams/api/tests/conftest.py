@@ -86,3 +86,23 @@ def category(db):
     from phoxtail.streams.models import BlockCategory
 
     return BlockCategory.objects.create(name="Heroes", slug="heroes")
+
+
+@pytest.fixture
+def scoped_token():
+    """Mint a real narrowed token and hand back its Bearer header.
+
+    Every other fixture here authenticates through the session backend,
+    where ``token`` is ``None`` and the credential half of the question is
+    answered "no ceiling" before it is really asked. That makes a session
+    test blind to whether a *narrowed* credential can reach an endpoint at
+    all — which is how ``/schema-catalog/`` stayed shut to every scoped
+    token in the project while passing a full suite.
+    """
+    from phoxtail.tokens.tests.factories import AccessTokenFactory
+
+    def _mint(user, *codenames: str) -> dict[str, str]:
+        token = AccessTokenFactory(user=user, unrestricted=False, scopes=list(codenames))
+        return {"Authorization": f"Bearer {token._raw_token}"}
+
+    return _mint
