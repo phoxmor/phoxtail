@@ -1,4 +1,4 @@
-"""``/api/users/v1/genders`` — Gender endpoints (superuser-only surface).
+"""``/api/users/v1/genders`` — Gender endpoints, one permission per act.
 
 Endpoints:
 - ``GET    /``          — list, optional ``?search=`` filter

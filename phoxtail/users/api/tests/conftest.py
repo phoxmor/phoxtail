@@ -2,8 +2,8 @@
 
 The tests run against the real shared ``phoxtail.api`` NinjaAPI instance
 so they exercise the full production wiring: the users router mounted at
-``/users/v1/`` behind the superuser ``Authorize`` stack, and the shared
-DjangoValidationError → 422 exception handler.
+``/users/v1/`` with each endpoint behind its own ``guarded()``, and the
+shared DjangoValidationError → 422 exception handler.
 """
 
 from __future__ import annotations

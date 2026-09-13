@@ -1,4 +1,4 @@
-"""``/api/users/v1/users`` — User endpoints (superuser-only surface).
+"""``/api/users/v1/users`` — User endpoints, one permission per act.
 
 Endpoints:
 - ``GET    /``          — list, optional ``?search=``/``?is_active=`` filters

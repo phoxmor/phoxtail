@@ -2,8 +2,9 @@
 
 Thin wrappers around ``/api/users/v1/genders/``. Genders are addressed by
 UUID everywhere; updates follow the read-before-write ETag contract shared
-by every Phoxtail MCP tool. The whole surface requires a superuser
-token/session.
+by every Phoxtail MCP tool. Each tool names the Django permission its
+act needs; a refusal says what is missing, so the descriptions do not
+repeat it.
 """
 
 from __future__ import annotations
@@ -29,7 +30,7 @@ def _with_etag(resp) -> str:
         "List the project's gender options with their UUIDs — use these "
         "UUIDs as `gender_uuid` in phoxtail_users_create_user, "
         "phoxtail_users_update_user and phoxtail_users_bulk_create_users. "
-        "Requires a superuser token/session. Optional filter: `search` "
+        "Optional filter: `search` "
         "(prefix search on name). Before updating a gender, fetch it with "
         "phoxtail_users_get_gender to obtain its `_etag`."
     ),
@@ -46,7 +47,7 @@ def users_list_genders(search: str | None = None) -> str:
     name="phoxtail_users_get_gender",
     auth=[scoped("phoxtail_users.view_gender")],
     description=(
-        "Get a gender option by UUID. Requires a superuser token/session. "
+        "Get a gender option by UUID. "
         "The response includes `_etag` which MUST be passed to "
         "phoxtail_users_update_gender for concurrency control."
     ),
@@ -63,7 +64,7 @@ def users_get_gender(gender_uuid: str) -> str:
     name="phoxtail_users_create_gender",
     auth=[scoped("phoxtail_users.add_gender")],
     description=(
-        "Create a gender option. Requires a superuser token/session. "
+        "Create a gender option. "
         "Required: name (unique, e.g. 'Female'). Optional: symbol (short "
         "unique marker, e.g. '♀' or 'F'). Returns the created gender with "
         "its `uuid` and `_etag`."
@@ -85,7 +86,7 @@ def users_create_gender(name: str, symbol: str | None = None) -> str:
     auth=[scoped("phoxtail_users.change_gender")],
     description=(
         "Update a gender option. Pass only the fields you want to change. "
-        "Requires a superuser token/session and `etag` from a prior "
+        "Requires `etag` from a prior "
         "phoxtail_users_get_gender (or create) response. Writable: name, "
         "symbol. "
         "Set clear_symbol=true to remove the symbol. Returns the updated "
@@ -123,7 +124,7 @@ def users_update_gender(
     name="phoxtail_users_delete_gender",
     auth=[scoped("phoxtail_users.delete_gender")],
     description=(
-        "Delete a gender option by UUID. Requires a superuser token/session. "
+        "Delete a gender option by UUID. "
         "Safe for accounts: users referencing the gender keep their account "
         "and their gender becomes unset (null)."
     ),

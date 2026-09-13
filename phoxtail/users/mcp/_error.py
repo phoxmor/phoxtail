@@ -13,7 +13,10 @@ def error_envelope(resp) -> str | None:
 
     hints = {
         401: ("Authentication failed. The users tools require a valid token or session."),
-        403: ("Permission denied. The users tools require an active superuser token/session."),
+        403: (
+            "Permission denied. Either you lack the permission this tool "
+            "requires, or your token is scoped too narrowly to cover it."
+        ),
         412: ("The resource has been modified since you last read it. Re-fetch to get the current ETag, then retry."),
         428: ("ETag is required. Fetch the resource first and pass the `_etag` value from the response."),
         422: "Validation failed — check the field values against the tool description.",

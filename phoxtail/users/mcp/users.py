@@ -2,8 +2,9 @@
 
 Thin wrappers around ``/api/users/v1/users/``. Users are addressed by
 UUID everywhere; writes follow the read-before-write ETag contract shared
-by every Phoxtail MCP tool. The whole surface requires a superuser
-token/session.
+by every Phoxtail MCP tool. Each tool names the Django permission its
+act needs; a refusal says what is missing, so the descriptions do not
+repeat it.
 """
 
 from __future__ import annotations
@@ -27,8 +28,7 @@ def _with_etag(resp) -> str:
     name="phoxtail_users_list_users",
     auth=[scoped("phoxtail_users.view_user")],
     description=(
-        "List the project's users. Requires a superuser "
-        "token/session. Optional filters: `search` (prefix search on email, "
+        "List the project's users. Optional filters: `search` (prefix search on email, "
         "username, first or last name), `is_active`. Returns summaries with "
         "each user's `uuid` — use phoxtail_users_get_user for full details."
     ),
@@ -50,7 +50,7 @@ def users_list_users(
     description=(
         "Get full details of a user by UUID: profile fields (born_at, gender, "
         "country, phone_number), login metadata (date_joined, last_login) and "
-        "the read-only is_superuser flag. Requires a superuser token/session. "
+        "the read-only is_superuser flag. "
         "The response includes `_etag` which MUST be passed to "
         "phoxtail_users_update_user for concurrency control."
     ),
@@ -68,8 +68,7 @@ def users_get_user(user_uuid: str) -> str:
     auth=[scoped("phoxtail_users.add_user")],
     description=(
         "Create a user without login access — no password is "
-        "accepted or transported, and no email is sent. Requires a superuser "
-        "token/session. Required: email, first_name, last_name. Optional: "
+        "accepted or transported, and no email is sent. Required: email, first_name, last_name. Optional: "
         "username (lowercase; omit to auto-generate from the name/email — "
         "preferred), born_at (ISO date, e.g. '1990-04-23'), gender_uuid (use "
         "phoxtail_users_list_genders to find gender UUIDs), country "
@@ -117,8 +116,7 @@ def users_create_user(
     auth=[scoped("phoxtail_users.change_user")],
     description=(
         "Update a user. Pass only the fields you want to change — omitted "
-        "fields are left untouched. Requires a superuser token/session and "
-        "`etag` from a prior phoxtail_users_get_user call. Writable fields: "
+        "fields are left untouched. Requires `etag` from a prior phoxtail_users_get_user call. Writable fields: "
         "first_name, last_name, email, username (lowercase), born_at (ISO "
         "date), gender_uuid (use phoxtail_users_list_genders to find UUIDs), "
         "country (ISO alpha-2), phone_number (E.164), is_active. "
@@ -187,7 +185,7 @@ def users_update_user(
         "Mark a user's email address as verified in allauth, by user UUID. "
         "Administrative bypass of the confirmation-email flow — no email is "
         "sent. Idempotent: returns status 'verified' or 'already_verified'. "
-        "Requires a superuser token/session. For many users at once use "
+        "For many users at once use "
         "phoxtail_users_bulk_verify_emails."
     ),
 )
@@ -209,7 +207,7 @@ def users_verify_email(user_uuid: str) -> str:
         "caps one request at 100 rows; send chunks of ~50 for large sets. "
         "Rows are independent — an unknown UUID is reported in `results` "
         "with status 'error' and never aborts the batch. No email is sent. "
-        "Requires a superuser token/session. Returns per-row results plus "
+        "Returns per-row results plus "
         "`verified`/`already_verified`/`failed` counts."
     ),
 )
@@ -232,8 +230,7 @@ def users_bulk_verify_emails(user_uuids: list[str]) -> str:
         "conversation — confirm the exact account (email + uuid) with them "
         "first. To remove a user from active use, prefer "
         "phoxtail_users_update_user with is_active=false, which preserves "
-        "history. Requires a superuser token/session; the account you are "
-        "authenticated as cannot be deleted."
+        "history. The account you are authenticated as cannot be deleted."
     ),
 )
 def users_delete_user(user_uuid: str) -> str:
@@ -248,8 +245,7 @@ def users_delete_user(user_uuid: str) -> str:
     name="phoxtail_users_bulk_create_users",
     auth=[scoped("phoxtail_users.add_user")],
     description=(
-        "Bulk create users — built for CSV imports. Requires a "
-        "superuser token/session. Pass `users` as a JSON array of objects, "
+        "Bulk create users — built for CSV imports. Pass `users` as a JSON array of objects, "
         "each with required email, first_name, last_name and optional "
         "born_at (ISO date), gender_uuid, country (ISO alpha-2), "
         "phone_number (E.164), is_active. The server caps one request at "
