@@ -241,3 +241,55 @@ class TestCrossProjectSync:
     def test_a_superuser_pushes_as_before(self, client):
         response = client.post(self.PUSH, json={"install": {}})
         assert response.status_code != 403
+
+
+class TestAssemblingContext:
+    """``/context/`` returns a block's schema and other variants' source.
+
+    It also returns design's palette and font roles and deliberately does
+    not ask for their codenames: those rows are a vocabulary — "Surface",
+    ``surface``, "used as ``--color-surface-{shade}``" — with no colour
+    values and no font files among them. That is the same character as
+    ``/schema-catalog/``, and it is gated the same way, which is to say not
+    at all. Requiring them would also mean anyone without design permissions
+    lost block context entirely, since ``guarded()`` requires all it names.
+    """
+
+    PATH = "/streams/v1/context/"
+
+    def _body(self, block):
+        return {"block_id": block.id, "references": []}
+
+    def test_reading_a_block_alone_is_not_enough(self, raw_client, regular_user, grant, block):
+        """The reference variants it returns carry html, css and javascript."""
+        user = grant(regular_user, "view_block")
+        response = raw_client.post(self.PATH, json=self._body(block), user=user)
+        assert response.status_code == 403
+        assert "view_blockvariant" in response.json()["detail"]
+
+    def test_reading_variants_alone_is_not_enough_either(self, raw_client, regular_user, grant, block):
+        user = grant(regular_user, "view_blockvariant")
+        response = raw_client.post(self.PATH, json=self._body(block), user=user)
+        assert response.status_code == 403
+        assert "view_block" in response.json()["detail"]
+
+    def test_both_together_are(self, raw_client, regular_user, grant, block):
+        user = grant(regular_user, "view_block")
+        user = grant(user, "view_blockvariant")
+        response = raw_client.post(self.PATH, json=self._body(block), user=user)
+        assert response.status_code == 200, response.content
+
+    def test_design_roles_come_back_without_design_permissions(self, raw_client, regular_user, grant, block):
+        """The decision above, stated as behaviour rather than as a comment."""
+        from phoxtail.design.models import FontRole, PaletteRole
+
+        PaletteRole.objects.create(name="Surface", identifier="surface", description="Backgrounds.")
+        FontRole.objects.create(name="Heading", identifier="heading", description="Headings.")
+
+        user = grant(regular_user, "view_block")
+        user = grant(user, "view_blockvariant")
+        assert not user.has_perm("phoxtail_design.view_paletterole")
+
+        tokens = raw_client.post(self.PATH, json=self._body(block), user=user).json()["design_tokens"]
+        assert [r["identifier"] for r in tokens["palette_roles"]] == ["surface"]
+        assert [r["identifier"] for r in tokens["font_roles"]] == ["heading"]

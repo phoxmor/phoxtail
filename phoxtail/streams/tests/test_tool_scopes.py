@@ -57,23 +57,38 @@ PAIRS = {
     "phoxtail_studio_create_variant": "create_variant",
     "phoxtail_studio_update_variant": "update_variant_by_id",
     "phoxtail_studio_delete_variant": "delete_variant",
+    # Names two codenames, and so does its endpoint — the tuples must match
+    # in order as well as in content, which is what pins them together.
+    "phoxtail_studio_get_context": "get_context",
 }
 
-# One tool with no endpoint of its own: it reads a variant and compares it
-# against local files, so it names what reading a variant names.
-TOOLS_REUSING_A_CODENAME = {"phoxtail_studio_diff_variant": "phoxtail_streams.view_blockvariant"}
+# Tools with no endpoint of their own. Each names what it actually reads or
+# reaches, which is why none of them is simply left bare: an MCP tool naming
+# no codename is offered to *every* credential, including one narrowed to a
+# single unrelated act — the opposite of the API's default, where declaring
+# nothing closes the door.
+TOOLS_WITHOUT_AN_ENDPOINT = {
+    # Reads a variant and compares it against local files.
+    "phoxtail_studio_diff_variant": ("phoxtail_streams.view_blockvariant",),
+    # An orchestrator: reads the variant and its block, then returns a
+    # playbook naming the tools to call. It writes nothing itself, and every
+    # step it recommends is guarded on its own.
+    "phoxtail_studio_capture_variant_previews": (
+        "phoxtail_streams.view_blockvariant",
+        "phoxtail_streams.view_block",
+    ),
+    # These drive a headless browser at the agent app's screenshot view,
+    # which asks the person for access_chatbot. Naming the same codename is
+    # the tool mirroring what it reaches, across an app boundary — the same
+    # thing media does with Wagtail's codenames.
+    "phoxtail_studio_render_block": ("phoxtail_agent.access_chatbot",),
+    "phoxtail_studio_screenshot_page": ("phoxtail_agent.access_chatbot",),
+}
 
 # Endpoints that deliberately declare no codename — see the class in
 # ``api/tests/test_auth.py`` for why, and note that declaring nothing leaves
 # a door closed to scoped tokens rather than open.
 ENDPOINTS_WITHOUT_A_CODENAME = {"schema_catalog", "list_page_type_app_labels"}
-
-# Endpoints whose commit is still to come. ``get_context`` is here rather than
-# above because no decision has been taken about it yet: unlike the two
-# catalogues it reads real project data — a block, a collection, design
-# palette and font roles, reference variants — so "ungated" would be a
-# conclusion, not a deferral.
-ENDPOINTS_NOT_YET_ANNOTATED = {"get_context"}
 
 
 def _endpoint_codenames() -> dict[str, str | tuple[str, ...]]:
@@ -92,13 +107,18 @@ def _endpoint_codenames() -> dict[str, str | tuple[str, ...]]:
     return found
 
 
-def _tool_codenames() -> dict[str, str]:
-    """``{tool name: codename}`` for every scoped streams tool."""
-    found = {}
+def _tool_codenames() -> dict[str, str | tuple[str, ...]]:
+    """``{tool name: codename}`` for every scoped streams tool.
+
+    A tool naming several codenames yields a tuple of them, matching
+    :func:`_endpoint_codenames`.
+    """
+    found: dict[str, str | tuple[str, ...]] = {}
     for path in _MCP.glob("*.py"):
         source = path.read_text()
-        for match in re.finditer(r'name="(\w+)",\n\s+auth=\[scoped\("([^"]+)"\)\]', source):
-            found[match.group(1)] = match.group(2)
+        for match in re.finditer(r'name="(\w+)",\n\s+auth=\[scoped\(((?:\s*"[^"]+",?\s*)+)\)\]', source):
+            names = tuple(re.findall(r'"([^"]+)"', match.group(2)))
+            found[match.group(1)] = names[0] if len(names) == 1 else names
     return found
 
 
@@ -113,10 +133,20 @@ def _all_endpoint_codenames() -> set[str]:
     return flat
 
 
-def test_every_endpoint_is_accounted_for():
-    """Annotated, or deliberately not, or named as still to come.
+def _all_tool_codenames() -> set[str]:
+    """Every codename any tool names, flattened across apps."""
+    flat: set[str] = set()
+    for value in _tool_codenames().values():
+        flat.update((value,) if isinstance(value, str) else value)
+    return flat
 
-    An endpoint that is none of the three is the hole this pass closes.
+
+def test_every_endpoint_is_accounted_for():
+    """Annotated, or deliberately not.
+
+    An endpoint that is neither is the hole this pass closes. Nothing is
+    pending any more: the set that held the deferrals is gone, and so is the
+    test that refused to let it be forgotten.
     """
     from phoxtail.api import api
 
@@ -128,23 +158,12 @@ def test_every_endpoint_is_accounted_for():
         for view in router.path_operations.values()
         for op in view.operations
     }
-    unaccounted = served - set(_endpoint_codenames()) - ENDPOINTS_WITHOUT_A_CODENAME - ENDPOINTS_NOT_YET_ANNOTATED
+    unaccounted = served - set(_endpoint_codenames()) - ENDPOINTS_WITHOUT_A_CODENAME
     assert unaccounted == set()
 
 
-def test_nothing_is_still_waiting_to_be_annotated():
-    """The exemption above exists only between commits, and says so loudly.
-
-    Nothing else would force it to be emptied: annotating those endpoints
-    simply moves them into ``_endpoint_codenames()``, and the accounting test
-    passes either way. This one fails instead, which is the reminder to
-    delete both the set and this assertion once the last of them lands.
-    """
-    assert ENDPOINTS_NOT_YET_ANNOTATED, "empty this set and delete this test"
-
-
 def test_every_tool_is_scoped():
-    assert sorted(_tool_codenames()) == sorted({**PAIRS, **TOOLS_REUSING_A_CODENAME})
+    assert sorted(_tool_codenames()) == sorted({**PAIRS, **TOOLS_WITHOUT_AN_ENDPOINT})
 
 
 @pytest.mark.parametrize("tool,endpoint", sorted(PAIRS.items()))
@@ -152,9 +171,13 @@ def test_the_tool_names_what_its_endpoint_names(tool, endpoint):
     assert _tool_codenames()[tool] == _endpoint_codenames()[endpoint]
 
 
-@pytest.mark.parametrize("tool,codename", sorted(TOOLS_REUSING_A_CODENAME.items()))
-def test_a_tool_without_an_endpoint_names_what_it_reads(tool, codename):
-    assert _tool_codenames()[tool] == codename
+@pytest.mark.parametrize("tool,codenames", sorted(TOOLS_WITHOUT_AN_ENDPOINT.items()))
+def test_a_tool_without_an_endpoint_names_what_it_reaches(tool, codenames):
+    found = _tool_codenames()[tool]
+    # Parenthesised deliberately: without them Python reads this as
+    # ``(found,) if ... else (found == codenames)``, and a single-codename
+    # tool would assert a non-empty tuple — always true, never a test.
+    assert ((found,) if isinstance(found, str) else found) == codenames
 
 
 def test_categorising_a_block_names_the_block(db):
@@ -179,5 +202,5 @@ def test_every_codename_is_a_real_permission(db):
     real = {
         f"phoxtail_streams.{p.codename}" for p in Permission.objects.filter(content_type__app_label="phoxtail_streams")
     }
-    assert set(_tool_codenames().values()) <= real
+    assert {c for c in _all_tool_codenames() if c.startswith("phoxtail_streams.")} <= real
     assert _all_endpoint_codenames() <= real

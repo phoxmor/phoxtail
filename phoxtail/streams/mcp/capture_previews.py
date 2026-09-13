@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import request as studio_request
 
 _COLLECTION_NAME = "Block Variant Preview Shots"
@@ -41,6 +42,7 @@ _PREVIEW_FIELDS = {
 
 @mcp_server.tool(
     name="phoxtail_studio_capture_variant_previews",
+    auth=[scoped("phoxtail_streams.view_blockvariant", "phoxtail_streams.view_block")],
     description=(
         "Orchestrator: generate a complete step-by-step playbook for capturing "
         "preview screenshots of a BlockVariant and attaching them to the variant. "

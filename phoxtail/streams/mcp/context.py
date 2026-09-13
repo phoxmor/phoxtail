@@ -8,6 +8,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader
 
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import request
 
 _TEMPLATE_DIR = Path(__file__).resolve().parent.parent.parent / "cli" / "templates" / "studio"
@@ -19,6 +20,7 @@ _jinja_env = Environment(
 
 @mcp_server.tool(
     name="phoxtail_studio_get_context",
+    auth=[scoped("phoxtail_streams.view_block", "phoxtail_streams.view_blockvariant")],
     description=(
         "Get the full context document for working with a block. Returns a "
         "rendered briefing that includes the block's field schema, DTL syntax "

@@ -10,6 +10,7 @@ from fastmcp.utilities.types import Image as MCPImage
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import api_base_url, outbound_token
+from phoxtail.mcp.authorization import scoped
 
 if TYPE_CHECKING:
     # playwright ships only with the studio extra, so it is never imported
@@ -39,6 +40,7 @@ def _resolve_save_path(stem: str, viewport: str) -> Path | None:
 
 @mcp_server.tool(
     name="phoxtail_studio_render_block",
+    auth=[scoped("phoxtail_agent.access_chatbot")],
     description=(
         "Take a screenshot of a specific block on a page and return it as an image. "
         "Use this after making variant changes to visually verify the result — "
@@ -132,6 +134,7 @@ async def render_block(
 
 @mcp_server.tool(
     name="phoxtail_studio_screenshot_page",
+    auth=[scoped("phoxtail_agent.access_chatbot")],
     description=(
         "Take a viewport screenshot of a full page and return it as an image. "
         "Use this to capture what a page looks like at a given breakpoint — "
