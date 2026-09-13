@@ -7,10 +7,12 @@ from typing import Any
 
 from phoxtail.core.mcp._http import get_json, request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_content_list_internal_links",
+    auth=[scoped("phoxtail_core.view_internallink")],
     description=(
         "List all internal links. An internal link maps a display label to a "
         "named Django URL (e.g. 'dashboard:index') for use in StreamField blocks "
@@ -24,6 +26,7 @@ def list_internal_links(search: str | None = None) -> str:
 
 @mcp_server.tool(
     name="phoxtail_content_get_internal_link",
+    auth=[scoped("phoxtail_core.view_internallink")],
     description=(
         "Get the full detail of a single internal link, including its resolved URL. "
         "Also returns the current ETag which MUST be passed to "
@@ -41,6 +44,7 @@ def get_internal_link(link_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_content_create_internal_link",
+    auth=[scoped("phoxtail_core.add_internallink")],
     description=(
         "Create a new internal link. Requires a human-readable `label` and a "
         "Django `url_name` (e.g. 'dashboard:index'). The url_name must resolve "
@@ -74,6 +78,7 @@ def create_internal_link(label: str, url_name: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_content_update_internal_link",
+    auth=[scoped("phoxtail_core.change_internallink")],
     description=(
         "Update an internal link's label and/or url_name. Requires the ETag from a "
         "prior phoxtail_content_get_internal_link call for optimistic concurrency "
@@ -138,6 +143,7 @@ def update_internal_link(
 
 @mcp_server.tool(
     name="phoxtail_content_delete_internal_link",
+    auth=[scoped("phoxtail_core.delete_internallink")],
     description=(
         "Delete an internal link by numeric ID. Pass the integer `link_id` from phoxtail_content_list_internal_links."
     ),

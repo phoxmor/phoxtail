@@ -11,6 +11,7 @@ from ninja import Query, Router
 from ninja.errors import HttpError
 from wagtail.search.backends import get_search_backend
 
+from phoxtail.api.auth import guarded
 from phoxtail.core.api.v1.schemas import (
     Error,
     InternalLinkCreate,
@@ -58,7 +59,12 @@ def _format_validation_error(exc: ValidationError) -> str:
     return "; ".join(exc.messages) if hasattr(exc, "messages") else str(exc)
 
 
-@router.get("/", response={200: InternalLinkList}, summary="List InternalLinks")
+@router.get(
+    "/",
+    response={200: InternalLinkList},
+    summary="List InternalLinks",
+    auth=guarded("phoxtail_core.view_internallink"),
+)
 def list_internal_links(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on label and url_name."),
@@ -73,6 +79,7 @@ def list_internal_links(
     "/{link_id}/",
     response={200: InternalLinkItem, 404: Error},
     summary="Show an InternalLink by numeric ID",
+    auth=guarded("phoxtail_core.view_internallink"),
 )
 def get_internal_link(request: HttpRequest, response: HttpResponse, link_id: int):
     link = _resolve(link_id)
@@ -84,6 +91,7 @@ def get_internal_link(request: HttpRequest, response: HttpResponse, link_id: int
     "/",
     response={201: InternalLinkItem, 400: Error, 409: Error},
     summary="Create an InternalLink",
+    auth=guarded("phoxtail_core.add_internallink"),
 )
 def create_internal_link(request: HttpRequest, response: HttpResponse, payload: InternalLinkCreate):
     link = InternalLink(label=payload.label, url_name=payload.url_name)
@@ -103,6 +111,7 @@ def create_internal_link(request: HttpRequest, response: HttpResponse, payload: 
     "/{link_id}/",
     response={200: InternalLinkItem, 400: Error, 404: Error, 412: Error, 428: Error},
     summary="Update an InternalLink by numeric ID",
+    auth=guarded("phoxtail_core.change_internallink"),
 )
 def update_internal_link(
     request: HttpRequest,
@@ -148,6 +157,7 @@ def update_internal_link(
     "/{link_id}/",
     response={204: None, 404: Error},
     summary="Delete an InternalLink by numeric ID",
+    auth=guarded("phoxtail_core.delete_internallink"),
 )
 def delete_internal_link(request: HttpRequest, link_id: int):
     link = _resolve(link_id)
