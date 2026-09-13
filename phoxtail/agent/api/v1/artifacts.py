@@ -42,6 +42,7 @@ from phoxtail.agent.api.v1.schemas import (
     Error,
 )
 from phoxtail.agent.models import ModelArtifact
+from phoxtail.api.auth import guarded
 
 router = Router()
 
@@ -50,6 +51,7 @@ router = Router()
     "/",
     response={200: ArtifactList, 404: Error},
     summary="List model artifacts",
+    auth=guarded("phoxtail_agent.view_modelartifact"),
 )
 def list_artifacts(
     request: HttpRequest,
@@ -74,6 +76,7 @@ def list_artifacts(
     "/",
     response={201: ArtifactSchema, 404: Error, 422: Error},
     summary="Create a model artifact",
+    auth=guarded("phoxtail_agent.add_modelartifact"),
 )
 def create_artifact(
     request: HttpRequest,
@@ -97,6 +100,7 @@ def create_artifact(
     "/{artifact_uuid}/",
     response={200: ArtifactSchema, 404: Error},
     summary="Show a model artifact by UUID",
+    auth=guarded("phoxtail_agent.view_modelartifact"),
 )
 def get_artifact(
     request: HttpRequest,
@@ -112,6 +116,7 @@ def get_artifact(
     "/{artifact_uuid}/",
     response={200: ArtifactSchema, 404: Error, 412: Error, 422: Error, 428: Error},
     summary="Update a model artifact by UUID (optimistic concurrency)",
+    auth=guarded("phoxtail_agent.change_modelartifact"),
 )
 def update_artifact(
     request: HttpRequest,
@@ -150,6 +155,7 @@ def update_artifact(
     "/{artifact_uuid}/",
     response={200: dict, 404: Error},
     summary="Delete a model artifact by UUID",
+    auth=guarded("phoxtail_agent.delete_modelartifact"),
 )
 def delete_artifact(request: HttpRequest, artifact_uuid: UUID):
     """Delete an artifact — conversations and site defaults referencing it

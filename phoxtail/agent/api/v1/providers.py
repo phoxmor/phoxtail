@@ -40,6 +40,7 @@ from phoxtail.agent.api.v1.schemas import (
     Provider as ProviderSchema,
 )
 from phoxtail.agent.models import InferenceProvider
+from phoxtail.api.auth import guarded
 
 router = Router()
 
@@ -48,6 +49,7 @@ router = Router()
     "/",
     response={200: ProviderList},
     summary="List inference providers",
+    auth=guarded("phoxtail_agent.view_inferenceprovider"),
 )
 def list_providers(
     request: HttpRequest,
@@ -68,6 +70,7 @@ def list_providers(
     "/",
     response={201: ProviderSchema, 422: Error},
     summary="Create an inference provider",
+    auth=guarded("phoxtail_agent.add_inferenceprovider"),
 )
 def create_provider(
     request: HttpRequest,
@@ -85,6 +88,7 @@ def create_provider(
     "/{provider_uuid}/",
     response={200: ProviderSchema, 404: Error},
     summary="Show an inference provider by UUID",
+    auth=guarded("phoxtail_agent.view_inferenceprovider"),
 )
 def get_provider(
     request: HttpRequest,
@@ -100,6 +104,7 @@ def get_provider(
     "/{provider_uuid}/",
     response={200: ProviderSchema, 404: Error, 412: Error, 422: Error, 428: Error},
     summary="Update an inference provider by UUID (optimistic concurrency)",
+    auth=guarded("phoxtail_agent.change_inferenceprovider"),
 )
 def update_provider(
     request: HttpRequest,
@@ -125,6 +130,7 @@ def update_provider(
     "/{provider_uuid}/",
     response={200: dict, 404: Error},
     summary="Delete an inference provider and all of its model artifacts",
+    auth=guarded("phoxtail_agent.delete_inferenceprovider"),
 )
 def delete_provider(request: HttpRequest, provider_uuid: UUID):
     """Delete a provider — its artifacts cascade away with it.

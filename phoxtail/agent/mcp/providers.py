@@ -12,6 +12,7 @@ import json
 from phoxtail.agent.mcp._error import error_envelope
 from phoxtail.agent.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 def _with_etag(resp) -> str:
@@ -22,6 +23,7 @@ def _with_etag(resp) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_list_providers",
+    auth=[scoped("phoxtail_agent.view_inferenceprovider")],
     description=(
         "List the inference providers the project's chatbot can use, with "
         "their UUIDs — use these as `provider_uuid` in "
@@ -41,6 +43,7 @@ def agent_list_providers(search: str | None = None, is_active: bool | None = Non
 
 @mcp_server.tool(
     name="phoxtail_agent_get_provider",
+    auth=[scoped("phoxtail_agent.view_inferenceprovider")],
     description=(
         "Get an inference provider by UUID. The response includes `_etag` "
         "which MUST be passed to phoxtail_agent_update_provider for "
@@ -57,6 +60,7 @@ def agent_get_provider(provider_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_create_provider",
+    auth=[scoped("phoxtail_agent.add_inferenceprovider")],
     description=(
         "Create an inference provider — a model family the chatbot can talk "
         "to. Required: identifier (unique slug, e.g. 'google-gemini'), "
@@ -100,6 +104,7 @@ def agent_create_provider(
 
 @mcp_server.tool(
     name="phoxtail_agent_update_provider",
+    auth=[scoped("phoxtail_agent.change_inferenceprovider")],
     description=(
         "Update an inference provider. Pass only the fields you want to "
         "change — omitted fields are left untouched. Requires `etag` from a "
@@ -144,6 +149,7 @@ def agent_update_provider(
 
 @mcp_server.tool(
     name="phoxtail_agent_delete_provider",
+    auth=[scoped("phoxtail_agent.delete_inferenceprovider")],
     description=(
         "DESTRUCTIVE: delete an inference provider by UUID and every model "
         "artifact under it. Sites that defaulted to one of those models are "

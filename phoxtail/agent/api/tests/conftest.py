@@ -47,6 +47,17 @@ def superuser(db, django_user_model):
 
 
 @pytest.fixture
+def regular_user(db, django_user_model):
+    return django_user_model.objects.create_user(
+        username="agent-member",
+        email="agent-member@example.com",
+        password="irrelevant",
+        first_name="Agent",
+        last_name="Member",
+    )
+
+
+@pytest.fixture
 def client(raw_client, superuser):
     return AuthedClient(raw_client, superuser)
 

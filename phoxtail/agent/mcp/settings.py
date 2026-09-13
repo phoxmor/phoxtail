@@ -12,6 +12,7 @@ import json
 from phoxtail.agent.mcp._error import error_envelope
 from phoxtail.agent.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 def _with_etag(resp) -> str:
@@ -22,6 +23,7 @@ def _with_etag(resp) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_get_settings",
+    auth=[scoped("phoxtail_agent.view_agentsitesetting")],
     description=(
         "Get a site's agent settings — the model new chat conversations "
         "start with. Auto-creates a blank record if none exists yet. Use "
@@ -40,6 +42,7 @@ def agent_get_settings(site_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_update_settings",
+    auth=[scoped("phoxtail_agent.change_agentsitesetting")],
     description=(
         "Set a site's default chatbot model. Pass `default_artifact_uuid` "
         "(from phoxtail_agent_list_artifacts), or clear_default=true to "

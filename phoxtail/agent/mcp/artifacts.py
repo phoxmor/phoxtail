@@ -13,6 +13,7 @@ from typing import Any
 from phoxtail.agent.mcp._error import error_envelope
 from phoxtail.agent.mcp._http import request
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 def _with_etag(resp) -> str:
@@ -23,6 +24,7 @@ def _with_etag(resp) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_list_artifacts",
+    auth=[scoped("phoxtail_agent.view_modelartifact")],
     description=(
         "List the models users can pick in the chatbot, ordered by "
         "`sort_order`. Optional filters: `provider_uuid` (restrict "
@@ -50,6 +52,7 @@ def agent_list_artifacts(
 
 @mcp_server.tool(
     name="phoxtail_agent_get_artifact",
+    auth=[scoped("phoxtail_agent.view_modelartifact")],
     description=(
         "Get a model artifact by UUID, including its provider and the "
         "permission gating it. The response includes `_etag` which MUST be "
@@ -66,6 +69,7 @@ def agent_get_artifact(artifact_uuid: str) -> str:
 
 @mcp_server.tool(
     name="phoxtail_agent_create_artifact",
+    auth=[scoped("phoxtail_agent.add_modelartifact")],
     description=(
         "Add a model to a provider, making it selectable in the chatbot's "
         "model picker. Required: provider_uuid (from "
@@ -105,6 +109,7 @@ def agent_create_artifact(
 
 @mcp_server.tool(
     name="phoxtail_agent_update_artifact",
+    auth=[scoped("phoxtail_agent.change_modelartifact")],
     description=(
         "Update a model artifact. Pass only the fields you want to change — "
         "omitted fields are left untouched. Requires `etag` from a prior "
@@ -155,6 +160,7 @@ def agent_update_artifact(
 
 @mcp_server.tool(
     name="phoxtail_agent_delete_artifact",
+    auth=[scoped("phoxtail_agent.delete_modelartifact")],
     description=(
         "Delete a model artifact by UUID. Past conversations that used it "
         "survive and simply lose their model reference; a site that "

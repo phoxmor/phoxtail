@@ -22,6 +22,7 @@ from phoxtail.agent.api.v1._helpers import (
     resolve_artifact,
 )
 from phoxtail.agent.api.v1.schemas import AgentSettings, AgentSettingsUpdate, Error
+from phoxtail.api.auth import guarded
 
 router = Router()
 
@@ -30,6 +31,7 @@ router = Router()
     "/{site_id}/",
     response={200: AgentSettings, 404: Error},
     summary="Show a site's agent settings",
+    auth=guarded("phoxtail_agent.view_agentsitesetting"),
 )
 def get_agent_settings(request: HttpRequest, response: HttpResponse, site_id: int):
     setting = resolve_agent_setting(site_id)
@@ -41,6 +43,7 @@ def get_agent_settings(request: HttpRequest, response: HttpResponse, site_id: in
     "/{site_id}/",
     response={200: AgentSettings, 404: Error, 412: Error, 428: Error},
     summary="Set or clear a site's default model (optimistic concurrency)",
+    auth=guarded("phoxtail_agent.change_agentsitesetting"),
 )
 def update_agent_settings(
     request: HttpRequest,
