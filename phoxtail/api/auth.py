@@ -229,3 +229,40 @@ def scoped(*codenames: str, detail: str | None = None) -> list[Authorize]:
         Authorize(PhoxtailTokenAuth(), predicate, detail=detail),
         Authorize(PhoxtailSessionAuth(), predicate, detail=detail),
     ]
+
+
+def authenticated() -> list[Authorize]:
+    """The ``auth=`` for a vocabulary: any caller, whatever their ceiling.
+
+    Declaring nothing is not the same thing and must not be used for this.
+    An endpoint with no ``auth=`` keeps the API-wide default, which refuses
+    a scoped token — the right answer for an endpoint someone forgot, and
+    the wrong one for an endpoint that deliberately asks for nothing.
+
+    The difference matters because a vocabulary is what an agent reads
+    *before* it can phrase a request at all: which page types exist, which
+    fields they take, which of those are required. A token narrowed to
+    ``add_page`` that cannot read that list cannot create a page either, so
+    leaving it to the default would close the door to exactly the
+    credentials the scope system exists to make useful.
+
+    Nothing here weakens a check. The endpoints this belongs on return
+    names and shapes drawn from installed code rather than from rows —
+    there is no model behind them and no permission that names them, so
+    there was never a codename to ask for. Anything backed by rows has one,
+    and takes :func:`guarded` or :func:`scoped` instead.
+
+    **This is not ``auth=None``**, which is the adjacent mistake. The
+    authenticators still run: a caller who resolves to nobody makes
+    :class:`Authorize` return ``None``, ninja falls through the stack, and
+    the answer is 401. ``auth=None`` opts out of authentication itself and
+    would publish the endpoint to anyone at all.
+    """
+
+    def permit_anyone(context) -> bool:
+        return True
+
+    return [
+        Authorize(PhoxtailTokenAuth(), permit_anyone),
+        Authorize(PhoxtailSessionAuth(), permit_anyone),
+    ]
