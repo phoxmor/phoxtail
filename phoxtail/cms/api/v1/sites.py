@@ -22,6 +22,8 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Router, Schema
 from ninja.errors import HttpError
 
+from phoxtail.api.auth import guarded
+
 router = Router()
 
 
@@ -175,7 +177,12 @@ def _apply_and_save(site, data: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/", response={200: SiteList}, summary="List sites")
+@router.get(
+    "/",
+    response={200: SiteList},
+    summary="List sites",
+    auth=guarded("wagtailcore.view_site"),
+)
 def list_sites(request: HttpRequest):
     from wagtail.models import Site
 
@@ -188,12 +195,10 @@ def list_sites(request: HttpRequest):
     "/",
     response={201: SiteSummary, 400: Error, 403: Error, 409: Error},
     summary="Create a Wagtail site",
+    auth=guarded("wagtailcore.add_site"),
 )
 def create_site(request: HttpRequest, response: HttpResponse, payload: SiteCreate):
     from wagtail.models import Site
-
-    if not request.auth.user.has_perm("wagtailcore.add_site"):
-        raise HttpError(403, "User does not have permission to create sites.")
 
     data = payload.model_dump()
     site = Site()
@@ -206,6 +211,7 @@ def create_site(request: HttpRequest, response: HttpResponse, payload: SiteCreat
     "/{site_id}/",
     response={200: SiteSummary, 404: Error},
     summary="Get a site",
+    auth=guarded("wagtailcore.view_site"),
 )
 def get_site(request: HttpRequest, response: HttpResponse, site_id: int):
     site = _resolve_site(site_id)
@@ -225,6 +231,7 @@ def get_site(request: HttpRequest, response: HttpResponse, site_id: int):
         428: Error,
     },
     summary="Update a site's fields",
+    auth=guarded("wagtailcore.change_site"),
 )
 def patch_site(
     request: HttpRequest,
@@ -232,9 +239,6 @@ def patch_site(
     site_id: int,
     payload: SitePatch,
 ):
-    if not request.auth.user.has_perm("wagtailcore.change_site"):
-        raise HttpError(403, "User does not have permission to change sites.")
-
     site = _resolve_site(site_id)
     _require_if_match(request, site)
 
@@ -248,11 +252,9 @@ def patch_site(
     "/{site_id}/",
     response={204: None, 403: Error, 404: Error, 412: Error, 428: Error},
     summary="Delete a site",
+    auth=guarded("wagtailcore.delete_site"),
 )
 def delete_site(request: HttpRequest, site_id: int):
-    if not request.auth.user.has_perm("wagtailcore.delete_site"):
-        raise HttpError(403, "User does not have permission to delete sites.")
-
     site = _resolve_site(site_id)
     _require_if_match(request, site)
     site.delete()

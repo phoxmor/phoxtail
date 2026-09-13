@@ -7,10 +7,12 @@ import json
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_sites_list",
+    auth=[scoped("wagtailcore.view_site")],
     description=(
         "List all Wagtail Site instances configured in this project. "
         "Returns each site's id, hostname, port, site_name, root_page_id, "
@@ -29,6 +31,7 @@ def sites_list() -> str:
 
 @mcp_server.tool(
     name="phoxtail_sites_get",
+    auth=[scoped("wagtailcore.view_site")],
     description=(
         "Get the full detail of a single Wagtail site by id. "
         "The response includes `_etag` which MUST be passed back on any "
@@ -48,6 +51,7 @@ def sites_get(site_id: int) -> str:
 
 @mcp_server.tool(
     name="phoxtail_sites_create",
+    auth=[scoped("wagtailcore.add_site")],
     description=(
         "Create a new Wagtail Site instance. "
         "Before calling: use phoxtail_pages_list_pages to find an existing "
@@ -89,6 +93,7 @@ def sites_create(
 
 @mcp_server.tool(
     name="phoxtail_sites_update",
+    auth=[scoped("wagtailcore.change_site")],
     description=(
         "Update a Wagtail site's fields. Pass only the fields you want to "
         "change — omitted fields are left untouched. "
@@ -136,6 +141,7 @@ def sites_update(
 
 @mcp_server.tool(
     name="phoxtail_sites_delete",
+    auth=[scoped("wagtailcore.delete_site")],
     description=(
         "Permanently delete a Wagtail site. Requires `etag` from a prior "
         "phoxtail_sites_get call. "

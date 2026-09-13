@@ -5,6 +5,8 @@ from __future__ import annotations
 from django.http import HttpRequest
 from ninja import Router, Schema
 
+from phoxtail.api.auth import guarded
+
 router = Router()
 
 
@@ -18,7 +20,12 @@ class LocaleList(Schema):
     total: int
 
 
-@router.get("/", response={200: LocaleList}, summary="List locales")
+@router.get(
+    "/",
+    response={200: LocaleList},
+    summary="List locales",
+    auth=guarded("wagtailcore.view_locale"),
+)
 def list_locales(request: HttpRequest):
     from wagtail.models import Locale
 

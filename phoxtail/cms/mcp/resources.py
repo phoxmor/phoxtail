@@ -6,13 +6,15 @@ call this before creating or editing pages to learn which fields each
 page type exposes, which are required on creation, and which MCP tool
 resolves each FK field to an integer ID.
 
-``phoxtail_page_types_list`` names no codename, matching the endpoint it
-calls: what that returns is derived from installed code rather than from
-rows, so there is no permission to name. The endpoint says so with
-``authenticated()`` rather than by staying silent, because a bare
-endpoint keeps the API-wide default and refuses a scoped token — and a
-tool naming nothing is offered to *every* credential, so the pair would
-otherwise offer this tool and then turn the caller away at the door.
+The two tools here are the two kinds of catalogue, and they are gated
+differently on purpose. ``phoxtail_locales_list`` names
+``wagtailcore.view_locale``, because ``Locale`` is a model with rows and a
+real grant over them. ``phoxtail_page_types_list`` names nothing, matching
+the endpoint it calls: what that returns is derived from installed code
+rather than from rows, so there is no permission to name — and that
+endpoint says so with ``authenticated()`` rather than by staying silent,
+since a bare endpoint keeps the API-wide default and refuses a scoped
+token while a bare tool is offered to *every* credential.
 """
 
 from __future__ import annotations
@@ -22,10 +24,12 @@ import json
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
+from phoxtail.mcp.authorization import scoped
 
 
 @mcp_server.tool(
     name="phoxtail_locales_list",
+    auth=[scoped("wagtailcore.view_locale")],
     description=(
         "List all Wagtail locales configured in this project. Returns each "
         "locale's id (integer) and language_code (e.g. 'en', 'fr'). "

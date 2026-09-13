@@ -29,7 +29,14 @@ _API = Path(__file__).resolve().parent.parent / "api" / "v1"
 _MCP = Path(__file__).resolve().parent.parent / "mcp"
 
 # Tool name -> the endpoint function whose act it performs.
-PAIRS: dict[str, str] = {}
+PAIRS = {
+    "phoxtail_sites_list": "list_sites",
+    "phoxtail_sites_get": "get_site",
+    "phoxtail_sites_create": "create_site",
+    "phoxtail_sites_update": "patch_site",
+    "phoxtail_sites_delete": "delete_site",
+    "phoxtail_locales_list": "list_locales",
+}
 
 # Tools with no endpoint of their own. Each names what it actually reaches:
 # an MCP tool naming no codename is offered to *every* credential, the
@@ -55,13 +62,6 @@ TOOLS_WITHOUT_A_CODENAME = {"phoxtail_page_types_list"}
 # Shrinks to nothing as cms lands, family by family. Kept so that a
 # half-annotated domain cannot be mistaken for a finished one.
 ENDPOINTS_NOT_YET_ANNOTATED = {
-    # sites and locales — global grants, land next
-    "list_sites",
-    "create_site",
-    "get_site",
-    "patch_site",
-    "delete_site",
-    "list_locales",
     # collections — per-collection grants, lands with its own bug fix
     "list_collections",
     "create_collection",
@@ -215,9 +215,9 @@ def test_a_deliberately_bare_tool_stays_bare(tool):
 def test_page_types_says_open_rather_than_saying_nothing():
     """The decision taken with the user, stated where it can be checked.
 
-    A catalogue derived from installed code has no rows and no permission to
-    name. (One backed by rows does, and ``locales`` is that case — it lands
-    with the rest of the annotation pass.)
+    A catalogue backed by rows is gated by the permission over those rows;
+    one derived from installed code has no rows and no permission to name.
+    ``locales`` is the first, ``page-types`` the second.
 
     But "no codename" is not the same as "no annotation", and asserting the
     absence of a codename would pass for both. A bare endpoint keeps the
@@ -230,6 +230,8 @@ def test_page_types_says_open_rather_than_saying_nothing():
     assert "auth=authenticated()" in source
     assert "list_page_types" not in _endpoint_codenames()
     assert "phoxtail_page_types_list" not in _tool_codenames()
+    assert _endpoint_codenames()["list_locales"] == "wagtailcore.view_locale"
+    assert _tool_codenames()["phoxtail_locales_list"] == "wagtailcore.view_locale"
 
 
 def test_nothing_else_is_bare_by_accident():
