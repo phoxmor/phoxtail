@@ -72,24 +72,37 @@ class TestTheCheck:
 
 
 class TestTheCatalogue:
-    def test_session_tools_are_offered_locally(self):
-        listed = {t.name for t in asyncio.run(mcp_server.list_tools())}
+    def test_session_tools_are_offered_locally(self, as_unrestricted_token):
+        with as_unrestricted_token():
+            listed = {t.name for t in asyncio.run(mcp_server.list_tools())}
         assert SESSION_TOOLS <= listed
 
-    def test_session_tools_are_withheld_over_http(self):
-        with _over_http():
+    def test_session_tools_are_withheld_over_http(self, as_unrestricted_token):
+        with as_unrestricted_token(), _over_http():
             listed = {t.name for t in asyncio.run(mcp_server.list_tools())}
         assert not (SESSION_TOOLS & listed)
 
-    def test_nothing_else_is_withheld_over_http(self):
-        """The guard is on five tools, and the catalogue proves it."""
-        local = {t.name for t in asyncio.run(mcp_server.list_tools())}
-        with _over_http():
+    def test_nothing_else_is_withheld_over_http(self, as_unrestricted_token):
+        """The guard is on five tools, and the catalogue proves it.
+
+        Both listings ask as the same credential, so the difference between
+        them is the transport and nothing else — which is the only way this
+        subtraction means what it says now that most tools name a codename.
+        """
+        with as_unrestricted_token():
+            local = {t.name for t in asyncio.run(mcp_server.list_tools())}
+        with as_unrestricted_token(), _over_http():
             remote = {t.name for t in asyncio.run(mcp_server.list_tools())}
         assert local - remote == SESSION_TOOLS
 
-    def test_the_upload_tools_keep_their_place(self):
-        with _over_http():
+    def test_the_upload_tools_keep_their_place(self, as_unrestricted_token):
+        """Distance is not their question, so distance does not withhold them.
+
+        Asked as a credential with no ceiling, because these tools now name
+        the codename their endpoint names and an anonymous listing is
+        answered with nothing.
+        """
+        with as_unrestricted_token(), _over_http():
             listed = {t.name for t in asyncio.run(mcp_server.list_tools())}
         assert UPLOAD_TOOLS <= listed
 
@@ -97,16 +110,23 @@ class TestTheCatalogue:
 class TestCallingByName:
     """Hiding is not securing: a name the caller already knows still fails."""
 
-    def test_a_session_tool_does_not_resolve_over_http(self):
-        with _over_http():
+    def test_a_session_tool_does_not_resolve_over_http(self, as_unrestricted_token):
+        with as_unrestricted_token(), _over_http():
             tool = asyncio.run(mcp_server.get_tool("phoxtail_studio_open_variant"))
         assert tool is None
 
-    def test_the_same_name_resolves_locally(self):
-        tool = asyncio.run(mcp_server.get_tool("phoxtail_studio_open_variant"))
+    def test_the_same_name_resolves_locally(self, as_unrestricted_token):
+        with as_unrestricted_token():
+            tool = asyncio.run(mcp_server.get_tool("phoxtail_studio_open_variant"))
         assert tool is not None
 
-    def test_an_unguarded_tool_resolves_over_http(self):
-        with _over_http():
+    def test_another_tool_resolves_over_http(self, as_unrestricted_token):
+        """The withholding is this guard's, not the transport's.
+
+        ``local_only`` is the only reason a name stops resolving over HTTP.
+        A tool whose own check the caller satisfies resolves there as it
+        does locally.
+        """
+        with as_unrestricted_token(), _over_http():
             tool = asyncio.run(mcp_server.get_tool("phoxtail_studio_list_blocks"))
         assert tool is not None

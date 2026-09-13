@@ -82,7 +82,7 @@ class TestMCPToolRegistration:
     def test_server_name(self):
         assert mcp_server.name == "phoxtail"
 
-    def test_expected_tools_registered(self):
+    def test_expected_tools_registered(self, as_unrestricted_token):
         studio_tools = {
             "phoxtail_studio_list_variants",
             "phoxtail_studio_list_collections",
@@ -229,7 +229,12 @@ class TestMCPToolRegistration:
             "phoxtail_font_weights_delete",
         }
         expected = studio_tools | pages_tools | content_tools | cms_tools | design_tools
-        registered = {t.name for t in asyncio.run(mcp_server.list_tools())}
+        # Asked as a credential with no ceiling. Most of these tools now name
+        # the codename their endpoint names, and an anonymous listing is
+        # answered honestly with nothing — no credential covers any codename.
+        # A developer holds an unrestricted token, so this asks what they see.
+        with as_unrestricted_token():
+            registered = {t.name for t in asyncio.run(mcp_server.list_tools())}
         # Optional installed apps contribute extra tools
         # via entry points; use subset check so those don't cause false failures.
         assert expected <= registered

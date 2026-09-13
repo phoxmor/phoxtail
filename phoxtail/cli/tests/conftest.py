@@ -38,6 +38,44 @@ def mcp_tools_registered():
     register_tools()
 
 
+@pytest.fixture
+def as_unrestricted_token():
+    """List the catalogue as a caller holding a token with no ceiling.
+
+    A test that asks "is this tool offered" has to ask *as someone*. Since
+    tools began naming the codename their endpoint names, an anonymous
+    listing is answered honestly with nothing — no credential covers any
+    codename, so every annotated tool is withheld.
+
+    That is not the state any real caller is in. Over stdio fastmcp skips
+    component auth entirely (``_get_auth_context`` returns ``skip_auth``
+    for that transport), and over HTTP the server demands a bearer before
+    a listing is served at all. "Not stdio, and no token" exists only in a
+    test that calls ``list_tools()`` directly.
+
+    So the fixture supplies the credential a developer actually holds. It
+    patches the one function the whole serving path reads rather than faking
+    a transport, so the checks still run and an opaque one — ``local_only``
+    — still withholds its tools. That is what these tests measure.
+
+    It does **not** catch a tool annotated with the wrong codename: a
+    credential with no ceiling passes every scope check by design. Agreement
+    between a tool and its endpoint is pinned per domain instead, by reading
+    both annotations — see ``<app>/tests/test_tool_scopes.py``.
+    """
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from unittest.mock import patch
+
+    @contextmanager
+    def _listing():
+        token = SimpleNamespace(scopes=[], claims={"unrestricted": True, "is_superuser": False})
+        with patch("fastmcp.server.server._get_auth_context", return_value=(False, token)):
+            yield
+
+    return _listing
+
+
 @pytest.fixture(autouse=True)
 def project_dir(tmp_path, monkeypatch):
     """Create a temporary phoxtail project directory with phoxtail.toml.
