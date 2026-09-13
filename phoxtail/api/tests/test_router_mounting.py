@@ -32,8 +32,9 @@ def _routers(*pairs):
 
 class TestRefusingACollision:
     def test_two_apps_cannot_share_one_name(self, fresh_mount):
-        """Reachable in practice: ``phoxtail_blog`` and a project's own ``blog``
-        app both strip to ``blog``, and Django permits both labels."""
+        """Reachable in practice: a distributed ``phoxtail_shop`` and a
+        project's own ``shop`` app both strip to ``shop``, and Django permits
+        both labels."""
         with _routers(("blog", {"v1": Router()}), ("blog", {"v1": Router()})):
             with pytest.raises(RuntimeError, match="Two apps both try to mount"):
                 mount_discovered_routers()
