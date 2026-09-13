@@ -128,26 +128,10 @@ def _walk(package: ModuleType) -> Iterator[ModuleType]:
 def versioned_routers() -> Iterator[tuple[str, dict]]:
     """Yield ``(name, {version: router})`` for every app with an HTTP face.
 
-    The target form is ``<pkg>/api/`` declaring ``versions``.
-
-    TRANSITIONAL: until every app has moved, the superseded
-    ``PhoxtailAppConfig.api_version_router`` is still honoured, so apps migrate
-    one at a time without unmounting the others. A partial migration is a valid
-    resting state. Delete the second loop — and the attribute — once the last
-    app has moved.
+    An app has one by shipping ``<pkg>/api/`` that declares ``versions``.
+    Nothing else is consulted.
     """
-    migrated: set[str] = set()
     for name, module in discover("api"):
         versions = getattr(module, "versions", None)
         if versions:
-            migrated.add(name)
             yield name, versions
-
-    for name, config in phoxtail_apps():
-        if name in migrated:
-            continue
-        dotted = getattr(config, "api_version_router", None)
-        if not dotted:
-            continue
-        module_path, _, attr = dotted.rpartition(".")
-        yield name, {"v1": getattr(importlib.import_module(module_path), attr)}

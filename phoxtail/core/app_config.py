@@ -51,11 +51,6 @@ class PhoxtailAppConfig(AppConfig):
     #   GET /pages/{id}/ per-type fields, and PATCH validation.
     page_schema_contributors: list[str] = []
 
-    # TRANSITIONAL: the superseded way to declare an HTTP surface, still
-    # honoured for apps that have not moved to <pkg>/api/ yet. Delete with the
-    # second loop in phoxtail.core.discovery.versioned_routers.
-    api_version_router: str | None = None
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if "default" not in cls.__dict__:

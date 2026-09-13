@@ -7,9 +7,9 @@ resources and prompts register themselves on it by import side-effect, via
 Which modules get imported is not decided here. :func:`register_tools`
 delegates to :mod:`phoxtail.core.discovery`, which walks every app that
 subclasses ``PhoxtailAppConfig`` and imports what it finds in ``<pkg>/mcp/``.
-Subclassing is the registration — there is no list in this module to append
-to, and adding a file to an app's ``mcp/`` package is all it takes for its
-tools to appear.
+Subclassing is the registration — there is no list to append to and no entry
+point to declare, in this package or in an installed one. Adding a file to an
+app's ``mcp/`` package is all it takes for its tools to appear.
 
 ``register_tools`` needs a populated app registry, so the caller runs
 ``django.setup()`` first. ``phoxtail.cli.mcp.serve`` is that caller.
@@ -21,9 +21,6 @@ Usage::
 
 from __future__ import annotations
 
-import importlib
-import sys
-from importlib.metadata import entry_points
 from pathlib import Path
 
 from fastmcp import FastMCP
@@ -77,61 +74,6 @@ mcp_server = FastMCP(
 )
 
 
-def _register_unmigrated_tools() -> None:
-    """Import the tool modules that do not yet live inside their own app.
-
-    TRANSITIONAL. A module is listed here when its code sits under
-    ``phoxtail/mcp/`` instead of inside the app package it belongs to, so
-    discovery has nowhere to find it.
-
-    As each app is migrated, its lines are deleted from here — in the same
-    commit as the move. A module that is both listed here and discovered in
-    its app is registered twice, and two tools may not share a name, so the
-    server refuses to start. That is the behaviour we want and it reads as
-    "phoxtail will not boot", so: move and delete together.
-
-    This function goes away when the list empties.
-    """
-    import phoxtail.mcp.peers  # noqa: F401
-
-
-def _register_contributed_tools() -> None:
-    """Import every module in the ``phoxtail.mcp_modules`` entry-point group,
-    then any project-local modules declared under ``[mcp] extra_modules`` in
-    ``phoxtail.toml``.
-
-    Called after ``_register_core_tools`` so that core tool names are
-    registered first. Library apps contribute via pyproject.toml entry points::
-
-        [project.entry-points."phoxtail.mcp_modules"]
-        my_app = "my_package.mcp"
-
-    Project-local apps (plain directories, no pyproject.toml) use
-    ``phoxtail.toml`` instead::
-
-        [mcp]
-        extra_modules = ["my_project_app.mcp"]
-
-    No Django runtime is required — both discovery paths read only from
-    importlib.metadata and TOML files.
-    """
-    for ep in entry_points(group="phoxtail.mcp_modules"):
-        importlib.import_module(ep.value)
-
-    from phoxtail.cli.utils.config import find_config_file, get_mcp_extra_modules
-
-    extra = get_mcp_extra_modules()
-    if extra:
-        config_file = find_config_file()
-        if config_file is not None:
-            project_root = str(config_file.parent)
-            if project_root not in sys.path:
-                sys.path.insert(0, project_root)
-
-    for dotted in extra:
-        importlib.import_module(dotted)
-
-
 _registered = False
 
 
@@ -143,19 +85,19 @@ def register_tools() -> None:
     has nothing to do. Idempotent: the MCP server calls it at startup, and the
     chatbot calls it the first time it needs the catalogue, and neither has to
     know about the other.
-
-    Discovery is the rule; the two other calls are transitional scaffolding for
-    surfaces that have not moved into their app yet.
     """
     global _registered
     if _registered:
         return
 
+    # The server's own tools, imported here because they are not an app's
+    # surface: peers speaks to sibling projects on this project's behalf and
+    # belongs to no model. Discovery walks ``<app>/mcp/`` and will never look
+    # in this package.
+    import phoxtail.mcp.peers  # noqa: F401
     from phoxtail.core.discovery import discover_submodules
 
-    _register_unmigrated_tools()
     for _name, _module in discover_submodules("mcp"):
         pass
-    _register_contributed_tools()
 
     _registered = True
