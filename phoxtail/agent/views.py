@@ -10,7 +10,7 @@ from wagtail.images import get_image_model
 from wagtail.search.backends import get_search_backend
 
 from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
-from phoxtail.agent.permissions import agent_permission_required
+from phoxtail.agent.permissions import agent_permission_required, operator_required
 from phoxtail.cms.api.v1._helpers import body_field_name_for, resolve_page_for_read
 
 
@@ -47,7 +47,12 @@ def _explorable_pages(qs, user):
     return qs.filter(pk__in=page_permission_policy.explorable_instances(user).values_list("pk", flat=True))
 
 
-@agent_permission_required("access_chatbot")
+# The picker serves images, documents and collections without narrowing
+# them to the caller — every file in the project comes back — so the
+# question it can honestly ask is whether this is someone who may see all
+# of it. Pages are the exception and already narrow, via
+# `_explorable_pages`; the rest is the reason for the blunter gate.
+@operator_required
 def media_picker(request):
     tab = request.GET.get("tab", "menu")
     query = request.GET.get("q", "").strip()
@@ -193,7 +198,12 @@ def media_picker(request):
     return render(request, "phoxtail_agent/media_picker.html", ctx)
 
 
-@agent_permission_required("access_chatbot")
+# The picker serves images, documents and collections without narrowing
+# them to the caller — every file in the project comes back — so the
+# question it can honestly ask is whether this is someone who may see all
+# of it. Pages are the exception and already narrow, via
+# `_explorable_pages`; the rest is the reason for the blunter gate.
+@operator_required
 def menu_picker_children(request):
     """Lazily fetch one tree level for the media-picker 'Menu' tab.
 
@@ -245,7 +255,12 @@ def menu_picker_children(request):
     )
 
 
-@agent_permission_required("access_chatbot")
+# The picker serves images, documents and collections without narrowing
+# them to the caller — every file in the project comes back — so the
+# question it can honestly ask is whether this is someone who may see all
+# of it. Pages are the exception and already narrow, via
+# `_explorable_pages`; the rest is the reason for the blunter gate.
+@operator_required
 def collection_picker(request):
     from wagtail.models import Collection
 

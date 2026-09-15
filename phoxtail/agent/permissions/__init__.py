@@ -4,6 +4,7 @@ from .setup import (
     AgentViewSet,
     agent_permission_policy,
     agent_permission_required,
+    operator_required,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "AgentViewSet",
     "agent_permission_policy",
     "agent_permission_required",
+    "operator_required",
 ]
