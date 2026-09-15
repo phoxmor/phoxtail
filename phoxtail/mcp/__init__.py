@@ -35,7 +35,7 @@ if _container_root.is_dir():
 # Imported before the server is built: `auth` cannot be attached
 # afterwards, because it is what decides whether the HTTP route is wrapped
 # in a challenge at all.
-from phoxtail.mcp.authorization import WhoamiVerifier  # noqa: E402
+from phoxtail.mcp.authorization import AmbientCredentialFilter, WhoamiVerifier  # noqa: E402
 
 mcp_server = FastMCP(
     "phoxtail",
@@ -43,6 +43,11 @@ mcp_server = FastMCP(
     # credential and nothing to resolve — the process already runs as
     # whoever started it, and fastmcp skips authorization there entirely.
     auth=WhoamiVerifier(),
+    # Over HTTP the registry filters the catalogue against the caller's own
+    # bearer and this does nothing. Over stdio the registry filters nothing
+    # at all — fastmcp skips authorization there — so this applies the
+    # ceiling of the credential the process is already going to spend.
+    middleware=[AmbientCredentialFilter()],
     # Two tools may not share a name. fastmcp's own default for a component
     # store is "error"; FastMCP softens that to "warn", which registers the
     # second one over the first and logs a line nobody reads. That is the wrong

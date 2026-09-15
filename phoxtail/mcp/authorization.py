@@ -30,14 +30,18 @@ was decided here.
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 import httpx
-from fastmcp.exceptions import FastMCPError
+from fastmcp.exceptions import AuthorizationError, FastMCPError
 from fastmcp.server.auth import AccessToken, AuthContext, TokenVerifier
-from fastmcp.utilities.authorization import _RequireScopes
+from fastmcp.server.middleware import Middleware
+from fastmcp.utilities.authorization import _RequireScopes, run_auth_checks
 
-from phoxtail.mcp._http import serving_over_http, url
+from phoxtail.mcp._http import outbound_token, serving_over_http, url
+
+logger = logging.getLogger(__name__)
 
 # Deliberately not the tool-call timeout. A tool may legitimately work for
 # half a minute; asking who someone is may not. This runs on every inbound
@@ -241,3 +245,114 @@ class WhoamiVerifier(TokenVerifier):
             raise AuthorityUnreachable(
                 f"This project's API gave an answer this server could not read when asked to identify the caller: {exc}"
             ) from exc
+
+
+class AmbientCredentialFilter(Middleware):
+    """Offer a local session only the tools its stored credential covers.
+
+    **Why this exists at all.** fastmcp skips authorization entirely on
+    stdio, and says why: "STDIO has no auth concept". That is true about
+    *authentication* and it is the right default. A stdio server is a
+    subprocess its client spawned, so there is no connection to verify and
+    no credential in the protocol — identity is settled by the operating
+    system before a byte moves.
+
+    It is not true about the *ceiling*. Phoxtail has an ambient credential
+    that :func:`phoxtail.mcp._http.outbound_token` is going to present on
+    every call this process makes, and its scopes are knowable before any
+    tool is offered. Nobody is being authenticated here; a limit that the
+    caller has already accepted is being applied to what they are shown.
+
+    So the asymmetry this removes is not a security one. Over HTTP the
+    ceiling is imposed by whoever presented the token; over stdio it is
+    self-imposed by the process. What both have in common is the thing
+    filtering is for: a catalogue the size of the whole surface is a
+    permanent tax on every request, and a model choosing among the tools
+    that can work chooses better than one choosing among all of them.
+
+    **The listing is filtered and that is the whole of it.** The server
+    would still serve a call for a withheld tool — the registry skips auth
+    on stdio and this hook only filters the listing — but no MCP client
+    sends a call for a name it was not offered, so that path has no caller
+    and is not a fallback.
+
+    What that costs is the refusal. An API 403 names the permission that
+    would have allowed the act, which is the one thing an agent can act
+    on; a tool that is simply absent says nothing. Enforcement is at the
+    API and stays there, but the explanation leaves with the catalogue
+    entry, and the place to put it back is a tool reporting what the
+    credential covers.
+
+    **It fails open, deliberately, and only here.** With no stored
+    credential — a project nobody has run ``phoxtail auth login`` in — or
+    with the API unreachable, every tool is offered. That is the exact
+    opposite of :class:`AuthorityUnreachable`, which refuses to let an
+    outage be read as "permitted nothing", and the two are not in conflict:
+    that answer stands between a caller and an act, this one only decides
+    what is advertised. That is the opposite
+    of :class:`AuthorityUnreachable`, which refuses to let an outage be
+    read as "permitted nothing", and the difference is the stake: that
+    answer stands between a caller and an act, this one only decides what
+    is advertised. An outage that emptied the catalogue would look exactly
+    like a project that offers nothing.
+    """
+
+    async def on_list_tools(self, context, call_next):
+        tools = await call_next(context)
+
+        # The early return is load-bearing, not an optimisation. Over HTTP
+        # the registry has already filtered the catalogue against the
+        # caller's own bearer, including `local_only`; filtering again here
+        # would narrow — or widen — a remote caller by this process's
+        # ambient credential, which is not theirs. This hook exists only
+        # because the registry skips that work on stdio.
+        #
+        # Not fastmcp's transport name, though `Context.transport` would
+        # report it: the question here is whether a caller's own bearer is
+        # in flight to defer to, which is what this answers directly. The
+        # two coincide today and would part the moment a transport carried
+        # no credential.
+        if serving_over_http():
+            return tools
+
+        # Every way of failing to learn the ceiling is caught, not only
+        # `AuthorityUnreachable`: reading the credentials file, resolving
+        # the project's api_url and building the request all raise in their
+        # own vocabularies, and this hook stands between an agent and the
+        # entire tool surface. An advisory filter that raises removes every
+        # tool, which is the one outcome worth ruling out absolutely —
+        # worse than the unfiltered listing it replaced, and reported by
+        # the agent as a project that offers nothing.
+        try:
+            raw_token = outbound_token()
+            token = await WhoamiVerifier().verify_token(raw_token) if raw_token else None
+        except Exception:
+            logger.warning(
+                "Could not ask this project's API what the stored credential covers; offering the whole tool surface.",
+                exc_info=True,
+            )
+            return tools
+
+        # No credential stored, or one the API refused as expired or
+        # revoked. Neither is an answer about scopes, and both are already
+        # about to be reported by the API in its own words on the first
+        # call — which says more than a catalogue that has quietly shrunk.
+        if token is None:
+            return tools
+
+        offered = []
+        for tool in tools:
+            if tool.auth is None:
+                offered.append(tool)
+                continue
+            # The component's own checks, not only its scopes: `local_only`
+            # is one of them and answers True here, which is what keeps the
+            # session tools — the whole reason a local session is worth
+            # having — in a filtered listing.
+            ctx = AuthContext(token=token, component=tool)
+            try:
+                if await run_auth_checks(tool.auth, ctx):
+                    offered.append(tool)
+            except AuthorizationError:
+                continue
+        return offered
