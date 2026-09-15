@@ -17,6 +17,8 @@ wrappers catch these and return structured error JSON to the agent.
 
 from __future__ import annotations
 
+import contextlib
+from contextvars import ContextVar
 from typing import Any
 
 import httpx
@@ -89,19 +91,55 @@ def caller_bearer() -> str | None:
     return None
 
 
+# The credential a known person is acting with, for the length of one
+# in-process piece of work. Empty everywhere else. A ContextVar rather
+# than a module global because two chat turns can run at once in one
+# process, and the whole point is that each acts as its own person.
+_acting_token: ContextVar[str | None] = ContextVar("phoxtail_acting_token", default=None)
+
+
+@contextlib.contextmanager
+def use_token(raw_token: str):
+    """Act as the holder of *raw_token* for the duration of this block.
+
+    Set by a caller that knows who the person is but has no inbound
+    request to take a credential from — the chatbot is the one today.
+    Resolving the person into a credential is that caller's job; this only
+    carries the answer to the place tools read it.
+    """
+    reset = _acting_token.set(raw_token)
+    try:
+        yield
+    finally:
+        _acting_token.reset(reset)
+
+
 def outbound_token(ambient_url: str | None = None) -> str | None:
     """The token to send with an outbound API call — the one gate every
     tool must go through, not just ``request()``.
 
-    Over HTTP the caller's own Bearer is the only source: falling back to
-    this process's stored token would let anyone reachable on the network
-    act as whoever is logged in on this machine. Over stdio there is no
-    caller to forward, and the process already runs as the operator, so
-    the ambient token for *ambient_url* (defaulting to this project's own
-    API) is exactly right.
+    Three situations, and the order is the meaning:
+
+    1. **Over HTTP**, the caller's own Bearer is the only source. Falling
+       back to this process's stored token would let anyone reachable on
+       the network act as whoever is logged in on this machine.
+    2. **A known person is acting in-process** — a chat turn — and brought
+       no request to read a credential from, so one was minted for them.
+       Checked before the ambient token precisely because the ambient one
+       would otherwise answer, silently and as the wrong person.
+    3. **Nobody in particular is acting**: a local shell session, where
+       the process already runs as the operator, so the ambient token for
+       *ambient_url* is exactly right.
+
+    The middle case is the one that did not exist. Its absence was not a
+    missing lookup but a missing credential — there was nothing to find,
+    so the answer fell through to somebody else's key.
     """
     if serving_over_http():
         return caller_bearer()
+    acting = _acting_token.get()
+    if acting is not None:
+        return acting
     return resolve_token(ambient_url or api_base_url())
 
 

@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from .chat_blocks import get_chat_block_tools
 from .models import ModelArtifact
-from .tools import get_tools, prime_tools
 
 if TYPE_CHECKING:
     from pydantic_ai import Agent
@@ -43,14 +42,16 @@ def _build_agent(
 
     return Agent(
         model=model,
-        tools=get_tools() + get_chat_block_tools(),
+        # Only the tools that are the same for everyone. The MCP tools are
+        # not: what a person may be offered depends on the credential
+        # their turn carries, and this agent is memoised per model and
+        # shared by every caller using it. They are handed to the run
+        # instead — see `toolset_for_caller`.
+        tools=get_chat_block_tools(),
     )
 
 
 async def get_agent(artifact: ModelArtifact) -> Agent:
-    # Fill the tool cache first: reading FastMCP's registry is async, and
-    # the memoised _build_agent below it cannot await.
-    await prime_tools()
     provider = artifact.provider
     return _build_agent(
         model_prefix=provider.model_prefix or "",

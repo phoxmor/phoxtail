@@ -20,6 +20,7 @@ from ninja import Router, Schema
 if TYPE_CHECKING:
     from pydantic_ai import RunContext
 
+from phoxtail.agent.acting import acting_as
 from phoxtail.agent.chat_blocks import (
     CHAT_BLOCK_TOOLS,
     pop_pending,
@@ -31,6 +32,7 @@ from phoxtail.agent.llm import get_agent
 from phoxtail.agent.markdown import render_chat_markdown
 from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_policy
+from phoxtail.agent.tools import toolset_for_caller
 
 router = Router()
 
@@ -110,7 +112,7 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
     # sentinel would ever arrive. Catch, surface as an SSE error, and re-raise
     # so it still propagates to the server logs via future.result().
     try:
-        conversation = await sync_to_async(Conversation.objects.get)(pk=conversation_pk)
+        conversation = await sync_to_async(Conversation.objects.select_related("user").get)(pk=conversation_pk)
         artifact = await sync_to_async(ModelArtifact.objects.select_related("provider").get)(pk=artifact_pk)
         history = ModelMessagesTypeAdapter.validate_python(conversation.message_history)
         agent = await get_agent(artifact)
@@ -296,11 +298,23 @@ async def _run_turn(conversation_pk: int, user_text: str, out: queue.Queue, arti
     async def produce() -> None:
         nonlocal text_sent
         try:
-            result = await agent.run(
-                user_text,
-                message_history=history,
-                event_stream_handler=handler,
-            )
+            # The turn runs as the person whose conversation this is, with
+            # a credential minted for them. Everything inside — the tools
+            # offered, and the API calls they make — is theirs: without
+            # this the person is known to Django and unknown to every door
+            # they reach, so the calls went out as whoever this container
+            # is logged in as, and the catalogue shrank to the tools that
+            # ask for nothing.
+            async with acting_as(conversation.user):
+                toolset = await toolset_for_caller()
+                result = await agent.run(
+                    user_text,
+                    message_history=history,
+                    event_stream_handler=handler,
+                    # Added for this run rather than built into the agent,
+                    # which is shared by everyone using the same model.
+                    toolsets=[toolset],
+                )
             # Fallback: if no text streamed, emit the full output now
             if not text_sent and result.output:
                 _partial_text.append(str(result.output))

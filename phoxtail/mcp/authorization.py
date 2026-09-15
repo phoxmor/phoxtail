@@ -251,6 +251,36 @@ class WhoamiVerifier(TokenVerifier):
             ) from exc
 
 
+def as_access_token(raw_token: str, token) -> AccessToken:
+    """A stored ``AccessToken`` row, in the shape the tool registry reads.
+
+    The registry never sees phoxtail's model. It asks the MCP SDK for "the
+    credential of the caller being served" and gets fastmcp's `AccessToken`
+    — which is what :class:`WhoamiVerifier` builds over HTTP, by asking the
+    API. In-process there is nobody to ask: the row is right here, minted a
+    moment ago by this process, so the same shape is filled in directly.
+
+    Asking ``/whoami/`` for a token we just wrote would be a round trip to
+    be told what we already know, and would make every chat turn depend on
+    the project's own API being reachable from inside itself.
+
+    The two must stay in step, and the fields are the reason they can: both
+    carry the owner's address, their uuid, the scope list, the expiry, and
+    ``unrestricted`` as a claim rather than an expanded list of codenames.
+    """
+    return AccessToken(
+        token=raw_token,
+        client_id=token.user.email,
+        subject=str(token.user.uuid),
+        scopes=list(token.scopes),
+        expires_at=int(token.expires_at.timestamp()) if token.expires_at else None,
+        claims={
+            "unrestricted": bool(token.unrestricted),
+            "is_superuser": bool(token.user.is_superuser),
+        },
+    )
+
+
 class _Withheld:
     """What the last filtered listing left out, and what it would have taken.
 
@@ -269,13 +299,20 @@ class _Withheld:
     """
 
     def __init__(self) -> None:
-        self._entries: dict[str, list[str]] = {}
+        # ``None`` until a listing has actually been filtered here, and it
+        # is not the same statement as ``{}``. The filter stands down when
+        # somebody else supplied the credential — a chat turn, whose
+        # catalogue the registry narrows instead — and in that case what
+        # was dropped is known to the registry and not to us. Reporting an
+        # empty mapping there would claim nothing was withheld, which is
+        # the opposite of true.
+        self._entries: dict[str, list[str]] | None = None
 
     def replace(self, entries: dict[str, list[str]]) -> None:
         self._entries = entries
 
-    def entries(self) -> dict[str, list[str]]:
-        return dict(self._entries)
+    def entries(self) -> dict[str, list[str]] | None:
+        return None if self._entries is None else dict(self._entries)
 
 
 _withheld = _Withheld()
@@ -333,6 +370,16 @@ class AmbientCredentialFilter(Middleware):
 
     async def on_list_tools(self, context, call_next):
         tools = await call_next(context)
+
+        # Somebody has already supplied a credential for this call — a
+        # chat turn acting as its person. The registry has filtered
+        # against that one, which is the right one; narrowing again by
+        # this machine's stored key would answer as a different person
+        # entirely, and a stricter one by coincidence rather than design.
+        from fastmcp.server.dependencies import get_access_token
+
+        if get_access_token() is not None:
+            return tools
 
         # The early return is load-bearing, not an optimisation. Over HTTP
         # the registry has already filtered the catalogue against the

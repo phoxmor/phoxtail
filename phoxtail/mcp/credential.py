@@ -11,16 +11,18 @@ process is spending, and what the last listing withheld from it — so the
 answer to "why can you not list pages" is a permission the user can go
 and grant, rather than a capability that appears not to exist.
 
-**It answers for the credential, which is not always the person.** On a
-local session the two are the same: the process runs as whoever started
-it and spends their stored token. The in-process chatbot is neither over
-HTTP nor a separate credential — it calls the API with this container's
-ambient token — so asked there, this reports the token's owner rather
-than the person in the conversation. That is the same gap every tool on
-that path has, not one this introduces, and it closes when a chat turn
-carries a credential of its own. Until then the answer is true about the
-credential and can be wrong about the person, which for a tool called
-whoami is worth knowing before trusting it.
+**It answers for the credential, and the credential is the person.** On a
+local session the process runs as whoever started it and spends their
+stored token. In a chat turn the person has a credential minted for them,
+so this reports them. Both are the same rule — *whoever this call will go
+out as* — which is the answer a caller can act on, since it is also the
+answer every door will give.
+
+**``withheld_tools`` is only reported where this server did the
+withholding.** The local filter records what it dropped; a chat turn is
+narrowed by the tool registry instead, which does not say what it left
+out. Asked there, the key is absent rather than empty — an empty mapping
+would claim nothing was withheld, which is the opposite of what is known.
 
 **Local sessions only.** Over HTTP a shorter catalogue also declines to
 confirm what exists, and naming what was withheld would hand a stranger
@@ -59,23 +61,69 @@ from phoxtail.mcp.authorization import _withheld, local_only
         "than a missing capability."
     ),
 )
-def phoxtail_whoami() -> str:
-    """Who this session is, and what its credential does not cover."""
+def _identity() -> dict:
+    """What this call's credential is, from whoever already knows.
+
+    Two sources, and the order avoids asking a question that has already
+    been answered:
+
+    1. **The credential resolved for this call.** Over HTTP the verifier
+       has just asked the API; in a chat turn the token was minted here a
+       moment ago. Either way the answer is in hand, and re-asking would
+       be a round trip to be told what this process already holds.
+    2. **Nothing resolved** — a local session over stdio, where the
+       registry skips authorization and the credential is only a string
+       on disk. Then the API is the one thing that can read it.
+
+    The first branch is not an optimisation. Inside a chat turn this code
+    runs in the web container, so asking the API would be Django making an
+    HTTP request to itself and holding a worker until it answers. With a
+    single worker that does not return.
+    """
+    from fastmcp.server.dependencies import get_access_token
+
+    token = get_access_token()
+    if token is not None:
+        return {
+            "email": token.client_id,
+            "user_uuid": token.subject,
+            "is_superuser": bool(token.claims.get("is_superuser")),
+            "unrestricted": bool(token.claims.get("unrestricted")),
+            "scopes": list(token.scopes),
+            "expires_at": token.expires_at,
+        }
+
     response = request("GET", "/api/whoami/")
     if response.status_code >= 400:
-        return json.dumps(
-            {
-                "error": "whoami_failed",
-                "status": response.status_code,
-                "detail": response.text[:500],
-            }
-        )
+        raise _Unanswerable(response.status_code, response.text[:500])
+    return response.json()
 
-    identity = response.json()
+
+class _Unanswerable(Exception):
+    """The API refused or failed to say who the caller is."""
+
+    def __init__(self, status: int, detail: str) -> None:
+        self.status = status
+        self.detail = detail
+
+
+def phoxtail_whoami() -> str:
+    """Who this session is, and what its credential does not cover."""
+    try:
+        identity = _identity()
+    except _Unanswerable as exc:
+        return json.dumps({"error": "whoami_failed", "status": exc.status, "detail": exc.detail})
     withheld = _withheld.entries()
+    if withheld is None:
+        # Nothing was measured here, so nothing is claimed. Saying so
+        # beats an empty mapping, which an agent reads as "everything you
+        # can see is everything there is".
+        return json.dumps({**identity, "withheld_tools_known": False})
+
     return json.dumps(
         {
             **identity,
+            "withheld_tools_known": True,
             # Named separately from `scopes` because they are different
             # kinds of fact: one is what the key carries, the other is what
             # this catalogue lost by carrying only that. An empty mapping

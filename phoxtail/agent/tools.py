@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -22,36 +21,27 @@ def _import_pydantic_ai() -> None:
     from pydantic_ai import RunContext, Tool, ToolDefinition
 
 
-_mcp_tools: list | None = None
-_prime_lock: asyncio.Lock | None = None
+async def tools_for_caller() -> list:
+    """The tools the current caller may be offered, asked fresh.
 
+    **Deliberately not cached, where this used to be.** The list was read
+    once per process and reused for everybody, which was right while every
+    caller was the same caller. Once a turn carries its own credential the
+    catalogue is a fact about the person, and a process-wide cache would
+    hand the first person's answer to the second.
 
-async def prime_tools() -> None:
-    """Fetch the registered FastMCP tools into a module-level cache.
-
-    Reading the registry is async — ``list_tools`` applies the server's
-    transforms and filtering — but the agent factory below it is a
-    synchronous, memoised function that cannot await. Registration happens
-    once at import time and never changes afterwards, so priming the cache
-    once per process is both correct and cheap; callers await this before
-    building an agent.
+    The narrowing is not done here and there is nothing here that knows
+    about permissions. ``list_tools`` asks each tool its own question and
+    the answers depend on the credential in context, which the caller has
+    already set. This only asks.
     """
-    global _mcp_tools, _prime_lock
-    if _mcp_tools is not None:
-        return
-    # Built lazily: the lock must belong to the running loop, and there is
-    # none at import time.
-    if _prime_lock is None:
-        _prime_lock = asyncio.Lock()
-    async with _prime_lock:
-        if _mcp_tools is None:
-            from phoxtail.mcp import mcp_server, register_tools
+    from phoxtail.mcp import mcp_server, register_tools
 
-            # The tool surface is discovered from the app registry rather
-            # than registered when phoxtail.mcp is imported, so ask for it.
-            # Idempotent, and the registry is long since populated here.
-            register_tools()
-            _mcp_tools = list(await mcp_server.list_tools())
+    # The tool surface is discovered from the app registry rather than
+    # registered when phoxtail.mcp is imported, so ask for it. Idempotent,
+    # and the registry is long since populated here.
+    register_tools()
+    return list(await mcp_server.list_tools())
 
 
 def _make_tool(mcp_tool) -> Tool:
@@ -79,8 +69,17 @@ def _make_tool(mcp_tool) -> Tool:
     return Tool(fn, name=mcp_tool.name, description=mcp_tool.description or "", prepare=prepare)
 
 
-def get_tools() -> list[Tool]:
+async def toolset_for_caller():
+    """The current caller's tools, as something one agent run can be given.
+
+    Returned as a toolset rather than baked into the agent, because the
+    agent is memoised per model and shared by everyone using it, while
+    this list belongs to one person. pydantic-ai adds a run's toolsets to
+    whatever the agent already carries, so the agent must carry none of
+    these — anything baked in would reach every caller regardless of what
+    they may do.
+    """
     _import_pydantic_ai()
-    if _mcp_tools is None:
-        raise RuntimeError("prime_tools() must be awaited before get_tools().")
-    return [_make_tool(t) for t in _mcp_tools]
+    from pydantic_ai.toolsets import FunctionToolset
+
+    return FunctionToolset(tools=[_make_tool(t) for t in await tools_for_caller()])
