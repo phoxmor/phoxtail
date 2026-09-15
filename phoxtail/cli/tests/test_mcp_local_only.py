@@ -31,6 +31,13 @@ SESSION_TOOLS = {
     "phoxtail_studio_refresh_session",
 }
 
+# Local-only for the opposite reason: not a capability that fails at a
+# distance, but an answer that says too much at one. It reports which
+# tools the catalogue withheld, which over HTTP would describe the surface
+# to the one caller deliberately not shown it. Kept apart from the session
+# tools so the subtraction below still says which reason applies to what.
+EXPLANATION_TOOLS = {"phoxtail_whoami"}
+
 # Equally unusable from a distance, and deliberately not guarded: their
 # question is about an argument, not about the caller. They fail honestly
 # on a path that does not exist, where the session tools succeed and lie.
@@ -83,7 +90,7 @@ class TestTheCatalogue:
         assert not (SESSION_TOOLS & listed)
 
     def test_nothing_else_is_withheld_over_http(self, as_unrestricted_token):
-        """The guard is on five tools, and the catalogue proves it.
+        """The guard is on six tools, and the catalogue proves it.
 
         Both listings ask as the same credential, so the difference between
         them is the transport and nothing else — which is the only way this
@@ -93,7 +100,7 @@ class TestTheCatalogue:
             local = {t.name for t in asyncio.run(mcp_server.list_tools())}
         with as_unrestricted_token(), _over_http():
             remote = {t.name for t in asyncio.run(mcp_server.list_tools())}
-        assert local - remote == SESSION_TOOLS
+        assert local - remote == SESSION_TOOLS | EXPLANATION_TOOLS
 
     def test_the_upload_tools_keep_their_place(self, as_unrestricted_token):
         """Distance is not their question, so distance does not withhold them.

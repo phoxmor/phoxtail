@@ -96,9 +96,11 @@ def register_tools() -> None:
         return
 
     # The server's own tools, imported here because they are not an app's
-    # surface: peers speaks to sibling projects on this project's behalf and
-    # belongs to no model. Discovery walks ``<app>/mcp/`` and will never look
-    # in this package.
+    # surface: peers speaks to sibling projects on this project's behalf, and
+    # credential describes this server's own filtering. Neither belongs to a
+    # model. Discovery walks ``<app>/mcp/`` and will never look in this
+    # package.
+    import phoxtail.mcp.credential  # noqa: F401
     import phoxtail.mcp.peers  # noqa: F401
     from phoxtail.core.discovery import discover_submodules
 

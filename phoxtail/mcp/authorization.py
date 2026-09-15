@@ -37,7 +37,11 @@ import httpx
 from fastmcp.exceptions import AuthorizationError, FastMCPError
 from fastmcp.server.auth import AccessToken, AuthContext, TokenVerifier
 from fastmcp.server.middleware import Middleware
-from fastmcp.utilities.authorization import _RequireScopes, run_auth_checks
+from fastmcp.utilities.authorization import (
+    _RequireScopes,
+    run_auth_checks,
+    scope_requirements,
+)
 
 from phoxtail.mcp._http import outbound_token, serving_over_http, url
 
@@ -247,6 +251,36 @@ class WhoamiVerifier(TokenVerifier):
             ) from exc
 
 
+class _Withheld:
+    """What the last filtered listing left out, and what it would have taken.
+
+    The catalogue is where an agent learns a tool exists, so a filtered
+    one silently removes the only way to find out that a capability is
+    there and out of reach. This is what gives that back: the filter
+    writes down what it dropped, and ``phoxtail_whoami`` reads it, so an
+    agent can say *which permission* is missing rather than reporting the
+    tool as nonexistent.
+
+    Process-wide mutable state, which is safe for exactly one reason: the
+    filter only ever runs on stdio, where the process serves a single
+    local session. Over HTTP it returns before reaching here, so two
+    callers can never write over each other — and the tool that reads it
+    is itself ``local_only``, so this never answers a stranger.
+    """
+
+    def __init__(self) -> None:
+        self._entries: dict[str, list[str]] = {}
+
+    def replace(self, entries: dict[str, list[str]]) -> None:
+        self._entries = entries
+
+    def entries(self) -> dict[str, list[str]]:
+        return dict(self._entries)
+
+
+_withheld = _Withheld()
+
+
 class AmbientCredentialFilter(Middleware):
     """Offer a local session only the tools its stored credential covers.
 
@@ -341,6 +375,7 @@ class AmbientCredentialFilter(Middleware):
             return tools
 
         offered = []
+        withheld: dict[str, list[str]] = {}
         for tool in tools:
             if tool.auth is None:
                 offered.append(tool)
@@ -353,6 +388,15 @@ class AmbientCredentialFilter(Middleware):
             try:
                 if await run_auth_checks(tool.auth, ctx):
                     offered.append(tool)
+                    continue
             except AuthorizationError:
-                continue
+                pass
+            # What it would have taken, recorded rather than recomputed
+            # later: this is the set the agent's catalogue is actually
+            # missing, and a second derivation could disagree with it.
+            # `scope_requirements` answers None when any check is opaque —
+            # a denial no scope would fix — and an empty list reads the
+            # same way, so both become "withheld, reason unnamed".
+            withheld[tool.name] = scope_requirements(tool.auth, ctx) or []
+        _withheld.replace(withheld)
         return offered
