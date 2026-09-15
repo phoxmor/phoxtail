@@ -18,7 +18,13 @@ from rich.console import Console
 from phoxtail.cli.utils import credentials
 from phoxtail.cli.utils.config import get_api_base_url
 
-API_PREFIX = "/api/streams/v1"
+# The one endpoint that answers "is this credential real" and nothing
+# else. Every other path also asks whether the credential may do that
+# particular thing, which is a different question and not the one login
+# is asking — a token scoped away from it is healthy and would be
+# reported as suspect. `/whoami/` declares its own auth precisely so a
+# caller can discover its own limits without being subject to them.
+VERIFY_PATH = "/api/whoami/"
 
 app = typer.Typer(help="Manage Phoxtail API credentials.")
 console = Console()
@@ -64,7 +70,7 @@ def login(
     if not no_verify:
         try:
             resp = httpx.get(
-                f"{base_url.rstrip('/')}{API_PREFIX}/blocks/",
+                f"{base_url.rstrip('/')}{VERIFY_PATH}",
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=10.0,
                 follow_redirects=True,
@@ -78,6 +84,10 @@ def login(
                 console.print("[red]Token rejected by the API (401). Not saved.[/red]")
                 raise typer.Exit(code=1)
             if resp.status_code >= 400:
+                # Still saved: the token may be perfectly good and the
+                # project simply down or misconfigured, and refusing to
+                # store it would leave the operator with nothing to retry
+                # with once it is back.
                 console.print(
                     f"[yellow]Warning:[/yellow] verification returned HTTP {resp.status_code}. Saving anyway."
                 )

@@ -1,0 +1,1 @@
+`phoxtail auth login` no longer warns that a perfectly good token failed verification. It was probing a streams endpoint, which asks whether the credential may list blocks — a different question from whether the credential is real, and one a narrowly-scoped token correctly answers no to. It now asks `/api/whoami/`, which every credential can reach by design.
