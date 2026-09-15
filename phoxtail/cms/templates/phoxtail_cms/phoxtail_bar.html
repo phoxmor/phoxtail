@@ -1,5 +1,20 @@
 {% load phoxtail_design_tags phoxtail_streams_tags static %}
-{% if user.is_superuser %}
+{# The bar appears for anyone who can use something in it. Each item then  #}
+{# asks its own question, because they are not the same question: the chat #}
+{# button opens a view gated on access_chatbot, while the media picker,   #}
+{# the page controls and the admin links each reach something only an     #}
+{# operator may see.                                                      #}
+{# page controls act on the page and the admin links lead somewhere only   #}
+{# an operator can use. A single outer check used to answer for all of     #}
+{# them, which left the per-item checks below unreachable — they could     #}
+{# only ever be read by a superuser, who passes them anyway.               #}
+{# Some inner checks cannot refuse anyone while the wrapper admits only  #}
+{# these two — an operator passes every permission, and the other way in  #}
+{# is the permission the chat and media buttons name. They are kept       #}
+{# because the wrapper is expected to grow: the page controls and admin   #}
+{# links want their own answer here, and each new way in makes the checks #}
+{# below load-bearing one at a time.                                      #}
+{% if user.is_superuser or perms.phoxtail_agent.access_chatbot %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'dashboard:index' as site_dashboard_url %}
@@ -10,7 +25,7 @@
 {% if perms.phoxtail_agent.access_chatbot %}
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/chatbot.css' %}">
 {% endif %}
-{% if media_picker_url %}
+{% if media_picker_url and user.is_superuser %}
 <link rel="stylesheet" href="{% static 'phoxtail_agent/css/media_picker.css' %}">
 {% endif %}
 
@@ -19,9 +34,9 @@
 </script>
 
 <div id="phoxtail-bar"
-     {% if media_picker_url %}data-media-picker-url="{{ media_picker_url }}" data-media-picker-modal-url="{{ chat_history_modal_url }}"{% endif %}>
+     {% if media_picker_url and user.is_superuser %}data-media-picker-url="{{ media_picker_url }}" data-media-picker-modal-url="{{ chat_history_modal_url }}"{% endif %}>
     <div class="phoxtail-bar-dock">
-        {% if page %}
+        {% if page and user.is_superuser %}
         <div class="phoxtail-bar-page-info">
             <span class="phoxtail-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
             <span class="phoxtail-bar-sep">·</span>
@@ -34,7 +49,7 @@
         <div class="phoxtail-bar-divider"></div>
         {% endif %}
         <div class="phoxtail-bar-actions">
-            {% if media_picker_url %}
+            {% if media_picker_url and user.is_superuser %}
             <button type="button"
                     id="phoxtail-bar-media-btn"
                     class="phoxtail-bar-btn phoxtail-bar-media-btn"
@@ -52,6 +67,7 @@
                 {% icon "chat" class="phoxtail-bar-btn-icon" %}
             </button>
             {% endif %}
+            {% if user.is_superuser %}
             <button type="button"
                     id="phoxtail-bar-actions-btn"
                     class="phoxtail-bar-btn"
@@ -60,9 +76,11 @@
                     aria-expanded="false">
                 {% icon "more_horiz" class="phoxtail-bar-btn-icon" %}
             </button>
+            {% endif %}
         </div>
     </div>
 
+    {% if user.is_superuser %}
     <div class="phoxtail-bar-panel phoxtail-bar-actions-panel" id="phoxtail-bar-actions-panel">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">Actions</span>
@@ -136,6 +154,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 {% if perms.phoxtail_agent.access_chatbot %}
@@ -291,7 +310,7 @@
                     {% icon "layers" class="phoxtail-bar-btn-icon" %}
                 </button>
                 {% endif %}
-                {% if media_picker_url %}
+                {% if media_picker_url and user.is_superuser %}
                 <button type="button"
                         id="phoxtail-chatbot-media-btn"
                         class="phoxtail-chatbot-compose-action-btn phoxtail-bar-media-btn"
@@ -333,7 +352,7 @@
 {% endif %}
 
 <script src="{% static 'phoxtail_cms/js/phoxtail_bar.js' %}"></script>
-{% if media_picker_url %}
+{% if media_picker_url and user.is_superuser %}
 <script src="{% static 'phoxtail_agent/js/media_picker.js' %}"></script>
 {% endif %}
 {% endif %}
