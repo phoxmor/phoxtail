@@ -72,6 +72,10 @@ INSTALLED_APPS = [
     "phoxtail.agent",
     "phoxtail.dashboard",
     "phoxtail.tokens",
+    # A hatched project never lists this: phoxtail.tokens declares it as a
+    # dependency and wire_apps() inserts it. This list is static by design,
+    # so what the wiring would insert is written out.
+    "oauth2_provider",
     # After the phoxtail apps, as in the hatched project template: phoxtail.cms
     # installs its draft-redirect guard before this app connects the handler,
     # which is the order the guard is written for. See phoxtail/cms/signals.py.

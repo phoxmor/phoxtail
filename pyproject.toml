@@ -49,6 +49,11 @@ engine = [
     "celery>=5.6.3",
     "django-ninja>=1.6.2",
     "django-allauth>=65.18.0",
+    # The OAuth 2.1 authorization server: an outside client obtains a
+    # credential for a person without that person handing one over.
+    # 3.4 is where RFC 8414/9728 metadata, DCR and the RFC 9700 gates
+    # arrived; 3.4.1 tightened redirect-URI matching and revocation.
+    "django-oauth-toolkit>=3.4.1",
     "django-htmx>=1.29.0",
     "django-countries>=9.0.0",
     "django-phonenumber-field[phonenumbers]>=8.4.0",

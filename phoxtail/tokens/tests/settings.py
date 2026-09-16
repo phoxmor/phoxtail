@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     "phoxtail.remotes",
     "phoxtail.cms",
     "phoxtail.tokens",
+    # A hatched project never lists this: phoxtail.tokens declares it as a
+    # dependency and wire_apps() inserts it. This list is static by design,
+    # so what the wiring would insert is written out.
+    "oauth2_provider",
 ]
 
 MIDDLEWARE = [
