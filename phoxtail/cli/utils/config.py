@@ -8,6 +8,7 @@ from functools import lru_cache
 from importlib.util import find_spec
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import typer
 from rich.console import Console
@@ -129,6 +130,56 @@ def get_api_base_url() -> str:
         return DEFAULT_API_BASE_URL
     url = (config.get("studio") or {}).get("api_url") or DEFAULT_API_BASE_URL
     return url.rstrip("/")
+
+
+def get_public_site_url() -> str:
+    """Return the site's address as the outside world reaches it.
+
+    Not :func:`get_api_base_url`. That answers "where is the API from
+    where *this process* stands", and inside the ``mcp`` container it is
+    ``http://web`` — correct for a request the container makes, and
+    meaningless to anyone else. This one is the address a stranger on the
+    internet would type, which is what gets advertised to them: the MCP
+    server names it as the place to obtain a credential, so an in-network
+    alias here would send every remote client to a host that does not
+    exist.
+
+    In production that is ``DOMAIN``, the same value ``.env`` already
+    carries for nginx and certificates; the containers receive it through
+    ``env_file``. Locally ``DOMAIN`` is unset and ``[studio] api_url``
+    from ``phoxtail.toml`` is the public address.
+    """
+    domain = (os.environ.get("DOMAIN") or "").strip().strip("/")
+    if domain:
+        if "://" in domain:
+            raise typer.BadParameter(f"DOMAIN must be a hostname, not a URL: {domain!r}")
+        return f"https://{domain}"
+    if find_config_file() is None:
+        return DEFAULT_API_BASE_URL
+    try:
+        config = load_config()
+    except Exception:
+        return DEFAULT_API_BASE_URL
+    url = (config.get("studio") or {}).get("api_url") or DEFAULT_API_BASE_URL
+    return url.rstrip("/")
+
+
+def get_public_mcp_url() -> str:
+    """Return the MCP server's address as the outside world reaches it.
+
+    The MCP server is its own origin, ``mcp.`` in front of the site's host
+    — ``mcp.<slug>.localhost`` locally, ``mcp.<domain>`` in production —
+    so it is derived from :func:`get_public_site_url` and needs no
+    configuration of its own.
+    """
+    # Host only: the site is routed by host, never by path, so a path on
+    # the site's address would be a mistake here rather than a prefix to
+    # keep. Detached from the net the site is ``http://localhost`` and this
+    # names ``http://mcp.localhost``, which nothing serves — the container
+    # cannot see the port compose publishes for it. Harmless: a detached
+    # laptop has no public name, so no remote client can reach it anyway.
+    site = urlsplit(get_public_site_url())
+    return urlunsplit((site.scheme, f"mcp.{site.netloc}", "", "", ""))
 
 
 def validate_project_name(name: str) -> str | None:

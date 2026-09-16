@@ -32,16 +32,16 @@ _container_root = Path("/app")
 if _container_root.is_dir():
     (_container_root / ".phoxtail" / "mcp" / "uploads").mkdir(parents=True, exist_ok=True)
 
-# Imported before the server is built: `auth` cannot be attached
-# afterwards, because it is what decides whether the HTTP route is wrapped
-# in a challenge at all.
 from phoxtail.mcp.authorization import AmbientCredentialFilter, WhoamiVerifier  # noqa: E402
 
 mcp_server = FastMCP(
     "phoxtail",
-    # Only the HTTP transport consults this. Over stdio there is no inbound
-    # credential and nothing to resolve — the process already runs as
-    # whoever started it, and fastmcp skips authorization there entirely.
+    # Only the HTTP transport consults this, and `serve --http` replaces it
+    # before serving with the same verifier wrapped in the server's public
+    # introduction — the addresses that needs are known only there. Over
+    # stdio there is no inbound credential and nothing to resolve — the
+    # process already runs as whoever started it, and fastmcp skips
+    # authorization there entirely.
     auth=WhoamiVerifier(),
     # Over HTTP the registry filters the catalogue against the caller's own
     # bearer and this does nothing. Over stdio the registry filters nothing

@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import urlsplit
 
 import typer
+from fastmcp.server.auth import RemoteAuthProvider
 
 app = typer.Typer(help="MCP server for AI agents.")
 
@@ -61,6 +63,52 @@ def _setup_django() -> None:
         ) from exc
 
 
+def front_door() -> tuple[RemoteAuthProvider, list[str]]:
+    """The public face of the HTTP door: its challenge, and the hosts it answers.
+
+    A stranger's first request is refused 401, and the refusal must say
+    where a credential comes from: the challenge points at this server's
+    protected-resource metadata (RFC 9728), and that document names the
+    site as the authorization server. A bare verifier makes the pointer
+    but serves no document behind it; :class:`RemoteAuthProvider` serves
+    it, with the verifier unchanged inside. Assembled at serve time rather
+    than at import because both addresses are public ones, and only the
+    serving process is in a position to know them.
+
+    DNS-rebinding protection rejects any Host header not allowlisted
+    (421). Loopback covers direct local runs; the project's own MCP
+    hostname covers both real paths — Traefik forwards it from the host,
+    siblings send it via the network alias — and the public address
+    covers production, where the host is the real domain.
+    """
+    from pydantic import AnyHttpUrl
+
+    from phoxtail.cli.utils.config import (
+        find_config_file,
+        get_project_name,
+        get_public_mcp_url,
+        get_public_site_url,
+        slugify,
+    )
+    from phoxtail.mcp.authorization import WhoamiVerifier
+
+    mcp_url = get_public_mcp_url()
+    auth = RemoteAuthProvider(
+        token_verifier=WhoamiVerifier(),
+        authorization_servers=[AnyHttpUrl(get_public_site_url())],
+        base_url=mcp_url,
+    )
+
+    allowed_hosts = ["localhost", "localhost:*", "127.0.0.1", "127.0.0.1:*"]
+    if find_config_file() is not None:
+        slug = slugify(get_project_name())
+        allowed_hosts += [f"mcp.{slug}.localhost", f"mcp.{slug}.localhost:*"]
+    public_host = urlsplit(mcp_url).hostname
+    if public_host and public_host not in allowed_hosts:
+        allowed_hosts += [public_host, f"{public_host}:*"]
+    return auth, allowed_hosts
+
+
 @app.command("serve")
 def serve(
     http: bool = typer.Option(
@@ -103,21 +151,14 @@ def serve(
 
     import uvicorn
 
-    from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
+    auth, allowed_hosts = front_door()
+    mcp_server.auth = auth
 
-    # DNS-rebinding protection rejects any Host header not allowlisted
-    # (421). Loopback covers direct local runs; the project's own MCP
-    # hostname covers both real paths — Traefik forwards it from the host,
-    # siblings send it via the network alias. No Origin is allowed at all:
-    # MCP clients don't send one, browsers must not call this directly.
-    allowed_hosts = ["localhost", "localhost:*", "127.0.0.1", "127.0.0.1:*"]
-    if find_config_file() is not None:
-        slug = slugify(get_project_name())
-        allowed_hosts += [f"mcp.{slug}.localhost", f"mcp.{slug}.localhost:*"]
-
-    # host_origin_protection is passed explicitly because it defaults to
-    # False: an app built with allowed_hosts alone installs no guard at
-    # all and answers every Host with 200, silently.
+    # No Origin is allowed at all: MCP clients don't send one, browsers
+    # must not call this directly. host_origin_protection is passed
+    # explicitly because it defaults to False: an app built with
+    # allowed_hosts alone installs no guard at all and answers every Host
+    # with 200, silently.
     app = mcp_server.http_app(
         path="/mcp",
         allowed_hosts=allowed_hosts,

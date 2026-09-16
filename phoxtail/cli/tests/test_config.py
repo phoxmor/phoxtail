@@ -1,6 +1,7 @@
 """Tests for cli.utils.config."""
 
 import pytest
+import typer
 
 from phoxtail.cli.utils.config import (
     DEFAULT_API_BASE_URL,
@@ -10,6 +11,8 @@ from phoxtail.cli.utils.config import (
     get_cluster_names,
     get_clusters,
     get_project_name,
+    get_public_mcp_url,
+    get_public_site_url,
     load_config,
     resolve_cluster_order,
     slugify,
@@ -91,6 +94,66 @@ class TestApiBaseUrl:
     def test_empty_env_override_is_ignored(self, monkeypatch):
         monkeypatch.setenv("PHOXTAIL_API_URL", "")
         assert get_api_base_url() == DEFAULT_API_BASE_URL
+
+
+class TestPublicUrls:
+    """The addresses advertised to strangers: the MCP server names the site
+    as the place to obtain a credential, so what these return is what a
+    client on the internet will try to reach."""
+
+    def _project(self, tmp_path, monkeypatch, api_url="http://t.localhost"):
+        toml = tmp_path / "phoxtail.toml"
+        toml.write_text(f'[project]\nname = "t"\n\n[studio]\napi_url = "{api_url}"\n')
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DOMAIN", raising=False)
+        load_config.cache_clear()
+
+    def test_locally_the_site_is_the_configured_api_url(self, tmp_path, monkeypatch):
+        self._project(tmp_path, monkeypatch, "http://t.localhost/")
+        assert get_public_site_url() == "http://t.localhost"
+        assert get_public_mcp_url() == "http://mcp.t.localhost"
+
+    def test_in_production_the_site_is_the_domain(self, tmp_path, monkeypatch):
+        """DOMAIN is what .env already carries for nginx and certificates;
+        phoxtail.toml is committed and still names the local address."""
+        self._project(tmp_path, monkeypatch)
+        monkeypatch.setenv("DOMAIN", "example.com")
+        assert get_public_site_url() == "https://example.com"
+        assert get_public_mcp_url() == "https://mcp.example.com"
+
+    def test_the_in_network_override_never_leaks(self, tmp_path, monkeypatch):
+        """Inside the mcp container PHOXTAIL_API_URL is `http://web`. That is
+        where the container reaches Django, and it must never be what the
+        container tells the internet — a remote client sent there would be
+        sent to a host that does not exist."""
+        self._project(tmp_path, monkeypatch)
+        monkeypatch.setenv("PHOXTAIL_API_URL", "http://web")
+        assert get_api_base_url() == "http://web"
+        assert get_public_site_url() == "http://t.localhost"
+        monkeypatch.setenv("DOMAIN", "example.com")
+        assert get_public_site_url() == "https://example.com"
+
+    def test_a_blank_domain_is_unset(self, tmp_path, monkeypatch):
+        """A project hatched without a domain leaves `DOMAIN=` in .env."""
+        self._project(tmp_path, monkeypatch)
+        monkeypatch.setenv("DOMAIN", "   ")
+        assert get_public_site_url() == "http://t.localhost"
+
+    def test_a_domain_is_a_hostname_not_a_url(self, tmp_path, monkeypatch):
+        """nginx and certbot already read DOMAIN as a bare hostname; a scheme
+        here would advertise `https://https://…` to every remote client, so
+        it fails at startup instead."""
+        self._project(tmp_path, monkeypatch)
+        monkeypatch.setenv("DOMAIN", "https://example.com")
+        with pytest.raises(typer.BadParameter, match="hostname"):
+            get_public_site_url()
+        monkeypatch.setenv("DOMAIN", "example.com/")
+        assert get_public_site_url() == "https://example.com"
+
+    def test_falls_back_outside_a_project(self, monkeypatch):
+        monkeypatch.delenv("DOMAIN", raising=False)
+        assert get_public_site_url() == DEFAULT_API_BASE_URL
+        assert get_public_mcp_url() == "http://mcp.localhost"
 
 
 class TestAccessors:

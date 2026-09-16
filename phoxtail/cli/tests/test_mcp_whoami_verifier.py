@@ -119,12 +119,12 @@ class TestTheServerIsNotTheAuthority:
 
 class TestTheServerDeclaresIt:
     def test_the_server_names_an_authority(self):
-        """Declared on the server itself, so no serving path can omit it.
-
-        This is also what makes fastmcp wrap the HTTP route in a challenge:
-        a request arriving with no credential is answered ``401`` with a
-        ``WWW-Authenticate`` header, which is how a remote client learns
-        where to go and authenticate. Removing this would silently take
+        """Declared on the server itself, so the authority is named from the
+        start. ``serve --http`` wraps this same verifier in the server's
+        public introduction before serving; it never removes it. Declaring
+        an authority is what makes fastmcp wrap the HTTP route in a
+        challenge at all — a request with no credential answered ``401``
+        with ``WWW-Authenticate`` — and removing it would silently take
         that away.
         """
         from phoxtail.mcp import mcp_server
