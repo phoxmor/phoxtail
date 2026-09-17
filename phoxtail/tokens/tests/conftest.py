@@ -69,3 +69,29 @@ def grant_token_permissions(user, *codenames):
     )
     user.user_permissions.add(*perms)
     return User.objects.get(pk=user.pk)
+
+
+def issue_key(user, scope="cms:read", **fields):
+    """A key as the authorization server leaves it after a consent: the row
+    with its digest, the raw value known only to the client. Written
+    directly; the flow that mints one is pinned in its own tests."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+    from oauth2_provider.models import Application, get_access_token_model, set_token_value
+    from oauth2_provider.settings import oauth2_settings
+    from oauthlib.common import generate_token
+
+    app = Application.objects.create(
+        user=user,
+        client_type=Application.CLIENT_PUBLIC,
+        authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        redirect_uris="http://localhost:9999/cb",
+        name="probe",
+    )
+    raw = generate_token()
+    fields.setdefault("expires", timezone.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS))
+    token = get_access_token_model()(user=user, application=app, scope=scope, **fields)
+    set_token_value(token, raw)
+    token.save()
+    return raw, token

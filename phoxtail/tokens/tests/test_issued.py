@@ -17,8 +17,6 @@ import pytest
 from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
-from oauth2_provider.models import Application
-from oauthlib.common import generate_token
 
 from phoxtail.core.authorization import AuthorizationContext
 from phoxtail.tokens import bundles
@@ -26,6 +24,7 @@ from phoxtail.tokens.constants import PHOXTAIL_TOKEN_PREFIX
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.tokens.services.admin.operations.create import _generate_raw_token
 
+from .conftest import issue_key as _issue
 from .factories import AccessTokenFactory, UserFactory
 
 HOST = "t.localhost"
@@ -58,28 +57,6 @@ def site(tmp_path, monkeypatch, settings):
     with override_settings(OAUTH2_PROVIDER=defaults()):
         yield
     load_config.cache_clear()
-
-
-def _issue(user, scope="cms:read", **fields):
-    """A key as the authorization server leaves it after a consent: the row
-    with its digest, the raw value known only to the client. Written
-    directly; the flow that mints one is pinned elsewhere."""
-    from oauth2_provider.models import get_access_token_model, set_token_value
-    from oauth2_provider.settings import oauth2_settings
-
-    app = Application.objects.create(
-        user=user,
-        client_type=Application.CLIENT_PUBLIC,
-        authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
-        redirect_uris="http://localhost:9999/cb",
-        name="probe",
-    )
-    raw = generate_token()
-    fields.setdefault("expires", timezone.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS))
-    token = get_access_token_model()(user=user, application=app, scope=scope, **fields)
-    set_token_value(token, raw)
-    token.save()
-    return raw, token
 
 
 def _resolve(raw, path="/api/whoami/"):
@@ -123,7 +100,7 @@ class TestTheShapeIsTheContract:
     def test_the_authorization_servers_keys_cannot_wear_it(self):
         """Read off the library, not assumed: its alphabet has no
         underscore, so no key it mints can begin with ours."""
-        from oauthlib.common import UNICODE_ASCII_CHARACTER_SET
+        from oauthlib.common import UNICODE_ASCII_CHARACTER_SET, generate_token
 
         assert "_" not in UNICODE_ASCII_CHARACTER_SET
         assert not generate_token().startswith(PHOXTAIL_TOKEN_PREFIX)

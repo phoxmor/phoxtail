@@ -12,6 +12,7 @@ from django.core.checks import Error, register
 
 from phoxtail.tokens.provider import (
     AUDIENCE,
+    KEPT_FOR_LOOPBACK,
     OPEN_TO_STRANGERS,
     REFUSED_FROM_THE_FIRST_DAY,
     SCOPES_BACKEND,
@@ -87,4 +88,13 @@ def authorization_server_posture(app_configs, **kwargs):
                     id="phoxtail_tokens.E002",
                 )
             )
+    if declared.get(KEPT_FOR_LOOPBACK) or "http" not in declared.get("ALLOWED_REDIRECT_URI_SCHEMES", []):
+        errors.append(
+            Error(
+                "A plaintext redirect scheme must stay allowed: a program listening on its own machine "
+                "calls back on http://localhost, and that is every CLI client. Plaintext to any other "
+                "host is refused by the validator instead.",
+                id="phoxtail_tokens.E007",
+            )
+        )
     return errors

@@ -26,6 +26,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Iterable, Iterator
 from functools import cache
+from urllib.parse import urlsplit
 
 from oauth2_provider.oauth2_validators import OAuth2Validator
 from oauth2_provider.scopes import BaseScopes
@@ -202,14 +203,25 @@ class Bundles(BaseScopes):
         return []
 
 
-class Validator(OAuth2Validator):
-    """The library's validator, refusing a request that asks for nothing.
+LOOPBACK_HOSTS = ("localhost", "127.0.0.1", "::1")
 
-    With no default scopes the library validates an empty request as a
-    subset of everything and lets it through to a consent screen that
-    cannot be approved — its form requires a scope. The standard's other
-    answer is to fail the request as ``invalid_scope``, which sends the
-    client an error it understands instead of leaving a person on a form.
+
+class Validator(OAuth2Validator):
+    """The library's validator, with two rules of phoxtail's.
+
+    A request that asks for nothing is refused. With no default scopes
+    the library validates an empty request as a subset of everything and
+    lets it through to a consent screen that cannot be approved — its
+    form requires a scope. The standard's other answer is to fail the
+    request as ``invalid_scope``, which sends the client an error it
+    understands instead of leaving a person on a form.
+
+    A plaintext redirect goes only to loopback. A code is delivered to
+    the redirect URI, and over ``http`` it is delivered in the clear —
+    which is fine for a program listening on the machine the browser is
+    on, and nothing else. The library's own switch is site-wide, so
+    ``http`` is allowed for the loopback clients that need it and refused
+    here for any other host, whatever a client registered.
     """
 
     def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
@@ -217,3 +229,9 @@ class Validator(OAuth2Validator):
         if not any(scopes):
             return False
         return super().validate_scopes(client_id, scopes, client, request, *args, **kwargs)
+
+    def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
+        parts = urlsplit(redirect_uri)
+        if parts.scheme == "http" and parts.hostname not in LOOPBACK_HOSTS:
+            return False
+        return super().validate_redirect_uri(client_id, redirect_uri, request, *args, **kwargs)

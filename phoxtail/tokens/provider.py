@@ -9,24 +9,44 @@ project's own ``OAUTH2_PROVIDER`` displaces them.
 
 from phoxtail.cli.utils.config import get_public_site_url
 
-# Five things the library still tolerates for the sake of old deployments.
-# Three it accepts and advertises on the discovery card: the implicit grant
-# (token in a URL fragment), the password grant (the client sees the
+# What the library still tolerates for the sake of old deployments: each
+# of its RFC 9700 gates ships off, waiting for a major version, and a new
+# site has nothing to keep compatible. Six change what the server does.
+# Three it would accept and advertise on the discovery card: the implicit
+# grant (token in a URL fragment), the password grant (the client sees the
 # password) and a "plain" PKCE challenge (the challenge is the verifier).
-# One it omits: the ``iss`` parameter on the authorization response, which
-# is how a client talking to more than one authorization server knows
-# which of them sent a given code. One it does at rest: storing access and
-# refresh tokens in cleartext, where a backup or a dump hands out working
-# keys — phoxtail's own tokens have only ever been stored as digests. A new
-# site has nothing to keep compatible, so none of the five is tolerated
-# from the first day.
+# One it would omit: the ``iss`` parameter on the authorization response,
+# which is how a client talking to more than one authorization server
+# knows which of them sent a given code. One it would do at rest: store
+# tokens in cleartext, where a backup hands out working keys — phoxtail's
+# own tokens have only ever been stored as digests. One it would accept on
+# the wire: a token in the query string, in every proxy log and browser
+# history. Three change nothing at runtime; they turn the deploy check's
+# warning into an error for a setting already held right — replay
+# protection on, exact redirect matching, PKCE required — so it cannot
+# quietly be held wrong later.
 REFUSED_FROM_THE_FIRST_DAY = (
     "COMPLIANT_BCP_RFC9700_IMPLICIT_GRANT",
     "COMPLIANT_BCP_RFC9700_PASSWORD_GRANT",
     "COMPLIANT_BCP_RFC9700_PKCE_METHOD",
     "COMPLIANT_BCP_RFC9700_AUTHZ_RESPONSE_ISS",
     "COMPLIANT_BCP_RFC9700_TOKEN_STORAGE",
+    "COMPLIANT_BCP_RFC9700_ACCESS_TOKEN_TRANSPORT",
+    "COMPLIANT_BCP_RFC9700_REFRESH_TOKEN",
+    "COMPLIANT_BCP_RFC9700_REDIRECT_URI_MATCHING",
+    "COMPLIANT_BCP_RFC9700_PKCE_REQUIRED",
 )
+
+# The one gate that stays off. It would make a plaintext redirect scheme a
+# deploy error, and a plaintext scheme is what a program listening on its
+# own machine uses for its callback: http://localhost:<port> never leaves
+# the loopback interface, and that is every CLI client. The library's
+# switch is site-wide — http for everyone or for no one — so the rule the
+# standard actually states, plaintext only to loopback, is enforced in
+# the validator instead, and this gate is left off on purpose — absent
+# from the shipped dict, not set to False, so the library's own default
+# is what answers for it.
+KEPT_FOR_LOOPBACK = "COMPLIANT_BCP_RFC9700_REDIRECT_URI_SCHEME"
 
 
 SCOPES_BACKEND = "phoxtail.tokens.bundles.Bundles"
@@ -84,6 +104,10 @@ def defaults() -> dict:
         # such key; ours asks whether the key names this project's door.
         "RESOURCE_SERVER_TOKEN_RESOURCE_VALIDATOR": AUDIENCE,
         **OPEN_TO_STRANGERS,
+        # Plaintext stays allowed, for the loopback callbacks above; the
+        # validator refuses it to any other host. Shipped explicitly so
+        # the posture check judges a value phoxtail set.
+        "ALLOWED_REDIRECT_URI_SCHEMES": ["http", "https"],
         # A phone app or a CLI cannot keep a secret — every copy is the same
         # binary — so it authenticates at the token endpoint with none and
         # proves itself with PKCE instead. The library accepts that; the

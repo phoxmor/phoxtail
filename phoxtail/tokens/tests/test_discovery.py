@@ -143,10 +143,11 @@ class TestTheCheckHoldsTheLine:
             ids = sorted(e.id for e in authorization_server_posture(None))
         assert ids == (
             ["phoxtail_tokens.E001"]
-            + ["phoxtail_tokens.E002"] * 5
+            + ["phoxtail_tokens.E002"] * 9
             + ["phoxtail_tokens.E004"] * 2
             + ["phoxtail_tokens.E005"]
             + ["phoxtail_tokens.E006"] * 3
+            + ["phoxtail_tokens.E007"]
         )
 
     def test_a_displaced_vocabulary_is_caught(self):
