@@ -9,15 +9,19 @@ project's own ``OAUTH2_PROVIDER`` displaces them.
 
 from phoxtail.cli.utils.config import get_public_site_url
 
-# Three things the library still accepts for the sake of old deployments,
-# and advertises on the discovery card: the implicit grant (token in a URL
-# fragment), the password grant (the client sees the password) and a
-# "plain" PKCE challenge (the challenge is the verifier). A new site has
-# nothing to keep compatible, so none is offered from the first day.
+# Four things the library still tolerates for the sake of old deployments.
+# Three it accepts and advertises on the discovery card: the implicit grant
+# (token in a URL fragment), the password grant (the client sees the
+# password) and a "plain" PKCE challenge (the challenge is the verifier).
+# One it omits: the ``iss`` parameter on the authorization response, which
+# is how a client talking to more than one authorization server knows
+# which of them sent a given code. A new site has nothing to keep
+# compatible, so none of the four is tolerated from the first day.
 REFUSED_FROM_THE_FIRST_DAY = (
     "COMPLIANT_BCP_RFC9700_IMPLICIT_GRANT",
     "COMPLIANT_BCP_RFC9700_PASSWORD_GRANT",
     "COMPLIANT_BCP_RFC9700_PKCE_METHOD",
+    "COMPLIANT_BCP_RFC9700_AUTHZ_RESPONSE_ISS",
 )
 
 
@@ -45,4 +49,19 @@ def defaults() -> dict:
     return {
         "OIDC_ISS_ENDPOINT": issuer(),
         **{gate: True for gate in REFUSED_FROM_THE_FIRST_DAY},
+        # A phone app or a CLI cannot keep a secret — every copy is the same
+        # binary — so it authenticates at the token endpoint with none and
+        # proves itself with PKCE instead. The library accepts that; the
+        # card must say so, or a client reading it cannot tell it may
+        # register as public.
+        "OAUTH2_TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED": [
+            "none",
+            "client_secret_basic",
+            "client_secret_post",
+        ],
+        # A CLI client listens for its callback on a port it picks at run
+        # time. RFC 8252 exempts loopback addresses from exact port matching;
+        # the library extends that to the name "localhost" only on request,
+        # and that is the name such clients use.
+        "ALLOW_LOCALHOST_LOOPBACK": True,
     }

@@ -85,6 +85,16 @@ class TestTheCardIsWhereAStrangerLooks:
         assert "password" not in card["grant_types_supported"]
         assert card["code_challenge_methods_supported"] == ["S256"]
         assert card["response_types_supported"] == ["code"]
+        assert card["authorization_response_iss_parameter_supported"] is True
+
+    def test_a_public_client_can_read_that_it_may_be_one(self, client, site, declared):
+        """A phone or a CLI has no secret to present; it authenticates with
+        none and proves itself with PKCE. The library accepts that, and the
+        card now says so."""
+        with override_settings(OAUTH2_PROVIDER=declared):
+            card = _card(client)
+        assert "none" in card["token_endpoint_auth_methods_supported"]
+        assert "client_secret_basic" in card["token_endpoint_auth_methods_supported"]
 
     def test_the_issuer_is_the_name_the_mcp_server_advertises(self, client, site, declared):
         """The resource document serialises the site as a root URL with a
@@ -130,7 +140,7 @@ class TestTheCheckHoldsTheLine:
 
         with override_settings(OAUTH2_PROVIDER={"SCOPES": {"read": "Read"}}):
             ids = sorted(e.id for e in authorization_server_posture(None))
-        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 3
+        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 4
 
     def test_a_retyped_issuer_is_caught(self):
         """The one character the whole flow turns on."""
@@ -150,3 +160,37 @@ class TestTheCheckHoldsTheLine:
             errors = authorization_server_posture(None)
         assert [e.id for e in errors] == ["phoxtail_tokens.E002"]
         assert "PASSWORD_GRANT" in errors[0].msg
+
+
+@pytest.mark.django_db
+class TestACliClientCanComeHome:
+    """A CLI listens for its callback on a port it picks at run time, so the
+    URI it registered and the one it sends differ by port. Loopback IPs are
+    exempt from exact matching by RFC 8252; the name "localhost" only when
+    the site opts in — and that is the name such clients use."""
+
+    def _application(self, redirect):
+        from oauth2_provider.models import Application
+
+        from .factories import UserFactory
+
+        return Application.objects.create(
+            user=UserFactory(),
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris=redirect,
+            name="cli",
+        )
+
+    def test_any_port_on_localhost_is_the_registered_client(self, site, declared):
+        app = self._application("http://localhost:9999/callback")
+        with override_settings(OAUTH2_PROVIDER=declared):
+            assert app.redirect_uri_allowed("http://localhost:51234/callback")
+            assert not app.redirect_uri_allowed("http://localhost:51234/elsewhere")
+            assert not app.redirect_uri_allowed("http://example.com:9999/callback")
+
+    def test_without_the_opt_in_the_port_must_match(self, site, declared):
+        app = self._application("http://localhost:9999/callback")
+        with override_settings(OAUTH2_PROVIDER={**declared, "ALLOW_LOCALHOST_LOOPBACK": False}):
+            assert not app.redirect_uri_allowed("http://localhost:51234/callback")
+            assert app.redirect_uri_allowed("http://localhost:9999/callback")
