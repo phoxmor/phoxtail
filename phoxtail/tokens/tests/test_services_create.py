@@ -48,6 +48,16 @@ class TestCreateValidation:
             AccessTokenService().admin.create(user_id=user.id, name="t", scopes=bad)
         assert "scopes" in exc.value.message_dict
 
+    def test_a_bundle_is_a_valid_scope_beside_a_codename(self, user):
+        """Both vocabularies may be carried; validation knows them both."""
+        token, _ = AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["cms:read", REAL_SCOPE])
+        assert token.scopes == ["cms:read", REAL_SCOPE]
+
+    def test_a_misspelt_bundle_is_named_with_its_neighbour(self, user):
+        with pytest.raises(ValidationError) as exc:
+            AccessTokenService().admin.create(user_id=user.id, name="t", scopes=["cms:raed"])
+        assert "cms:read" in str(exc.value.message_dict["scopes"])
+
     def test_past_expiry_raises(self, user):
         with pytest.raises(ValidationError) as exc:
             AccessTokenService().admin.create(

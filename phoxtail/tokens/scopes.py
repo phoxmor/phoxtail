@@ -25,25 +25,29 @@ something real, not that the person minting it holds that permission;
 requiring the latter would lock out exactly the users whose rights an app
 models per object rather than per codename.
 
-Codenames are the vocabulary inside the project only. An outside client —
-one that stores what it was granted on servers we do not control — is
-given bundles instead, stable names that :mod:`phoxtail.tokens.bundles`
-maps to codenames when a credential is read.
+A key may also carry a bundle — ``cms:read`` — a stable name that
+:mod:`phoxtail.tokens.bundles` maps to codenames at the moment the key is
+read. It is the only vocabulary an outside client is given, because a
+codename is a row a migration may rewrite while a name stored on someone
+else's servers cannot be taken back; and a person minting their own key
+may use it for the same protection, or for brevity, beside codenames.
 """
 
 from __future__ import annotations
 
 
 def known_scopes() -> set[str]:
-    """Every scope string that names a real permission.
+    """Every name a key may carry: each bundle, and each real permission.
 
-    Read from the permission table rather than a list we maintain, so an
-    app installed tomorrow contributes its scopes by migrating and nothing
-    here needs to change.
+    Read from the bundle table and the permission table rather than a
+    list we maintain, so an app installed tomorrow contributes its names
+    by having doors and by migrating, and nothing here needs to change.
     """
     from django.contrib.auth.models import Permission
 
-    return {
+    from phoxtail.tokens.bundles import derive
+
+    return set(derive()) | {
         f"{app_label}.{codename}"
         for app_label, codename in Permission.objects.values_list("content_type__app_label", "codename")
     }

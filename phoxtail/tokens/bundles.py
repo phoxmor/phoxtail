@@ -141,17 +141,35 @@ def derive() -> dict[str, frozenset[str]]:
     return bundles
 
 
-def expand(bundles: Iterable[str]) -> set[str]:
-    """The codenames the given bundles stand for, today.
+def is_bundle(name: str) -> bool:
+    """Whether a stored scope name is a bundle rather than a codename.
 
-    For the resolver that turns an authorization server's token into a
-    caller — not yet written; the API cannot read such a token today.
-    Applied when a credential is read, never when it is minted, so a
-    bundle can be repointed and no issued credential changes meaning. A
-    name that is not a bundle expands to nothing.
+    Asked of the table, not of the spelling: a bundle is a name the table
+    has, whatever shape scopes take later. (No codename can be one — a
+    bundle joins its halves with a colon and a codename joins the app
+    label to Django's ``[a-z_]+`` with a dot — but nothing relies on that.)
+    A bundle that no longer exists reads as a codename no door names.
+    """
+    return name in derive()
+
+
+def expand(names: Iterable[str]) -> frozenset[str]:
+    """The codenames the given stored names stand for, today.
+
+    A key carries names; a door asks codenames. A bundle expands to its
+    codenames as derived now, so it can be repointed and no issued key
+    changes meaning; a codename is already atomic and stands for itself.
+    Applied when a key is read, never when it is minted. A bundle name
+    that no longer exists expands to nothing.
     """
     table = derive()
-    return set().union(*(table.get(bundle, frozenset()) for bundle in bundles))
+    codenames: set[str] = set()
+    for name in names:
+        if is_bundle(name):
+            codenames |= table.get(name, frozenset())
+        else:
+            codenames.add(name)
+    return frozenset(codenames)
 
 
 def describe(bundle: str) -> str:

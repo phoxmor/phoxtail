@@ -1,6 +1,13 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+# Every key phoxtail mints starts with this, and it is how a bearer is
+# routed: a key with the prefix is looked up in phoxtail's own table, any
+# other in the authorization server's. The server's keys are letters and
+# digits only, so they can never carry it. A hint for routing, not a
+# proof — the digest lookup still decides.
+PHOXTAIL_TOKEN_PREFIX = "phxt_"
+
 
 class TokenType(models.TextChoices):
     """Choices for AccessToken type.

@@ -75,6 +75,17 @@ class TestTheCredential:
         token, _ = mint_turn_credential(reader)
         assert token.scopes == [PROVIDERS]
 
+    def test_its_permissions_survive_being_read(self, reader):
+        """The registry reads the credential with every stored name
+        expanded. A permission is a codename and stands for itself, so
+        what the catalogue filter compares is exactly what was minted."""
+        from phoxtail.mcp.authorization import as_access_token
+        from phoxtail.tokens.bundles import is_bundle
+
+        token, raw = mint_turn_credential(reader)
+        assert not any(is_bundle(name) for name in token.scopes)
+        assert as_access_token(raw, token).scopes == [PROVIDERS]
+
     def test_it_is_never_unrestricted(self, reader):
         """A ceiling written at mint time, not a flag that rises later.
 

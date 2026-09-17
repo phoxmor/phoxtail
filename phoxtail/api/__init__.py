@@ -29,6 +29,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling
+from phoxtail.tokens.bundles import is_bundle
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
 # Swagger UI and the OpenAPI schema are development conveniences only; in
@@ -41,8 +42,9 @@ _docs_enabled = bool(getattr(settings, "DEBUG", False))
 # their token needs to know the endpoint has not opted in yet, not to be
 # told again what a scope is.
 _undeclared_detail = (
-    "This endpoint declares no scope, so a token carrying scopes cannot reach "
-    "it. Use an unrestricted token, or add auth=scoped(...) to the endpoint."
+    "This endpoint has not named the permission it needs, so no credential "
+    "with a ceiling can reach it. Only a session or an unrestricted phoxtail "
+    "token can, until the endpoint declares auth=guarded(...) or scoped(...)."
 )
 
 api = NinjaAPI(
@@ -91,7 +93,12 @@ class WhoAmI(Schema):
     # False means the credential carries a ceiling and ``scopes`` lists it.
     # True means it carries none; ``scopes`` is then empty and meaningless.
     unrestricted: bool
+    # What the ceiling means today, as codenames — the vocabulary every
+    # door and every tool asks in.
     scopes: list[str]
+    # What the credential was granted, as bundles — the names a person
+    # approved or typed. Empty for a key minted with codenames only.
+    bundles: list[str]
     # None for a browser session, which has no credential to expire.
     expires_at: datetime | None
 
@@ -126,7 +133,8 @@ def whoami(request):
         "user_uuid": context.user.uuid,
         "is_superuser": bool(context.user.is_superuser),
         "unrestricted": token is None or bool(token.unrestricted),
-        "scopes": list(token.scopes) if token is not None else [],
+        "scopes": sorted(token.scopes) if token is not None else [],
+        "bundles": [name for name in token.names if is_bundle(name)] if token is not None else [],
         "expires_at": token.expires_at if token is not None else None,
     }
 

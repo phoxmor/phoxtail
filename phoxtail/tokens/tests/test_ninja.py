@@ -22,7 +22,8 @@ class TestPhoxtailTokenAuth:
         result = auth.authenticate(req, f"Bearer {access_token._raw_token}")
         assert isinstance(result, AuthorizationContext)
         assert result.user == access_token.user
-        assert result.token == access_token
+        assert result.token.row == access_token
+        assert result.token.unrestricted is True
 
     def test_returns_none_for_missing_bearer_prefix(self, auth, req, access_token):
         assert auth.authenticate(req, access_token._raw_token) is None

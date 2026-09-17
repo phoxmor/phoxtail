@@ -90,6 +90,7 @@ def _identity() -> dict:
             "is_superuser": bool(token.claims.get("is_superuser")),
             "unrestricted": bool(token.claims.get("unrestricted")),
             "scopes": list(token.scopes),
+            "bundles": list(token.claims.get("bundles", [])),
             "expires_at": token.expires_at,
         }
 

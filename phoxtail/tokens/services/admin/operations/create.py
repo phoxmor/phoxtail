@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from ....constants import TokenType
+from ....constants import PHOXTAIL_TOKEN_PREFIX, TokenType
 from ....models import AccessToken
 from ....scopes import known_scopes, suggest, unknown_scopes
 
@@ -35,7 +35,7 @@ def _generate_raw_token() -> str:
     """
     random_prefix = "".join(secrets.choice(_PREFIX_ALPHABET) for _ in range(3))
     body = secrets.token_urlsafe(_BODY_ENTROPY_BYTES)
-    return f"phxt_{random_prefix}{body}"
+    return f"{PHOXTAIL_TOKEN_PREFIX}{random_prefix}{body}"
 
 
 class AccessTokenServiceAdminCreate:
@@ -95,8 +95,8 @@ class AccessTokenServiceAdminCreate:
             raise ValidationError(
                 {
                     "scopes": (
-                        "Unknown scope: " + "; ".join(details) + ". Scopes are Django permission codenames, e.g. "
-                        "'phoxtail_streams.change_blockvariant'."
+                        "Unknown scope: " + "; ".join(details) + ". A scope is a bundle such as 'cms:read' "
+                        "or a Django permission codename such as 'phoxtail_streams.change_blockvariant'."
                     )
                 }
             )

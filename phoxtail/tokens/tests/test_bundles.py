@@ -99,8 +99,20 @@ class TestExpansion:
         table = bundles.derive()
         assert bundles.expand(["cms:read", "media:read"]) == table["cms:read"] | table["media:read"]
 
-    def test_an_unknown_name_expands_to_nothing(self):
-        assert bundles.expand(["read"]) == set()
+    def test_a_codename_stands_for_itself(self):
+        """A key may carry both vocabularies; only a bundle is looked up."""
+        assert bundles.expand(["wagtailcore.publish_page"]) == {"wagtailcore.publish_page"}
+        table = bundles.derive()
+        assert bundles.expand(["cms:read", "wagtailcore.publish_page"]) == table["cms:read"] | {
+            "wagtailcore.publish_page"
+        }
+
+    def test_a_bundle_that_no_longer_exists_opens_nothing(self):
+        """Not in the table, so not a bundle: it passes through as a name,
+        and no door asks for a name spelt like that. Same outcome as
+        expanding to nothing, with no pattern consulted."""
+        assert not bundles.is_bundle("gone:read")
+        assert bundles.expand(["gone:read"]) == {"gone:read"}
         assert bundles.expand([]) == set()
 
 

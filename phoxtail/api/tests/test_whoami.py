@@ -15,6 +15,7 @@ from django.test import RequestFactory
 from phoxtail.api import api, whoami
 from phoxtail.api.auth import Authorize
 from phoxtail.core.authorization import AuthorizationContext
+from phoxtail.tokens.auth import credential
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.tokens.tests.factories import AccessTokenFactory, UserFactory
 
@@ -32,7 +33,7 @@ class TestWhatItReports:
         user = UserFactory()
         token = AccessTokenFactory(user=user, unrestricted=False, scopes=[PUBLISH])
 
-        result = _call(AuthorizationContext(user=user, token=token))
+        result = _call(AuthorizationContext(user=user, token=credential(token)))
 
         assert result["email"] == user.email
         assert result["user_uuid"] == user.uuid
@@ -57,7 +58,7 @@ class TestWhatItReports:
         user = UserFactory()
         token = AccessTokenFactory(user=user, unrestricted=True)
 
-        result = _call(AuthorizationContext(user=user, token=token))
+        result = _call(AuthorizationContext(user=user, token=credential(token)))
 
         assert result["unrestricted"] is True
         assert result["scopes"] == []
@@ -80,7 +81,7 @@ class TestWhatItReports:
         user = UserFactory(is_superuser=True)
         token = AccessTokenFactory(user=user, unrestricted=False, scopes=[PUBLISH])
 
-        result = _call(AuthorizationContext(user=user, token=token))
+        result = _call(AuthorizationContext(user=user, token=credential(token)))
 
         assert result["is_superuser"] is True
         assert result["unrestricted"] is False

@@ -243,6 +243,7 @@ class WhoamiVerifier(TokenVerifier):
                 claims={
                     "unrestricted": bool(data["unrestricted"]),
                     "is_superuser": bool(data["is_superuser"]),
+                    "bundles": list(data.get("bundles", [])),
                 },
             )
         except (ValueError, KeyError, TypeError) as exc:
@@ -265,18 +266,23 @@ def as_access_token(raw_token: str, token) -> AccessToken:
     the project's own API being reachable from inside itself.
 
     The two must stay in step, and the fields are the reason they can: both
-    carry the owner's address, their uuid, the scope list, the expiry, and
-    ``unrestricted`` as a claim rather than an expanded list of codenames.
+    carry the owner's address, their uuid, the scopes as codenames — the
+    stored names expanded, exactly as ``/whoami/`` reports them — the
+    expiry, and ``unrestricted`` as a claim rather than an expanded list of
+    codenames.
     """
+    from phoxtail.tokens.bundles import expand, is_bundle
+
     return AccessToken(
         token=raw_token,
         client_id=token.user.email,
         subject=str(token.user.uuid),
-        scopes=list(token.scopes),
+        scopes=sorted(expand(token.scopes)),
         expires_at=int(token.expires_at.timestamp()) if token.expires_at else None,
         claims={
             "unrestricted": bool(token.unrestricted),
             "is_superuser": bool(token.user.is_superuser),
+            "bundles": [name for name in token.scopes if is_bundle(name)],
         },
     )
 
