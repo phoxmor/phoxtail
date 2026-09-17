@@ -59,12 +59,13 @@ class TestTheCardIsWhereAStrangerLooks:
         assert card["token_endpoint"] == "http://t.localhost/o/token/"
         assert "S256" in card["code_challenge_methods_supported"]
 
-    def test_nothing_is_open_by_accident(self, client, site, declared):
-        """Registration is its own decision. Its absence from the card is the
-        proof that adding the server switched nothing else on."""
+    def test_a_stranger_can_read_how_to_introduce_itself(self, client, site, declared):
+        """Both ways, on the card: by request at the registration endpoint,
+        and by document — which a client prefers when it sees the flag."""
         with override_settings(OAUTH2_PROVIDER=declared):
             card = _card(client)
-        assert "registration_endpoint" not in card
+        assert card["registration_endpoint"] == "http://t.localhost/o/register/"
+        assert card["client_id_metadata_document_supported"] is True
 
     def test_the_site_does_not_yet_call_itself_a_resource(self, client, site):
         """The library would publish a protected-resource document for the
@@ -145,6 +146,7 @@ class TestTheCheckHoldsTheLine:
             + ["phoxtail_tokens.E002"] * 5
             + ["phoxtail_tokens.E004"] * 2
             + ["phoxtail_tokens.E005"]
+            + ["phoxtail_tokens.E006"] * 3
         )
 
     def test_a_displaced_vocabulary_is_caught(self):

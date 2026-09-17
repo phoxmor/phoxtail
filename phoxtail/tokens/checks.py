@@ -10,7 +10,13 @@ at startup and in ``manage.py check --deploy``.
 from django.conf import settings
 from django.core.checks import Error, register
 
-from phoxtail.tokens.provider import AUDIENCE, REFUSED_FROM_THE_FIRST_DAY, SCOPES_BACKEND, VALIDATOR
+from phoxtail.tokens.provider import (
+    AUDIENCE,
+    OPEN_TO_STRANGERS,
+    REFUSED_FROM_THE_FIRST_DAY,
+    SCOPES_BACKEND,
+    VALIDATOR,
+)
 
 
 @register()
@@ -63,6 +69,15 @@ def authorization_server_posture(app_configs, **kwargs):
                 id="phoxtail_tokens.E005",
             )
         )
+    for key, expected in OPEN_TO_STRANGERS.items():
+        if declared.get(key) != expected:
+            errors.append(
+                Error(
+                    f"OAUTH2_PROVIDER[{key!r}] must be {expected!r}: a client the site has never met "
+                    "could not introduce itself, and no remote client can be met in advance.",
+                    id="phoxtail_tokens.E006",
+                )
+            )
     for gate in REFUSED_FROM_THE_FIRST_DAY:
         if not declared.get(gate):
             errors.append(

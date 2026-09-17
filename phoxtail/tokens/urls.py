@@ -14,7 +14,7 @@ so that document is not served.
 """
 
 from django.urls import include, path
-from oauth2_provider.urls import base_urlpatterns, metadata_urlpatterns
+from oauth2_provider.urls import base_urlpatterns, dcr_urlpatterns, metadata_urlpatterns
 
 from phoxtail.tokens.views import ConsentView
 
@@ -25,6 +25,9 @@ app_name = "oauth2_provider"
 endpoints = [
     path("authorize/", ConsentView.as_view(), name="authorize"),
     *[route for route in base_urlpatterns if route.name != "authorize"],
+    # Where a client introduces itself by request, and reads or updates
+    # what it said; shipped apart from the working endpoints.
+    *dcr_urlpatterns,
 ]
 
 urlpatterns = [

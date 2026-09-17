@@ -33,6 +33,19 @@ SCOPES_BACKEND = "phoxtail.tokens.bundles.Bundles"
 VALIDATOR = "phoxtail.tokens.bundles.Validator"
 AUDIENCE = "phoxtail.tokens.audience.names_this_server"
 
+# A client the site has never met may introduce itself, and neither way
+# grants anything: registration creates a name, and a person's consent
+# is still the only gate. By document — the client's id is an https URL
+# the server fetches through its SSRF-hardened fetcher, from any host;
+# an operator who wants a list sets the library's allowlist class and
+# hosts in the project. By request — anonymously, because a client with
+# no document has no other way in and the library's default refuses it.
+OPEN_TO_STRANGERS = {
+    "CIMD_ENABLED": True,
+    "DCR_ENABLED": True,
+    "DCR_REGISTRATION_PERMISSION_CLASSES": ("oauth2_provider.dcr.AllowAllDCRPermission",),
+}
+
 
 def issuer() -> str:
     """The authorization server's own name, as advertised to strangers.
@@ -70,6 +83,7 @@ def defaults() -> dict:
         # check compares the request's address and would refuse every
         # such key; ours asks whether the key names this project's door.
         "RESOURCE_SERVER_TOKEN_RESOURCE_VALIDATOR": AUDIENCE,
+        **OPEN_TO_STRANGERS,
         # A phone app or a CLI cannot keep a secret — every copy is the same
         # binary — so it authenticates at the token endpoint with none and
         # proves itself with PKCE instead. The library accepts that; the
