@@ -31,27 +31,30 @@ services:
       - db
       - redis
 
-{% if environment == "development" %}
   # The project's always-on MCP server: the same tool registry the terminal
-  # and chatbot use, served over HTTP so any MCP client (Claude Code from
-  # anywhere on this machine, sibling projects on the shared net) can run
-  # this project's tools in this project's environment. It holds no
-  # credentials of its own — each request's Bearer is forwarded to the web
-  # API, which is the sole authority.
-  #
-  # Standalone, it publishes port 8001 on loopback only
-  # (http://localhost:8001/mcp — nothing here should be reachable from the
-  # LAN). On `phoxtail net attach` the net fragment releases the port and
-  # the server moves to http://mcp.<slug>.localhost/mcp instead.
+  # and chatbot use, served over HTTP so any MCP client — Claude Code from
+  # anywhere, a phone, sibling projects on the shared net — can run this
+  # project's tools in this project's environment. It holds no credentials
+  # of its own — each request's Bearer is forwarded to the web API, which is
+  # the sole authority — and it is its own origin, mcp. in front of the
+  # site's host, so its /.well-known/ has one owner and a key minted for it
+  # names nothing else on the site.
   #
   # Reuses the image `web` builds; runs phoxtail from its site-packages.
   mcp:
     image: {{ image_name }}
-    restart: unless-stopped
+{% if registry_mode %}
+    pull_policy: always
+{% endif %}
+    restart: {% if environment == "production" %}always{% else %}unless-stopped{% endif %}
+
     command: phoxtail mcp serve --http --host 0.0.0.0 --port 80
-    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    user: {% if registry_mode %}"1000:1000"{% else %}"${HOST_UID:-1000}:${HOST_GID:-1000}"{% endif %}
+
+{% if not registry_mode %}
     volumes:
       - .:/app
+{% endif %}
     env_file:
       - ./.env
     environment:
@@ -62,12 +65,19 @@ services:
       # `http://<slug>` in the net fragment, because the shared network
       # gives every attached project's `web` the same bare alias.
       PHOXTAIL_API_URL: http://web
+{% if environment == "development" %}
+    # Standalone, it publishes port 8001 on loopback only
+    # (http://localhost:8001/mcp — nothing here should be reachable from
+    # the LAN). On `phoxtail net attach` the net fragment releases the
+    # port and the server moves to http://mcp.<slug>.localhost/mcp.
+    # In production nothing is published: nginx reaches it by service
+    # name and serves it as mcp.<domain>.
     ports:
       - "127.0.0.1:8001:80"
+{% endif %}
     depends_on:
       - web
 
-{% endif %}
   redis:
     image: redis:7-alpine
     restart: always

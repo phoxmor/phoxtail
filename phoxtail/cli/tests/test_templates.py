@@ -132,10 +132,10 @@ class TestComposeTemplate:
         assert all(".phoxtail" not in volume for volume in mcp["volumes"])
         assert "phoxtail mcp serve --http" in mcp["command"]
 
-    def test_prod_has_no_mcp_service(self):
+    def test_prod_has_the_mcp_service_too(self):
         import yaml
 
-        assert "mcp" not in yaml.safe_load(self._render("production"))["services"]
+        assert "mcp" in yaml.safe_load(self._render("production"))["services"]
 
     def test_image_name_rendered(self):
         result = self._render("development")
@@ -270,3 +270,85 @@ class TestEnvProductionTemplate:
         result = self._render(use_smtp=False)
         assert "USE_SMTP_EMAIL_BACKEND=false" in result
         assert "EMAIL_HOST" not in result
+
+
+class TestTheEdgeIsTransparent:
+    """The MCP server's public name is what every trust rule is keyed on,
+    so the edge serves it exactly as sent: its own block, no redirect, the
+    Host passed through — and the two pre-login endpoints rate-limited."""
+
+    @staticmethod
+    def _nginx(wildcard=False):
+        return render_template(
+            "nginx/production.conf",
+            {
+                "domain": "example.com",
+                "server_name": "example.com .example.com" if wildcard else "example.com www.example.com",
+                "redirect_target": "$host" if wildcard else "example.com",
+                "wildcard": wildcard,
+            },
+        )
+
+    @staticmethod
+    def _compose(environment, registry=False):
+        import yaml
+
+        return yaml.safe_load(
+            render_template(
+                "docker/docker-compose.yaml",
+                {
+                    "environment": environment,
+                    "image_name": "img",
+                    "postgres_version": "16",
+                    "pg_data_path": "/var/lib/postgresql/data",
+                    "registry_mode": registry,
+                },
+            )
+        )
+
+    def test_the_mcp_server_has_its_own_block_and_never_redirects(self):
+        conf = self._nginx()
+        start = conf.index("server_name mcp.example.com;", conf.index("listen 443"))
+        block = conf[start : conf.index("}\n    }", start)]
+        assert "proxy_pass http://$upstream_mcp:80" in block
+        assert "proxy_set_header Host $host" in block
+        assert "return 301" not in block
+        assert "limit_req " not in block
+
+    def test_the_wildcard_block_still_gets_its_own_mcp_blocks(self):
+        conf = self._nginx(wildcard=True)
+        assert conf.count("server_name mcp.example.com;") == 2  # port 80 and 443
+
+    def test_the_two_pre_login_endpoints_are_limited_and_nothing_else(self):
+        for wildcard in (False, True):
+            conf = self._nginx(wildcard)
+            assert "limit_req_zone $binary_remote_addr zone=oauth" in conf
+            limited = [line for line in conf.splitlines() if "limit_req zone=oauth" in line]
+            assert len(limited) == 2, wildcard
+            for path in ("/o/register/", "/o/authorize/"):
+                assert f"location {path} {{" in conf
+            for path in ("/o/token/", "/mcp"):
+                assert f"location {path} {{" not in conf
+
+    def test_plain_http_for_the_mcp_host_upgrades_to_itself(self):
+        """Never to the site's host: an upgrade that changes origin is the
+        redirect the connector must never meet. The challenge path is
+        served first, so the certificate can name it."""
+        conf = self._nginx()
+        start = conf.index("server_name mcp.example.com;")
+        block = conf[start : conf.index("    }\n", conf.index("return 301", start))]
+        assert "acme-challenge" in block
+        assert "return 301 https://mcp.example.com$request_uri" in block
+        assert "return 301 https://example.com" not in block
+
+    def test_production_runs_the_mcp_server_unpublished(self):
+        services = self._compose("production", registry=True)["services"]
+        mcp = services["mcp"]
+        assert "ports" not in mcp
+        assert "volumes" not in mcp
+        assert mcp["environment"]["PHOXTAIL_API_URL"] == "http://web"
+        assert mcp["pull_policy"] == "always"
+
+    def test_development_still_publishes_it_on_loopback(self):
+        mcp = self._compose("development")["services"]["mcp"]
+        assert mcp["ports"] == ["127.0.0.1:8001:80"]

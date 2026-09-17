@@ -138,7 +138,9 @@ def ssl(
         # ------------------------------------------------------------------
         # 3. DNS check
         # ------------------------------------------------------------------
-        names_to_check = [domain] + ([f"www.{domain}"] if www else [])
+        # The MCP server is its own origin, mcp. in front of the site, and
+        # is named on the same certificate; its record must resolve too.
+        names_to_check = [domain, f"mcp.{domain}"] + ([f"www.{domain}"] if www else [])
         if not skip_dns_check:
             for name in names_to_check:
                 with console.status(f"  Checking DNS for {name}..."):
@@ -159,18 +161,23 @@ def ssl(
         # ------------------------------------------------------------------
         # 4. Cert existence check (idempotency — skipped for dry-run)
         # ------------------------------------------------------------------
+        # A certificate counts as present only if it names the MCP server
+        # too: one issued before that name existed is expanded rather than
+        # kept, and certbot's own listing is what says which names it holds.
         cert_path = f"/etc/letsencrypt/live/{domain}/fullchain.pem"
         if not dry_run:
             cert_exists = ssh_check(
                 user,
                 ip,
-                f"cd {project_dir} && docker compose run --rm -T --entrypoint sh certbot -c 'test -f {cert_path}'",
+                f"cd {project_dir} && docker compose run --rm -T --entrypoint sh certbot -c "
+                f"'test -f {cert_path}' && docker compose run --rm -T certbot certificates 2>/dev/null"
+                f" | grep -qF 'mcp.{domain}'",
             )
         else:
             cert_exists = False
 
         if cert_exists:
-            console.print(f"  [green]✓[/green] Certificate already exists [dim]({domain})[/dim]")
+            console.print(f"  [green]✓[/green] Certificate already exists [dim]({domain}, mcp.{domain})[/dim]")
         else:
             # ------------------------------------------------------------------
             # 5. Obtain / simulate certificate (HTTP-01 webroot)
@@ -183,7 +190,7 @@ def ssl(
             www_flag = f" -d www.{domain}" if www else ""
             certbot_cmd = (
                 f"certonly --webroot --webroot-path /var/www/certbot"
-                f" -d {domain}{www_flag}"
+                f" -d {domain} -d mcp.{domain}{www_flag} --expand"
                 f" --email {email} --agree-tos --no-eff-email"
                 f"{extra_flags}"
             )

@@ -98,11 +98,14 @@ def _prompt_production_env(output_file: Path, server_ip: str | None = None) -> N
 
     wildcard_subdomains = Confirm.ask("Enable wildcard subdomains?", default=False)
 
+    # `web` beside the public name: the MCP server asks the API who a
+    # caller is at http://web, one service-name hop inside the compose
+    # network, and Django refuses a Host it was not told about.
     if wildcard_subdomains:
-        allowed_hosts = f".{domain}"
+        allowed_hosts = f".{domain},web"
         csrf_origins = f"https://{domain},https://*.{domain}"
     else:
-        allowed_hosts = domain
+        allowed_hosts = f"{domain},web"
         csrf_origins = f"https://{domain}"
 
     if server_ip:

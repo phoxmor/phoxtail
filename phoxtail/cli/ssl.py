@@ -65,8 +65,11 @@ def obtain(
             "/bin/sh",
             "certbot",
             "-c",
+            # mcp.<domain> is the MCP server's own origin, on the same
+            # certificate; --expand lets a certificate already issued for
+            # the first two names grow to the third instead of asking.
             f"certbot certonly --webroot --webroot-path /var/www/certbot "
-            f"-d {domain} -d www.{domain} "
+            f"-d {domain} -d www.{domain} -d mcp.{domain} --expand "
             f"--email {email} --agree-tos --no-eff-email",
         ]
 
