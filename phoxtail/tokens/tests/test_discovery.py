@@ -140,7 +140,12 @@ class TestTheCheckHoldsTheLine:
 
         with override_settings(OAUTH2_PROVIDER={"SCOPES": {"read": "Read"}}):
             ids = sorted(e.id for e in authorization_server_posture(None))
-        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 5 + ["phoxtail_tokens.E004"] * 2
+        assert ids == (
+            ["phoxtail_tokens.E001"]
+            + ["phoxtail_tokens.E002"] * 5
+            + ["phoxtail_tokens.E004"] * 2
+            + ["phoxtail_tokens.E005"]
+        )
 
     def test_a_displaced_vocabulary_is_caught(self):
         """The library's own backend would hand outsiders its placeholder

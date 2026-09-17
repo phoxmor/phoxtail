@@ -18,6 +18,7 @@ from django.conf import settings
 from django.test import RequestFactory, override_settings
 from django.utils import timezone
 from oauth2_provider.models import Application
+from oauthlib.common import generate_token
 
 from phoxtail.core.authorization import AuthorizationContext
 from phoxtail.tokens import bundles
@@ -73,7 +74,7 @@ def _issue(user, scope="cms:read", **fields):
         redirect_uris="http://localhost:9999/cb",
         name="probe",
     )
-    raw = "abcdefghij0123456789ABCDEFGHIJ"
+    raw = generate_token()
     fields.setdefault("expires", timezone.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS))
     token = get_access_token_model()(user=user, application=app, scope=scope, **fields)
     set_token_value(token, raw)
@@ -122,7 +123,7 @@ class TestTheShapeIsTheContract:
     def test_the_authorization_servers_keys_cannot_wear_it(self):
         """Read off the library, not assumed: its alphabet has no
         underscore, so no key it mints can begin with ours."""
-        from oauthlib.common import UNICODE_ASCII_CHARACTER_SET, generate_token
+        from oauthlib.common import UNICODE_ASCII_CHARACTER_SET
 
         assert "_" not in UNICODE_ASCII_CHARACTER_SET
         assert not generate_token().startswith(PHOXTAIL_TOKEN_PREFIX)
@@ -159,13 +160,50 @@ class TestOneReader:
         raw, _ = _issue(UserFactory(), expires=timezone.now() - timedelta(seconds=1))
         assert _resolve(raw) is None
 
-    def test_a_key_bound_to_another_resource_is_refused(self, site):
-        """A key minted for the MCP server names it as its resource, and
-        the library refuses to spend it anywhere else — the API included,
-        until the API can say it stands behind that server. Pinned as the
-        behaviour it is today; the lesson that changes it changes this."""
-        raw, _ = _issue(UserFactory(), resource=["http://mcp.t.localhost/mcp"])
-        assert _resolve(raw) is None
+    def test_a_key_for_another_door_is_refused(self, site):
+        """The site's own origin is not the door, and neither is another
+        host's door — a key that names either opens nothing here."""
+        for elsewhere in ("http://t.localhost/", "http://mcp.other.localhost/mcp", "http://t.localhost/mcp"):
+            raw, _ = _issue(UserFactory(), resource=[elsewhere])
+            assert _resolve(raw) is None, elsewhere
+
+
+class TestTheAudience:
+    """A key names the door it was minted for; the API stands behind that
+    door and honours the key, though the API is not that address."""
+
+    def test_a_key_for_this_door_is_accepted(self, site):
+        raw, token = _issue(UserFactory(), resource=["http://mcp.t.localhost/mcp"])
+        assert _resolve(raw).token.row == token
+
+    def test_the_comparison_is_canonical(self, site):
+        """A client names the resource lowercased, without a default port
+        or a trailing slash; a domain someone typed may carry any of the
+        three. The same door, however spelt."""
+        for spelling in ("HTTP://MCP.T.LOCALHOST/mcp", "http://mcp.t.localhost:80/mcp", "http://mcp.t.localhost/mcp/"):
+            raw, _ = _issue(UserFactory(), resource=[spelling])
+            assert _resolve(raw) is not None, spelling
+
+    def test_one_of_several_is_enough(self, site):
+        raw, _ = _issue(UserFactory(), resource=["http://mcp.other.localhost/mcp", "http://mcp.t.localhost/mcp"])
+        assert _resolve(raw) is not None
+
+    def test_no_resource_is_the_librarys_rule(self, site):
+        """Accepted before our check is asked: the library treats a key
+        naming no resource as good anywhere. Our own keys and a by-hand
+        probe carry none; pinned so the fact stays visible."""
+        from unittest.mock import patch
+
+        raw, _ = _issue(UserFactory())
+        with patch("phoxtail.tokens.audience.names_this_server", return_value=False) as ours:
+            assert _resolve(raw) is not None
+        ours.assert_not_called()
+
+    def test_the_validator_ignores_where_the_request_went(self, site):
+        from phoxtail.tokens.audience import names_this_server
+
+        assert names_this_server("http://anything/at/all", ["http://mcp.t.localhost/mcp"]) is True
+        assert names_this_server("http://mcp.t.localhost/mcp", ["http://elsewhere.example/mcp"]) is False
 
 
 class TestWhatTheApiSays:

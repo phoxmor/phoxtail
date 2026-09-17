@@ -157,6 +157,8 @@ def serve(
 
     import uvicorn
 
+    from phoxtail.cli.utils.config import MCP_PATH
+
     auth, allowed_hosts = front_door()
     mcp_server.auth = auth
 
@@ -166,11 +168,11 @@ def serve(
     # allowed_hosts alone installs no guard at all and answers every Host
     # with 200, silently.
     app = mcp_server.http_app(
-        path="/mcp",
+        path=MCP_PATH,
         allowed_hosts=allowed_hosts,
         allowed_origins=[],
         host_origin_protection=True,
     )
 
-    sys.stderr.write(f"Phoxtail MCP server starting (streamable-http on {host}:{port}, path /mcp)...\n")
+    sys.stderr.write(f"Phoxtail MCP server starting (streamable-http on {host}:{port}, path {MCP_PATH})...\n")
     uvicorn.run(app, host=host, port=port, log_level="warning")

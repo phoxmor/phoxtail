@@ -182,6 +182,40 @@ def get_public_mcp_url() -> str:
     return urlunsplit((site.scheme, f"mcp.{site.netloc}", "", "", ""))
 
 
+# Where the MCP server listens on its origin. The one path a remote
+# client types, and the one a key issued for this server names.
+MCP_PATH = "/mcp"
+
+
+def get_public_mcp_resource() -> str:
+    """The MCP server's full public name: its origin plus the path.
+
+    What a client names when it asks for a key "for" this server, and so
+    what the API must recognise on a key as its own front door.
+    """
+    return get_public_mcp_url() + MCP_PATH
+
+
+def canonical_url(url: str) -> str:
+    """One spelling for one address, so two parties can compare them.
+
+    Scheme and host lowercased, a default port dropped, a trailing slash
+    removed, the path kept. A client names a resource in this form; our
+    own resolvers build the address from a domain someone typed. Compared
+    as bytes the two disagree on a slash or a ``:443`` and nothing else.
+    A query is kept — a resource indicator may carry one, and one with a
+    different query is a different resource — and a fragment is dropped,
+    since an indicator may not carry one at all.
+    """
+    parts = urlsplit(url)
+    scheme = parts.scheme.lower()
+    host = (parts.hostname or "").lower()
+    port = parts.port
+    if port and not ((scheme == "http" and port == 80) or (scheme == "https" and port == 443)):
+        host = f"{host}:{port}"
+    return urlunsplit((scheme, host, parts.path.rstrip("/"), parts.query, ""))
+
+
 def validate_project_name(name: str) -> str | None:
     """Validate a project name for use across Django, Celery, and Docker.
 

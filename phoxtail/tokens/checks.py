@@ -10,7 +10,7 @@ at startup and in ``manage.py check --deploy``.
 from django.conf import settings
 from django.core.checks import Error, register
 
-from phoxtail.tokens.provider import REFUSED_FROM_THE_FIRST_DAY, SCOPES_BACKEND, VALIDATOR
+from phoxtail.tokens.provider import AUDIENCE, REFUSED_FROM_THE_FIRST_DAY, SCOPES_BACKEND, VALIDATOR
 
 
 @register()
@@ -54,6 +54,15 @@ def authorization_server_posture(app_configs, **kwargs):
                     id="phoxtail_tokens.E004",
                 )
             )
+    if declared.get("RESOURCE_SERVER_TOKEN_RESOURCE_VALIDATOR") != AUDIENCE:
+        errors.append(
+            Error(
+                f"OAUTH2_PROVIDER['RESOURCE_SERVER_TOKEN_RESOURCE_VALIDATOR'] must be {AUDIENCE!r}: the "
+                "library's own check compares the request's address with the key's resource and "
+                "refuses every key minted for the MCP server.",
+                id="phoxtail_tokens.E005",
+            )
+        )
     for gate in REFUSED_FROM_THE_FIRST_DAY:
         if not declared.get(gate):
             errors.append(
