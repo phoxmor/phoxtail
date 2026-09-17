@@ -9,19 +9,23 @@ project's own ``OAUTH2_PROVIDER`` displaces them.
 
 from phoxtail.cli.utils.config import get_public_site_url
 
-# Four things the library still tolerates for the sake of old deployments.
+# Five things the library still tolerates for the sake of old deployments.
 # Three it accepts and advertises on the discovery card: the implicit grant
 # (token in a URL fragment), the password grant (the client sees the
 # password) and a "plain" PKCE challenge (the challenge is the verifier).
 # One it omits: the ``iss`` parameter on the authorization response, which
 # is how a client talking to more than one authorization server knows
-# which of them sent a given code. A new site has nothing to keep
-# compatible, so none of the four is tolerated from the first day.
+# which of them sent a given code. One it does at rest: storing access and
+# refresh tokens in cleartext, where a backup or a dump hands out working
+# keys — phoxtail's own tokens have only ever been stored as digests. A new
+# site has nothing to keep compatible, so none of the five is tolerated
+# from the first day.
 REFUSED_FROM_THE_FIRST_DAY = (
     "COMPLIANT_BCP_RFC9700_IMPLICIT_GRANT",
     "COMPLIANT_BCP_RFC9700_PASSWORD_GRANT",
     "COMPLIANT_BCP_RFC9700_PKCE_METHOD",
     "COMPLIANT_BCP_RFC9700_AUTHZ_RESPONSE_ISS",
+    "COMPLIANT_BCP_RFC9700_TOKEN_STORAGE",
 )
 
 
@@ -64,4 +68,21 @@ def defaults() -> dict:
         # the library extends that to the name "localhost" only on request,
         # and that is the name such clients use.
         "ALLOW_LOCALHOST_LOOPBACK": True,
+        # The key shown on every call is worth an hour to whoever steals it;
+        # the key that mints keys is shown only to this server and is worth
+        # a week — and every use issues a fresh one, so a client used at
+        # least weekly is never sent back to a login screen. Presenting a
+        # retired refresh token again means someone holds a copy, and the
+        # whole family is revoked rather than guess which.
+        #
+        # No grace period. The library offers one so a client that never
+        # received the rotated answer can retry with the retired token, but
+        # its grace path hands back the previous access token's stored
+        # value — blank, now that tokens are hashed at rest — and answers
+        # 500 instead of a pair. Hashing wins; the retry ends in a login.
+        "ACCESS_TOKEN_EXPIRE_SECONDS": 60 * 60,
+        "REFRESH_TOKEN_EXPIRE_SECONDS": 7 * 24 * 60 * 60,
+        "ROTATE_REFRESH_TOKEN": True,
+        "REFRESH_TOKEN_REUSE_PROTECTION": True,
+        "REFRESH_TOKEN_GRACE_PERIOD_SECONDS": 0,
     }

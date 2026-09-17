@@ -36,6 +36,15 @@ def authorization_server_posture(app_configs, **kwargs):
                 id="phoxtail_tokens.E001",
             )
         )
+    if declared.get("COMPLIANT_BCP_RFC9700_TOKEN_STORAGE") and declared.get("REFRESH_TOKEN_GRACE_PERIOD_SECONDS", 0):
+        errors.append(
+            Error(
+                "OAUTH2_PROVIDER['REFRESH_TOKEN_GRACE_PERIOD_SECONDS'] must be 0 while tokens "
+                "are hashed at rest: the library's grace path returns the previous access "
+                "token's stored value, which is blank, and answers 500 instead of a pair.",
+                id="phoxtail_tokens.E003",
+            )
+        )
     for gate in REFUSED_FROM_THE_FIRST_DAY:
         if not declared.get(gate):
             errors.append(

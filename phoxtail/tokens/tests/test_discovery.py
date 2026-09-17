@@ -140,7 +140,7 @@ class TestTheCheckHoldsTheLine:
 
         with override_settings(OAUTH2_PROVIDER={"SCOPES": {"read": "Read"}}):
             ids = sorted(e.id for e in authorization_server_posture(None))
-        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 4
+        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 5
 
     def test_a_retyped_issuer_is_caught(self):
         """The one character the whole flow turns on."""
@@ -194,3 +194,35 @@ class TestACliClientCanComeHome:
         with override_settings(OAUTH2_PROVIDER={**declared, "ALLOW_LOCALHOST_LOOPBACK": False}):
             assert not app.redirect_uri_allowed("http://localhost:51234/callback")
             assert app.redirect_uri_allowed("http://localhost:9999/callback")
+
+
+class TestTheLifetimes:
+    """What the server ships: an hour for the key shown on every call, a
+    week for the key that mints keys, and a replayed refresh token revokes
+    the family."""
+
+    def test_the_declared_values(self, site, declared):
+        assert declared["ACCESS_TOKEN_EXPIRE_SECONDS"] == 3600
+        assert declared["REFRESH_TOKEN_EXPIRE_SECONDS"] == 7 * 86400
+        assert declared["ROTATE_REFRESH_TOKEN"] is True
+        assert declared["REFRESH_TOKEN_REUSE_PROTECTION"] is True
+        # Not a minute: the library's grace path returns the previous token's
+        # stored value, which hashing at rest leaves blank, and errors.
+        assert declared["REFRESH_TOKEN_GRACE_PERIOD_SECONDS"] == 0
+        assert declared["COMPLIANT_BCP_RFC9700_TOKEN_STORAGE"] is True
+
+    def test_a_grace_period_is_refused_while_tokens_are_hashed(self):
+        """Not a preference: with the storage gate on, the library's grace
+        path hands back a blank token and errors. Raising the grace again
+        must fail startup, not production."""
+        from phoxtail.tokens.checks import authorization_server_posture
+
+        shipped = dict(PhoxtailTokensConfig.default_settings["OAUTH2_PROVIDER"])
+        shipped["REFRESH_TOKEN_GRACE_PERIOD_SECONDS"] = 60
+        with override_settings(OAUTH2_PROVIDER=shipped):
+            assert [e.id for e in authorization_server_posture(None)] == ["phoxtail_tokens.E003"]
+        # With the storage gate off the grace path works; that is already its
+        # own error, and this one must not contradict it.
+        shipped["COMPLIANT_BCP_RFC9700_TOKEN_STORAGE"] = False
+        with override_settings(OAUTH2_PROVIDER=shipped):
+            assert [e.id for e in authorization_server_posture(None)] == ["phoxtail_tokens.E002"]
