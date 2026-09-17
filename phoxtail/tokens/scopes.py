@@ -24,6 +24,11 @@ particular publish is allowed. Minting therefore checks that a scope names
 something real, not that the person minting it holds that permission;
 requiring the latter would lock out exactly the users whose rights an app
 models per object rather than per codename.
+
+Codenames are the vocabulary inside the project only. An outside client —
+one that stores what it was granted on servers we do not control — is
+given bundles instead, stable names that :mod:`phoxtail.tokens.bundles`
+maps to codenames when a credential is read.
 """
 
 from __future__ import annotations

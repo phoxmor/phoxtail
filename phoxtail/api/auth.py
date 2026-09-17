@@ -68,10 +68,17 @@ class Authorize:
         authenticator: Callable[..., Any],
         predicate: Callable[[Any], bool],
         detail: str = "You do not have permission to perform this action.",
+        codenames: tuple[str, ...] = (),
     ) -> None:
         self.authenticator = authenticator
         self.predicate = predicate
         self.detail = detail
+        # The codenames the predicate asks for, kept where a walk over the
+        # mounted routers can read them without running anything. A
+        # predicate is a closure and says nothing about itself; this is
+        # how an outsider's scope vocabulary is derived from the doors
+        # instead of being typed. Empty when the door names none.
+        self.codenames = codenames
 
     def __call__(self, request):
         context = self.authenticator(request)
@@ -209,8 +216,8 @@ def guarded(*codenames: str) -> list[Authorize]:
         return True
 
     return [
-        Authorize(PhoxtailTokenAuth(), predicate),
-        Authorize(PhoxtailSessionAuth(), predicate),
+        Authorize(PhoxtailTokenAuth(), predicate, codenames=codenames),
+        Authorize(PhoxtailSessionAuth(), predicate, codenames=codenames),
     ]
 
 
@@ -226,8 +233,8 @@ def scoped(*codenames: str, detail: str | None = None) -> list[Authorize]:
         detail = "This token's scopes do not cover " + ", ".join(codenames) + "."
     predicate = has_scope(*codenames)
     return [
-        Authorize(PhoxtailTokenAuth(), predicate, detail=detail),
-        Authorize(PhoxtailSessionAuth(), predicate, detail=detail),
+        Authorize(PhoxtailTokenAuth(), predicate, detail=detail, codenames=codenames),
+        Authorize(PhoxtailSessionAuth(), predicate, detail=detail, codenames=codenames),
     ]
 
 

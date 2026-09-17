@@ -29,6 +29,10 @@ REFUSED_FROM_THE_FIRST_DAY = (
 )
 
 
+SCOPES_BACKEND = "phoxtail.tokens.bundles.Bundles"
+VALIDATOR = "phoxtail.tokens.bundles.Validator"
+
+
 def issuer() -> str:
     """The authorization server's own name, as advertised to strangers.
 
@@ -53,6 +57,13 @@ def defaults() -> dict:
     return {
         "OIDC_ISS_ENDPOINT": issuer(),
         **{gate: True for gate in REFUSED_FROM_THE_FIRST_DAY},
+        # The scopes an outside client may ask for are phoxtail's bundles,
+        # derived from the doors — never the library's placeholder pair,
+        # and never a codename, which is internal and mutable.
+        "SCOPES_BACKEND_CLASS": SCOPES_BACKEND,
+        # And a request that names no scope is refused as invalid_scope
+        # rather than shown to a person as a request for nothing.
+        "OAUTH2_VALIDATOR_CLASS": VALIDATOR,
         # A phone app or a CLI cannot keep a secret — every copy is the same
         # binary — so it authenticates at the token endpoint with none and
         # proves itself with PKCE instead. The library accepts that; the

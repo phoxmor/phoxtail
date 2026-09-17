@@ -91,12 +91,18 @@ def front_door() -> tuple[RemoteAuthProvider, list[str]]:
         slugify,
     )
     from phoxtail.mcp.authorization import WhoamiVerifier
+    from phoxtail.tokens.bundles import derive
 
     mcp_url = get_public_mcp_url()
     auth = RemoteAuthProvider(
         token_verifier=WhoamiVerifier(),
         authorization_servers=[AnyHttpUrl(get_public_site_url())],
         base_url=mcp_url,
+        # What a client reads to know what to ask for: every bundle, from
+        # the same derivation the authorization server validates against,
+        # so the two documents cannot disagree. A client asks for all of
+        # them and the person sees the whole list once.
+        scopes_supported=list(derive()),
     )
 
     allowed_hosts = ["localhost", "localhost:*", "127.0.0.1", "127.0.0.1:*"]

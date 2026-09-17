@@ -1,0 +1,64 @@
+{% extends "allauth/layouts/base.html" %}
+{% load static i18n %}
+{% block head_title %}
+    {% trans "Allow access" %}
+{% endblock head_title %}
+{% block extra_head %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'phoxtail_tokens/css/consent.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                {% include "allauth/components/logo.html" %}
+                {% if not error %}
+                    <div class="auth-header">
+                        <h1 class="auth-heading">{% trans "Allow access?" %}</h1>
+                        <p class="auth-subtitle">
+                            {% if client_host %}
+                                {% blocktranslate with host=client_host %}A client at <strong>{{ host }}</strong> asks to act on this site as you.{% endblocktranslate %}
+                            {% else %}
+                                {% blocktranslate with name=application.name %}<strong>{{ name }}</strong> asks to act on this site as you.{% endblocktranslate %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <form class="auth-form" method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            {% if field.is_hidden %}{{ field }}{% endif %}
+                        {% endfor %}
+                        <p class="consent-lead">{% trans "It would be able to:" %}</p>
+                        <ul class="consent-list">
+                            {% for scope in scopes_descriptions %}
+                                <li class="consent-item">{{ scope }}</li>
+                            {% endfor %}
+                        </ul>
+                        <div class="auth-note">
+                            <p>
+                                {% blocktranslate with host=redirect_host %}After you allow, the browser is sent to <strong>{{ host }}</strong>.{% endblocktranslate %}
+                            </p>
+                            {% if loopback_only %}
+                                <p>
+                                    {% trans "That is this computer: a program running on it will receive the key. Allow only if you just started one that sent you here." %}
+                                </p>
+                            {% endif %}
+                        </div>
+                        {{ form.errors }}
+                        {{ form.non_field_errors }}
+                        <div class="auth-actions auth-actions-row">
+                            {% include "allauth/components/submit_button.html" with text_key="Cancel" button_type="submit" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text_key="Allow" button_type="submit" name="allow" extra_attrs='value="yes"' %}
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="auth-header">
+                        <h1 class="auth-heading">{% trans "That request cannot be allowed" %}</h1>
+                        <p class="auth-subtitle">{{ error.description }}</p>
+                    </div>
+                    <p class="auth-text-center auth-text-muted">{{ error.error }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}

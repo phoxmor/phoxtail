@@ -65,7 +65,7 @@ def first_pair(site, client):
         code="the-code",
         expires=timezone.now() + timedelta(minutes=1),
         redirect_uri=REDIRECT,
-        scope="read",
+        scope="cms:read",
         code_challenge=challenge,
         code_challenge_method="S256",
     )

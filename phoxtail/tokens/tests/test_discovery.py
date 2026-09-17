@@ -140,7 +140,18 @@ class TestTheCheckHoldsTheLine:
 
         with override_settings(OAUTH2_PROVIDER={"SCOPES": {"read": "Read"}}):
             ids = sorted(e.id for e in authorization_server_posture(None))
-        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 5
+        assert ids == ["phoxtail_tokens.E001"] + ["phoxtail_tokens.E002"] * 5 + ["phoxtail_tokens.E004"] * 2
+
+    def test_a_displaced_vocabulary_is_caught(self):
+        """The library's own backend would hand outsiders its placeholder
+        pair, and every bundle a client had stored would validate as
+        unknown."""
+        from phoxtail.tokens.checks import authorization_server_posture
+
+        shipped = self._shipped()
+        shipped["SCOPES_BACKEND_CLASS"] = "oauth2_provider.scopes.SettingsScopes"
+        with override_settings(OAUTH2_PROVIDER=shipped):
+            assert [e.id for e in authorization_server_posture(None)] == ["phoxtail_tokens.E004"]
 
     def test_a_retyped_issuer_is_caught(self):
         """The one character the whole flow turns on."""

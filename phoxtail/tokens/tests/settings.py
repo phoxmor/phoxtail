@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     # which wagtailmedia's own ready() can no longer register the real one.
     "wagtailmedia",
     "wagtail.snippets",
+    # Every screen phoxtail renders for a person loads its site settings
+    # in the page chrome, so a view test that renders one needs the tags.
+    "wagtail.contrib.settings",
     "phoxtail.core",
     "phoxtail.users",
     "phoxtail.media",

@@ -16,9 +16,18 @@ so that document is not served.
 from django.urls import include, path
 from oauth2_provider.urls import base_urlpatterns, metadata_urlpatterns
 
+from phoxtail.tokens.views import ConsentView
+
 app_name = "oauth2_provider"
+
+# The consent screen is phoxtail's: the library's route is left out and
+# ours takes its name, so the discovery document still reverses it.
+endpoints = [
+    path("authorize/", ConsentView.as_view(), name="authorize"),
+    *[route for route in base_urlpatterns if route.name != "authorize"],
+]
 
 urlpatterns = [
     *[route for route in metadata_urlpatterns if route.name.startswith("oauth-server-metadata")],
-    path("o/", include(base_urlpatterns)),
+    path("o/", include(endpoints)),
 ]

@@ -10,7 +10,7 @@ at startup and in ``manage.py check --deploy``.
 from django.conf import settings
 from django.core.checks import Error, register
 
-from phoxtail.tokens.provider import REFUSED_FROM_THE_FIRST_DAY
+from phoxtail.tokens.provider import REFUSED_FROM_THE_FIRST_DAY, SCOPES_BACKEND, VALIDATOR
 
 
 @register()
@@ -45,6 +45,15 @@ def authorization_server_posture(app_configs, **kwargs):
                 id="phoxtail_tokens.E003",
             )
         )
+    for key, expected_class in (("SCOPES_BACKEND_CLASS", SCOPES_BACKEND), ("OAUTH2_VALIDATOR_CLASS", VALIDATOR)):
+        if declared.get(key) != expected_class:
+            errors.append(
+                Error(
+                    f"OAUTH2_PROVIDER[{key!r}] must be {expected_class!r}: anything else offers outside "
+                    "clients a vocabulary that is not phoxtail's bundles.",
+                    id="phoxtail_tokens.E004",
+                )
+            )
     for gate in REFUSED_FROM_THE_FIRST_DAY:
         if not declared.get(gate):
             errors.append(
