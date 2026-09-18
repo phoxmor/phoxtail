@@ -12,7 +12,10 @@ import json
 import pytest
 from django.conf import settings
 from django.test import override_settings
+from oauth2_provider.cimd import SafeMetadataFetcher
 from oauth2_provider.models import Application
+
+from phoxtail.tokens.documents import MetadataFetcher, narrow_grant_types
 
 from .factories import UserFactory
 
@@ -116,18 +119,25 @@ class TestByRequest:
         assert "Allow access?" in response.content.decode()
 
 
-class _Document:
-    """A fetcher standing in for the library's: the document a client
-    would publish at its own URL, returned without a network."""
+PUBLISHED = {
+    "client_name": "Self-described",
+    "redirect_uris": [REDIRECT],
+    "token_endpoint_auth_method": "none",
+    # What a client that talks to many servers publishes: grants this
+    # server offers beside one it does not.
+    "grant_types": ["authorization_code", "refresh_token", "urn:ietf:params:oauth:grant-type:jwt-bearer"],
+}
+
+
+class _Document(MetadataFetcher):
+    """Phoxtail's fetcher with the network taken out: the document a
+    client would publish at its own URL, handed to the same narrowing."""
 
     def fetch(self, client_id):
-        return {
-            "client_id": client_id,
-            "client_name": "Self-described",
-            "redirect_uris": [REDIRECT],
-            "token_endpoint_auth_method": "none",
-            "grant_types": ["authorization_code", "refresh_token"],
-        }, 3600
+        from unittest.mock import patch
+
+        with patch.object(SafeMetadataFetcher, "fetch", return_value=({"client_id": client_id, **PUBLISHED}, 3600)):
+            return super().fetch(client_id)
 
 
 def _authorize_as(client, client_id):
@@ -145,6 +155,37 @@ def _authorize_as(client, client_id):
     )
 
 
+class TestWhatIsTakenFromADocument:
+    def test_the_narrowing_fetcher_is_the_one_shipped_and_held(self):
+        from django.test import override_settings
+
+        from phoxtail.tokens.apps import PhoxtailTokensConfig
+        from phoxtail.tokens.checks import authorization_server_posture
+
+        shipped = dict(PhoxtailTokensConfig.default_settings["OAUTH2_PROVIDER"])
+        assert shipped["CIMD_METADATA_FETCHER"] == "phoxtail.tokens.documents.MetadataFetcher"
+        with override_settings(
+            OAUTH2_PROVIDER={**shipped, "CIMD_METADATA_FETCHER": "oauth2_provider.cimd.SafeMetadataFetcher"}
+        ):
+            errors = authorization_server_posture(None)
+        assert [e.id for e in errors] == ["phoxtail_tokens.E006"]
+        assert "CIMD_METADATA_FETCHER" in errors[0].msg
+
+    def test_grants_this_server_lacks_are_ignored(self):
+        """The library would refuse the whole document for the one grant
+        it does not know; the standard says use what you support."""
+        narrowed = narrow_grant_types(PUBLISHED)
+        assert narrowed["grant_types"] == ["authorization_code", "refresh_token"]
+        assert narrowed["client_name"] == "Self-described"
+
+    def test_a_document_naming_no_grant_is_left_to_the_library(self):
+        assert narrow_grant_types({"client_name": "x"}) == {"client_name": "x"}
+
+    def test_a_document_naming_only_grants_this_server_lacks_is_left_to_refuse(self):
+        only_foreign = {"grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"]}
+        assert narrow_grant_types(only_foreign) == only_foreign
+
+
 class TestByDocument:
     def test_a_url_for_a_name_becomes_a_public_client_shown_by_host(self, client, site, settings):
         client.force_login(UserFactory())
@@ -160,6 +201,7 @@ class TestByDocument:
         assert row.registration_source == Application.RegistrationSource.CIMD
         assert row.client_type == Application.CLIENT_PUBLIC
         assert row.skip_authorization is False
+        assert row.authorization_grant_type == Application.GRANT_AUTHORIZATION_CODE
 
     def test_a_document_must_be_served_over_https(self, client, site, settings):
         """The site fetches a client-controlled URL on the pre-auth path.

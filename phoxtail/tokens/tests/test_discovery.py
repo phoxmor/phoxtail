@@ -146,7 +146,7 @@ class TestTheCheckHoldsTheLine:
             + ["phoxtail_tokens.E002"] * 9
             + ["phoxtail_tokens.E004"] * 2
             + ["phoxtail_tokens.E005"]
-            + ["phoxtail_tokens.E006"] * 3
+            + ["phoxtail_tokens.E006"] * 4
             + ["phoxtail_tokens.E007"]
         )
 

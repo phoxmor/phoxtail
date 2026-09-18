@@ -62,6 +62,11 @@ AUDIENCE = "phoxtail.tokens.audience.names_this_server"
 # no document has no other way in and the library's default refuses it.
 OPEN_TO_STRANGERS = {
     "CIMD_ENABLED": True,
+    # The library's own hardened fetcher, narrowing a document's grant
+    # types to the ones this server offers: a client publishes one
+    # document for every server it talks to, and the library refuses a
+    # document naming a grant it does not know rather than ignoring it.
+    "CIMD_METADATA_FETCHER": "phoxtail.tokens.documents.MetadataFetcher",
     "DCR_ENABLED": True,
     "DCR_REGISTRATION_PERMISSION_CLASSES": ("oauth2_provider.dcr.AllowAllDCRPermission",),
 }
