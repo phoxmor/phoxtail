@@ -5,6 +5,10 @@ from django.utils.translation import override
 
 from phoxtail.core.views import get_core_modal_with_htmx
 
+# The modal renders inside the site's chrome, and the dashboard's context
+# processor reads the menu from the database on every render.
+pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def localized_urls(settings):

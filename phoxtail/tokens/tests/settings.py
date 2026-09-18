@@ -5,6 +5,8 @@ imports phoxtail.api, which mounts the core domain routers, which import
 their models. So this list is as long as it is.
 """
 
+from phoxtail.core.wiring import wire_apps
+
 SECRET_KEY = "test-secret-key-not-for-production"
 
 DATABASES = {
@@ -48,10 +50,6 @@ INSTALLED_APPS = [
     "phoxtail.remotes",
     "phoxtail.cms",
     "phoxtail.tokens",
-    # A hatched project never lists this: phoxtail.tokens declares it as a
-    # dependency and wire_apps() inserts it. This list is static by design,
-    # so what the wiring would insert is written out.
-    "oauth2_provider",
 ]
 
 MIDDLEWARE = [
@@ -82,3 +80,8 @@ WAGTAILADMIN_BASE_URL = "http://localhost:8000"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 WAGTAILIMAGES_IMAGE_MODEL = "wagtailimages.Image"
+
+# Last, as in the project template: the app's dependency and its
+# OAUTH2_PROVIDER defaults land here through the same pass a hatched
+# project runs, rather than being copied out by hand.
+wire_apps(globals())

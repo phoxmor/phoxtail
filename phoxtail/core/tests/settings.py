@@ -7,5 +7,7 @@ distributed.
 """
 
 from phoxtail.core.testing import *  # noqa: F401, F403
+from phoxtail.core.wiring import wire_apps
 
 INSTALLED_APPS = [*INSTALLED_APPS, "phoxtail.core.tests.testapp"]  # noqa: F405
+wire_apps(globals())

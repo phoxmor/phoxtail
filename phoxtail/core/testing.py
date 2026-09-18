@@ -7,11 +7,17 @@ Shipped deliberately. A package that adds an app to phoxtail needs a Django
 configured the way phoxtail configures one, and the alternative is every such
 package keeping its own copy of this file and watching the copies drift.
 
-Use it as the base and append:
+Use it as the base, append, and wire once more:
 
     from phoxtail.core.testing import *  # noqa: F401, F403
+    from phoxtail.core.wiring import wire_apps
 
     INSTALLED_APPS = [*INSTALLED_APPS, "my_app"]  # noqa: F405
+    wire_apps(globals())
+
+The wiring pass reads INSTALLED_APPS as it stands when called, so the call
+at the bottom of this module has not seen an app appended after the import;
+a second pass adds what that app declares and leaves the rest as it was.
 
 Two orderings below are load-bearing rather than tidy, and are commented where
 they occur. Keep them if you rebuild this list rather than append to it.
@@ -22,6 +28,8 @@ lives.
 """
 
 import tempfile
+
+from phoxtail.core.wiring import wire_apps
 
 SECRET_KEY = "test-secret-key-not-for-production"
 
@@ -75,10 +83,6 @@ INSTALLED_APPS = [
     "phoxtail.agent",
     "phoxtail.dashboard",
     "phoxtail.tokens",
-    # A hatched project never lists this: phoxtail.tokens declares it as a
-    # dependency and wire_apps() inserts it. This list is static by design,
-    # so what the wiring would insert is written out.
-    "oauth2_provider",
     # After the phoxtail apps, as in the hatched project template: phoxtail.cms
     # installs its draft-redirect guard before this app connects the handler,
     # which is the order the guard is written for. See phoxtail/cms/signals.py.
@@ -125,3 +129,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 WAGTAILIMAGES_IMAGE_MODEL = "phoxtail_media.PhoxtailImage"
 WAGTAILDOCS_DOCUMENT_MODEL = "phoxtail_media.PhoxtailDocument"
 WAGTAILMEDIA = {"MEDIA_MODEL": "phoxtail_media.PhoxtailMedia"}
+
+# Last, as in the project template: every dependency, default setting,
+# middleware and context processor an app declares lands here through the
+# same pass a hatched project runs, rather than being copied out by hand.
+wire_apps(globals())
