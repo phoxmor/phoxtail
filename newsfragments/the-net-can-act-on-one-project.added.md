@@ -1,0 +1,1 @@
+`phoxtail net up`, `net down` and `net detach` now also take a slug to act on a single attached project from anywhere, with the slug completing on Tab. `up` still brings the shared router first, and `down` leaves it running for the others. Without a slug they work as before.

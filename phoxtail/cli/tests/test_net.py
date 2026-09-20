@@ -1175,3 +1175,112 @@ class TestPeersGet:
             patch("phoxtail.cli.net.list_peers", side_effect=AssertionError("docker was asked")),
         ):
             assert completer(_peer_candidates)("al") == [("alpha-site", "alpha")]
+
+
+class TestUpDownByTarget:
+    """`net up <slug>` and `net down <slug>` act on one member; the router is
+    a shared prerequisite, so it still comes up, and never goes down."""
+
+    def _stack(self, tmp_path, monkeypatch):
+        compose_file = tmp_path / "net" / "docker-compose.yaml"
+        compose_file.parent.mkdir(parents=True, exist_ok=True)
+        compose_file.write_text("services: {}\n")
+        monkeypatch.setattr(net, "NET_DIR", compose_file.parent)
+        monkeypatch.setattr(net, "NET_COMPOSE_FILE", compose_file)
+
+    def _members(self, tmp_path):
+        alpha = _attached_dir(tmp_path / "alpha")
+        beta = _attached_dir(tmp_path / "beta")
+        return alpha, beta, [Member(alpha, "alpha-site"), Member(beta, "beta-site")]
+
+    def test_up_starts_the_router_and_only_the_target(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        alpha, _beta, members = self._members(tmp_path)
+        with (
+            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up", "alpha-site"])
+
+        assert result.exit_code == 0, result.output
+        router, *projects = mock_call.call_args_list
+        assert "-f" in router.args[0]
+        assert [c.kwargs["cwd"] for c in projects] == [str(alpha)]
+
+    def test_down_stops_only_the_target_and_leaves_the_router(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        alpha, _beta, members = self._members(tmp_path)
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["down", "alpha-site"])
+
+        assert result.exit_code == 0, result.output
+        assert [c.kwargs.get("cwd") for c in mock_call.call_args_list] == [str(alpha)]
+        assert all("-f" not in c.args[0] for c in mock_call.call_args_list)
+
+    def test_unknown_target_costs_nothing(self, tmp_path, monkeypatch):
+        self._stack(tmp_path, monkeypatch)
+        _alpha, _beta, members = self._members(tmp_path)
+        with (
+            patch("phoxtail.cli.net.ensure_network") as mock_ensure,
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=0) as mock_call,
+        ):
+            result = runner.invoke(net_app, ["up", "gamma-site"])
+
+        assert result.exit_code == 1
+        assert "gamma-site" in result.output
+        mock_ensure.assert_not_called()
+        mock_call.assert_not_called()
+
+    def test_a_single_failure_is_not_tallied(self, tmp_path, monkeypatch):
+        """ "failed 1 of 1" would repeat the line above it."""
+        self._stack(tmp_path, monkeypatch)
+        _alpha, _beta, members = self._members(tmp_path)
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.subprocess.call", return_value=1),
+        ):
+            result = runner.invoke(net_app, ["down", "alpha-site"])
+
+        assert result.exit_code == 1
+        assert "failed" in result.output
+        assert "of 1" not in result.output
+
+
+class TestDetachByTarget:
+    """Detach needs only root and slug, and the members file has both — so a
+    target can be detached from anywhere. Attach cannot: before attaching,
+    the net has never heard of the project."""
+
+    def _attach_here(self, tmp_path):
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\nCSRF_TRUSTED_ORIGINS=http://localhost\n")
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            assert runner.invoke(net_app, ["attach"]).exit_code == 0
+
+    def test_detaches_from_outside_the_project(self, tmp_path, monkeypatch):
+        self._attach_here(tmp_path)
+        elsewhere = tmp_path / "elsewhere"
+        elsewhere.mkdir()
+        monkeypatch.chdir(elsewhere)
+
+        result = runner.invoke(net_app, ["detach", "alphasite"])
+
+        assert result.exit_code == 0, result.output
+        assert not (tmp_path / "docker-compose.net.yaml").exists()
+        assert "COMPOSE_FILE" not in (tmp_path / ".env").read_text()
+        assert read_members() == []
+
+    def test_unknown_target_changes_nothing(self, tmp_path):
+        self._attach_here(tmp_path)
+        result = runner.invoke(net_app, ["detach", "nobody"])
+        assert result.exit_code == 1
+        assert (tmp_path / "docker-compose.net.yaml").exists()

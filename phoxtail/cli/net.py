@@ -4,6 +4,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import NoReturn
 
 import typer
 from rich import box
@@ -83,14 +84,13 @@ def _project_compose(member: Member, args: list[str]) -> int:
     return subprocess.call(["docker", "compose", *args], cwd=str(member.root), env=env)
 
 
-def _fan_out(args: list[str], *, require_wiring: bool, when_empty: str) -> bool:
-    """Run one compose command in every attached project. True if all succeeded.
+def _fan_out(members: list[Member], args: list[str], *, require_wiring: bool, when_empty: str) -> bool:
+    """Run one compose command in each of *members*. True if all succeeded.
 
     Never aborts on the first failure: one project with a broken build must
     not strand the other five, so every member is attempted and the outcome
     is reported at the end.
     """
-    members = read_members()
     if not members:
         console.print(when_empty)
         return True
@@ -114,9 +114,10 @@ def _fan_out(args: list[str], *, require_wiring: bool, when_empty: str) -> bool:
             console.print(f"  [red]failed[/red] {member.slug}")
             failures.append(member.slug)
 
-    if skipped:
+    # A single target already said its name above; the tally is for the crowd.
+    if skipped and len(members) > 1:
         console.print(f"  [yellow]skipped {len(skipped)} of {len(members)}:[/yellow] {', '.join(skipped)}")
-    if failures:
+    if failures and len(members) > 1:
         console.print(f"  [red]failed {len(failures)} of {len(members)}:[/red] {', '.join(failures)}")
 
     # Only real failures set the exit code. A skip is a standing config fault
@@ -126,11 +127,45 @@ def _fan_out(args: list[str], *, require_wiring: bool, when_empty: str) -> bool:
     return not failures
 
 
+def _targets(slug: str | None) -> list[Member]:
+    """The members a command acts on: all of them, or the one named."""
+    members = read_members()
+    if slug is None:
+        return members
+    for member in members:
+        if member.slug == slug:
+            return [member]
+    _unknown_peer(slug)
+
+
+def _unknown_peer(slug: str) -> NoReturn:
+    console.print(
+        f"[red]Error:[/red] No peer [bold]{slug}[/bold] on the net — see [bold]phoxtail net peers list[/bold]."
+    )
+    raise typer.Exit(code=1)
+
+
+def _peer_candidates() -> list[tuple[str, str]]:
+    # The members file alone: completion runs on every keystroke, and a
+    # Docker round-trip there would make Tab feel broken.
+    return [(member.slug, member.root.name) for member in read_members()]
+
+
+TARGET = typer.Argument(
+    None,
+    help="One attached project, by slug. Every attached project when omitted.",
+    autocompletion=completer(_peer_candidates),
+)
+
+
 @app.command()
 def up(
+    slug: str | None = TARGET,
     projects: bool = typer.Option(True, "--projects/--no-projects", help="Also start every attached project."),
 ) -> None:
-    """Start the shared local network, its Traefik router, and every attached project."""
+    """Start the shared net and its Traefik router, then every attached project — or just one."""
+    # Resolved before anything starts: an unknown slug should cost nothing.
+    members = _targets(slug)
     try:
         ensure_network()
     except (RuntimeError, FileNotFoundError) as exc:
@@ -145,7 +180,8 @@ def up(
         sys.exit(rc)
     console.print(f"[green]✓[/green] Shared net up on [bold]{NETWORK_NAME}[/bold]")
 
-    if not projects:
+    # The flag is about the fan-out; a target has already replaced it.
+    if not projects and slug is None:
         return
 
     # Router before projects: a project starting first would be routable only
@@ -153,6 +189,7 @@ def up(
     # types by hand, rather than turning a first `net up` into a long build.
     console.print("\n[bold]Starting attached projects[/bold]")
     if not _fan_out(
+        members,
         ["up", "-d"],
         require_wiring=True,
         when_empty="[dim]  none yet — run [/dim][bold]phoxtail net attach[/bold][dim] in a project.[/dim]",
@@ -162,23 +199,31 @@ def up(
 
 @app.command()
 def down(
+    slug: str | None = TARGET,
     projects: bool = typer.Option(True, "--projects/--no-projects", help="Also stop every attached project."),
     remove: bool = typer.Option(
         False, "--remove", help="Remove the projects' containers instead of only stopping them."
     ),
 ) -> None:
-    """Stop every attached project, then the Traefik router. Leaves the network in place."""
+    """Stop every attached project, then the Traefik router — or stop just one project."""
+    members = _targets(slug)
+    # The flag is about the fan-out; a target has already replaced it.
     ok = True
-    if projects:
+    if projects or slug is not None:
         console.print("[bold]Stopping attached projects[/bold]")
         # Projects first: taking the router down ahead of them would leave
         # every running project up but unroutable — the worst intermediate
         # state, and the one a user is most likely to hit Ctrl-C in.
         ok = _fan_out(
+            members,
             ["down"] if remove else ["stop"],
             require_wiring=False,
             when_empty="[dim]  none attached[/dim]",
         )
+
+    # One project stopping is no reason to unroute the others.
+    if slug is not None:
+        sys.exit(0 if ok else 1)
 
     if not NET_COMPOSE_FILE.exists():
         console.print("[dim]The shared net is not set up — nothing more to stop.[/dim]")
@@ -338,12 +383,6 @@ def peers_list(
         )
 
 
-def _peer_candidates() -> list[tuple[str, str]]:
-    # The members file alone: completion runs on every keystroke, and a
-    # Docker round-trip there would make Tab feel broken.
-    return [(member.slug, member.root.name) for member in read_members()]
-
-
 @peers_app.command("get")
 def peers_get(
     slug: str = typer.Argument(
@@ -357,10 +396,7 @@ def peers_get(
     rows, live = _peer_rows()
     row = next((row for row in rows if row[0] == slug), None)
     if row is None:
-        console.print(
-            f"[red]Error:[/red] No peer [bold]{slug}[/bold] on the net — see [bold]phoxtail net peers list[/bold]."
-        )
-        raise typer.Exit(code=1)
+        _unknown_peer(slug)
 
     if json_output:
         _emit_json(_peer_json(row, live))
@@ -503,15 +539,18 @@ def attach() -> None:
 
 
 @app.command()
-def detach() -> None:
-    """Detach this project from the shared net, reversing `attach`."""
-    require_project()
-    config_path = find_config_file()
-    assert config_path is not None, "call require_project() first"
-    root = _project_root()
-
-    slug = slugify(get_project_name())
-    hostname = f"{slug}.localhost"
+def detach(slug: str | None = TARGET) -> None:
+    """Detach this project from the shared net, reversing `attach` — or detach the one named."""
+    # Everything detach needs — root and slug — is in the members file, so
+    # a target can be detached from anywhere. Attach has no such shortcut:
+    # before attaching, the net has never heard of the project.
+    if slug is None:
+        require_project()
+        member = Member(_project_root(), slugify(get_project_name()))
+    else:
+        member = _targets(slug)[0]
+    root = member.root
+    hostname = f"{member.slug}.localhost"
 
     net_file = root / PROJECT_NET_FILE
     if net_file.exists():
@@ -526,14 +565,15 @@ def detach() -> None:
     env_file = root / ".env"
     remove_env_key(env_file, "COMPOSE_FILE")
     remove_env_list_value(env_file, "ALLOWED_HOSTS", hostname, ",")
-    remove_env_list_value(env_file, "ALLOWED_HOSTS", slug, ",")
+    remove_env_list_value(env_file, "ALLOWED_HOSTS", member.slug, ",")
     # `web` stays: the always-on mcp service addresses the API by that
     # name whether or not the project is on the shared net.
     remove_env_list_value(env_file, "CSRF_TRUSTED_ORIGINS", f"http://{hostname}", ",")
 
     # Detached, the project publishes its own port 80 again, so the default
-    # address is correct once more.
-    set_api_url(config_path, DEFAULT_API_BASE_URL)
+    # address is correct once more. The file is there: `read_members` prunes
+    # any member whose phoxtail.toml is gone, so a target always has one.
+    set_api_url(root / "phoxtail.toml", DEFAULT_API_BASE_URL)
     load_config.cache_clear()
 
     console.print("[green]✓[/green] Detached — restart with [bold]docker compose up -d[/bold] to apply.")
