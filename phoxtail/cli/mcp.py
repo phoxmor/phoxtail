@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 import typer
-from fastmcp.server.auth import RemoteAuthProvider
+
+if TYPE_CHECKING:  # the annotation only; the runtime import lives in front_door()
+    from fastmcp.server.auth import RemoteAuthProvider
 
 app = typer.Typer(help="MCP server for AI agents.")
 
@@ -81,6 +84,7 @@ def front_door() -> tuple[RemoteAuthProvider, list[str]]:
     siblings send it via the network alias — and the public address
     covers production, where the host is the real domain.
     """
+    from fastmcp.server.auth import RemoteAuthProvider
     from pydantic import AnyHttpUrl
 
     from phoxtail.cli.utils.config import (

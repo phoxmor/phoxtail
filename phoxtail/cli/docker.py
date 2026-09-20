@@ -7,7 +7,6 @@ import sys
 import tomllib
 from pathlib import Path
 
-import questionary
 import typer
 import yaml
 from rich.console import Console
@@ -233,6 +232,8 @@ def login_cmd(
         phoxtail docker login --username alice
         phoxtail docker login --username alice --token ghp_...
     """
+    import questionary
+
     docker_registry = get_docker_registry()
     if not docker_registry:
         console.print(
@@ -444,6 +445,8 @@ def dockerfile(
         phoxtail docker create dockerfile --python-version 3.12
         phoxtail docker create dockerfile --port 8000 --workers 4
     """
+    import questionary
+
     if output.exists() and not force:
         if not Confirm.ask(
             f"[yellow]Warning:[/yellow] {output} already exists. Overwrite?",
@@ -594,6 +597,8 @@ def compose(
         phoxtail docker create compose development -p mysite
         phoxtail docker create compose production --postgres-version 17
     """
+    import questionary
+
     if environment is None:
         environment = questionary.select(
             "Select environment type:",

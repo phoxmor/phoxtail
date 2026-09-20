@@ -3,7 +3,6 @@
 import subprocess
 from pathlib import Path
 
-import questionary
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -64,6 +63,8 @@ def deploy(
         phoxtail server deploy 1.2.3.4
         phoxtail server deploy 1.2.3.4 --user myuser
     """
+    import questionary
+
     if find_config_file() is None:
         console.print("[red]Error:[/red] No phoxtail.toml found. Run this command from a phoxtail project directory.")
         raise typer.Exit(1)

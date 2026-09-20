@@ -16,15 +16,17 @@ import json
 import mimetypes
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
-import httpx
 import typer
 from rich.console import Console
 
 from phoxtail.cli.utils.config import get_api_base_url
 from phoxtail.cli.utils.credentials import resolve_token
+
+if TYPE_CHECKING:
+    import httpx
 
 # Exit codes are documented in docs/studio/cli.md:
 EXIT_GENERAL_FAILURE = 1
@@ -107,6 +109,8 @@ def request(
     returned as-is for the caller to handle (used by the edit verb's
     template-cascade logic).
     """
+    import httpx
+
     # Filter out None params so httpx does not send empty query values.
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     final_headers = dict(headers or {})
@@ -421,6 +425,8 @@ def download_bytes(url: str) -> bytes | None:
     Auth header is only sent when the target host matches the API base URL
     (i.e. local dev server).  External hosts like S3 or a CDN receive no token.
     """
+    import httpx
+
     api_host = urlparse(_api_base_url()).netloc
     url_host = urlparse(url).netloc
     headers = _auth_headers() if url_host == api_host else {}
@@ -440,6 +446,8 @@ def upload_image(*, title: str, file_path: Path) -> tuple[dict[str, Any], int]:
     error (caller should warn+skip). Connection failures still raise ``typer.Exit``
     because they indicate the server is unreachable.
     """
+    import httpx
+
     mime_type = mimetypes.guess_type(str(file_path))[0] or "image/png"
     try:
         with open(file_path, "rb") as f:
@@ -466,6 +474,8 @@ def upload_image(*, title: str, file_path: Path) -> tuple[dict[str, Any], int]:
 
 def search_images(title: str) -> list[dict[str, Any]]:
     """Search the image library by title substring. Returns list of image dicts."""
+    import httpx
+
     try:
         response = httpx.get(
             _content_url(CONTENT_IMAGES_PATH),

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import getpass
 
-import httpx
 import typer
 from rich.console import Console
 
@@ -53,6 +52,8 @@ def login(
     no_verify: bool = typer.Option(False, "--no-verify", help="Skip live verification against the API."),
 ) -> None:
     """Store a Personal Access Token for the current project's API."""
+    import httpx
+
     base_url = _resolve_base_url(host)
     host_key = credentials.host_for_url(base_url)
 

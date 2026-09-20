@@ -5,6 +5,7 @@ from __future__ import annotations
 import importlib
 from types import SimpleNamespace
 
+import httpx
 import pytest
 from typer.testing import CliRunner
 
@@ -95,7 +96,7 @@ class TestLoginVerifies:
             calls.append((url, kwargs.get("headers", {})))
             return _Response(url)
 
-        monkeypatch.setattr(auth.httpx, "get", fake_get)
+        monkeypatch.setattr(httpx, "get", fake_get)
         return SimpleNamespace(calls=calls, status=status)
 
     def test_it_asks_whoami_and_nothing_else(self, isolated_home, tmp_path, seen):
@@ -173,9 +174,9 @@ class TestLoginVerifies:
         _write_toml(tmp_path / "phoxtail.toml", "http://localhost:8080")
 
         def refuse(url, **kwargs):
-            raise auth.httpx.ConnectError("nothing listening")
+            raise httpx.ConnectError("nothing listening")
 
-        monkeypatch.setattr(auth.httpx, "get", refuse)
+        monkeypatch.setattr(httpx, "get", refuse)
 
         result = runner.invoke(auth.app, ["login", "--token", "phxt_key"])
 

@@ -5,7 +5,6 @@ import subprocess
 import sys
 from typing import Annotated
 
-import questionary
 import typer
 from rich.console import Console
 
@@ -69,6 +68,8 @@ def manage(
         phoxtail manage shell
         phoxtail manage populate_streams --reset
     """
+    import questionary
+
     if command is None:
         if not sys.stdin.isatty():
             console.print("[red]Interactive mode requires a terminal.[/red]")

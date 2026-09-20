@@ -4,7 +4,6 @@ import os
 import time
 from typing import TypedDict, Unpack
 
-import questionary
 import typer
 from rich.console import Console
 from rich.markup import escape
@@ -19,8 +18,6 @@ from phoxtail.cli.server.providers.base import (
     ServerType,
     SSHKey,
 )
-from phoxtail.cli.server.providers.hetzner import HetznerProvider
-from phoxtail.cli.server.providers.linode import LinodeProvider
 from phoxtail.cli.server.utils import (
     fmt_memory,
     fmt_price,
@@ -39,7 +36,14 @@ _ARCH_LABELS = {
 }
 
 # Provider registry — order determines display order in the picker
-_PROVIDERS: list[type[Provider]] = [HetznerProvider, LinodeProvider]
+
+
+def _providers() -> list[type[Provider]]:
+    from phoxtail.cli.server.providers.hetzner import HetznerProvider
+    from phoxtail.cli.server.providers.linode import LinodeProvider
+
+    return [HetznerProvider, LinodeProvider]
+
 
 # OS flavours to show (in display order); others are still available but listed after
 _PREFERRED_FLAVOURS = ["ubuntu", "debian", "fedora", "centos", "rocky", "alma"]
@@ -135,11 +139,15 @@ def _clear_and_show(**kwargs: Unpack[_Selections]) -> None:
 
 
 def _ask_provider() -> type[Provider] | None:
-    choices = [questionary.Choice(title=cls.display_name, value=cls) for cls in _PROVIDERS]
+    import questionary
+
+    choices = [questionary.Choice(title=cls.display_name, value=cls) for cls in _providers()]
     return questionary.select("Cloud provider:", choices=choices).ask()
 
 
 def _ask_architecture(architectures: tuple[str, ...]) -> str | None:
+    import questionary
+
     choices = [
         questionary.Choice(title=_ARCH_LABELS[arch], value=arch) for arch in architectures if arch in _ARCH_LABELS
     ]
@@ -151,6 +159,8 @@ def _ask_architecture(architectures: tuple[str, ...]) -> str | None:
 
 
 def _ask_location(locations: list[Location]) -> Location | None:
+    import questionary
+
     sorted_locs = sorted(locations, key=lambda loc: (loc.country, loc.city))
 
     choices = [
@@ -170,6 +180,8 @@ def _ask_server_type(
     *,
     currency: str = "$",
 ) -> ServerType | None:
+    import questionary
+
     shared = sorted(
         [st for st in server_types if st.cpu_type == "shared"],
         key=lambda t: price_key(t.price_monthly),
@@ -225,6 +237,8 @@ def _ask_server_type(
 
 
 def _ask_image(images: list[Image]) -> Image | None:
+    import questionary
+
     # Group by os_flavor, sort versions descending within each flavor
     flavors: dict[str, list[Image]] = {}
     for img in images:
@@ -260,6 +274,8 @@ def _ask_image(images: list[Image]) -> Image | None:
 
 
 def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:
+    import questionary
+
     if not ssh_keys:
         console.print(
             "  [yellow]No SSH keys found in this cloud account.[/yellow]\n"
@@ -281,6 +297,8 @@ def _ask_ssh_keys(ssh_keys: list[SSHKey]) -> list[SSHKey] | None:
 
 
 def _ask_server_name(default: str, validator: object) -> str | None:
+    import questionary
+
     return questionary.text(
         "Server name:",
         default=default,
@@ -289,6 +307,8 @@ def _ask_server_name(default: str, validator: object) -> str | None:
 
 
 def _ask_deploy_user() -> str | None:
+    import questionary
+
     return questionary.text(
         "Deploy username:",
         default="phoxtail",
@@ -303,6 +323,8 @@ def _ask_deploy_user() -> str | None:
 
 
 def _resolve_token(token: str | None, *, token_env_var: str, provider_name: str) -> str | None:
+    import questionary
+
     if token:
         return token
     env = os.environ.get(token_env_var)
@@ -354,6 +376,8 @@ def provision(
         phoxtail server provision --token <token>
         phoxtail server provision --dry-run
     """
+    import questionary
+
     try:
         # --- Provider ---
         provider_class = _ask_provider()

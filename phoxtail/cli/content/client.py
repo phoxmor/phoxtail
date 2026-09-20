@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import httpx
 import typer
 from rich.console import Console
 
 from phoxtail.cli.utils.config import get_api_base_url
 from phoxtail.cli.utils.credentials import resolve_token
+
+if TYPE_CHECKING:
+    import httpx
 
 EXIT_GENERAL_FAILURE = 1
 EXIT_ENVIRONMENT = 2
@@ -40,6 +42,8 @@ def request(
     params: dict[str, Any] | None = None,
     prefix: str = API_PREFIX,
 ) -> httpx.Response:
+    import httpx
+
     clean_params = {k: v for k, v in (params or {}).items() if v is not None}
     token = resolve_token(_api_base_url())
     headers = {"Authorization": f"Bearer {token}"} if token else {}

@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import questionary
 import typer
 from rich.console import Console
 from rich.panel import Panel
@@ -481,6 +480,8 @@ def hatch(
         phoxtail hatch myproject --source git+ssh://git@github.com/phoxmor/phoxtail@main
         phoxtail hatch myproject --source ../phoxtail
     """
+    import questionary
+
     try:
         phoxtail_source = parse_source(source)
     except InvalidSource as exc:

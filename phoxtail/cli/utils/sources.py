@@ -15,8 +15,6 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-import httpx
-
 from phoxtail.cli.utils.packages import is_declared
 
 PYPI = "pypi"
@@ -152,6 +150,8 @@ def pypi_releases(package: str) -> list[str] | None:
     0.11, and no other uv subcommand lists the versions of a package that is
     not installed.
     """
+    import httpx
+
     try:
         response = httpx.get(f"https://pypi.org/pypi/{package}/json", timeout=10.0, follow_redirects=True)
     except httpx.HTTPError:

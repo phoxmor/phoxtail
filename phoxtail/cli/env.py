@@ -3,7 +3,6 @@
 import secrets
 from pathlib import Path
 
-import questionary
 import typer
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
@@ -193,6 +192,8 @@ def create(
         phoxtail env create production -o .env
         phoxtail env create production --server-ip 1.2.3.4
     """
+    import questionary
+
     if environment is None:
         environment = questionary.select(
             "Select environment type:",

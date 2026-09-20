@@ -1,0 +1,1 @@
+The CLI starts several times faster: the MCP stack, HTTP clients and interactive prompts load only inside the command that uses them, not on every invocation. Shell completion and `--help` no longer pay for them, and a test keeps it that way.

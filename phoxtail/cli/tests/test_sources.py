@@ -3,6 +3,7 @@
 import subprocess
 import tomllib
 
+import httpx
 import pytest
 
 from phoxtail.cli.utils import sources
@@ -127,20 +128,20 @@ class TestPypiReleases:
 
     def test_releases_are_listed(self, monkeypatch):
         payload = {"releases": {"0.1.1": [], "0.1.0": []}}
-        monkeypatch.setattr(sources.httpx, "get", lambda *a, **kw: _Response(200, payload))
+        monkeypatch.setattr(httpx, "get", lambda *a, **kw: _Response(200, payload))
         assert pypi_releases("phoxtail") == ["0.1.0", "0.1.1"]
 
     def test_unknown_project_is_an_empty_list(self, monkeypatch):
-        monkeypatch.setattr(sources.httpx, "get", lambda *a, **kw: _Response(404))
+        monkeypatch.setattr(httpx, "get", lambda *a, **kw: _Response(404))
         assert pypi_releases("no-such-project") == []
 
     def test_unreachable_index_is_not_an_empty_list(self, monkeypatch):
         """Empty means "PyPI has no such project"; None means it never answered."""
 
         def boom(*args, **kwargs):
-            raise sources.httpx.ConnectError("offline")
+            raise httpx.ConnectError("offline")
 
-        monkeypatch.setattr(sources.httpx, "get", boom)
+        monkeypatch.setattr(httpx, "get", boom)
         assert pypi_releases("phoxtail") is None
 
 

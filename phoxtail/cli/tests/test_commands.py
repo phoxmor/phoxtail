@@ -107,19 +107,19 @@ class TestManage:
         with pytest.raises(typer.Exit):
             manage_fn(self._make_ctx())
 
-    @patch("phoxtail.cli.manage.questionary")
+    @patch("questionary.autocomplete")
     @patch("phoxtail.cli.manage.sys.stdin")
     @patch("phoxtail.cli.manage.sys.exit")
     @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
     @patch("phoxtail.cli.manage.subprocess.run")
-    def test_interactive_mode_selects_command(self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary):
+    def test_interactive_mode_selects_command(self, mock_run, mock_call, mock_exit, mock_stdin, mock_autocomplete):
         """Without a command, interactive mode fetches and presents choices."""
         mock_stdin.isatty.return_value = True
         mock_run.return_value = MagicMock(
             returncode=0,
             stdout="[streams]\n    populate_streams\n    setup_streams_groups\n",
         )
-        mock_questionary.autocomplete.return_value.ask.return_value = "[streams] populate_streams"
+        mock_autocomplete.return_value.ask.return_value = "[streams] populate_streams"
 
         manage_fn(self._make_ctx())
 
@@ -135,13 +135,13 @@ class TestManage:
             "populate_streams",
         ]
 
-    @patch("phoxtail.cli.manage.questionary")
+    @patch("questionary.autocomplete")
     @patch("phoxtail.cli.manage.sys.stdin")
     @patch("phoxtail.cli.manage.sys.exit")
     @patch("phoxtail.cli.manage.subprocess.call", return_value=0)
     @patch("phoxtail.cli.manage.subprocess.run")
     def test_interactive_mode_accepts_raw_command_name(
-        self, mock_run, mock_call, mock_exit, mock_stdin, mock_questionary
+        self, mock_run, mock_call, mock_exit, mock_stdin, mock_autocomplete
     ):
         """User types a valid command name without selecting from the list."""
         mock_stdin.isatty.return_value = True
@@ -149,7 +149,7 @@ class TestManage:
             returncode=0,
             stdout="[django.core]\n    shell\n    showmigrations\n",
         )
-        mock_questionary.autocomplete.return_value.ask.return_value = "shell"
+        mock_autocomplete.return_value.ask.return_value = "shell"
 
         manage_fn(self._make_ctx())
 

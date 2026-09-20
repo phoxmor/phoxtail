@@ -214,11 +214,11 @@ class TestHatchCommand:
         assert "setup wizard" not in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_runs_all_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_runs_all_steps(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # Accept wizard + all prompted steps (attach is not offered: the mocked
         # subprocess never writes the config files it requires)
@@ -229,11 +229,11 @@ class TestHatchCommand:
         assert mock_run.call_count == 9
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_calls_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_calls_correct_subcommands(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
 
@@ -254,10 +254,10 @@ class TestHatchCommand:
         assert calls[8][-3:] == ["docker", "up", "--build"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_attaches_to_net_when_accepted(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_attaches_to_net_when_accepted(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         target = tmp_path / "myproject"
 
@@ -284,13 +284,13 @@ class TestHatchCommand:
         assert any(c[-2:] == ["net", "attach"] for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_net_attach_not_offered_without_config(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_net_attach_not_offered_without_config(self, mock_select, mock_run, tmp_path, monkeypatch):
         """Skipping config must skip attach: `net attach` would write a COMPOSE_FILE
         naming a docker-compose.yaml that was never generated."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # Decline config; the attach prompt must not appear, so the next "y"
         # is consumed by the database step rather than by attach.
@@ -302,11 +302,13 @@ class TestHatchCommand:
         assert any(c[-2:] == ["manage", "migrate"] for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_production_uses_correct_subcommands(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.text")
+    @patch("questionary.select")
+    def test_wizard_production_uses_correct_subcommands(self, mock_select, mock_text, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "production"
+        mock_select.return_value.ask.return_value = "production"
+        mock_text.return_value.ask.return_value = ""
 
         runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
 
@@ -316,12 +318,12 @@ class TestHatchCommand:
         assert calls[4][-3:] == ["nginx", "create", "production"]
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_superuser_verifies_email(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_superuser_verifies_email(self, mock_select, mock_run, tmp_path, monkeypatch):
         """verify_email --all-superusers is called after createsuperuser succeeds."""
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # Accept wizard, skip configure, skip database, accept superuser, skip launch
         runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
@@ -330,11 +332,11 @@ class TestHatchCommand:
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_superuser_failure_skips_verify_email(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_superuser_failure_skips_verify_email(self, mock_select, mock_run, tmp_path, monkeypatch):
         """verify_email is NOT called when createsuperuser fails."""
         monkeypatch.chdir(tmp_path)
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # migrate succeeds, createsuperuser fails
         def side_effect(args, **kwargs):
@@ -358,11 +360,11 @@ class TestHatchCommand:
         assert not any("verify_email" in c for c in calls)
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_skip_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_skip_steps(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # Accept wizard prompt, then skip all 4 prompted steps (attach not offered)
         skip_all = "y\n" + "n\n" * 4
@@ -372,11 +374,11 @@ class TestHatchCommand:
         assert mock_run.call_count == 1
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_done_panel_omits_completed_steps(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_done_panel_omits_completed_steps(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
-        mock_q.select.return_value.ask.return_value = "development"
+        mock_select.return_value.ask.return_value = "development"
 
         # Accept wizard + all 4 prompted steps
         result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\ny\ny\ny\n")
@@ -386,8 +388,8 @@ class TestHatchCommand:
         assert "Next steps" not in result.output
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    @patch("phoxtail.cli.hatch.questionary")
-    def test_wizard_declined(self, mock_q, mock_run, tmp_path, monkeypatch):
+    @patch("questionary.select")
+    def test_wizard_declined(self, mock_select, mock_run, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
         mock_run.return_value.returncode = 0
         # Decline the wizard prompt
