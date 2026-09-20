@@ -1,0 +1,1 @@
+`phoxtail net peers` is now a group: `net peers list` shows every project on the shared net, and `net peers get <slug>` shows one, with the slug completing on Tab. Bare `net peers` prints help, and scripts calling `net peers --json` must say `net peers list --json`. The CLI names the thing first and the action second, the same way everywhere.

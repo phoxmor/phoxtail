@@ -10,6 +10,7 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
+from phoxtail.cli.utils.completion import completer
 from phoxtail.cli.utils.config import (
     DEFAULT_API_BASE_URL,
     DEFAULTS,
@@ -28,6 +29,7 @@ from phoxtail.cli.utils.net import (
     PROJECT_NET_FILE,
     SLUG_LABEL,
     Member,
+    Peer,
     add_member,
     check_compose_version,
     ensure_network,
@@ -221,20 +223,25 @@ def status() -> None:
         console.print(f"  [yellow]warning:[/yellow] slug also in use by another attached project at {other}")
 
 
-@app.command()
-def peers(
-    json_output: bool = typer.Option(False, "--json", help="Print peers as a JSON array, for scripting."),
-) -> None:
-    """List every project attached to the shared net, and how to reach it."""
-    # Two sources answering two questions: the members file says who is attached,
-    # Docker says who is reachable. Merged only here, for display — merging
-    # them in `list_peers` would let `resolve_peer` hand out an address that
-    # silently loops back to the caller.
+peers_app = typer.Typer(no_args_is_help=True, help="The projects attached to the shared net.")
+app.add_typer(peers_app, name="peers")
+
+# slug, state, path, attached, address
+PeerRow = tuple[str, str, Path | None, bool, str]
+
+
+def _peer_rows() -> tuple[list[PeerRow], dict[str, Peer]]:
+    """Every project the net knows about, with its state, plus Docker's view.
+
+    Two sources answering two questions: the members file says who is
+    attached, Docker says who is reachable. Merged only here, for display —
+    merging them in `list_peers` would let `resolve_peer` hand out an
+    address that silently loops back to the caller.
+    """
     members = read_members()
     live = {peer.slug: peer for peer in list_peers()}
 
-    # slug, state, path, attached, address
-    rows: list[tuple[str, str, Path | None, bool, str]] = []
+    rows: list[PeerRow] = []
     for member in members:
         peer = live.get(member.slug)
         if peer is None:
@@ -255,25 +262,36 @@ def peers(
         if slug not in attached_slugs:
             state = "detached" if peer.running else "detached, stopped"
             rows.append((slug, state, peer.working_dir, False, peer.address))
+    return rows, live
+
+
+def _peer_json(row: PeerRow, live: dict[str, Peer]) -> dict[str, object]:
+    slug, _state, root, attached, address = row
+    return {
+        "slug": slug,
+        "address": address,
+        "attached": attached,
+        "running": slug in live and live[slug].running,
+        "working_dir": str(root) if root else None,
+    }
+
+
+def _emit_json(data: object) -> None:
+    # Plain echo, not console.print: Rich fold-wraps long unbroken
+    # tokens (a deep working_dir) with literal newlines, corrupting
+    # the very output a parser is waiting on.
+    typer.echo(json.dumps(data))
+
+
+@peers_app.command("list")
+def peers_list(
+    json_output: bool = typer.Option(False, "--json", help="Print peers as a JSON array, for scripting."),
+) -> None:
+    """List every project attached to the shared net, and how to reach it."""
+    rows, live = _peer_rows()
 
     if json_output:
-        # Plain echo, not console.print: Rich fold-wraps long unbroken
-        # tokens (a deep working_dir) with literal newlines, corrupting
-        # the very output a parser is waiting on.
-        typer.echo(
-            json.dumps(
-                [
-                    {
-                        "slug": slug,
-                        "address": address,
-                        "attached": attached,
-                        "running": slug in live and live[slug].running,
-                        "working_dir": str(root) if root else None,
-                    }
-                    for slug, _state, root, attached, address in rows
-                ]
-            )
-        )
+        _emit_json([_peer_json(row, live) for row in rows])
         return
 
     if not rows:
@@ -318,6 +336,42 @@ def peers(
             "[dim]Rows marked [/dim]detached[dim] are containers still carrying the net label from "
             "before they were detached; they clear on the next [/dim][bold]docker compose up -d[/bold][dim].[/dim]"
         )
+
+
+def _peer_candidates() -> list[tuple[str, str]]:
+    # The members file alone: completion runs on every keystroke, and a
+    # Docker round-trip there would make Tab feel broken.
+    return [(member.slug, member.root.name) for member in read_members()]
+
+
+@peers_app.command("get")
+def peers_get(
+    slug: str = typer.Argument(
+        ...,
+        help="The peer's slug, as `net peers list` shows it.",
+        autocompletion=completer(_peer_candidates),
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Print the peer as a JSON object, for scripting."),
+) -> None:
+    """Show one peer: its state, address and path."""
+    rows, live = _peer_rows()
+    row = next((row for row in rows if row[0] == slug), None)
+    if row is None:
+        console.print(
+            f"[red]Error:[/red] No peer [bold]{slug}[/bold] on the net — see [bold]phoxtail net peers list[/bold]."
+        )
+        raise typer.Exit(code=1)
+
+    if json_output:
+        _emit_json(_peer_json(row, live))
+        return
+
+    _slug, state, root, attached, address = row
+    console.print(f"[bold]{slug}[/bold]")
+    console.print(f"  state:    {state}")
+    console.print(f"  address:  [link={address}]{address}[/link]")
+    console.print(f"  path:     {root if root else 'unknown'}")
+    console.print(f"  attached: {'yes' if attached else 'no'}")
 
 
 @app.command()

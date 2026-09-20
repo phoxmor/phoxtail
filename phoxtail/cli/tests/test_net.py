@@ -593,7 +593,7 @@ class TestPeers:
             patch("phoxtail.cli.net.list_peers", return_value=peers),
             patch("phoxtail.cli.net.read_members", return_value=_members(*peers)),
         ):
-            result = runner.invoke(net_app, ["peers"])
+            result = runner.invoke(net_app, ["peers", "list"])
 
         assert result.exit_code == 0, result.output
         assert "alphasite" in result.output
@@ -604,7 +604,7 @@ class TestPeers:
     def test_reports_empty_net_without_erroring(self, tmp_path):
         _use_custom_project_name(tmp_path)
         with patch("phoxtail.cli.net.list_peers", return_value=[]):
-            result = runner.invoke(net_app, ["peers"])
+            result = runner.invoke(net_app, ["peers", "list"])
         assert result.exit_code == 0
         assert "No projects attached" in result.output
 
@@ -619,7 +619,7 @@ class TestPeers:
             patch("phoxtail.cli.net.list_peers", return_value=peers),
             patch("phoxtail.cli.net.read_members", return_value=members),
         ):
-            result = runner.invoke(net_app, ["peers", "--json"])
+            result = runner.invoke(net_app, ["peers", "list", "--json"])
 
         assert result.exit_code == 0, result.output
         payload = json.loads(result.output)
@@ -654,7 +654,7 @@ class TestPeers:
             patch("phoxtail.cli.net.list_peers", return_value=[peer]),
             patch("phoxtail.cli.net.read_members", return_value=_members(peer)),
         ):
-            result = runner.invoke(net_app, ["peers", "--json"])
+            result = runner.invoke(net_app, ["peers", "list", "--json"])
 
         assert result.exit_code == 0, result.output
         assert result.output.strip().count("\n") == 0
@@ -663,7 +663,7 @@ class TestPeers:
     def test_json_output_when_empty(self, tmp_path):
         _use_custom_project_name(tmp_path)
         with patch("phoxtail.cli.net.list_peers", return_value=[]):
-            result = runner.invoke(net_app, ["peers", "--json"])
+            result = runner.invoke(net_app, ["peers", "list", "--json"])
         assert result.exit_code == 0
         assert json.loads(result.output) == []
 
@@ -681,7 +681,7 @@ class TestPeers:
             patch("phoxtail.cli.net.list_peers", return_value=peers),
             patch("phoxtail.cli.net.read_members", return_value=_members(*peers)),
         ):
-            result = runner.invoke(net_app, ["peers"])
+            result = runner.invoke(net_app, ["peers", "list"])
         assert result.exit_code == 0, result.output
         assert "invoices-site" in result.output
         assert "this project" not in result.output
@@ -969,7 +969,7 @@ class TestPeersStates:
             patch("phoxtail.cli.net.read_members", return_value=members),
             patch("phoxtail.cli.net.list_peers", return_value=peers),
         ):
-            return runner.invoke(net_app, ["peers", *(args or [])])
+            return runner.invoke(net_app, ["peers", "list", *(args or [])])
 
     def test_attached_with_no_container_reads_not_created(self, tmp_path):
         """`docker compose down` deletes the container carrying the label.
@@ -1123,3 +1123,55 @@ class TestAttachRecordsMembership:
         assert result.exit_code == 0, result.output
         assert "docker-compose.net.yaml" in (tmp_path / ".gitignore").read_text()
         assert read_members() == [Member(tmp_path.resolve(), "alphasite")]
+
+
+class TestPeersGet:
+    """`peers get <slug>` reads the same merged rows as `peers list`, so the
+    slug you saw in the list is the slug that answers here."""
+
+    def _invoke(self, members, peers, *args):
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.list_peers", return_value=peers),
+        ):
+            return runner.invoke(net_app, ["peers", "get", *args])
+
+    def test_shows_one_peer(self):
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        peers = [Peer("alpha-site", Path("/home/me/alpha"), True)]
+        result = self._invoke(members, peers, "alpha-site")
+        assert result.exit_code == 0, result.output
+        assert "running" in result.output
+        assert "/home/me/alpha" in result.output
+        assert "http://alpha-site.localhost" in result.output
+
+    def test_json_is_one_object(self):
+        members = [Member(Path("/home/me/alpha"), "alpha-site")]
+        result = self._invoke(members, [], "alpha-site", "--json")
+        assert result.exit_code == 0, result.output
+        data = json.loads(result.output)
+        assert data["slug"] == "alpha-site"
+        assert data["attached"] is True
+        assert data["running"] is False
+
+    def test_unknown_slug_fails(self):
+        result = self._invoke([], [], "nobody")
+        assert result.exit_code == 1
+        assert "nobody" in result.output
+
+    def test_bare_peers_prints_help(self):
+        result = runner.invoke(net_app, ["peers"])
+        assert "list" in result.output
+        assert "get" in result.output
+
+    def test_slug_completes_without_asking_docker(self):
+        """Completion runs per keystroke, so it reads the members file only."""
+        from phoxtail.cli.net import _peer_candidates
+        from phoxtail.cli.utils.completion import completer
+
+        members = [Member(Path("/home/me/alpha"), "alpha-site"), Member(Path("/home/me/beta"), "beta-site")]
+        with (
+            patch("phoxtail.cli.net.read_members", return_value=members),
+            patch("phoxtail.cli.net.list_peers", side_effect=AssertionError("docker was asked")),
+        ):
+            assert completer(_peer_candidates)("al") == [("alpha-site", "alpha")]
