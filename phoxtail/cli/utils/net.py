@@ -523,8 +523,30 @@ def upsert_env_list(path: Path, key: str, value: str, sep: str) -> None:
     path.write_text("\n".join(lines) + "\n")
 
 
-def remove_env_key(path: Path, key: str) -> None:
+def set_env_key(path: Path, key: str, value: str) -> None:
+    """Set ``KEY=value`` in an env file, replacing the line if the key is present.
+
+    Appends when the key is absent and creates the file if missing; every
+    other line is left untouched.
+    """
+    prefix = f"{key}="
+    lines = path.read_text().splitlines() if path.exists() else []
+
+    for i, line in enumerate(lines):
+        if line.startswith(prefix):
+            lines[i] = prefix + value
+            break
+    else:
+        lines.append(prefix + value)
+
+    path.write_text("\n".join(lines) + "\n")
+
+
+def remove_env_key(path: Path, key: str, value: str | None = None) -> None:
     """Delete the whole ``KEY=...`` line from an env file, if present.
+
+    With ``value``, only a line reading exactly ``KEY=value`` is removed — a
+    value the user set by hand is left alone.
 
     Unlike removing one value from a list, this drops the key entirely.
     Needed for COMPOSE_FILE specifically: Compose only auto-loads
@@ -536,7 +558,11 @@ def remove_env_key(path: Path, key: str) -> None:
         return
 
     prefix = f"{key}="
-    lines = [line for line in path.read_text().splitlines() if not line.startswith(prefix)]
+    lines = [
+        line
+        for line in path.read_text().splitlines()
+        if not (line.startswith(prefix) and (value is None or line[len(prefix) :] == value))
+    ]
     path.write_text("\n".join(lines) + "\n")
 
 

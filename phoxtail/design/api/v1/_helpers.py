@@ -6,6 +6,8 @@ import hashlib
 
 from ninja.errors import HttpError
 
+from phoxtail.core.utils import public_url
+
 # ---------------------------------------------------------------------------
 # ETag utilities
 # ---------------------------------------------------------------------------
@@ -155,7 +157,7 @@ def font_weight_summary(w) -> dict:
         "font_family_name": w.family.name if hasattr(w, "family") else "",
         "weight": w.weight,
         "style": w.style,
-        "file_url": w.file.url if w.file else None,
+        "file_url": public_url(w.file.url) if w.file else None,
         "file_name": w.file.name if w.file else None,
         "created_at": w.created_at.isoformat() if w.created_at else None,
         "updated_at": w.updated_at.isoformat(),

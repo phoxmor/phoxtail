@@ -11,6 +11,7 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Body, File, Form, Query, Router, UploadedFile
 
 from phoxtail.api.auth import scoped
+from phoxtail.core.utils import public_url
 from phoxtail.media.api.v1._permissions import (
     DOCUMENT_CHOOSE,
     IMAGE_CHOOSE,
@@ -101,7 +102,7 @@ def list_images(
         qs = qs.filter(collection_id=collection)
 
     total = qs.count()
-    items = [_serialize_image(img, request) for img in qs[offset : offset + limit]]
+    items = [_serialize_image(img) for img in qs[offset : offset + limit]]
     return {"items": items, "total": total}
 
 
@@ -120,7 +121,7 @@ def get_image(request: HttpRequest, image_id: int):
     except Image.DoesNotExist:
         return 404, {"detail": "Image not found"}
 
-    return 200, _serialize_image(img, request)
+    return 200, _serialize_image(img)
 
 
 @router.post(
@@ -143,7 +144,7 @@ def upload_image(
 
     img = Image(title=title, file=file, collection=collection)
     img.save()
-    return 201, _serialize_image(img, request)
+    return 201, _serialize_image(img)
 
 
 @router.get(
@@ -227,7 +228,7 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
     if payload.tags is not None:
         img.tags.set(payload.tags)
 
-    return 200, _serialize_image(img, request)
+    return 200, _serialize_image(img)
 
 
 @router.delete(
@@ -275,7 +276,7 @@ def list_documents(
         qs = qs.filter(collection_id=collection)
 
     total = qs.count()
-    items = [_serialize_document(doc, request) for doc in qs[offset : offset + limit]]
+    items = [_serialize_document(doc) for doc in qs[offset : offset + limit]]
     return {"items": items, "total": total}
 
 
@@ -294,7 +295,7 @@ def get_document(request: HttpRequest, document_id: int):
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
-    return 200, _serialize_document(doc, request)
+    return 200, _serialize_document(doc)
 
 
 @router.post(
@@ -321,7 +322,7 @@ def upload_document(
         doc.description = description
     doc.save()
     doc.get_file_size()
-    return 201, _serialize_document(doc, request)
+    return 201, _serialize_document(doc)
 
 
 @router.patch(
@@ -359,7 +360,7 @@ def update_document(request: HttpRequest, document_id: int, payload: DocumentPat
     if payload.tags is not None:
         doc.tags.set(payload.tags)
 
-    return 200, _serialize_document(doc, request)
+    return 200, _serialize_document(doc)
 
 
 @router.delete(
@@ -407,7 +408,7 @@ def list_videos(
         qs = qs.filter(collection_id=collection)
 
     total = qs.count()
-    items = [_serialize_video(m, request) for m in qs[offset : offset + limit]]
+    items = [_serialize_video(m) for m in qs[offset : offset + limit]]
     return {"items": items, "total": total}
 
 
@@ -426,7 +427,7 @@ def get_video(request: HttpRequest, video_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Video not found"}
 
-    return 200, _serialize_video(m, request)
+    return 200, _serialize_video(m)
 
 
 @router.post(
@@ -463,7 +464,7 @@ def upload_video(
     if description:
         m.description = description
     m.save()
-    return 201, _serialize_video(m, request)
+    return 201, _serialize_video(m)
 
 
 @router.patch(
@@ -500,7 +501,7 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
     if payload.tags is not None:
         m.tags.set(payload.tags)
 
-    return 200, _serialize_video(m, request)
+    return 200, _serialize_video(m)
 
 
 @router.delete(
@@ -548,7 +549,7 @@ def list_audio(
         qs = qs.filter(collection_id=collection)
 
     total = qs.count()
-    items = [_serialize_audio(m, request) for m in qs[offset : offset + limit]]
+    items = [_serialize_audio(m) for m in qs[offset : offset + limit]]
     return {"items": items, "total": total}
 
 
@@ -567,7 +568,7 @@ def get_audio(request: HttpRequest, audio_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Audio not found"}
 
-    return 200, _serialize_audio(m, request)
+    return 200, _serialize_audio(m)
 
 
 @router.post(
@@ -594,7 +595,7 @@ def upload_audio(
     if description:
         m.description = description
     m.save()
-    return 201, _serialize_audio(m, request)
+    return 201, _serialize_audio(m)
 
 
 @router.patch(
@@ -631,7 +632,7 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
     if payload.tags is not None:
         m.tags.set(payload.tags)
 
-    return 200, _serialize_audio(m, request)
+    return 200, _serialize_audio(m)
 
 
 @router.delete(
@@ -659,7 +660,7 @@ def delete_audio(request: HttpRequest, audio_id: int):
 # ---------------------------------------------------------------------------
 
 
-def _serialize_image(img, request: HttpRequest) -> dict:
+def _serialize_image(img) -> dict:
     has_fp = (
         img.focal_point_x is not None
         and img.focal_point_y is not None
@@ -681,12 +682,12 @@ def _serialize_image(img, request: HttpRequest) -> dict:
         }
         if has_fp
         else None,
-        "file_url": _safe_url(img, request),
+        "file_url": _safe_url(img),
         "collection_id": img.collection_id,
     }
 
 
-def _serialize_document(doc, request: HttpRequest) -> dict:
+def _serialize_document(doc) -> dict:
     return {
         "id": doc.pk,
         "title": doc.title,
@@ -695,12 +696,12 @@ def _serialize_document(doc, request: HttpRequest) -> dict:
         "file_size": doc.file_size,
         "filename": doc.filename,
         "file_extension": doc.file_extension,
-        "file_url": _safe_url(doc, request),
+        "file_url": _safe_url(doc),
         "collection_id": doc.collection_id,
     }
 
 
-def _serialize_video(m, request: HttpRequest) -> dict:
+def _serialize_video(m) -> dict:
     return {
         "id": m.pk,
         "title": m.title,
@@ -709,38 +710,29 @@ def _serialize_video(m, request: HttpRequest) -> dict:
         "width": m.width,
         "height": m.height,
         "tags": list(m.tags.names()),
-        "file_url": _safe_url(m, request),
-        "thumbnail_url": _safe_url_field(m, "thumbnail", request),
+        "file_url": _safe_url(m),
+        "thumbnail_url": _safe_url_field(m, "thumbnail"),
         "collection_id": m.collection_id,
     }
 
 
-def _serialize_audio(m, request: HttpRequest) -> dict:
+def _serialize_audio(m) -> dict:
     return {
         "id": m.pk,
         "title": m.title,
         "description": getattr(m, "description", "") or "",
         "duration": m.duration,
         "tags": list(m.tags.names()),
-        "file_url": _safe_url(m, request),
+        "file_url": _safe_url(m),
         "collection_id": m.collection_id,
     }
 
 
-def _safe_url(obj, request: HttpRequest | None = None) -> str | None:
-    f = getattr(obj, "file", None)
-    if not f:
-        return None
-    try:
-        raw = f.url
-    except (ValueError, AttributeError):
-        return None
-    if request is not None and raw.startswith("/"):
-        return request.build_absolute_uri(raw)
-    return raw
+def _safe_url(obj) -> str | None:
+    return _safe_url_field(obj, "file")
 
 
-def _safe_url_field(obj, field_name: str, request: HttpRequest | None = None) -> str | None:
+def _safe_url_field(obj, field_name: str) -> str | None:
     f = getattr(obj, field_name, None)
     if not f:
         return None
@@ -748,6 +740,4 @@ def _safe_url_field(obj, field_name: str, request: HttpRequest | None = None) ->
         raw = f.url
     except (ValueError, AttributeError):
         return None
-    if request is not None and raw.startswith("/"):
-        return request.build_absolute_uri(raw)
-    return raw
+    return public_url(raw)

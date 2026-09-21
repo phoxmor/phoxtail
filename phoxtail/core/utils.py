@@ -31,3 +31,24 @@ def page_range_entries(current, num_pages, url_fn, window=2):
         result.append({"num": p, "url": None if p == current else url_fn(p), "active": p == current, "ellipsis": False})
         prev = p
     return result
+
+
+def public_url(url: str | None) -> str | None:
+    """Return ``url`` as the outside world can reach it.
+
+    A storage gives back a site-relative path such as ``/media/…``. The
+    request that asked for it is no guide to the origin: the MCP server
+    reaches the API at ``http://web`` inside the compose network, and the
+    original ``Host`` header is what ``build_absolute_uri`` would echo.
+    ``WAGTAILADMIN_BASE_URL`` is the address the project is configured to
+    be known by, so that is what a relative path is joined to. Absolute
+    URLs (a remote storage backend) pass through untouched.
+    """
+    if not url:
+        return None
+    if url.startswith("/"):
+        from django.conf import settings
+
+        base = getattr(settings, "WAGTAILADMIN_BASE_URL", "").rstrip("/")
+        return base + url
+    return url

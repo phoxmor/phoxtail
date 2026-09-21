@@ -43,6 +43,7 @@ from phoxtail.cli.utils.net import (
     remove_env_list_value,
     remove_member,
     set_api_url,
+    set_env_key,
     slug_in_use_elsewhere,
     upsert_env_list,
 )
@@ -506,6 +507,11 @@ def attach() -> None:
     # because the mcp service needs it attached or not.
     upsert_env_list(env_file, "ALLOWED_HOSTS", "web", ",")
     upsert_env_list(env_file, "CSRF_TRUSTED_ORIGINS", f"http://{hostname}", ",")
+    # DOMAIN is the name the project is known by from outside — the origin
+    # every URL the API hands out is built on (see `public_url`). Attached,
+    # that is the dotted hostname; the request's own Host header is not a
+    # substitute, since the mcp service reaches the API as `web`.
+    set_env_key(env_file, "DOMAIN", hostname)
 
     # While attached, port 80 belongs to Traefik, so the default
     # `http://localhost` api_url reaches Traefik under a Host header no router
@@ -569,6 +575,9 @@ def detach(slug: str | None = TARGET) -> None:
     # `web` stays: the always-on mcp service addresses the API by that
     # name whether or not the project is on the shared net.
     remove_env_list_value(env_file, "CSRF_TRUSTED_ORIGINS", f"http://{hostname}", ",")
+    # Detached, the project is `localhost` again — the settings default.
+    # Only the value attach wrote is taken back; one set by hand stays.
+    remove_env_key(env_file, "DOMAIN", hostname)
 
     # Detached, the project publishes its own port 80 again, so the default
     # address is correct once more. The file is there: `read_members` prunes

@@ -25,6 +25,7 @@ from phoxtail.cli.utils.net import (
     remove_member,
     resolve_peer,
     set_api_url,
+    set_env_key,
     slug_in_use_elsewhere,
     upsert_env_list,
 )
@@ -133,6 +134,33 @@ class TestRemoveEnvKey:
         path.write_text("A=1\nB=2\n")
         remove_env_key(path, "COMPOSE_FILE")
         assert path.read_text().splitlines() == ["A=1", "B=2"]
+
+    def test_with_a_value_removes_only_that_value(self, tmp_path):
+        path = tmp_path / ".env"
+        path.write_text("A=1\nDOMAIN=example.com\n")
+        remove_env_key(path, "DOMAIN", "alphasite.localhost")
+        assert path.read_text().splitlines() == ["A=1", "DOMAIN=example.com"]
+        remove_env_key(path, "DOMAIN", "example.com")
+        assert path.read_text().splitlines() == ["A=1"]
+
+
+class TestSetEnvKey:
+    def test_replaces_existing_line_preserving_others(self, tmp_path):
+        path = tmp_path / ".env"
+        path.write_text("A=1\nDOMAIN=localhost\nB=2\n")
+        set_env_key(path, "DOMAIN", "alphasite.localhost")
+        assert path.read_text().splitlines() == ["A=1", "DOMAIN=alphasite.localhost", "B=2"]
+
+    def test_appends_when_absent(self, tmp_path):
+        path = tmp_path / ".env"
+        path.write_text("A=1\n")
+        set_env_key(path, "DOMAIN", "alphasite.localhost")
+        assert path.read_text().splitlines() == ["A=1", "DOMAIN=alphasite.localhost"]
+
+    def test_creates_file_when_missing(self, tmp_path):
+        path = tmp_path / ".env"
+        set_env_key(path, "DOMAIN", "alphasite.localhost")
+        assert path.read_text() == "DOMAIN=alphasite.localhost\n"
 
 
 class TestCheckComposeVersion:

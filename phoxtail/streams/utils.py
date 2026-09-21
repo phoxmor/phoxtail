@@ -1,3 +1,6 @@
+from phoxtail.core.utils import public_url
+
+
 def _image_url(image) -> str | None:
     """Return an absolute URL for the original image file, or None."""
     if image is None:
@@ -6,12 +9,7 @@ def _image_url(image) -> str | None:
         url = image.file.url
     except Exception:
         return None
-    if url and url.startswith("/"):
-        from django.conf import settings
-
-        base = getattr(settings, "WAGTAILADMIN_BASE_URL", "").rstrip("/")
-        url = base + url
-    return url or None
+    return public_url(url)
 
 
 def _page_content_type_choices():

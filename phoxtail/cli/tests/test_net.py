@@ -155,6 +155,9 @@ class TestAttach:
         # template shipped it — the mcp service reaches the API by that name.
         assert "ALLOWED_HOSTS=localhost,alphasite.localhost,alphasite,web" in env_content
         assert "CSRF_TRUSTED_ORIGINS=http://localhost,http://alphasite.localhost" in env_content
+        # The origin the API builds file URLs on. Without it Django falls
+        # back to `localhost`, which no router claims while attached.
+        assert "DOMAIN=alphasite.localhost" in env_content
 
     def test_allows_the_bare_slug_as_a_host(self, tmp_path):
         """Peer calls arrive as `Host: <slug>`, which Django must accept.
@@ -332,7 +335,7 @@ class TestAttach:
 
         assert result.exit_code == 0
         env_content = (tmp_path / ".env").read_text()
-        assert env_content.count("alphasite.localhost") == 2  # ALLOWED_HOSTS + CSRF, each once
+        assert env_content.count("alphasite.localhost") == 3  # ALLOWED_HOSTS + CSRF + DOMAIN, each once
 
     def test_includes_existing_override_in_compose_file(self, tmp_path):
         _use_custom_project_name(tmp_path)
@@ -532,6 +535,25 @@ class TestDetach:
         # COMPOSE_FILE must be removed entirely, not left as "docker-compose.yaml":
         # Compose only auto-loads docker-compose.override.yml when COMPOSE_FILE is unset.
         assert "COMPOSE_FILE" not in env_content
+        assert "DOMAIN" not in env_content
+
+    def test_leaves_a_domain_set_by_hand(self, tmp_path):
+        """Attach overwrites DOMAIN; detach only takes back what it wrote."""
+        _use_custom_project_name(tmp_path)
+        (tmp_path / ".env").write_text("ALLOWED_HOSTS=localhost\nCSRF_TRUSTED_ORIGINS=http://localhost\n")
+
+        with (
+            patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
+            patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
+            patch("phoxtail.cli.net.ensure_network"),
+        ):
+            runner.invoke(net_app, ["attach"])
+        env_file = tmp_path / ".env"
+        env_file.write_text(env_file.read_text().replace("DOMAIN=alphasite.localhost", "DOMAIN=example.com"))
+
+        result = runner.invoke(net_app, ["detach"])
+        assert result.exit_code == 0
+        assert "DOMAIN=example.com" in env_file.read_text()
 
     def test_restores_automatic_override_pickup(self, tmp_path):
         """COMPOSE_FILE left set (even to just the base file) suppresses Compose's
