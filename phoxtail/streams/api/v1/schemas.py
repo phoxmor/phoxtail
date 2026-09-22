@@ -25,7 +25,7 @@ class BlockRef(Schema):
     page_types: list[str] = []
 
 
-class CollectionRef(Schema):
+class VariantCollectionRef(Schema):
     """Minimal embed of a collection, used inside variant responses."""
 
     id: int
@@ -47,7 +47,7 @@ class VariantSummary(Schema):
     description: str
     is_default: bool
     block: BlockRef
-    collection: CollectionRef | None = None
+    collection: VariantCollectionRef | None = None
     preview_desktop_light_url: str = ""
     preview_desktop_dark_url: str = ""
     preview_tablet_light_url: str = ""
@@ -112,7 +112,7 @@ class VariantUpdate(Schema):
 # ---------------------------------------------------------------------------
 
 
-class CollectionSummary(Schema):
+class VariantCollectionSummary(Schema):
     id: int
     identifier: str
     name: str
@@ -120,12 +120,12 @@ class CollectionSummary(Schema):
     variant_count: int
 
 
-class CollectionList(Schema):
-    collections: list[CollectionSummary]
+class VariantCollectionList(Schema):
+    collections: list[VariantCollectionSummary]
     total: int
 
 
-class CollectionCreate(Schema):
+class VariantCollectionCreate(Schema):
     """Request body for ``POST /collections/``."""
 
     identifier: str
@@ -133,7 +133,7 @@ class CollectionCreate(Schema):
     description: str = ""
 
 
-class CollectionUpdate(Schema):
+class VariantCollectionUpdate(Schema):
     """Request body for ``PATCH /collections/{collection_id}/``.
 
     All fields are optional; omitted fields are left untouched. The ETag
@@ -172,7 +172,7 @@ class BlockVariantRef(Schema):
     identifier: str
     name: str
     is_default: bool
-    collection: CollectionRef | None = None
+    collection: VariantCollectionRef | None = None
 
 
 class Block(BlockSummary):

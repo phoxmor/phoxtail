@@ -19,11 +19,11 @@ from phoxtail.streams.api.v1._helpers import (
     resolve_collection_by_pk,
 )
 from phoxtail.streams.api.v1.schemas import (
-    CollectionCreate,
-    CollectionList,
-    CollectionSummary,
-    CollectionUpdate,
     Error,
+    VariantCollectionCreate,
+    VariantCollectionList,
+    VariantCollectionSummary,
+    VariantCollectionUpdate,
 )
 from phoxtail.streams.models import VariantCollection
 
@@ -32,7 +32,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: CollectionList},
+    response={200: VariantCollectionList},
     summary="List VariantCollections",
     auth=guarded("phoxtail_streams.view_variantcollection"),
 )
@@ -49,7 +49,7 @@ def list_collections(
 
 @router.get(
     "/{collection_id}/",
-    response={200: CollectionSummary, 404: Error},
+    response={200: VariantCollectionSummary, 404: Error},
     summary="Show a VariantCollection by numeric ID",
     auth=guarded("phoxtail_streams.view_variantcollection"),
 )
@@ -61,7 +61,7 @@ def get_collection_by_id(request: HttpRequest, response: HttpResponse, collectio
 
 @router.patch(
     "/{collection_id}/",
-    response={200: CollectionSummary, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
+    response={200: VariantCollectionSummary, 400: Error, 404: Error, 409: Error, 412: Error, 428: Error},
     summary="Update a VariantCollection by numeric ID",
     auth=guarded("phoxtail_streams.change_variantcollection"),
 )
@@ -69,7 +69,7 @@ def update_collection_by_id(
     request: HttpRequest,
     response: HttpResponse,
     collection_id: int,
-    payload: CollectionUpdate,
+    payload: VariantCollectionUpdate,
 ):
     if_match = request.headers.get("If-Match")
     if not if_match:
@@ -112,11 +112,11 @@ def update_collection_by_id(
 
 @router.post(
     "/",
-    response={201: CollectionSummary, 400: Error, 409: Error},
+    response={201: VariantCollectionSummary, 400: Error, 409: Error},
     summary="Create a VariantCollection",
     auth=guarded("phoxtail_streams.add_variantcollection"),
 )
-def create_collection(request: HttpRequest, response: HttpResponse, payload: CollectionCreate):
+def create_collection(request: HttpRequest, response: HttpResponse, payload: VariantCollectionCreate):
     if VariantCollection.objects.filter(Q(identifier=payload.identifier) | Q(name=payload.name)).exists():
         raise HttpError(409, "A collection with this identifier or name already exists.")
 
