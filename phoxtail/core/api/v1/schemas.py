@@ -1,27 +1,25 @@
-"""Schemas for the core API.
+"""Schemas for the core API: the internal links core owns.
 
-Moved verbatim from the content domain when core took ownership of its own
-surface: ``InternalLink`` is a core model, not a Wagtail entity.
+``InternalLink`` is a core model, not a Wagtail entity, so it has its own
+surface rather than living under cms.
 """
 
 from __future__ import annotations
+
+from datetime import datetime
+from uuid import UUID
 
 from ninja import Schema
 
 
 class InternalLinkItem(Schema):
     id: int
-    uuid: str
+    uuid: UUID
     label: str
     url_name: str
     url: str
-    created_at: str
-    updated_at: str
-
-
-class InternalLinkList(Schema):
-    items: list[InternalLinkItem]
-    total: int
+    created_at: datetime | None = None
+    updated_at: datetime
 
 
 class InternalLinkCreate(Schema):

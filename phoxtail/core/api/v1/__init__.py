@@ -6,8 +6,7 @@ somewhere inside the platform.
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.core.api.v1.internal_links import router as internal_links_router
 
 router = Router()

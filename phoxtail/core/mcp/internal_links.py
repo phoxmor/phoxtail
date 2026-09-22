@@ -5,23 +5,25 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.core.mcp._http import get_json, request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 @mcp_server.tool(
     name="phoxtail_content_list_internal_links",
     auth=[scoped("phoxtail_core.view_internallink")],
     description=(
-        "List all internal links. An internal link maps a display label to a "
+        "List internal links. An internal link maps a display label to a "
         "named Django URL (e.g. 'dashboard:index') for use in StreamField blocks "
         "such as navbars and footers. Optionally pass `search` for a prefix search "
-        "on label and url_name."
+        "on label and url_name. " + PAGED
     ),
 )
-def list_internal_links(search: str | None = None) -> str:
-    return json.dumps(get_json("/internal-links/", search=search), indent=2)
+def list_internal_links(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    return json.dumps(get_json("/internal-links/", search=search, limit=limit, offset=offset), indent=2)
 
 
 @mcp_server.tool(

@@ -7,33 +7,21 @@ import hashlib
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.core.api.v1.schemas import (
     Error,
     InternalLinkCreate,
     InternalLinkItem,
-    InternalLinkList,
     InternalLinkPatch,
 )
 from phoxtail.core.models import InternalLink
 
 router = Router()
-
-
-def _serialize(link: InternalLink) -> dict:
-    return {
-        "id": link.id,
-        "uuid": str(link.uuid),
-        "label": link.label,
-        "url_name": link.url_name,
-        "url": link.url,
-        "created_at": link.created_at.isoformat(),
-        "updated_at": link.updated_at.isoformat(),
-    }
 
 
 def _etag(link: InternalLink) -> str:
@@ -61,7 +49,7 @@ def _format_validation_error(exc: ValidationError) -> str:
 
 @router.get(
     "/",
-    response={200: InternalLinkList},
+    response={200: list[InternalLinkItem]},
     summary="List InternalLinks",
     auth=guarded("phoxtail_core.view_internallink"),
 )
@@ -71,8 +59,8 @@ def list_internal_links(
 ):
     qs = InternalLink.objects.order_by("label")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    return {"items": [_serialize(link) for link in qs], "total": qs.count()}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.get(
@@ -84,7 +72,7 @@ def list_internal_links(
 def get_internal_link(request: HttpRequest, response: HttpResponse, link_id: int):
     link = _resolve(link_id)
     response["ETag"] = _etag(link)
-    return _serialize(link)
+    return link
 
 
 @router.post(
@@ -104,7 +92,7 @@ def create_internal_link(request: HttpRequest, response: HttpResponse, payload: 
     except IntegrityError:
         raise HttpError(409, f"InternalLink with url_name '{payload.url_name}' already exists.")
     response["ETag"] = _etag(link)
-    return 201, _serialize(link)
+    return 201, link
 
 
 @router.patch(
@@ -150,7 +138,7 @@ def update_internal_link(
 
     link.save()
     response["ETag"] = _etag(link)
-    return _serialize(link)
+    return link
 
 
 @router.delete(
