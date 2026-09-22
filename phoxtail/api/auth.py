@@ -61,7 +61,16 @@ class Authorize:
     that fails the predicate, raises ``HttpError(403)`` — authenticated
     but forbidden — so agents can distinguish a bad token from a missing
     privilege.
+
+    Each instance is of a subclass named after the backend it wraps. ninja
+    names an OpenAPI security scheme after the auth object's class, so
+    under one shared name the token door and the session door overwrite
+    each other, and every endpoint would advertise whichever was written
+    last. Named after the backend, each door is documented once, as itself.
     """
+
+    def __new__(cls, authenticator: Callable[..., Any], *args: Any, **kwargs: Any) -> Authorize:
+        return super().__new__(_named_after(cls, type(authenticator)))
 
     def __init__(
         self,
@@ -102,6 +111,18 @@ class Authorize:
         # ninja probes auth callbacks for metadata (openapi_security_schema,
         # csrf, ...); forward those lookups so wrapping stays transparent.
         return getattr(self.authenticator, name)
+
+
+# One subclass per backend, so every door wrapping the same backend shares
+# one class and therefore one scheme name.
+_subclasses: dict[tuple[type, type], type[Authorize]] = {}
+
+
+def _named_after(cls: type[Authorize], backend: type) -> type[Authorize]:
+    key = (cls, backend)
+    if key not in _subclasses:
+        _subclasses[key] = type(backend.__name__, (cls,), {"__module__": cls.__module__})
+    return _subclasses[key]
 
 
 def is_superuser(context) -> bool:
