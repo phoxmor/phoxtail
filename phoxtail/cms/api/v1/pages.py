@@ -18,12 +18,15 @@ about the common Wagtail fields.
 from __future__ import annotations
 
 from django.db import transaction
+from django.db.models import F
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
 from wagtail.models import Page
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.cms.api.v1._helpers import (
     _check_move_constraints,
     apply_common_patch,
@@ -36,8 +39,6 @@ from phoxtail.cms.api.v1._helpers import (
     require_publish_permission,
     resolve_page,
     resolve_page_for_read,
-    serialize_page_detail,
-    serialize_page_summary,
 )
 from phoxtail.cms.api.v1._permissions import readable_pages, require_page_readable
 from phoxtail.cms.api.v1.schemas import (
@@ -46,9 +47,10 @@ from phoxtail.cms.api.v1.schemas import (
     Error,
     PageCreate,
     PageDetail,
-    PageList,
     PageMove,
     PagePatch,
+    PageSummary,
+    page_detail,
 )
 
 router = Router()
@@ -56,7 +58,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: PageList, 400: Error, 404: Error},
+    response={200: list[PageSummary], 400: Error, 404: Error},
     summary="List pages",
     # Only the credential's half at the door. Wagtail grants pages per
     # subtree, so has_perm() would refuse people it genuinely permits; the
@@ -75,8 +77,6 @@ def list_pages(
     search: str | None = Query(None, description="Autocomplete prefix search on title."),
     locale: str | None = Query(None, description="Filter by locale language code, e.g. 'en'."),
     site: int | None = Query(None, description="Filter by site ID."),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     # Narrowed rather than refused: being shown fewer pages is a true answer
     # to "which may I read", where a 403 would claim the act was forbidden.
@@ -97,13 +97,10 @@ def list_pages(
     if site is not None:
         qs = _filter_by_site(qs, site)
     if search:
-        qs = qs.autocomplete(search)
-
-    total = qs.count()
-    page_slice = qs[offset : offset + limit]
-    # Downcast each to its specific subclass so content_type resolves correctly.
-    pages = [serialize_page_summary(p.specific) for p in page_slice]
-    return {"pages": pages, "total": total}
+        qs = narrow_by_search(qs, search)
+    # Specific, so a page type that routes its own URLs answers with them;
+    # the locale code rides along on the query instead of a lookup per row.
+    return qs.annotate(locale_code=F("locale__language_code")).specific()
 
 
 def _filter_by_locale(qs, language_code: str):
@@ -212,12 +209,12 @@ def create_page(
         except DjangoValidationError as exc:
             raise HttpError(400, "; ".join(exc.messages)) from exc
 
-    # Re-fetch from DB so serialize_page_detail works against a clean,
+    # Re-fetch from DB so page_detail works against a clean,
     # fully-hydrated instance (avoids 500s from stale in-memory state
     # after add_child mutates the page row).
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
-    return 201, serialize_page_detail(fresh)
+    return 201, page_detail(fresh)
 
 
 @router.get(
@@ -237,7 +234,7 @@ def get_page(
     live = resolve_page(page_id)
     require_page_readable(request.auth.user, live)
     response["ETag"] = page_etag(live)
-    return serialize_page_detail(resolve_page_for_read(page_id))
+    return page_detail(resolve_page_for_read(page_id))
 
 
 @router.patch(
@@ -278,7 +275,7 @@ def patch_page(
     # The ETag is based on latest_revision_created_at which save_revision()
     # updated, so it is stable and matches a subsequent GET.
     response["ETag"] = page_etag(page)
-    return serialize_page_detail(page)
+    return page_detail(page)
 
 
 @router.post(
@@ -320,7 +317,7 @@ def publish_page(
     latest.publish(user=request.auth.user)
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
-    return serialize_page_detail(fresh)
+    return page_detail(fresh)
 
 
 @router.post(
@@ -341,7 +338,7 @@ def unpublish_page(
     page.unpublish(user=request.auth.user)
     fresh = resolve_page(page.pk)
     response["ETag"] = page_etag(fresh)
-    return serialize_page_detail(fresh)
+    return page_detail(fresh)
 
 
 @router.post(
@@ -406,7 +403,7 @@ def copy_page_for_translation(
 
     fresh = resolve_page(translated_page.pk)
     response["ETag"] = page_etag(fresh)
-    return 201, serialize_page_detail(fresh)
+    return 201, page_detail(fresh)
 
 
 @router.post(
@@ -460,7 +457,7 @@ def move_page(
     # would return a stale pre-move URL from the revision snapshot.
     fresh = resolve_page(page_id)
     response["ETag"] = page_etag(fresh)
-    return serialize_page_detail(fresh)
+    return page_detail(fresh)
 
 
 @router.delete(

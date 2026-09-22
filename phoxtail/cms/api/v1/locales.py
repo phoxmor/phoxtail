@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from django.http import HttpRequest
-from ninja import Router, Schema
+from ninja import Schema
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 
 router = Router()
 
@@ -15,20 +16,13 @@ class LocaleSummary(Schema):
     language_code: str
 
 
-class LocaleList(Schema):
-    locales: list[LocaleSummary]
-    total: int
-
-
 @router.get(
     "/",
-    response={200: LocaleList},
+    response={200: list[LocaleSummary]},
     summary="List locales",
     auth=guarded("wagtailcore.view_locale"),
 )
 def list_locales(request: HttpRequest):
     from wagtail.models import Locale
 
-    qs = Locale.objects.all().order_by("language_code")
-    locales = [{"id": loc.pk, "language_code": loc.language_code} for loc in qs]
-    return {"locales": locales, "total": len(locales)}
+    return Locale.objects.order_by("language_code")

@@ -21,10 +21,12 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 @mcp_server.tool(
@@ -33,11 +35,11 @@ from phoxtail.mcp.authorization import scoped
     description=(
         "List all Wagtail locales configured in this project. Returns each "
         "locale's id (integer) and language_code (e.g. 'en', 'fr'). "
-        "Use the id as the locale_id argument for phoxtail_pages_translate_page."
+        "Use the id as the locale_id argument for phoxtail_pages_translate_page. " + PAGED
     ),
 )
-def locales_list() -> str:
-    resp = request("GET", "/locales/")
+def locales_list(limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    resp = request("GET", "/locales/", params={"limit": limit, "offset": offset})
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._error import error_envelope
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 @mcp_server.tool(
@@ -19,11 +21,11 @@ from phoxtail.mcp.authorization import scoped
         "(e.g., heading, body, mono). "
         "Use phoxtail_sites_list to find available site IDs. "
         "Returns id, font_family_id, font_family_name, role_id, role_name, "
-        "role_identifier, and sort_order for each assignment."
+        "role_identifier, and sort_order for each assignment. " + PAGED
     ),
 )
-def site_setting_fonts_list(site_id: int) -> str:
-    resp = request("GET", f"/site-settings/{site_id}/fonts/")
+def site_setting_fonts_list(site_id: int, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    resp = request("GET", f"/site-settings/{site_id}/fonts/", params={"limit": limit, "offset": offset})
     env = error_envelope(resp)
     if env is not None:
         return env

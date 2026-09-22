@@ -13,16 +13,16 @@ from __future__ import annotations
 from django.db import IntegrityError
 from django.db.models import Max
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
     resolve_site_font,
-    serialize_site_font,
     site_setting_font_etag,
 )
 
@@ -43,10 +43,21 @@ class SiteSettingFontItem(Schema):
     role_identifier: str
     sort_order: int
 
+    @staticmethod
+    def resolve_font_family_name(row) -> str:
+        return row.font_family.name
 
-class SiteSettingFontList(Schema):
-    fonts: list[SiteSettingFontItem]
-    total: int
+    @staticmethod
+    def resolve_role_name(row) -> str:
+        return row.role.name
+
+    @staticmethod
+    def resolve_role_identifier(row) -> str:
+        return row.role.identifier
+
+    @staticmethod
+    def resolve_sort_order(row) -> int:
+        return row.sort_order or 0
 
 
 class SiteSettingFontCreate(Schema):
@@ -72,7 +83,7 @@ class Error(Schema):
 
 @router.get(
     "/{site_id}/fonts/",
-    response={200: SiteSettingFontList, 404: Error},
+    response={200: list[SiteSettingFontItem], 404: Error},
     summary="List font assignments for a site",
     auth=scoped("phoxtail_cms.view_sitesetting"),
 )
@@ -81,9 +92,7 @@ def list_site_fonts(request: HttpRequest, site_id: int):
 
     setting = resolve_setting(site_id)
     require_settings_access(request.auth.user, setting)
-    qs = SiteSettingFont.objects.select_related("font_family", "role").filter(config=setting).order_by("sort_order")
-    items = [serialize_site_font(sf) for sf in qs]
-    return {"fonts": items, "total": len(items)}
+    return SiteSettingFont.objects.select_related("font_family", "role").filter(config=setting).order_by("sort_order")
 
 
 @router.post(
@@ -135,7 +144,7 @@ def create_site_font(
 
     sf = SiteSettingFont.objects.select_related("font_family", "role").get(pk=sf.pk)
     response["ETag"] = site_setting_font_etag(sf)
-    return 201, serialize_site_font(sf)
+    return 201, sf
 
 
 @router.get(
@@ -148,7 +157,7 @@ def get_site_font(request: HttpRequest, response: HttpResponse, site_id: int, fo
     setting, sf = resolve_site_font(site_id, font_id)
     require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_font_etag(sf)
-    return serialize_site_font(sf)
+    return sf
 
 
 @router.patch(
@@ -204,7 +213,7 @@ def patch_site_font(
 
     sf = type(sf).objects.select_related("font_family", "role").get(pk=sf.pk)
     response["ETag"] = site_setting_font_etag(sf)
-    return serialize_site_font(sf)
+    return sf
 
 
 @router.delete(

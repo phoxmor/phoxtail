@@ -14,10 +14,11 @@ from typing import Any
 
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._helpers import (
     body_field_name_for,
     page_etag,

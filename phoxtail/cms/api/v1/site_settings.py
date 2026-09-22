@@ -11,15 +11,15 @@ Endpoints:
 from __future__ import annotations
 
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
-    serialize_setting,
     site_setting_etag,
 )
 
@@ -109,7 +109,7 @@ def get_site_setting(request: HttpRequest, response: HttpResponse, site_id: int)
     setting = resolve_setting(site_id)
     require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_etag(setting)
-    return serialize_setting(setting)
+    return setting
 
 
 @router.patch(
@@ -141,4 +141,4 @@ def patch_site_setting(
     setting.save()
 
     response["ETag"] = site_setting_etag(setting)
-    return serialize_setting(setting)
+    return setting

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 @mcp_server.tool(
@@ -18,11 +20,11 @@ from phoxtail.mcp.authorization import scoped
         "Returns each site's id, hostname, port, site_name, root_page_id, "
         "is_default_site, and root_url. Use the id when filtering pages by "
         "site (phoxtail_pages_list_pages site= argument), and root_page_id "
-        "to navigate the page tree rooted at that site."
+        "to navigate the page tree rooted at that site. " + PAGED
     ),
 )
-def sites_list() -> str:
-    resp = request("GET", "/sites/")
+def sites_list(limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    resp = request("GET", "/sites/", params={"limit": limit, "offset": offset})
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope

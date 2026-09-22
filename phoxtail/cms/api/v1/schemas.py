@@ -13,6 +13,9 @@ from datetime import datetime
 from typing import Any, Literal
 
 from ninja import Schema
+from wagtail.models import Page
+
+from phoxtail.cms.api.v1.contrib import get_contribution_for_page
 
 # ---------------------------------------------------------------------------
 # Page list / detail
@@ -34,10 +37,52 @@ class PageSummary(Schema):
     content_type: str
     url: str | None = None
 
+    @staticmethod
+    def resolve_locale(page) -> str:
+        # A list annotates the code onto its query, so rows cost no lookup.
+        code = getattr(page, "locale_code", None)
+        if code is not None:
+            return code
+        return page.locale.language_code if page.locale_id is not None else ""
 
-class PageList(Schema):
-    pages: list[PageSummary]
-    total: int
+    @staticmethod
+    def resolve_content_type(page) -> str:
+        cls = page.specific_class or type(page)
+        return f"{cls._meta.app_label}.{cls._meta.model_name}"
+
+    @staticmethod
+    def resolve_url(page) -> str | None:
+        """The page's full URL, or None if it has never been published.
+
+        Only the known failure modes are caught: an uninitialised Site
+        config and URL-resolution failures. Anything else is a real bug.
+        """
+        if not page.live and not page.first_published_at:
+            return None
+        from django.urls import NoReverseMatch
+        from wagtail.models import Site
+
+        try:
+            return page.get_full_url()
+        except (Site.DoesNotExist, NoReverseMatch):
+            return None
+
+
+def page_detail(page: Page) -> dict[str, Any]:
+    """Full GET /pages/{id}/ body: the summary fields plus contributed extras.
+
+    ``parent`` is here rather than in :class:`PageSummary` on purpose:
+    resolving it costs a query per page, which a list would pay once per
+    row. A detail response is a single page, and where it sits is what
+    lets a caller reason about the tree around it.
+    """
+    body = PageSummary.from_orm(page).model_dump()
+    parent = page.get_parent()
+    body["parent"] = parent.pk if parent is not None else None
+    contribution = get_contribution_for_page(page)
+    if contribution is not None:
+        body.update(contribution.serialize(page))
+    return body
 
 
 # PageDetail is intentionally permissive: the common fields plus a free

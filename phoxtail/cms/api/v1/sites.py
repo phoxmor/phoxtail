@@ -19,10 +19,11 @@ import hashlib
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 
 router = Router()
 
@@ -40,11 +41,6 @@ class SiteSummary(Schema):
     root_page_id: int
     is_default_site: bool
     root_url: str
-
-
-class SiteList(Schema):
-    sites: list[SiteSummary]
-    total: int
 
 
 class SiteCreate(Schema):
@@ -122,18 +118,6 @@ def _require_if_match(request: HttpRequest, site) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _serialize(s) -> dict:
-    return {
-        "id": s.pk,
-        "hostname": s.hostname,
-        "port": s.port,
-        "site_name": s.site_name,
-        "root_page_id": s.root_page_id,
-        "is_default_site": s.is_default_site,
-        "root_url": s.root_url,
-    }
-
-
 def _resolve_site(site_id: int):
     from wagtail.models import Site
 
@@ -179,16 +163,14 @@ def _apply_and_save(site, data: dict) -> None:
 
 @router.get(
     "/",
-    response={200: SiteList},
+    response={200: list[SiteSummary]},
     summary="List sites",
     auth=guarded("wagtailcore.view_site"),
 )
 def list_sites(request: HttpRequest):
     from wagtail.models import Site
 
-    qs = Site.objects.all().order_by("hostname")
-    sites = [_serialize(s) for s in qs]
-    return {"sites": sites, "total": len(sites)}
+    return Site.objects.order_by("hostname")
 
 
 @router.post(
@@ -204,7 +186,7 @@ def create_site(request: HttpRequest, response: HttpResponse, payload: SiteCreat
     site = Site()
     _apply_and_save(site, data)
     response["ETag"] = site_etag(site)
-    return 201, _serialize(site)
+    return 201, site
 
 
 @router.get(
@@ -216,7 +198,7 @@ def create_site(request: HttpRequest, response: HttpResponse, payload: SiteCreat
 def get_site(request: HttpRequest, response: HttpResponse, site_id: int):
     site = _resolve_site(site_id)
     response["ETag"] = site_etag(site)
-    return _serialize(site)
+    return site
 
 
 @router.patch(
@@ -245,7 +227,7 @@ def patch_site(
     data = payload.model_dump(exclude_unset=True)
     _apply_and_save(site, data)
     response["ETag"] = site_etag(site)
-    return _serialize(site)
+    return site
 
 
 @router.delete(

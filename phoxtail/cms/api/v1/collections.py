@@ -19,11 +19,14 @@ import hashlib
 
 from django.contrib.auth.models import Group
 from django.db import transaction
+from django.db.models import OuterRef, Prefetch, Subquery
+from django.db.models.functions import Length, Substr
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._permissions import manageable, may_move, require_action
 
 router = Router()
@@ -39,6 +42,20 @@ class ViewRestrictionDetail(Schema):
     password: str | None = None
     groups: list[dict] = []  # [{"id": int, "name": str}]
 
+    @staticmethod
+    def resolve_type(restriction) -> str:
+        return restriction.restriction_type
+
+    @staticmethod
+    def resolve_password(restriction) -> str | None:
+        return restriction.password if restriction.restriction_type == "password" else None
+
+    @staticmethod
+    def resolve_groups(restriction) -> list[dict]:
+        if restriction.restriction_type != "groups":
+            return []
+        return [{"id": group.pk, "name": group.name} for group in restriction.groups.all()]
+
 
 class CollectionItem(Schema):
     id: int
@@ -47,10 +64,18 @@ class CollectionItem(Schema):
     parent_id: int | None = None
     view_restriction: ViewRestrictionDetail | None = None
 
+    @staticmethod
+    def resolve_parent_id(collection) -> int | None:
+        # Annotated by _described(), so a list costs no lookup per row; a
+        # collection read any other way finds its parent itself.
+        if "parent_id" in collection.__dict__:
+            return collection.parent_id
+        parent = collection.get_parent()
+        return parent.pk if parent is not None else None
 
-class CollectionList(Schema):
-    items: list[CollectionItem]
-    total: int
+    @staticmethod
+    def resolve_view_restriction(collection):
+        return _restriction_of(collection)
 
 
 class ViewRestrictionWrite(Schema):
@@ -124,31 +149,39 @@ def _require_if_match(request: HttpRequest, c, restriction=None) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Serialization
+# What a CollectionItem shows
 # ---------------------------------------------------------------------------
 
 
-def _serialize_restriction(restriction) -> dict | None:
-    if restriction is None:
-        return None
-    groups: list[dict] = []
-    if restriction.restriction_type == "groups":
-        groups = [{"id": g.pk, "name": g.name} for g in restriction.groups.all()]
-    return {
-        "type": restriction.restriction_type,
-        "password": (restriction.password if restriction.restriction_type == "password" else None),
-        "groups": groups,
-    }
+def _described(queryset):
+    """*queryset* carrying each collection's parent id and view restriction.
+
+    Both come with the query rather than a lookup per row. The parent is
+    found in the *whole* tree, so a visible child still reports the real
+    parent it hangs from even when that parent is not the caller's to see.
+    """
+    from wagtail.models import Collection, CollectionViewRestriction
+
+    parent = Collection.objects.filter(
+        path=Substr(OuterRef("path"), 1, Length(OuterRef("path")) - Collection.steplen)
+    ).values("pk")[:1]
+    return queryset.annotate(parent_id=Subquery(parent)).prefetch_related(
+        Prefetch("view_restrictions", queryset=CollectionViewRestriction.objects.prefetch_related("groups"))
+    )
 
 
-def _serialize(c, parent_id: int | None, restriction=None) -> dict:
-    return {
-        "id": c.pk,
-        "name": c.name,
-        "depth": c.depth,
-        "parent_id": parent_id,
-        "view_restriction": _serialize_restriction(restriction),
-    }
+def _restriction_of(collection):
+    """The collection's view restriction — from :func:`_described`'s prefetch
+    when there is one, otherwise read."""
+    restrictions = list(collection.view_restrictions.all())
+    return restrictions[0] if restrictions else None
+
+
+def _fresh(collection):
+    """*collection* read again, described."""
+    from wagtail.models import Collection
+
+    return _described(Collection.objects.filter(pk=collection.pk)).get()
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +270,7 @@ def _apply_restriction(c, vr_data: ViewRestrictionWrite | None) -> None:
 
 @router.get(
     "/",
-    response={200: CollectionList},
+    response={200: list[CollectionItem]},
     summary="List all collections",
     # Only the credential's half is asked here. Wagtail grants collections
     # per collection, so has_perm() would refuse people it genuinely permits
@@ -249,36 +282,10 @@ def _apply_restriction(c, vr_data: ViewRestrictionWrite | None) -> None:
     auth=scoped("wagtailcore.view_collection"),
 )
 def list_collections(request: HttpRequest):
-    from wagtail.models import Collection, CollectionViewRestriction
-
     # Narrowed rather than refused: being shown fewer collections is a true
     # answer to "which may I manage", where a 403 would claim the act itself
-    # was forbidden. The parent ids below are resolved against the *whole*
-    # tree, so a visible child still reports the real parent it hangs from.
-    visible = set(manageable(request.auth.user).values_list("pk", flat=True))
-    qs = list(Collection.objects.all().order_by("path"))
-    if not qs:
-        return {"items": [], "total": 0}
-
-    step = qs[0].steplen  # treebeard path step length (default 4)
-    path_to_id = {c.path: c.pk for c in qs}
-
-    restrictions = {
-        r.collection_id: r
-        for r in CollectionViewRestriction.objects.filter(collection_id__in=[c.pk for c in qs]).prefetch_related(
-            "groups"
-        )
-    }
-
-    items = []
-    for c in qs:
-        if c.pk not in visible:
-            continue
-        parent_path = c.path[:-step]
-        parent_id = path_to_id.get(parent_path)
-        items.append(_serialize(c, parent_id, restrictions.get(c.pk)))
-
-    return {"items": items, "total": len(items)}
+    # was forbidden.
+    return _described(manageable(request.auth.user)).order_by("path")
 
 
 @router.post(
@@ -310,14 +317,9 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
         c = parent.add_child(name=payload.name)
         _apply_restriction(c, payload.view_restriction)
 
-    restriction = None
-    if payload.view_restriction and payload.view_restriction.type != "none":
-        from wagtail.models import CollectionViewRestriction
-
-        restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
-
-    response["ETag"] = _collection_etag(c, restriction)
-    return 201, _serialize(c, parent.pk, restriction)
+    c = _fresh(c)
+    response["ETag"] = _collection_etag(c, _restriction_of(c))
+    return 201, c
 
 
 @router.get(
@@ -327,22 +329,12 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Col
     auth=scoped("wagtailcore.view_collection"),
 )
 def get_collection(request: HttpRequest, response: HttpResponse, collection_id: int):
-    from wagtail.models import CollectionViewRestriction
-
     # Resolved *within* the permitted set, so a collection the caller may not
     # manage is a collection that is not there. 404 rather than 403 is what
     # stops the ids being swept to map a tree you cannot see.
-    c = _resolve_collection(collection_id, within=manageable(request.auth.user))
-    step = c.steplen
-    parent_path = c.path[:-step]
-    from wagtail.models import Collection
-
-    parent = Collection.objects.filter(path=parent_path).first()
-    parent_id = parent.pk if parent else None
-
-    restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
-    response["ETag"] = _collection_etag(c, restriction)
-    return _serialize(c, parent_id, restriction)
+    c = _resolve_collection(collection_id, within=_described(manageable(request.auth.user)))
+    response["ETag"] = _collection_etag(c, _restriction_of(c))
+    return c
 
 
 @router.patch(
@@ -365,7 +357,7 @@ def patch_collection(
     collection_id: int,
     payload: CollectionPatch,
 ):
-    from wagtail.models import Collection, CollectionViewRestriction
+    from wagtail.models import CollectionViewRestriction
 
     c = _resolve_collection(collection_id)
     require_action(request.auth.user, "change", c)
@@ -422,15 +414,9 @@ def patch_collection(
         if "view_restriction" in data:
             _apply_restriction(c, payload.view_restriction)
 
-    restriction = CollectionViewRestriction.objects.filter(collection=c).prefetch_related("groups").first()
-
-    step = c.steplen
-    parent_path = c.path[:-step]
-    parent = Collection.objects.filter(path=parent_path).first()
-    parent_id = parent.pk if parent else None
-
-    response["ETag"] = _collection_etag(c, restriction)
-    return _serialize(c, parent_id, restriction)
+    c = _fresh(c)
+    response["ETag"] = _collection_etag(c, _restriction_of(c))
+    return c
 
 
 @router.delete(

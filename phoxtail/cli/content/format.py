@@ -10,7 +10,7 @@ from rich.table import Table
 
 def render_pages(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/pages/``."""
-    pages = data.get("pages", [])
+    pages = data.get("items", [])
     total = data.get("total", len(pages))
     if not pages:
         console.print("[dim]No pages found.[/dim]")
@@ -44,12 +44,14 @@ def render_pages(data: dict[str, Any], console: Console) -> None:
 
 def render_locales(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/locales/``."""
-    locales = data.get("locales", [])
+    locales = data.get("items", [])
+    total = data.get("total", len(locales))
     if not locales:
         console.print("[dim]No locales found.[/dim]")
         return
 
-    table = Table(title=f"Locales ({len(locales)})", expand=False)
+    title = f"Locales ({len(locales)} of {total})" if total > len(locales) else f"Locales ({total})"
+    table = Table(title=title, expand=False)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Language Code", style="cyan", no_wrap=True)
 
@@ -205,12 +207,14 @@ def _format_size(size: int | None) -> str:
 
 def render_sites(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/sites/``."""
-    sites = data.get("sites", [])
+    sites = data.get("items", [])
+    total = data.get("total", len(sites))
     if not sites:
         console.print("[dim]No sites found.[/dim]")
         return
 
-    table = Table(title=f"Sites ({len(sites)})", expand=True)
+    title = f"Sites ({len(sites)} of {total})" if total > len(sites) else f"Sites ({total})"
+    table = Table(title=title, expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Hostname", style="cyan", no_wrap=True)
     table.add_column("Port", justify="right")

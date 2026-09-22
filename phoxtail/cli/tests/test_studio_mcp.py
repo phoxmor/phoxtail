@@ -711,16 +711,16 @@ class TestDesignBlockPrompt:
 class TestLocalesList:
     def test_returns_json(self, httpx_mock: HTTPXMock):
         payload = {
-            "locales": [
+            "items": [
                 {"id": 1, "language_code": "en"},
                 {"id": 2, "language_code": "de"},
             ],
             "total": 2,
         }
-        httpx_mock.add_response(url=url("/api/cms/v1/locales/"), json=payload)
+        httpx_mock.add_response(url=url("/api/cms/v1/locales/?limit=50&offset=0"), json=payload)
         result = json.loads(locales_list())
         assert result["total"] == 2
-        assert result["locales"][0]["language_code"] == "en"
+        assert result["items"][0]["language_code"] == "en"
 
     def test_error_surfaces_as_envelope(self, httpx_mock: HTTPXMock):
         httpx_mock.add_response(status_code=500, json={"detail": "boom"})

@@ -16,26 +16,28 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 @mcp_server.tool(
     name="phoxtail_collections_list",
     auth=[scoped("wagtailcore.view_collection")],
     description=(
-        "List all collections as a flat tree (root included). "
+        "List collections as a flat tree, in tree order (root included). "
         "Returns each collection's id, name, depth, parent_id, and view_restriction. "
         "depth=1 is the special root collection; user collections start at depth=2. "
         "A collection with parent_id matching the root id is a top-level collection. "
         "Pass a collection id as collection= when listing images/documents/videos/audio"
-        " to filter media by collection."
+        " to filter media by collection. " + PAGED
     ),
 )
-def collections_list() -> str:
-    resp = request("GET", "/collections/")
+def collections_list(limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    resp = request("GET", "/collections/", params={"limit": limit, "offset": offset})
     envelope = _write_error_envelope(resp)
     if envelope is not None:
         return envelope

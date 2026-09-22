@@ -13,16 +13,16 @@ from __future__ import annotations
 from django.db import IntegrityError
 from django.db.models import Max
 from django.http import HttpRequest, HttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._permissions import require_settings_access
 from phoxtail.cms.api.v1._settings_helpers import (
     require_if_match,
     resolve_setting,
     resolve_site_palette,
-    serialize_site_palette,
     site_setting_palette_etag,
 )
 
@@ -43,10 +43,21 @@ class SiteSettingPaletteItem(Schema):
     role_identifier: str
     sort_order: int
 
+    @staticmethod
+    def resolve_palette_title(row) -> str:
+        return row.palette.title
 
-class SiteSettingPaletteList(Schema):
-    palettes: list[SiteSettingPaletteItem]
-    total: int
+    @staticmethod
+    def resolve_role_name(row) -> str:
+        return row.role.name
+
+    @staticmethod
+    def resolve_role_identifier(row) -> str:
+        return row.role.identifier
+
+    @staticmethod
+    def resolve_sort_order(row) -> int:
+        return row.sort_order or 0
 
 
 class SiteSettingPaletteCreate(Schema):
@@ -72,7 +83,7 @@ class Error(Schema):
 
 @router.get(
     "/{site_id}/palettes/",
-    response={200: SiteSettingPaletteList, 404: Error},
+    response={200: list[SiteSettingPaletteItem], 404: Error},
     summary="List palette assignments for a site",
     auth=scoped("phoxtail_cms.view_sitesetting"),
 )
@@ -81,9 +92,7 @@ def list_site_palettes(request: HttpRequest, site_id: int):
 
     setting = resolve_setting(site_id)
     require_settings_access(request.auth.user, setting)
-    qs = SiteSettingPalette.objects.select_related("palette", "role").filter(config=setting).order_by("sort_order")
-    items = [serialize_site_palette(sp) for sp in qs]
-    return {"palettes": items, "total": len(items)}
+    return SiteSettingPalette.objects.select_related("palette", "role").filter(config=setting).order_by("sort_order")
 
 
 @router.post(
@@ -135,7 +144,7 @@ def create_site_palette(
 
     sp = SiteSettingPalette.objects.select_related("palette", "role").get(pk=sp.pk)
     response["ETag"] = site_setting_palette_etag(sp)
-    return 201, serialize_site_palette(sp)
+    return 201, sp
 
 
 @router.get(
@@ -148,7 +157,7 @@ def get_site_palette(request: HttpRequest, response: HttpResponse, site_id: int,
     setting, sp = resolve_site_palette(site_id, palette_id)
     require_settings_access(request.auth.user, setting)
     response["ETag"] = site_setting_palette_etag(sp)
-    return serialize_site_palette(sp)
+    return sp
 
 
 @router.patch(
@@ -204,7 +213,7 @@ def patch_site_palette(
 
     sp = type(sp).objects.select_related("palette", "role").get(pk=sp.pk)
     response["ETag"] = site_setting_palette_etag(sp)
-    return serialize_site_palette(sp)
+    return sp
 
 
 @router.delete(

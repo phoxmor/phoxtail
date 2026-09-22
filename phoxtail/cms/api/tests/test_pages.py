@@ -78,14 +78,14 @@ class TestReadingWasUngated:
 
     def test_listing_without_a_grant_shows_nothing(self, raw_client, regular_user, tree):
         body = raw_client.get("/cms/v1/pages/", user=regular_user).json()
-        assert body["pages"] == []
+        assert body["items"] == []
         assert body["total"] == 0
 
     def test_a_subtree_grantee_sees_their_subtree(self, raw_client, regular_user, grant_page, tree):
         user = grant_page(regular_user, tree["marketing"], "change")
         assert user.has_perm("wagtailcore.change_page") is False, "guarded() would have refused this user"
 
-        titles = {p["title"] for p in raw_client.get("/cms/v1/pages/", user=user).json()["pages"]}
+        titles = {p["title"] for p in raw_client.get("/cms/v1/pages/", user=user).json()["items"]}
         assert titles == {"Marketing", "Campaigns"}
 
     def test_reading_one_page_in_the_subtree_is_allowed(self, raw_client, regular_user, grant_page, tree):
@@ -148,7 +148,7 @@ class TestTheParentFilterDoesNotLeak:
     def test_filtering_by_a_readable_parent_still_works(self, raw_client, regular_user, grant_page, tree):
         user = grant_page(regular_user, tree["marketing"], "change")
         body = raw_client.get(f"/cms/v1/pages/?parent={tree['marketing'].pk}", user=user).json()
-        assert {p["title"] for p in body["pages"]} == {"Campaigns"}
+        assert {p["title"] for p in body["items"]} == {"Campaigns"}
 
 
 class TestWritesStillAskTheTester:

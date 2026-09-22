@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._changes import mark_changed_pages
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 # ---------------------------------------------------------------------------
 # List / get
@@ -24,7 +26,7 @@ from phoxtail.mcp.authorization import scoped
         "`live` (published status), `search` (prefix search on title — "
         "use this to find a parent page by name), `locale` (language code "
         "e.g. 'en'), `site` (site id). Returns a slim summary — call "
-        "phoxtail_pages_get_page for a full detail including the body."
+        "phoxtail_pages_get_page for a full detail including the body. " + PAGED
     ),
 )
 def list_pages(
@@ -34,8 +36,8 @@ def list_pages(
     search: str | None = None,
     locale: str | None = None,
     site: int | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
     resp = request(
         "GET",

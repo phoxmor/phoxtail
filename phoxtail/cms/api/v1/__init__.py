@@ -11,8 +11,7 @@ concern, not three resources.
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1.blocks import router as blocks_router
 from phoxtail.cms.api.v1.body import router as body_router
 from phoxtail.cms.api.v1.collections import router as collections_router

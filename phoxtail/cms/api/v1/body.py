@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
-from ninja import Router
 
 from phoxtail.api.auth import scoped
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._helpers import (
     body_field_name_for,
     page_etag,

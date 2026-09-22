@@ -27,9 +27,9 @@ make useful. Declaring nothing closes a door; this says the door is open.
 from __future__ import annotations
 
 from django.http import HttpRequest
-from ninja import Router
 
 from phoxtail.api.auth import authenticated
+from phoxtail.api.pagination import Router
 from phoxtail.cms.api.v1._helpers import contribution_as_dict
 from phoxtail.cms.api.v1.contrib import collect_page_schemas
 from phoxtail.cms.api.v1.schemas import PageTypeCatalog
