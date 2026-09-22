@@ -179,6 +179,22 @@ APPS = list(versioned_routers())
 
 
 @pytest.mark.parametrize("name, versions", APPS, ids=[name for name, _ in APPS])
+def test_every_router_is_phoxtails(name, versions):
+    # One router type per app, so a list added anywhere in it is paged
+    # without anyone remembering to ask.
+    foreign = [
+        f"/{name}/{version}{mount.prefix}"
+        for version, router in versions.items()
+        for mount in router.build_routers("")
+        if not isinstance(mount.template, Router)
+    ]
+    if name in PENDING:
+        assert foreign, f"{name} uses phoxtail's Router throughout now; remove it from PENDING."
+    else:
+        assert foreign == []
+
+
+@pytest.mark.parametrize("name, versions", APPS, ids=[name for name, _ in APPS])
 def test_every_list_is_paged(name, versions):
     found = [f"/{name}/{version}: {op}" for version, router in versions.items() for op in unpaginated(router)]
     if name in PENDING:

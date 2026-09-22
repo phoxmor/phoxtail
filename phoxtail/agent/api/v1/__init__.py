@@ -6,13 +6,12 @@ as its ``v1``, served at ``/api/agent/v1/``.
 
 from __future__ import annotations
 
-from ninja import Router
-
 from phoxtail.agent.api.v1.artifacts import router as artifacts_router
 from phoxtail.agent.api.v1.chat import router as chat_router
 from phoxtail.agent.api.v1.providers import router as providers_router
 from phoxtail.agent.api.v1.settings import router as settings_router
 from phoxtail.api.auth import PhoxtailSessionAuth
+from phoxtail.api.pagination import Router
 
 router = Router()
 

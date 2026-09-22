@@ -7,8 +7,7 @@ permission its own act requires, so the mount decides nothing.
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.users.api.v1.genders import router as genders_router
 from phoxtail.users.api.v1.users import router as users_router
 
