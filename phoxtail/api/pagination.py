@@ -15,7 +15,7 @@ or ``total`` themselves; :func:`unpaginated` is the check that they didn't.
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, get_type_hints
 
 from django.db.models import QuerySet
 from ninja import Field, Schema
@@ -92,6 +92,12 @@ class Router(NinjaRouter):
 
     def add_api_operation(self, path: str, methods: list[str], view_func: Any, **kwargs: Any) -> None:
         if methods == ["GET"] and _lists(kwargs.get("response")):
+            # ninja reads the parameters off the wrapper it puts around the
+            # view, and resolves string annotations — every module with
+            # ``from __future__ import annotations`` — in the wrapper's
+            # globals rather than the view's, where ``UUID`` is unknown.
+            # Resolved here, in the view's own module, they arrive as types.
+            view_func.__annotations__ = get_type_hints(view_func, include_extras=True)
             view_func = paginate(Pagination)(view_func)
         return super().add_api_operation(path, methods, view_func, **kwargs)
 

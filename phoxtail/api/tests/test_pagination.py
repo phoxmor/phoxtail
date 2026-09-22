@@ -9,6 +9,8 @@ guessed at.
 
 from __future__ import annotations
 
+from uuid import UUID
+
 import pytest
 from django.contrib.auth.models import Permission
 from django.db import connection
@@ -52,6 +54,18 @@ class TestTheShape:
 
         assert [row["name"] for row in body["items"]] == ["A", "B"]
         assert body["total"] == 3
+
+    def test_a_view_in_a_postponed_annotations_module_keeps_its_parameters(self):
+        # This module uses ``from __future__ import annotations``, so the
+        # view's ``UUID`` arrives as a string the wrapper cannot resolve.
+        (gender,) = _genders("A")
+
+        def view(request, uuid: UUID | None = None):
+            return Gender.objects.filter(uuid=uuid) if uuid else Gender.objects.all()
+
+        body = TestClient(_router(view)).get(f"/?uuid={gender.uuid}").json()
+
+        assert [row["name"] for row in body["items"]] == ["A"]
 
     def test_offset_reads_on(self):
         _genders("A", "B", "C")
