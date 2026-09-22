@@ -30,18 +30,17 @@ from uuid import UUID
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.users.api.v1._helpers import (
     require_if_match,
     resolve_gender,
     resolve_user,
-    user_detail,
     user_etag,
-    user_summary,
 )
 from phoxtail.users.api.v1.schemas import (
     EmailVerification,
@@ -51,7 +50,7 @@ from phoxtail.users.api.v1.schemas import (
     UserBulkCreate,
     UserBulkResult,
     UserCreate,
-    UserList,
+    UserSummary,
     UserUpdate,
 )
 from phoxtail.users.api.v1.schemas import (
@@ -89,7 +88,7 @@ def _create_kwargs(payload: UserCreate) -> dict:
 
 @router.get(
     "/",
-    response={200: UserList, 403: Error},
+    response={200: list[UserSummary], 403: Error},
     summary="List Users",
     auth=guarded("phoxtail_users.view_user"),
 )
@@ -102,10 +101,8 @@ def list_users(
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-
-    users = [user_summary(u) for u in qs]
-    return {"users": users, "total": len(users)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -121,7 +118,7 @@ def create_user(
 ):
     user = UserService().admin.create(request=request, **_create_kwargs(payload))
     response["ETag"] = user_etag(user)
-    return 201, user_detail(user)
+    return 201, user
 
 
 @router.post(
@@ -212,7 +209,7 @@ def get_user(
 ):
     user = resolve_user(user_uuid)
     response["ETag"] = user_etag(user)
-    return user_detail(user)
+    return user
 
 
 @router.patch(
@@ -244,7 +241,7 @@ def update_user(
 
     updated = user.service.admin.update(request=request, **data)
     response["ETag"] = user_etag(updated)
-    return user_detail(updated)
+    return updated
 
 
 @router.post(

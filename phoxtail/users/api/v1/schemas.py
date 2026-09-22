@@ -2,8 +2,9 @@
 
 These schemas are the stable contract for every consumer of the API —
 the Phoxtail MCP server, the in-house chatbot, and any future client.
-Field names and shapes here are breaking-change territory: any change
-forces a v2.
+Field names and shapes here are the contract. Until phoxtail reaches 1.0 a
+breaking change stays in v1 and is announced in the changelog; from 1.0 on,
+one forces a v2.
 
 Identity convention: resources are addressed by ``uuid`` everywhere in
 the public contract. Numeric database PKs are never exposed.
@@ -41,11 +42,6 @@ class Gender(GenderRef):
     updated_at: datetime
 
 
-class GenderList(Schema):
-    genders: list[Gender]
-    total: int
-
-
 class GenderCreate(Schema):
     """Request body for ``POST /genders/``."""
 
@@ -81,6 +77,10 @@ class UserSummary(Schema):
     full_name: str
     is_active: bool
 
+    @staticmethod
+    def resolve_full_name(user) -> str:
+        return user.get_full_name()
+
 
 class User(UserSummary):
     """Detail-view shape for a User. Adds profile, gender and login metadata."""
@@ -96,10 +96,23 @@ class User(UserSummary):
     email_verified: bool = Field(description="Whether the allauth email record is verified.")
     is_superuser: bool = Field(description="Read-only context flag — never writable through this API.")
 
+    @staticmethod
+    def resolve_country(user) -> str | None:
+        return str(user.country) if user.country else None
 
-class UserList(Schema):
-    users: list[UserSummary]
-    total: int
+    @staticmethod
+    def resolve_country_name(user) -> str | None:
+        return user.country.name if user.country else None
+
+    @staticmethod
+    def resolve_phone_number(user) -> str | None:
+        return str(user.phone_number) if user.phone_number else None
+
+    @staticmethod
+    def resolve_email_verified(user) -> bool:
+        from allauth.account.models import EmailAddress
+
+        return EmailAddress.objects.filter(user=user, email=user.email, verified=True).exists()
 
 
 class UserCreate(Schema):

@@ -24,7 +24,6 @@ from django.http import HttpRequest, HttpResponse
 from ninja import Query, Router
 
 from phoxtail.agent.api.v1._helpers import (
-    narrow_by_search,
     provider_detail,
     provider_etag,
     require_if_match,
@@ -41,6 +40,7 @@ from phoxtail.agent.api.v1.schemas import (
 )
 from phoxtail.agent.models import InferenceProvider
 from phoxtail.api.auth import guarded
+from phoxtail.api.search import narrow_by_search
 
 router = Router()
 

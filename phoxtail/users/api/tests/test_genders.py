@@ -22,8 +22,8 @@ def test_create_and_list(client):
     assert listing.status_code == 200
     body = listing.json()
     assert body["total"] == 1
-    assert body["genders"][0]["uuid"] == data["uuid"]
-    assert "id" not in body["genders"][0]
+    assert body["items"][0]["uuid"] == data["uuid"]
+    assert "id" not in body["items"][0]
 
 
 def test_symbolless_genders_do_not_collide(client):

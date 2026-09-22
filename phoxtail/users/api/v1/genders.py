@@ -17,13 +17,13 @@ from __future__ import annotations
 from uuid import UUID
 
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
-from wagtail.search.backends import get_search_backend
+from ninja import Query
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.users.api.v1._helpers import (
     delete_guarded,
-    gender_detail,
     gender_etag,
     require_if_match,
     resolve_gender,
@@ -31,7 +31,6 @@ from phoxtail.users.api.v1._helpers import (
 from phoxtail.users.api.v1.schemas import (
     Error,
     GenderCreate,
-    GenderList,
     GenderUpdate,
 )
 from phoxtail.users.api.v1.schemas import (
@@ -44,7 +43,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: GenderList, 403: Error},
+    response={200: list[GenderSchema], 403: Error},
     summary="List Genders",
     auth=guarded("phoxtail_users.view_gender"),
 )
@@ -54,10 +53,8 @@ def list_genders(
 ):
     qs = Gender.objects.all()
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-
-    genders = [gender_detail(g) for g in qs]
-    return {"genders": genders, "total": len(genders)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -77,7 +74,7 @@ def create_gender(
     gender.full_clean()
     gender.save()
     response["ETag"] = gender_etag(gender)
-    return 201, gender_detail(gender)
+    return 201, gender
 
 
 @router.get(
@@ -93,7 +90,7 @@ def get_gender(
 ):
     gender = resolve_gender(gender_uuid)
     response["ETag"] = gender_etag(gender)
-    return gender_detail(gender)
+    return gender
 
 
 @router.patch(
@@ -120,7 +117,7 @@ def update_gender(
     gender.full_clean()
     gender.save()
     response["ETag"] = gender_etag(gender)
-    return gender_detail(gender)
+    return gender
 
 
 @router.delete(

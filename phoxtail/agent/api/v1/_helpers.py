@@ -14,25 +14,6 @@ from ninja.errors import HttpError
 from phoxtail.agent.models import AgentSiteSetting, InferenceProvider, ModelArtifact
 
 # ---------------------------------------------------------------------------
-# Query helpers
-# ---------------------------------------------------------------------------
-
-
-def narrow_by_search(qs, query: str):
-    """Restrict ``qs`` to the rows Wagtail autocomplete matches.
-
-    ``autocomplete()`` returns ``SearchResults``, which drops the
-    queryset's ordering, ``select_related`` and annotations. Feeding the
-    matched pks back through the original queryset keeps all three, at
-    the cost of one extra query.
-    """
-    from wagtail.search.backends import get_search_backend
-
-    matched = get_search_backend().autocomplete(query, qs)
-    return qs.filter(pk__in=[obj.pk for obj in matched])
-
-
-# ---------------------------------------------------------------------------
 # Resolvers
 # ---------------------------------------------------------------------------
 

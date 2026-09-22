@@ -31,7 +31,7 @@ class TestListUsers:
         assert response.status_code == 200
         data = response.json()
         assert data["total"] == 1
-        entry = data["users"][0]
+        entry = data["items"][0]
         assert entry["email"] == superuser.email
         assert entry["full_name"] == "API Admin"
         assert "id" not in entry
@@ -41,7 +41,7 @@ class TestListUsers:
         regular_user.is_active = False
         regular_user.save()
         data = client.get("/users/v1/users/?is_active=false").json()
-        assert [u["email"] for u in data["users"]] == [regular_user.email]
+        assert [u["email"] for u in data["items"]] == [regular_user.email]
 
     def test_search_smoke(self, client):
         # The SQLite fallback search backend returns no matches — assert

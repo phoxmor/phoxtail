@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import json
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 from phoxtail.users.mcp._error import error_envelope
 from phoxtail.users.mcp._http import request
 
@@ -32,11 +34,11 @@ def _with_etag(resp) -> str:
         "phoxtail_users_update_user and phoxtail_users_bulk_create_users. "
         "Optional filter: `search` "
         "(prefix search on name). Before updating a gender, fetch it with "
-        "phoxtail_users_get_gender to obtain its `_etag`."
+        "phoxtail_users_get_gender to obtain its `_etag`. " + PAGED
     ),
 )
-def users_list_genders(search: str | None = None) -> str:
-    resp = request("GET", "/genders/", params={"search": search})
+def users_list_genders(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    resp = request("GET", "/genders/", params={"search": search, "limit": limit, "offset": offset})
     env = error_envelope(resp)
     if env is not None:
         return env

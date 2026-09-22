@@ -1,7 +1,7 @@
 """Internal utilities for the users v1 API.
 
-Resolvers (uuid → instance or 404), response serializers, and the weak
-ETag machinery used for optimistic concurrency on writes.
+Resolvers (uuid → instance or 404) and the weak ETag machinery used for
+optimistic concurrency on writes. Responses are shaped by the schemas.
 """
 
 from __future__ import annotations
@@ -32,58 +32,6 @@ def resolve_gender(uuid: UUID) -> Gender:
         return Gender.objects.get(uuid=uuid)
     except Gender.DoesNotExist:
         raise HttpError(404, f"Gender {uuid} not found.")
-
-
-# ---------------------------------------------------------------------------
-# Serializers
-# ---------------------------------------------------------------------------
-
-
-def user_summary(user) -> dict:
-    return {
-        "uuid": user.uuid,
-        "email": user.email,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "full_name": user.get_full_name(),
-        "is_active": user.is_active,
-    }
-
-
-def gender_ref(gender: Gender) -> dict:
-    return {
-        "uuid": gender.uuid,
-        "name": gender.name,
-    }
-
-
-def user_detail(user) -> dict:
-    from allauth.account.models import EmailAddress
-
-    return {
-        **user_summary(user),
-        "email_verified": EmailAddress.objects.filter(user=user, email=user.email, verified=True).exists(),
-        "born_at": user.born_at,
-        "age_display": user.age_display,
-        "gender": gender_ref(user.gender) if user.gender else None,
-        "country": str(user.country) if user.country else None,
-        "country_name": user.country.name if user.country else None,
-        "phone_number": str(user.phone_number) if user.phone_number else None,
-        "date_joined": user.date_joined,
-        "last_login": user.last_login,
-        "is_superuser": user.is_superuser,
-    }
-
-
-def gender_detail(gender: Gender) -> dict:
-    return {
-        "uuid": gender.uuid,
-        "name": gender.name,
-        "symbol": gender.symbol,
-        "created_at": gender.created_at,
-        "updated_at": gender.updated_at,
-    }
 
 
 # ---------------------------------------------------------------------------

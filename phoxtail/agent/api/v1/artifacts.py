@@ -26,7 +26,6 @@ from ninja.errors import HttpError
 from phoxtail.agent.api.v1._helpers import (
     artifact_detail,
     artifact_etag,
-    narrow_by_search,
     require_if_match,
     resolve_artifact,
     resolve_permission,
@@ -43,6 +42,7 @@ from phoxtail.agent.api.v1.schemas import (
 )
 from phoxtail.agent.models import ModelArtifact
 from phoxtail.api.auth import guarded
+from phoxtail.api.search import narrow_by_search
 
 router = Router()
 

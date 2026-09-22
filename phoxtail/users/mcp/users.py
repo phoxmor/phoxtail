@@ -12,8 +12,10 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 from phoxtail.users.mcp._error import error_envelope
 from phoxtail.users.mcp._http import request
 
@@ -30,14 +32,20 @@ def _with_etag(resp) -> str:
     description=(
         "List the project's users. Optional filters: `search` (prefix search on email, "
         "username, first or last name), `is_active`. Returns summaries with "
-        "each user's `uuid` — use phoxtail_users_get_user for full details."
+        "each user's `uuid` — use phoxtail_users_get_user for full details. " + PAGED
     ),
 )
 def users_list_users(
     search: str | None = None,
     is_active: bool | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
-    resp = request("GET", "/users/", params={"search": search, "is_active": is_active})
+    resp = request(
+        "GET",
+        "/users/",
+        params={"search": search, "is_active": is_active, "limit": limit, "offset": offset},
+    )
     env = error_envelope(resp)
     if env is not None:
         return env
