@@ -225,12 +225,12 @@ class TestNarrowedTokens:
         assert response.status_code == 403
         assert "does not have permission" in response.json()["detail"]
 
-    def test_an_unannotated_endpoint_would_refuse_it(self, raw_client, regular_user, scoped_token):
-        """The default this commit works around, asserted rather than assumed.
+    def test_an_endpoint_naming_another_codename_refuses_it(self, raw_client, regular_user, scoped_token):
+        """The contrast that makes ``page-types`` worth testing.
 
-        ``/collections/`` has not been annotated yet, so it still carries the
-        API-wide default — and that default is what would have shut
-        ``page-types`` to every narrowed credential.
+        ``/collections/`` names ``view_collection``, which this token was not
+        minted for, so it is refused where ``page-types`` is not. What an
+        endpoint naming nothing does is covered in ``api/tests/test_default.py``.
         """
         headers = scoped_token(regular_user, "wagtailcore.add_page")
         assert raw_client.get("/cms/v1/collections/", headers=headers).status_code == 403

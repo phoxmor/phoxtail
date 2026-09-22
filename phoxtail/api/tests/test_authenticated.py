@@ -1,9 +1,8 @@
 """`authenticated()` says a door is open, where silence would lock it.
 
-An endpoint declaring no `auth=` keeps the API-wide default, which admits a
-session or an unrestricted token and refuses a scoped one. That is the right
-answer for an endpoint someone forgot: forgetting should cost a caller access,
-never cost everyone safety.
+An endpoint declaring no `auth=` keeps the API-wide default, which refuses
+everyone. That is the right answer for an endpoint someone forgot: forgetting
+should cost a caller access, never cost everyone safety.
 
 It is the wrong answer for an endpoint that genuinely asks for nothing, and
 until this existed the two were written identically — as silence. So a door
@@ -11,8 +10,8 @@ meant to stand open was shut to every narrowed credential in the project, and
 no session-authenticated test could see it.
 
 The property worth protecting is therefore the *opposite* of the one
-`test_scope_enforcement.py` protects: not that an unannotated endpoint refuses
-a scoped token, but that this one does not.
+`test_default.py` protects: not that an unannotated endpoint refuses a
+caller, but that this one does not.
 """
 
 from __future__ import annotations

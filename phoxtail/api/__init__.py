@@ -28,7 +28,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI, Schema
 
-from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, has_no_ceiling
+from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, authenticated
 from phoxtail.tokens.bundles import is_bundle
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
@@ -38,14 +38,17 @@ from phoxtail.tokens.ninja import PhoxtailTokenAuth
 # schema, which also disables the docs UI that renders it.
 _docs_enabled = bool(getattr(settings, "DEBUG", False))
 
-# Names the reason rather than the rule: a caller who deliberately narrowed
-# their token needs to know the endpoint has not opted in yet, not to be
-# told again what a scope is.
+# Names the reason rather than the rule: the caller did nothing wrong, the
+# endpoint has not said who may use it yet.
 _undeclared_detail = (
-    "This endpoint has not named the permission it needs, so no credential "
-    "with a ceiling can reach it. Only a session or an unrestricted phoxtail "
-    "token can, until the endpoint declares auth=guarded(...) or scoped(...)."
+    "This endpoint has not named the permission it needs, so it admits no one "
+    "until it declares auth=guarded(...), scoped(...) or authenticated()."
 )
+
+
+def _nobody(context) -> bool:
+    return False
+
 
 api = NinjaAPI(
     title="Phoxtail API",
@@ -58,22 +61,26 @@ api = NinjaAPI(
     urls_namespace="phoxtail_api",
     docs_url="/docs/" if _docs_enabled else None,
     openapi_url="/openapi.json" if _docs_enabled else None,
-    # Default-deny: every endpoint requires authentication unless it explicitly
-    # opts out with ``auth=None``. Token auth is tried first (CLI, MCP); session
-    # auth is the fallback for browser clients (e.g. the phoxtail bar).
+    # Default-deny: an endpoint that declares no ``auth=`` admits no one.
+    # Anonymous callers get 401 and everyone else 403, whatever they hold.
     #
-    # An endpoint that declares no scope is reachable by sessions and
-    # unrestricted tokens — everything that works today — and refuses a
-    # token carrying a ceiling. Endpoints opt in with ``auth=scoped(...)``,
-    # so forgetting to annotate one leaves a door closed rather than open.
+    # The default only ever answers for an endpoint someone forgot, and it
+    # asks nothing of the person, so whatever it admitted went unchecked
+    # unless the endpoint's body checked for itself. Refusing everyone makes
+    # forgetting cost access and never safety, for sessions and unrestricted
+    # tokens as much as for scoped ones. A router's own ``auth=`` still
+    # replaces this default for every endpoint under it.
     auth=[
-        Authorize(PhoxtailTokenAuth(), has_no_ceiling, detail=_undeclared_detail),
-        PhoxtailSessionAuth(),
+        Authorize(PhoxtailTokenAuth(), _nobody, detail=_undeclared_detail),
+        Authorize(PhoxtailSessionAuth(), _nobody, detail=_undeclared_detail),
     ],
 )
 
 
-@api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check")
+# Any valid credential, scoped ones included: a remote is added by pinging
+# it with the token it will use, so a ping that refused narrowed tokens
+# would report a working remote as a bad token.
+@api.get("/ping/", tags=["meta"], summary="Authenticated connectivity check", auth=authenticated())
 def ping(request):
     return {"ok": True}
 
@@ -111,7 +118,7 @@ class WhoAmI(Schema):
     # The one endpoint that must admit every credential, including narrowly
     # scoped ones: a caller cannot discover its own limits if the endpoint
     # that reports them is behind those limits. Declared explicitly rather
-    # than inheriting, because the API-wide default refuses scoped tokens.
+    # than inheriting, because the API-wide default refuses everyone.
     auth=[PhoxtailTokenAuth(), PhoxtailSessionAuth()],
 )
 def whoami(request):

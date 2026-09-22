@@ -145,8 +145,8 @@ def has_no_ceiling(context) -> bool:
     """Whether the caller brought no self-imposed limit.
 
     True for a browser session (nothing to narrow) and for an unrestricted
-    token. False for a token carrying scopes — which is what makes an
-    endpoint that declares no scope unreachable to one.
+    token. False for a token carrying scopes, which :func:`has_scope` must
+    then read.
     """
     token = context.token
     return token is None or token.unrestricted
@@ -246,9 +246,8 @@ def scoped(*codenames: str, detail: str | None = None) -> list[Authorize]:
     """The ``auth=`` for an endpoint a scoped token may reach.
 
     Used as ``auth=scoped("wagtailcore.publish_page")``. Endpoints that
-    declare nothing keep the API-wide default, which admits sessions and
-    unrestricted tokens and refuses scoped ones — so forgetting to
-    annotate leaves a door closed rather than open.
+    declare nothing keep the API-wide default, which refuses everyone — so
+    forgetting to annotate leaves a door closed rather than open.
     """
     if detail is None:
         detail = "This token's scopes do not cover " + ", ".join(codenames) + "."
@@ -264,8 +263,8 @@ def authenticated() -> list[Authorize]:
 
     Declaring nothing is not the same thing and must not be used for this.
     An endpoint with no ``auth=`` keeps the API-wide default, which refuses
-    a scoped token — the right answer for an endpoint someone forgot, and
-    the wrong one for an endpoint that deliberately asks for nothing.
+    everyone — the right answer for an endpoint someone forgot, and the
+    wrong one for an endpoint that deliberately asks for nothing.
 
     The difference matters because a vocabulary is what an agent reads
     *before* it can phrase a request at all: which page types exist, which

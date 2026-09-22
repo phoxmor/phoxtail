@@ -209,12 +209,9 @@ class TestWhatTheApiSays:
         assert refused.status_code == 403
         assert "phoxtail_users.view_user" in json.loads(refused.content)["detail"]
 
-    def test_an_unannotated_door_says_what_is_missing_on_its_own_side(self, site, client):
-        """A key from the authorization server is never unrestricted, so
-        the refusal must not tell its holder to get one."""
+    def test_ping_admits_a_narrowed_key(self, site, client):
+        """A remote is added by pinging it with the key it will use, and a
+        key from the authorization server is never unrestricted."""
         raw, _ = _issue(UserFactory(), scope="cms:read")
         response = client.get("/api/ping/", HTTP_AUTHORIZATION=f"Bearer {raw}", HTTP_HOST=HOST)
-        assert response.status_code == 403
-        detail = json.loads(response.content)["detail"]
-        assert "has not named the permission" in detail
-        assert "Use an unrestricted token" not in detail
+        assert response.status_code == 200

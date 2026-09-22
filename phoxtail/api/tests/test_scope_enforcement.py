@@ -6,10 +6,9 @@ already is, and is often decided far more finely — Wagtail resolves
 publishing per page subtree. Both must pass; these tests cover only the
 coarse half, because the fine half was already covered where it lives.
 
-The property worth protecting is that an endpoint which declares no scope
-is closed to a scoped token rather than open to it. Forgetting to
-annotate an endpoint should cost a caller access, never cost everyone
-safety.
+The property worth protecting is that a scoped token reaches only what
+its scopes name. What an endpoint declaring nothing does is the API-wide
+default's business, and ``test_default.py`` covers it.
 """
 
 from __future__ import annotations
@@ -47,8 +46,7 @@ def _scoped(user, *codenames):
 
 
 class TestHasNoCeiling:
-    """What makes an unannotated endpoint closed to some callers and not
-    others."""
+    """Which callers carry a ceiling a scope check must read."""
 
     def test_a_session_has_none(self, db):
         assert has_no_ceiling(_session(UserFactory())) is True
@@ -100,7 +98,7 @@ class TestThroughTheRealBackend:
     def _request(token):
         return RequestFactory().get("/api/", HTTP_AUTHORIZATION=f"Bearer {token._raw_token}")
 
-    def test_an_unannotated_endpoint_refuses_a_scoped_token(self):
+    def test_a_ceiling_check_refuses_a_scoped_token(self):
         user = UserFactory()
         token = AccessTokenFactory(user=user, unrestricted=False, scopes=[PUBLISH])
         backend = Authorize(PhoxtailTokenAuth(), has_no_ceiling, detail="nope")
@@ -109,7 +107,7 @@ class TestThroughTheRealBackend:
             backend(self._request(token))
         assert exc.value.status_code == 403
 
-    def test_an_unannotated_endpoint_admits_an_unrestricted_token(self):
+    def test_a_ceiling_check_admits_an_unrestricted_token(self):
         user = UserFactory()
         token = AccessTokenFactory(user=user)
         backend = Authorize(PhoxtailTokenAuth(), has_no_ceiling, detail="nope")
