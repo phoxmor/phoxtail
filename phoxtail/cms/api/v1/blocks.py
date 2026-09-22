@@ -38,13 +38,13 @@ router = Router()
 # ---------------------------------------------------------------------------
 
 
-class BlockUpdate(Schema):
+class BodyBlockUpdate(Schema):
     """Request body for ``PATCH /pages/{page_id}/blocks/{block_uuid}/``."""
 
     value: dict[str, Any]
 
 
-class BlockPosition(Schema):
+class BodyBlockPosition(Schema):
     """Exactly one of these must be set."""
 
     before_uuid: str | None = None
@@ -60,21 +60,21 @@ class BlockPosition(Schema):
             )
 
 
-class BlockAdd(Schema):
+class BodyBlockAdd(Schema):
     """Request body for ``POST /pages/{page_id}/blocks/``."""
 
     type: str
     value: dict[str, Any]
-    position: BlockPosition | None = None
+    position: BodyBlockPosition | None = None
 
 
-class BlockMove(Schema):
+class BodyBlockMove(Schema):
     """Request body for ``POST /pages/{page_id}/blocks/{block_uuid}/move/``."""
 
-    position: BlockPosition
+    position: BodyBlockPosition
 
 
-class BlockItem(Schema):
+class BodyBlockItem(Schema):
     """A single serialized StreamField block."""
 
     type: str
@@ -82,15 +82,15 @@ class BlockItem(Schema):
     id: str
 
 
-class BlockResponse(Schema):
-    block: BlockItem
+class BodyBlockResponse(Schema):
+    block: BodyBlockItem
 
 
-class BlockDeleted(Schema):
+class BodyBlockDeleted(Schema):
     deleted_uuid: str
 
 
-class BlockMoved(Schema):
+class BodyBlockMoved(Schema):
     moved_uuid: str
 
 
@@ -112,10 +112,10 @@ def _find_block(body: list[dict[str, Any]], uuid: str) -> tuple[int, dict[str, A
 
 def _resolve_position(
     body: list[dict[str, Any]],
-    position: BlockPosition | None,
+    position: BodyBlockPosition | None,
     exclude_uuid: str | None = None,
 ) -> int:
-    """Return the target insertion index from a BlockPosition.
+    """Return the target insertion index from a BodyBlockPosition.
 
     ``exclude_uuid`` is used for move: the block being moved is temporarily
     removed, so anchor UUIDs are resolved against the filtered list.
@@ -207,7 +207,7 @@ def patch_block(
     response: HttpResponse,
     page_id: int,
     block_uuid: str,
-    payload: BlockUpdate,
+    payload: BodyBlockUpdate,
 ):
     page = resolve_page(page_id)
     require_edit_permission(request, page)
@@ -245,7 +245,7 @@ def add_block(
     request: HttpRequest,
     response: HttpResponse,
     page_id: int,
-    payload: BlockAdd,
+    payload: BodyBlockAdd,
 ):
     if payload.position is not None:
         payload.position.validate_exclusive()
@@ -324,7 +324,7 @@ def move_block(
     response: HttpResponse,
     page_id: int,
     block_uuid: str,
-    payload: BlockMove,
+    payload: BodyBlockMove,
 ):
     payload.position.validate_exclusive()
 

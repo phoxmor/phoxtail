@@ -106,7 +106,7 @@ class TestClashingSchemas:
 
 # Clashes that exist today, each removed by the commit that resolves it; the
 # test fails on a new clash and on an entry left behind after its fix.
-KNOWN = {"BlockUpdate", "CollectionCreate", "CollectionList", "Error"}
+KNOWN = {"CollectionCreate", "CollectionList", "Error"}
 
 
 def test_no_new_schema_name_clashes():
