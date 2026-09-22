@@ -26,7 +26,7 @@ def test_create_and_list(client):
     assert listing.status_code == 200
     body = listing.json()
     assert body["total"] == 1
-    assert body["providers"][0]["uuid"] == data["uuid"]
+    assert body["items"][0]["uuid"] == data["uuid"]
 
 
 def test_duplicate_identifier_is_422(client, provider):

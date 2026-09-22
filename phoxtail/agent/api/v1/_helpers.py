@@ -1,7 +1,7 @@
 """Internal utilities for the agent v1 API.
 
-Resolvers (uuid → instance or 404), response serializers, and the weak
-ETag machinery used for optimistic concurrency on writes.
+Resolvers (uuid → instance or 404) and the weak ETag machinery used for
+optimistic concurrency on writes. Responses are shaped by the schemas.
 """
 
 from __future__ import annotations
@@ -65,64 +65,6 @@ def resolve_permission(label: str):
         )
     except Permission.DoesNotExist:
         raise HttpError(422, f"Permission '{label}' does not exist.")
-
-
-# ---------------------------------------------------------------------------
-# Serializers
-# ---------------------------------------------------------------------------
-
-
-def permission_label(permission) -> str | None:
-    """``"app_label.codename"`` for a Permission, or None."""
-    if permission is None:
-        return None
-    return f"{permission.content_type.app_label}.{permission.codename}"
-
-
-def provider_ref(provider: InferenceProvider) -> dict:
-    return {
-        "uuid": provider.uuid,
-        "identifier": provider.identifier,
-        "display_name": provider.display_name,
-    }
-
-
-def provider_detail(provider: InferenceProvider) -> dict:
-    # ``artifact_count`` comes from an annotation on list queries and from a
-    # COUNT on single-object ones, so listing N providers stays one query.
-    count = getattr(provider, "artifact_count", None)
-    return {
-        **provider_ref(provider),
-        "model_prefix": provider.model_prefix,
-        "base_url": provider.base_url,
-        "api_key_env_var": provider.api_key_env_var,
-        "is_active": provider.is_active,
-        "artifact_count": provider.artifacts.count() if count is None else count,
-        "created_at": provider.created_at,
-        "updated_at": provider.updated_at,
-    }
-
-
-def artifact_detail(artifact: ModelArtifact) -> dict:
-    return {
-        "uuid": artifact.uuid,
-        "identifier": artifact.identifier,
-        "display_name": artifact.display_name,
-        "provider": provider_ref(artifact.provider),
-        "permission": permission_label(artifact.permission),
-        "is_active": artifact.is_active,
-        "sort_order": artifact.sort_order or 0,
-        "created_at": artifact.created_at,
-        "updated_at": artifact.updated_at,
-    }
-
-
-def agent_setting_detail(setting: AgentSiteSetting) -> dict:
-    artifact = setting.default_artifact
-    return {
-        "site_id": setting.site_id,
-        "default_artifact": artifact_detail(artifact) if artifact else None,
-    }
 
 
 # ---------------------------------------------------------------------------

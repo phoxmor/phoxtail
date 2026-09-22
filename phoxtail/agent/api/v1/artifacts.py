@@ -20,11 +20,10 @@ from __future__ import annotations
 from uuid import UUID
 
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
 
 from phoxtail.agent.api.v1._helpers import (
-    artifact_detail,
     artifact_etag,
     require_if_match,
     resolve_artifact,
@@ -36,12 +35,12 @@ from phoxtail.agent.api.v1.schemas import (
 )
 from phoxtail.agent.api.v1.schemas import (
     ArtifactCreate,
-    ArtifactList,
     ArtifactUpdate,
     Error,
 )
 from phoxtail.agent.models import ModelArtifact
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 from phoxtail.api.search import narrow_by_search
 
 router = Router()
@@ -49,7 +48,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: ArtifactList, 404: Error},
+    response={200: list[ArtifactSchema], 404: Error},
     summary="List model artifacts",
     auth=guarded("phoxtail_agent.view_modelartifact"),
 )
@@ -66,10 +65,7 @@ def list_artifacts(
         qs = qs.filter(is_active=is_active)
     if search:
         qs = narrow_by_search(qs, search)
-    qs = qs.order_by("sort_order")
-
-    artifacts = [artifact_detail(a) for a in qs]
-    return {"artifacts": artifacts, "total": len(artifacts)}
+    return qs.order_by("sort_order")
 
 
 @router.post(
@@ -93,7 +89,7 @@ def create_artifact(
     artifact.full_clean()
     artifact.save()
     response["ETag"] = artifact_etag(artifact)
-    return 201, artifact_detail(artifact)
+    return 201, artifact
 
 
 @router.get(
@@ -109,7 +105,7 @@ def get_artifact(
 ):
     artifact = resolve_artifact(artifact_uuid)
     response["ETag"] = artifact_etag(artifact)
-    return artifact_detail(artifact)
+    return artifact
 
 
 @router.patch(
@@ -148,7 +144,7 @@ def update_artifact(
     artifact.full_clean()
     artifact.save()
     response["ETag"] = artifact_etag(artifact)
-    return artifact_detail(artifact)
+    return artifact
 
 
 @router.delete(

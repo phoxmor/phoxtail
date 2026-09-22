@@ -21,10 +21,9 @@ from uuid import UUID
 
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 
 from phoxtail.agent.api.v1._helpers import (
-    provider_detail,
     provider_etag,
     require_if_match,
     resolve_provider,
@@ -32,7 +31,6 @@ from phoxtail.agent.api.v1._helpers import (
 from phoxtail.agent.api.v1.schemas import (
     Error,
     ProviderCreate,
-    ProviderList,
     ProviderUpdate,
 )
 from phoxtail.agent.api.v1.schemas import (
@@ -40,6 +38,7 @@ from phoxtail.agent.api.v1.schemas import (
 )
 from phoxtail.agent.models import InferenceProvider
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 from phoxtail.api.search import narrow_by_search
 
 router = Router()
@@ -47,7 +46,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: ProviderList},
+    response={200: list[ProviderSchema]},
     summary="List inference providers",
     auth=guarded("phoxtail_agent.view_inferenceprovider"),
 )
@@ -61,9 +60,7 @@ def list_providers(
         qs = qs.filter(is_active=is_active)
     if search:
         qs = narrow_by_search(qs, search)
-
-    providers = [provider_detail(p) for p in qs]
-    return {"providers": providers, "total": len(providers)}
+    return qs
 
 
 @router.post(
@@ -81,7 +78,7 @@ def create_provider(
     provider.full_clean()
     provider.save()
     response["ETag"] = provider_etag(provider)
-    return 201, provider_detail(provider)
+    return 201, provider
 
 
 @router.get(
@@ -97,7 +94,7 @@ def get_provider(
 ):
     provider = resolve_provider(provider_uuid)
     response["ETag"] = provider_etag(provider)
-    return provider_detail(provider)
+    return provider
 
 
 @router.patch(
@@ -123,7 +120,7 @@ def update_provider(
     provider.full_clean()
     provider.save()
     response["ETag"] = provider_etag(provider)
-    return provider_detail(provider)
+    return provider
 
 
 @router.delete(

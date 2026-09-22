@@ -12,10 +12,8 @@ Endpoints:
 from __future__ import annotations
 
 from django.http import HttpRequest, HttpResponse
-from ninja import Router
 
 from phoxtail.agent.api.v1._helpers import (
-    agent_setting_detail,
     agent_setting_etag,
     require_if_match,
     resolve_agent_setting,
@@ -23,6 +21,7 @@ from phoxtail.agent.api.v1._helpers import (
 )
 from phoxtail.agent.api.v1.schemas import AgentSettings, AgentSettingsUpdate, Error
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 
 router = Router()
 
@@ -36,7 +35,7 @@ router = Router()
 def get_agent_settings(request: HttpRequest, response: HttpResponse, site_id: int):
     setting = resolve_agent_setting(site_id)
     response["ETag"] = agent_setting_etag(setting)
-    return agent_setting_detail(setting)
+    return setting
 
 
 @router.patch(
@@ -63,4 +62,4 @@ def update_agent_settings(
     setting.save()
 
     response["ETag"] = agent_setting_etag(setting)
-    return agent_setting_detail(setting)
+    return setting

@@ -2,8 +2,9 @@
 
 These schemas are the stable contract for every consumer of the provider
 catalogue — the Phoxtail MCP server, the CLI, and any future client.
-Field names and shapes here are breaking-change territory: any change
-forces a v2.
+Field names and shapes here are the contract. Until phoxtail reaches 1.0 a
+breaking change stays in v1 and is announced in the changelog; from 1.0 on,
+one forces a v2.
 
 Identity convention: resources are addressed by ``uuid`` everywhere in
 the public contract. Numeric database PKs are never exposed. The one
@@ -47,10 +48,12 @@ class Provider(ProviderRef):
     created_at: datetime | None = None
     updated_at: datetime
 
-
-class ProviderList(Schema):
-    providers: list[Provider]
-    total: int
+    @staticmethod
+    def resolve_artifact_count(provider) -> int:
+        # Annotated onto list queries, so listing N providers stays one
+        # query; counted on single-object ones.
+        count = getattr(provider, "artifact_count", None)
+        return provider.artifacts.count() if count is None else count
 
 
 class ProviderCreate(Schema):
@@ -97,10 +100,16 @@ class Artifact(Schema):
     created_at: datetime | None = None
     updated_at: datetime
 
+    @staticmethod
+    def resolve_permission(artifact) -> str | None:
+        permission = artifact.permission
+        if permission is None:
+            return None
+        return f"{permission.content_type.app_label}.{permission.codename}"
 
-class ArtifactList(Schema):
-    artifacts: list[Artifact]
-    total: int
+    @staticmethod
+    def resolve_sort_order(artifact) -> int:
+        return artifact.sort_order or 0
 
 
 class ArtifactCreate(Schema):

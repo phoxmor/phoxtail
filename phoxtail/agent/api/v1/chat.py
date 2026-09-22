@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
-from ninja import Router, Schema
+from ninja import Schema
 
 if TYPE_CHECKING:
     from pydantic_ai import RunContext
@@ -33,6 +33,7 @@ from phoxtail.agent.markdown import render_chat_markdown
 from phoxtail.agent.models import AgentSiteSetting, Conversation, ModelArtifact
 from phoxtail.agent.permissions import agent_permission_policy
 from phoxtail.agent.tools import toolset_for_caller
+from phoxtail.api.pagination import Router
 
 router = Router()
 

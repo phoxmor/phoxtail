@@ -86,7 +86,7 @@ def test_provider_filter(client, provider, artifact):
     assert client.get("/agent/v1/artifacts/").json()["total"] == 2
     scoped = client.get(f"/agent/v1/artifacts/?provider_uuid={provider.uuid}").json()
     assert scoped["total"] == 1
-    assert scoped["artifacts"][0]["uuid"] == str(artifact.uuid)
+    assert scoped["items"][0]["uuid"] == str(artifact.uuid)
 
 
 def test_search_keeps_sort_order(client, provider, artifact):
@@ -100,8 +100,8 @@ def test_search_keeps_sort_order(client, provider, artifact):
     )
     body = client.get("/agent/v1/artifacts/?search=gemini").json()
     assert body["total"] == 2
-    assert [a["sort_order"] for a in body["artifacts"]] == [-1, 0]
-    assert body["artifacts"][0]["provider"]["identifier"] == "google-gemini"
+    assert [a["sort_order"] for a in body["items"]] == [-1, 0]
+    assert body["items"][0]["provider"]["identifier"] == "google-gemini"
 
 
 def test_update_requires_if_match(client, artifact):

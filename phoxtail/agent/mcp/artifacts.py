@@ -12,8 +12,10 @@ from typing import Any
 
 from phoxtail.agent.mcp._error import error_envelope
 from phoxtail.agent.mcp._http import request
+from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import PAGED, Limit, Offset
 
 
 def _with_etag(resp) -> str:
@@ -31,18 +33,26 @@ def _with_etag(resp) -> str:
         "to one provider — get UUIDs from phoxtail_agent_list_providers), "
         "`search` (prefix search on display name and identifier), "
         "`is_active`. Before updating a model, fetch it with "
-        "phoxtail_agent_get_artifact to obtain its `_etag`."
+        "phoxtail_agent_get_artifact to obtain its `_etag`. " + PAGED
     ),
 )
 def agent_list_artifacts(
     provider_uuid: str | None = None,
     search: str | None = None,
     is_active: bool | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
     resp = request(
         "GET",
         "/artifacts/",
-        params={"provider_uuid": provider_uuid, "search": search, "is_active": is_active},
+        params={
+            "provider_uuid": provider_uuid,
+            "search": search,
+            "is_active": is_active,
+            "limit": limit,
+            "offset": offset,
+        },
     )
     env = error_envelope(resp)
     if env is not None:
