@@ -10,6 +10,7 @@ from rich.console import Console
 
 from phoxtail.cli.utils.config import get_api_base_url
 from phoxtail.cli.utils.credentials import resolve_token
+from phoxtail.core.paging import DEFAULT_LIMIT
 
 if TYPE_CHECKING:
     import httpx
@@ -97,7 +98,7 @@ def list_pages(
     search: str | None = None,
     locale: str | None = None,
     site: int | None = None,
-    limit: int = 50,
+    limit: int = DEFAULT_LIMIT,
     offset: int = 0,
 ) -> dict[str, Any]:
     return request(
@@ -116,28 +117,32 @@ def list_pages(
     ).json()
 
 
-def list_images(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/images/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
+def list_images(*, search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    params = {"search": search, "limit": limit, "offset": offset}
+    return request("GET", "/images/", prefix=MEDIA_API_PREFIX, params=params).json()
 
 
-def list_documents(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/documents/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
+def list_documents(*, search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    params = {"search": search, "limit": limit, "offset": offset}
+    return request("GET", "/documents/", prefix=MEDIA_API_PREFIX, params=params).json()
 
 
-def list_videos(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/videos/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
+def list_videos(*, search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    params = {"search": search, "limit": limit, "offset": offset}
+    return request("GET", "/videos/", prefix=MEDIA_API_PREFIX, params=params).json()
 
 
-def list_audio(*, search: str | None = None, limit: int = 50) -> dict[str, Any]:
-    return request("GET", "/audio/", prefix=MEDIA_API_PREFIX, params={"search": search, "limit": limit}).json()
+def list_audio(*, search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    params = {"search": search, "limit": limit, "offset": offset}
+    return request("GET", "/audio/", prefix=MEDIA_API_PREFIX, params=params).json()
 
 
-def list_locales() -> dict[str, Any]:
-    return request("GET", "/locales/").json()
+def list_locales(*, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    return request("GET", "/locales/", params={"limit": limit, "offset": offset}).json()
 
 
-def list_sites() -> dict[str, Any]:
-    return request("GET", "/sites/").json()
+def list_sites(*, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    return request("GET", "/sites/", params={"limit": limit, "offset": offset}).json()
 
 
 def emit_json(data: Any) -> None:

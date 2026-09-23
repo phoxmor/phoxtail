@@ -8,10 +8,10 @@ for app-specific models live in the owning app instead.
 from __future__ import annotations
 
 from django.http import HttpRequest, HttpResponse
-from ninja import Body, File, Form, Query, Router, UploadedFile
+from ninja import Body, File, Form, Query, UploadedFile
 
 from phoxtail.api.auth import scoped
-from phoxtail.core.utils import public_url
+from phoxtail.api.pagination import Router
 from phoxtail.media.api.v1._permissions import (
     DOCUMENT_CHOOSE,
     IMAGE_CHOOSE,
@@ -25,16 +25,12 @@ from phoxtail.media.api.v1._permissions import (
 )
 from phoxtail.media.api.v1.schemas import (
     AudioItem,
-    AudioList,
     AudioPatch,
     DocumentItem,
-    DocumentList,
     DocumentPatch,
     ImageItem,
-    ImageList,
     ImagePatch,
     VideoItem,
-    VideoList,
     VideoPatch,
 )
 
@@ -84,7 +80,7 @@ def _upload_collection(collection_id: int | None):
 
 @router.get(
     "/images/",
-    response={200: ImageList},
+    response={200: list[ImageItem]},
     summary="Search images by title",
     auth=scoped("wagtailimages.choose_image"),
 )
@@ -92,8 +88,6 @@ def list_images(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
     collection: int | None = Query(None, description="Filter by collection id."),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     qs = choosable(image_policy(), request.auth.user, IMAGE_CHOOSE).order_by("-created_at")
     if search:
@@ -101,9 +95,7 @@ def list_images(
     if collection is not None:
         qs = qs.filter(collection_id=collection)
 
-    total = qs.count()
-    items = [_serialize_image(img) for img in qs[offset : offset + limit]]
-    return {"items": items, "total": total}
+    return qs.prefetch_related("tags")
 
 
 @router.get(
@@ -121,7 +113,7 @@ def get_image(request: HttpRequest, image_id: int):
     except Image.DoesNotExist:
         return 404, {"detail": "Image not found"}
 
-    return 200, _serialize_image(img)
+    return 200, img
 
 
 @router.post(
@@ -144,7 +136,7 @@ def upload_image(
 
     img = Image(title=title, file=file, collection=collection)
     img.save()
-    return 201, _serialize_image(img)
+    return 201, img
 
 
 @router.get(
@@ -228,7 +220,7 @@ def update_image(request: HttpRequest, image_id: int, payload: ImagePatch = Body
     if payload.tags is not None:
         img.tags.set(payload.tags)
 
-    return 200, _serialize_image(img)
+    return 200, img
 
 
 @router.delete(
@@ -258,7 +250,7 @@ def delete_image(request: HttpRequest, image_id: int):
 
 @router.get(
     "/documents/",
-    response={200: DocumentList},
+    response={200: list[DocumentItem]},
     summary="Search documents by title",
     auth=scoped("wagtaildocs.choose_document"),
 )
@@ -266,8 +258,6 @@ def list_documents(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
     collection: int | None = Query(None, description="Filter by collection id."),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     qs = choosable(document_policy(), request.auth.user, DOCUMENT_CHOOSE).order_by("-created_at")
     if search:
@@ -275,9 +265,7 @@ def list_documents(
     if collection is not None:
         qs = qs.filter(collection_id=collection)
 
-    total = qs.count()
-    items = [_serialize_document(doc) for doc in qs[offset : offset + limit]]
-    return {"items": items, "total": total}
+    return qs.prefetch_related("tags")
 
 
 @router.get(
@@ -295,7 +283,7 @@ def get_document(request: HttpRequest, document_id: int):
     except Document.DoesNotExist:
         return 404, {"detail": "Document not found"}
 
-    return 200, _serialize_document(doc)
+    return 200, doc
 
 
 @router.post(
@@ -322,7 +310,7 @@ def upload_document(
         doc.description = description
     doc.save()
     doc.get_file_size()
-    return 201, _serialize_document(doc)
+    return 201, doc
 
 
 @router.patch(
@@ -360,7 +348,7 @@ def update_document(request: HttpRequest, document_id: int, payload: DocumentPat
     if payload.tags is not None:
         doc.tags.set(payload.tags)
 
-    return 200, _serialize_document(doc)
+    return 200, doc
 
 
 @router.delete(
@@ -390,7 +378,7 @@ def delete_document(request: HttpRequest, document_id: int):
 
 @router.get(
     "/videos/",
-    response={200: VideoList},
+    response={200: list[VideoItem]},
     summary="Search videos by title",
     auth=scoped("wagtailmedia.change_media"),
 )
@@ -398,8 +386,6 @@ def list_videos(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
     collection: int | None = Query(None, description="Filter by collection id."),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     qs = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).filter(type="video").order_by("-created_at")
     if search:
@@ -407,9 +393,7 @@ def list_videos(
     if collection is not None:
         qs = qs.filter(collection_id=collection)
 
-    total = qs.count()
-    items = [_serialize_video(m) for m in qs[offset : offset + limit]]
-    return {"items": items, "total": total}
+    return qs.prefetch_related("tags")
 
 
 @router.get(
@@ -427,7 +411,7 @@ def get_video(request: HttpRequest, video_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Video not found"}
 
-    return 200, _serialize_video(m)
+    return 200, m
 
 
 @router.post(
@@ -464,7 +448,7 @@ def upload_video(
     if description:
         m.description = description
     m.save()
-    return 201, _serialize_video(m)
+    return 201, m
 
 
 @router.patch(
@@ -501,7 +485,7 @@ def update_video(request: HttpRequest, video_id: int, payload: VideoPatch = Body
     if payload.tags is not None:
         m.tags.set(payload.tags)
 
-    return 200, _serialize_video(m)
+    return 200, m
 
 
 @router.delete(
@@ -531,7 +515,7 @@ def delete_video(request: HttpRequest, video_id: int):
 
 @router.get(
     "/audio/",
-    response={200: AudioList},
+    response={200: list[AudioItem]},
     summary="Search audio files by title",
     auth=scoped("wagtailmedia.change_media"),
 )
@@ -539,8 +523,6 @@ def list_audio(
     request: HttpRequest,
     search: str | None = Query(None, description="Substring match on title."),
     collection: int | None = Query(None, description="Filter by collection id."),
-    limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     qs = choosable(media_policy(), request.auth.user, MEDIA_CHOOSE).filter(type="audio").order_by("-created_at")
     if search:
@@ -548,9 +530,7 @@ def list_audio(
     if collection is not None:
         qs = qs.filter(collection_id=collection)
 
-    total = qs.count()
-    items = [_serialize_audio(m) for m in qs[offset : offset + limit]]
-    return {"items": items, "total": total}
+    return qs.prefetch_related("tags")
 
 
 @router.get(
@@ -568,7 +548,7 @@ def get_audio(request: HttpRequest, audio_id: int):
     except Media.DoesNotExist:
         return 404, {"detail": "Audio not found"}
 
-    return 200, _serialize_audio(m)
+    return 200, m
 
 
 @router.post(
@@ -595,7 +575,7 @@ def upload_audio(
     if description:
         m.description = description
     m.save()
-    return 201, _serialize_audio(m)
+    return 201, m
 
 
 @router.patch(
@@ -632,7 +612,7 @@ def update_audio(request: HttpRequest, audio_id: int, payload: AudioPatch = Body
     if payload.tags is not None:
         m.tags.set(payload.tags)
 
-    return 200, _serialize_audio(m)
+    return 200, m
 
 
 @router.delete(
@@ -653,91 +633,3 @@ def delete_audio(request: HttpRequest, audio_id: int):
     require_instance(media_policy(), request.auth.user, "delete", m)
     m.delete()
     return 204, None
-
-
-# ---------------------------------------------------------------------------
-# Serialization helpers
-# ---------------------------------------------------------------------------
-
-
-def _serialize_image(img) -> dict:
-    has_fp = (
-        img.focal_point_x is not None
-        and img.focal_point_y is not None
-        and img.focal_point_width is not None
-        and img.focal_point_height is not None
-    )
-    return {
-        "id": img.pk,
-        "title": img.title,
-        "width": img.width,
-        "height": img.height,
-        "description": img.description or "",
-        "tags": list(img.tags.names()),
-        "focal_point": {
-            "x": img.focal_point_x,
-            "y": img.focal_point_y,
-            "width": img.focal_point_width,
-            "height": img.focal_point_height,
-        }
-        if has_fp
-        else None,
-        "file_url": _safe_url(img),
-        "collection_id": img.collection_id,
-    }
-
-
-def _serialize_document(doc) -> dict:
-    return {
-        "id": doc.pk,
-        "title": doc.title,
-        "description": getattr(doc, "description", "") or "",
-        "tags": list(doc.tags.names()),
-        "file_size": doc.file_size,
-        "filename": doc.filename,
-        "file_extension": doc.file_extension,
-        "file_url": _safe_url(doc),
-        "collection_id": doc.collection_id,
-    }
-
-
-def _serialize_video(m) -> dict:
-    return {
-        "id": m.pk,
-        "title": m.title,
-        "description": getattr(m, "description", "") or "",
-        "duration": m.duration,
-        "width": m.width,
-        "height": m.height,
-        "tags": list(m.tags.names()),
-        "file_url": _safe_url(m),
-        "thumbnail_url": _safe_url_field(m, "thumbnail"),
-        "collection_id": m.collection_id,
-    }
-
-
-def _serialize_audio(m) -> dict:
-    return {
-        "id": m.pk,
-        "title": m.title,
-        "description": getattr(m, "description", "") or "",
-        "duration": m.duration,
-        "tags": list(m.tags.names()),
-        "file_url": _safe_url(m),
-        "collection_id": m.collection_id,
-    }
-
-
-def _safe_url(obj) -> str | None:
-    return _safe_url_field(obj, "file")
-
-
-def _safe_url_field(obj, field_name: str) -> str | None:
-    f = getattr(obj, field_name, None)
-    if not f:
-        return None
-    try:
-        raw = f.url
-    except (ValueError, AttributeError):
-        return None
-    return public_url(raw)

@@ -1,14 +1,45 @@
 """Schemas for the media API.
 
-Moved verbatim from the content domain when media took ownership of its own
-surface: these describe ``PhoxtailImage``, ``PhoxtailDocument`` and
-``PhoxtailMedia``, which are this app's models, reached through Wagtail's
-swappable getters.
+These describe ``PhoxtailImage``, ``PhoxtailDocument`` and ``PhoxtailMedia``,
+this app's models, reached through Wagtail's swappable getters. Responses
+are shaped here, from the instances the endpoints return.
 """
 
 from __future__ import annotations
 
 from ninja import Schema
+
+from phoxtail.core.utils import public_url
+
+
+def file_url(obj, field_name: str = "file") -> str | None:
+    """The public URL of *obj*'s file, or None when there is none to give."""
+    stored = getattr(obj, field_name, None)
+    if not stored:
+        return None
+    try:
+        raw = stored.url
+    except (ValueError, AttributeError):
+        return None
+    return public_url(raw)
+
+
+class _Media(Schema):
+    """What every media item answers the same way."""
+
+    @staticmethod
+    def resolve_description(item) -> str:
+        return getattr(item, "description", "") or ""
+
+    @staticmethod
+    def resolve_tags(item) -> list[str]:
+        # Read through the prefetch a list makes, not tags.names(), which
+        # queries again for every row.
+        return [tag.name for tag in item.tags.all()]
+
+    @staticmethod
+    def resolve_file_url(item) -> str | None:
+        return file_url(item)
 
 
 class FocalPoint(Schema):
@@ -18,7 +49,7 @@ class FocalPoint(Schema):
     height: int
 
 
-class ImageItem(Schema):
+class ImageItem(_Media):
     id: int
     title: str
     width: int
@@ -29,10 +60,12 @@ class ImageItem(Schema):
     file_url: str | None = None
     collection_id: int | None = None
 
-
-class ImageList(Schema):
-    items: list[ImageItem]
-    total: int
+    @staticmethod
+    def resolve_focal_point(image) -> dict | None:
+        point = (image.focal_point_x, image.focal_point_y, image.focal_point_width, image.focal_point_height)
+        if any(value is None for value in point):
+            return None
+        return dict(zip(("x", "y", "width", "height"), point))
 
 
 class ImagePatch(Schema):
@@ -48,7 +81,7 @@ class ImagePatch(Schema):
 # ---------------------------------------------------------------------------
 
 
-class DocumentItem(Schema):
+class DocumentItem(_Media):
     id: int
     title: str
     description: str = ""
@@ -60,11 +93,6 @@ class DocumentItem(Schema):
     collection_id: int | None = None
 
 
-class DocumentList(Schema):
-    items: list[DocumentItem]
-    total: int
-
-
 class DocumentPatch(Schema):
     title: str | None = None
     description: str | None = None
@@ -72,7 +100,7 @@ class DocumentPatch(Schema):
     collection_id: int | None = None
 
 
-class VideoItem(Schema):
+class VideoItem(_Media):
     id: int
     title: str
     description: str = ""
@@ -84,10 +112,9 @@ class VideoItem(Schema):
     thumbnail_url: str | None = None
     collection_id: int | None = None
 
-
-class VideoList(Schema):
-    items: list[VideoItem]
-    total: int
+    @staticmethod
+    def resolve_thumbnail_url(video) -> str | None:
+        return file_url(video, "thumbnail")
 
 
 class VideoPatch(Schema):
@@ -100,7 +127,7 @@ class VideoPatch(Schema):
     collection_id: int | None = None
 
 
-class AudioItem(Schema):
+class AudioItem(_Media):
     id: int
     title: str
     description: str = ""
@@ -108,11 +135,6 @@ class AudioItem(Schema):
     tags: list[str] = []
     file_url: str | None = None
     collection_id: int | None = None
-
-
-class AudioList(Schema):
-    items: list[AudioItem]
-    total: int
 
 
 class AudioPatch(Schema):

@@ -10,6 +10,7 @@ from fastmcp.utilities.types import Image as MCPImage
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.media.mcp._http import request
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
@@ -47,20 +48,18 @@ def _resolve_upload_path(file_path: str) -> Path:
         "Search images in the media library by title. "
         "Returns {items: [{id, title, width, height, description, tags, focal_point, "
         "file_url, collection_id}, ...], total: N}. "
-        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
-        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id "
         "(use phoxtail_collections_list to browse collections). "
         "To view an image visually, call `phoxtail_images_view(image_id)` — "
         "do not curl `file_url`. "
         "The integer `id` is the value to pass wherever a block or page "
-        "field expects an Image FK."
+        "field expects an Image FK. " + PAGED
     ),
 )
 def list_images(
     search: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
     collection: int | None = None,
 ) -> str:
     params: dict = {"limit": limit, "offset": offset}
@@ -233,18 +232,16 @@ def delete_image(image_id: int) -> str:
         "Search documents in the media library by title. "
         "Returns {items: [{id, title, tags, file_size, filename, file_extension, "
         "file_url, collection_id}, ...], total: N}. "
-        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
-        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id "
         "(use phoxtail_collections_list to browse collections). "
         "The integer `id` is the value to pass wherever a block or page field "
-        "expects a Document FK."
+        "expects a Document FK. " + PAGED
     ),
 )
 def list_documents(
     search: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
     collection: int | None = None,
 ) -> str:
     params: dict = {"limit": limit, "offset": offset}
@@ -394,16 +391,14 @@ def delete_document(document_id: int) -> str:
         "Search videos in the media library by title. "
         "Returns {items: [{id, title, duration, width, height, tags, file_url, "
         "thumbnail_url, collection_id}, ...], total: N}. "
-        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
-        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id. "
-        "The integer `id` is the value to pass wherever a block or page field expects a Video FK."
+        "The integer `id` is the value to pass wherever a block or page field expects a Video FK. " + PAGED
     ),
 )
 def list_videos(
     search: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
     collection: int | None = None,
 ) -> str:
     params: dict = {"limit": limit, "offset": offset}
@@ -566,16 +561,14 @@ def delete_video(video_id: int) -> str:
     description=(
         "Search audio files in the media library by title. "
         "Returns {items: [{id, title, duration, tags, file_url, collection_id}, ...], total: N}. "
-        "Use limit (default 50, max 500) and offset to page: if total > offset + limit, "
-        "call again with offset += limit to fetch the next page. "
         "Pass collection= to filter by a specific collection id. "
-        "The integer `id` is the value to pass wherever a block or page field expects an Audio FK."
+        "The integer `id` is the value to pass wherever a block or page field expects an Audio FK. " + PAGED
     ),
 )
 def list_audio(
     search: str | None = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
     collection: int | None = None,
 ) -> str:
     params: dict = {"limit": limit, "offset": offset}

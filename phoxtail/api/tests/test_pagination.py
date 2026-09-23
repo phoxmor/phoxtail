@@ -172,7 +172,7 @@ class TestWrites:
 
 # Apps whose lists still build their own envelopes. Each app's migration
 # removes its name; the test below fails if a name stays after its app is done.
-PENDING = {"dashboard", "media"}
+PENDING = {"dashboard"}
 
 
 APPS = list(versioned_routers())
