@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from wagtail.documents import get_document_model
 
 pytestmark = pytest.mark.django_db
 
@@ -53,7 +54,11 @@ def test_a_document_carries_its_file_facts(client):
 
     read = _patch_then_read(client, "documents", uploaded["id"], {"tags": ["legal"]})
 
-    assert read["filename"] == "brief.pdf"
+    # Storage renames the file when another test saved a brief.pdf first,
+    # so the stored name is the one to compare with.
+    stored = get_document_model().objects.get(pk=uploaded["id"])
+    assert read["filename"] == stored.filename
+    assert read["filename"].startswith("brief")
     assert read["file_extension"] == "pdf"
     assert read["file_size"] == len(b"%PDF-1.4 brief")
     assert read["description"] == "A brief."
