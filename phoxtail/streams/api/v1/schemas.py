@@ -1,16 +1,36 @@
 """Pydantic v2 schemas for the streams v1 API.
 
-These schemas are the stable contract for every consumer of the API —
-the ``phoxtail`` CLI, the MCP server, and (from Phase 5 onwards) remote
-Phoxtail projects acting as sync peers. Field names and shapes here are
-breaking-change territory: any change forces a v2.
+These schemas are the contract for every consumer of the API — the
+``phoxtail`` CLI, the MCP server, and remote Phoxtail projects acting as
+sync peers. Until phoxtail reaches 1.0 a breaking change stays in v1 and is
+announced in the changelog; from 1.0 on, one forces a v2.
+
+Responses are shaped here, from the model instances the endpoints return:
+a field the model does not hold as-is has a ``resolve_<field>`` beside it.
 """
 
 from __future__ import annotations
 
+import json
+from datetime import datetime
+
 from ninja import Field, Schema
 
 from phoxtail.api.schemas import NonBlank
+from phoxtail.streams.api.v1._helpers import variant_content_hash
+from phoxtail.streams.utils import _image_url
+
+
+def _page_types(block) -> list[str]:
+    return [f"{ct.app_label}.{ct.model}" for ct in block.page_types.all()]
+
+
+def _counted(obj, relation: str) -> int:
+    # Lists annotate the count onto their query; one row counts itself.
+    if "variant_count" in obj.__dict__:
+        return obj.variant_count
+    return getattr(obj, relation).count()
+
 
 # ---------------------------------------------------------------------------
 # Shared references
@@ -25,6 +45,10 @@ class BlockRef(Schema):
     name: str
     source_app: str = ""
     page_types: list[str] = []
+
+    @staticmethod
+    def resolve_page_types(block) -> list[str]:
+        return _page_types(block)
 
 
 class VariantCollectionRef(Schema):
@@ -58,6 +82,34 @@ class VariantSummary(Schema):
     preview_mobile_dark_url: str = ""
     content_hash: str = ""
 
+    @staticmethod
+    def resolve_content_hash(variant) -> str:
+        return variant_content_hash(variant)
+
+    @staticmethod
+    def resolve_preview_desktop_light_url(variant) -> str:
+        return _image_url(variant.preview_image_desktop) or ""
+
+    @staticmethod
+    def resolve_preview_desktop_dark_url(variant) -> str:
+        return _image_url(variant.preview_image_desktop_dark) or ""
+
+    @staticmethod
+    def resolve_preview_tablet_light_url(variant) -> str:
+        return _image_url(variant.preview_image_tablet) or ""
+
+    @staticmethod
+    def resolve_preview_tablet_dark_url(variant) -> str:
+        return _image_url(variant.preview_image_tablet_dark) or ""
+
+    @staticmethod
+    def resolve_preview_mobile_light_url(variant) -> str:
+        return _image_url(variant.preview_image_mobile) or ""
+
+    @staticmethod
+    def resolve_preview_mobile_dark_url(variant) -> str:
+        return _image_url(variant.preview_image_mobile_dark) or ""
+
 
 class Variant(VariantSummary):
     """Detail-view shape for a BlockVariant. Adds the three content fields."""
@@ -65,11 +117,6 @@ class Variant(VariantSummary):
     html: str
     css: str
     javascript: str
-
-
-class VariantList(Schema):
-    variants: list[VariantSummary]
-    total: int
 
 
 class VariantCreate(Schema):
@@ -121,10 +168,9 @@ class VariantCollectionSummary(Schema):
     description: str
     variant_count: int
 
-
-class VariantCollectionList(Schema):
-    collections: list[VariantCollectionSummary]
-    total: int
+    @staticmethod
+    def resolve_variant_count(collection) -> int:
+        return _counted(collection, "variants")
 
 
 class VariantCollectionCreate(Schema):
@@ -166,6 +212,10 @@ class BlockSummary(Schema):
     source_app: str
     variant_count: int
 
+    @staticmethod
+    def resolve_variant_count(block) -> int:
+        return _counted(block, "variants")
+
 
 class BlockVariantRef(Schema):
     """Minimal variant embed used inside block detail responses."""
@@ -183,10 +233,21 @@ class Block(BlockSummary):
     field_schema: str = ""
     sort_order: int = 0
 
+    @staticmethod
+    def resolve_page_types(block) -> list[str]:
+        return _page_types(block)
 
-class BlockList(Schema):
-    blocks: list[BlockSummary]
-    total: int
+    @staticmethod
+    def resolve_variants(block) -> list:
+        return list(block.variants.select_related("collection"))
+
+    @staticmethod
+    def resolve_field_schema(block) -> str:
+        return json.dumps(block.schema.get_prep_value(), indent=2)
+
+    @staticmethod
+    def resolve_sort_order(block) -> int:
+        return block.sort_order or 0
 
 
 class BlockCreate(Schema):
@@ -239,11 +300,6 @@ class BlockCategoryItem(Schema):
     description: str
 
 
-class BlockCategoryList(Schema):
-    items: list[BlockCategoryItem]
-    total: int
-
-
 class BlockCategoryCreate(Schema):
     name: NonBlank
     slug: NonBlank
@@ -268,6 +324,10 @@ class ContextBlockRef(Schema):
     name: str
     description: str
     field_schema: str
+
+    @staticmethod
+    def resolve_field_schema(block) -> str:
+        return json.dumps(block.schema.get_prep_value(), indent=2)
 
 
 class ContextCollectionRef(Schema):
@@ -341,17 +401,28 @@ class SharedBlockSummary(Schema):
     language_code: str
     variant_id: int | None = None
     variant_identifier: str = ""
-    created_at: str
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
+
+    @staticmethod
+    def resolve_site_hostname(shared_block) -> str:
+        return shared_block.site.hostname
+
+    @staticmethod
+    def resolve_language_code(shared_block) -> str:
+        return shared_block.locale.language_code
+
+    @staticmethod
+    def resolve_variant_identifier(shared_block) -> str:
+        return shared_block.variant.identifier if shared_block.variant_id else ""
 
 
 class SharedBlock(SharedBlockSummary):
     content: str
 
-
-class SharedBlockList(Schema):
-    shared_blocks: list[SharedBlockSummary]
-    total: int
+    @staticmethod
+    def resolve_content(shared_block) -> str:
+        return json.dumps(shared_block.content.get_prep_value() or [], indent=2)
 
 
 class SharedBlockCreate(Schema):

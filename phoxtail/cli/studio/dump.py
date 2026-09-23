@@ -265,8 +265,7 @@ def dump(
 
 def _dump_collections(root: Path, *, progress: Progress) -> _Counts:
     counts = _Counts()
-    response = client.list_collections()
-    summaries = response.get("collections", [])
+    summaries = client.every_collection()
 
     collections_dir = root / "collections"
     collections_dir.mkdir(parents=True, exist_ok=True)
@@ -311,8 +310,7 @@ def _write_collection(collections_dir: Path, detail: dict) -> None:
 
 def _dump_blocks(root: Path, *, progress: Progress) -> _Counts:
     counts = _Counts()
-    response = client.list_blocks()
-    summaries = response.get("blocks", [])
+    summaries = client.every_block()
 
     blocks_dir = root / "blocks"
     blocks_dir.mkdir(parents=True, exist_ok=True)
@@ -394,8 +392,7 @@ _PREVIEW_FIELDS: list[tuple[str, str]] = [
 
 def _dump_variants(root: Path, *, progress: Progress, with_previews: bool = False) -> _Counts:
     counts = _Counts()
-    response = client.list_variants()
-    summaries = response.get("variants", [])
+    summaries = client.every_variant()
 
     blocks_dir = root / "blocks"
 

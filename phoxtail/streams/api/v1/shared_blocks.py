@@ -5,10 +5,11 @@ from __future__ import annotations
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 from phoxtail.streams.api.v1._helpers import (
     etag_matches,
     resolve_block_by_pk,
@@ -16,15 +17,13 @@ from phoxtail.streams.api.v1._helpers import (
     resolve_shared_block_by_pk,
     resolve_site,
     resolve_variant_by_pk,
-    shared_block_detail,
     shared_block_etag,
-    shared_block_summary,
 )
 from phoxtail.streams.api.v1.schemas import (
     Error,
     SharedBlock,
     SharedBlockCreate,
-    SharedBlockList,
+    SharedBlockSummary,
     SharedBlockUpdate,
 )
 from phoxtail.streams.models import SharedBlock as SharedBlockModel
@@ -34,7 +33,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: SharedBlockList},
+    response={200: list[SharedBlockSummary]},
     summary="List SharedBlocks",
     auth=guarded("phoxtail_streams.view_sharedblock"),
 )
@@ -44,8 +43,10 @@ def list_shared_blocks(
     site: int | None = Query(None, description="Filter by site ID."),
     locale: int | None = Query(None, description="Filter by locale ID."),
 ):
-    qs = SharedBlockModel.objects.select_related("block", "site", "locale", "variant").order_by(
-        "block__name", "site__hostname", "locale__language_code"
+    qs = (
+        SharedBlockModel.objects.select_related("block", "site", "locale", "variant")
+        .prefetch_related("block__page_types")
+        .order_by("block__name", "site__hostname", "locale__language_code")
     )
     if block is not None:
         qs = qs.filter(block_id=block)
@@ -53,8 +54,7 @@ def list_shared_blocks(
         qs = qs.filter(site_id=site)
     if locale is not None:
         qs = qs.filter(locale_id=locale)
-    results = [shared_block_summary(sb) for sb in qs]
-    return {"shared_blocks": results, "total": len(results)}
+    return qs
 
 
 @router.get(
@@ -66,7 +66,7 @@ def list_shared_blocks(
 def get_shared_block_by_id(request: HttpRequest, response: HttpResponse, shared_block_id: int):
     sb = resolve_shared_block_by_pk(shared_block_id)
     response["ETag"] = shared_block_etag(sb)
-    return shared_block_detail(sb)
+    return sb
 
 
 @router.post(
@@ -108,7 +108,7 @@ def create_shared_block(request: HttpRequest, response: HttpResponse, payload: S
 
     sb = resolve_shared_block_by_pk(sb.pk)
     response["ETag"] = shared_block_etag(sb)
-    return 201, shared_block_detail(sb)
+    return 201, sb
 
 
 @router.patch(
@@ -157,7 +157,7 @@ def update_shared_block_by_id(
 
     sb = resolve_shared_block_by_pk(shared_block_id)
     response["ETag"] = shared_block_etag(sb)
-    return shared_block_detail(sb)
+    return sb
 
 
 @router.delete(

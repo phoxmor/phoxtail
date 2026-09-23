@@ -24,6 +24,7 @@ from rich.console import Console
 
 from phoxtail.cli.utils.config import get_api_base_url
 from phoxtail.cli.utils.credentials import resolve_token
+from phoxtail.core.paging import DEFAULT_LIMIT, ListChanged, NotAPagedList, every_item
 
 if TYPE_CHECKING:
     import httpx
@@ -206,16 +207,53 @@ def list_variants(
     block: str | None = None,
     collection: str | None = None,
     search: str | None = None,
+    limit: int = DEFAULT_LIMIT,
+    offset: int = 0,
 ) -> dict[str, Any]:
-    return get_json("/variants/", block=block, collection=collection, search=search)
+    """One page of variants, as the API answers it."""
+    return get_json("/variants/", block=block, collection=collection, search=search, limit=limit, offset=offset)
 
 
-def list_collections(search: str | None = None) -> dict[str, Any]:
-    return get_json("/collections/", search=search)
+def list_collections(search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    """One page of collections, as the API answers it."""
+    return get_json("/collections/", search=search, limit=limit, offset=offset)
 
 
-def list_blocks(search: str | None = None) -> dict[str, Any]:
-    return get_json("/blocks/", search=search)
+def list_blocks(search: str | None = None, limit: int = DEFAULT_LIMIT, offset: int = 0) -> dict[str, Any]:
+    """One page of blocks, as the API answers it."""
+    return get_json("/blocks/", search=search, limit=limit, offset=offset)
+
+
+def _every(path: str, **filters: Any) -> list[dict[str, Any]]:
+    # Whole lists feed decisions — what to archive, which id an identifier
+    # has — so a list that moved while it was read ends the command rather
+    # than let it decide from part of the list.
+    try:
+        return every_item(lambda params: get_json(path, **params), **filters)
+    except NotAPagedList as exc:
+        console.print(
+            f"[red]Error:[/red] {path} did not answer as a paged list: the project runs a phoxtail "
+            "from before lists were paged. Upgrade it, then run this again."
+        )
+        raise typer.Exit(code=EXIT_GENERAL_FAILURE) from exc
+    except ListChanged as exc:
+        console.print(f"[red]Error:[/red] {path} changed while it was being read ({exc}). Run this again.")
+        raise typer.Exit(code=EXIT_GENERAL_FAILURE) from exc
+
+
+def every_variant() -> list[dict[str, Any]]:
+    """Every variant in the project."""
+    return _every("/variants/")
+
+
+def every_collection() -> list[dict[str, Any]]:
+    """Every collection in the project."""
+    return _every("/collections/")
+
+
+def every_block() -> list[dict[str, Any]]:
+    """Every block in the project."""
+    return _every("/blocks/")
 
 
 def get_variant_by_id(variant_id: int) -> tuple[dict[str, Any], str | None]:

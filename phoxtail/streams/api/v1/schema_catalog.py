@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from django.http import HttpRequest
-from ninja import Router
 
 from phoxtail.api.auth import authenticated
+from phoxtail.api.pagination import Router
 
 router = Router()
 

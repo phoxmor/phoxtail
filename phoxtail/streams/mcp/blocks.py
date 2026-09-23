@@ -8,6 +8,7 @@ from typing import Any
 from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.streams.mcp._http import get_json, request
 
 
@@ -15,13 +16,13 @@ from phoxtail.streams.mcp._http import get_json, request
     name="phoxtail_studio_list_blocks",
     auth=[scoped("phoxtail_streams.view_block")],
     description=(
-        "List all blocks in the project. "
+        "List the blocks in the project. "
         "A block is a structural schema (e.g. 'header_section', 'hero') "
-        "that variants implement."
+        "that variants implement. " + PAGED
     ),
 )
-def list_blocks(search: str | None = None) -> str:
-    return json.dumps(get_json("/blocks/", search=search), indent=2)
+def list_blocks(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    return json.dumps(get_json("/blocks/", search=search, limit=limit, offset=offset), indent=2)
 
 
 @mcp_server.tool(

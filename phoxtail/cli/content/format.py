@@ -7,20 +7,17 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
+from phoxtail.cli.utils.paging import page_title
+
 
 def render_pages(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/pages/``."""
     pages = data.get("items", [])
-    total = data.get("total", len(pages))
     if not pages:
         console.print("[dim]No pages found.[/dim]")
         return
 
-    if total > len(pages):
-        title = f"Pages ({len(pages)} of {total})"
-    else:
-        title = f"Pages ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Pages", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
     table.add_column("Slug", style="green", no_wrap=True)
@@ -45,13 +42,11 @@ def render_pages(data: dict[str, Any], console: Console) -> None:
 def render_locales(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/locales/``."""
     locales = data.get("items", [])
-    total = data.get("total", len(locales))
     if not locales:
         console.print("[dim]No locales found.[/dim]")
         return
 
-    title = f"Locales ({len(locales)} of {total})" if total > len(locales) else f"Locales ({total})"
-    table = Table(title=title, expand=False)
+    table = Table(title=page_title("Locales", data), expand=False)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Language Code", style="cyan", no_wrap=True)
 
@@ -63,14 +58,11 @@ def render_locales(data: dict[str, Any], console: Console) -> None:
 def render_images(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/media/v1/images/``."""
     items = data.get("items", [])
-    total = data.get("total", len(items))
     if not items:
         console.print("[dim]No images found.[/dim]")
         return
 
-    n = len(items)
-    title = f"Images ({n} of {total})" if total > n else f"Images ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Images", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
     table.add_column("Dimensions", style="green", no_wrap=True)
@@ -93,13 +85,11 @@ def render_images(data: dict[str, Any], console: Console) -> None:
 def render_documents(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/media/v1/documents/``."""
     items = data.get("items", [])
-    total = data.get("total", len(items))
     if not items:
         console.print("[dim]No documents found.[/dim]")
         return
 
-    title = f"Documents ({len(items)} of {total})" if total > len(items) else f"Documents ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Documents", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
     table.add_column("Filename", style="green", overflow="fold")
@@ -122,14 +112,11 @@ def render_documents(data: dict[str, Any], console: Console) -> None:
 def render_videos(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/media/v1/videos/``."""
     items = data.get("items", [])
-    total = data.get("total", len(items))
     if not items:
         console.print("[dim]No videos found.[/dim]")
         return
 
-    n = len(items)
-    title = f"Videos ({n} of {total})" if total > n else f"Videos ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Videos", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
     table.add_column("Duration", style="green", no_wrap=True, justify="right")
@@ -152,13 +139,11 @@ def render_videos(data: dict[str, Any], console: Console) -> None:
 def render_audio(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/media/v1/audio/``."""
     items = data.get("items", [])
-    total = data.get("total", len(items))
     if not items:
         console.print("[dim]No audio files found.[/dim]")
         return
 
-    title = f"Audio ({len(items)} of {total})" if total > len(items) else f"Audio ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Audio", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Title", style="cyan")
     table.add_column("Duration", style="green", no_wrap=True, justify="right")
@@ -208,13 +193,11 @@ def _format_size(size: int | None) -> str:
 def render_sites(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /api/cms/v1/sites/``."""
     sites = data.get("items", [])
-    total = data.get("total", len(sites))
     if not sites:
         console.print("[dim]No sites found.[/dim]")
         return
 
-    title = f"Sites ({len(sites)} of {total})" if total > len(sites) else f"Sites ({total})"
-    table = Table(title=title, expand=True)
+    table = Table(title=page_title("Sites", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Hostname", style="cyan", no_wrap=True)
     table.add_column("Port", justify="right")

@@ -8,6 +8,7 @@ from typing import Any
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.streams.mcp._http import get_json, request
 
 # -- Listing ---------------------------------------------------------------
@@ -17,20 +18,22 @@ from phoxtail.streams.mcp._http import get_json, request
     name="phoxtail_studio_list_variants",
     auth=[scoped("phoxtail_streams.view_blockvariant")],
     description=(
-        "List all block variants in the project. "
+        "List the block variants in the project. "
         "Optionally filter by block identifier and/or collection identifier. "
         "Returns a summary of each variant: id (integer), identifier (string), "
         "name, description, block, collection, is_default. "
         "IMPORTANT: when adding a block to a page body, the `variant` field "
-        "must be the integer `id`, NOT the string `identifier`."
+        "must be the integer `id`, NOT the string `identifier`. " + PAGED
     ),
 )
 def list_variants(
     block: str | None = None,
     collection: str | None = None,
     search: str | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
-    data = get_json("/variants/", block=block, collection=collection, search=search)
+    data = get_json("/variants/", block=block, collection=collection, search=search, limit=limit, offset=offset)
     return json.dumps(data, indent=2)
 
 

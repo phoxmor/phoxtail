@@ -361,8 +361,7 @@ def _load_collections(root: Path, *, force: bool = False, progress: Progress | N
 
     id_by_identifier: dict[str, int] = {}
     if force:
-        data = client.list_collections()
-        id_by_identifier = {c["identifier"]: c["id"] for c in data.get("collections", [])}
+        id_by_identifier = {c["identifier"]: c["id"] for c in client.every_collection()}
 
     for md_file in all_files:
         metadata, _ = _parse_frontmatter(md_file.read_text(encoding="utf-8"))
@@ -434,8 +433,7 @@ def _load_blocks(
 
     id_by_identifier: dict[str, int] = {}
     if force:
-        data = client.list_blocks()
-        id_by_identifier = {b["identifier"]: b["id"] for b in data.get("blocks", [])}
+        id_by_identifier = {b["identifier"]: b["id"] for b in client.every_block()}
 
     for block_dir in all_dirs:
         metadata_file = block_dir / "block.yaml"
@@ -638,13 +636,11 @@ def _load_variants(
 
     task_id = progress.add_task("[dim]Variants[/dim]", total=len(work_items)) if progress else None
 
-    blocks_data = client.list_blocks()
-    block_id_by_identifier = {b["identifier"]: b["id"] for b in blocks_data.get("blocks", [])}
+    block_id_by_identifier = {b["identifier"]: b["id"] for b in client.every_block()}
 
     variant_id_by_key: dict[tuple[str, str], int] = {}
     if force or with_previews:
-        variants_data = client.list_variants()
-        for v in variants_data.get("variants", []):
+        for v in client.every_variant():
             key = (v["block"]["identifier"], v["identifier"])
             variant_id_by_key[key] = v["id"]
 

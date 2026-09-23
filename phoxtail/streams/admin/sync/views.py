@@ -16,6 +16,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 
+from phoxtail.core.paging import ListChanged, NotAPagedList, every_item
 from phoxtail.core.utils import page_range_entries
 from phoxtail.remotes.models import Remote
 from phoxtail.remotes.permissions import remotes_permission_required
@@ -32,6 +33,39 @@ from .forms import RemoteSelectForm, SyncModeForm
 
 _T = "phoxtail_streams/admin/sync"
 _DEFAULT_LIMIT = 12
+
+
+def _remote_variants(remote: Remote, **filters) -> list[dict]:
+    """Every variant *remote* lists under *filters*, read page by page.
+
+    Raises on anything short of the whole list — a failed request, a list
+    that moved while it was read, an answer that is not a paged list — so
+    no sync state is ever decided from part of it.
+    """
+
+    def fetch(params: dict) -> dict:
+        response = httpx.get(
+            f"{remote.base_url}/api/streams/v1/variants/",
+            headers={"Authorization": f"Bearer {remote.token}"},
+            params={key: value for key, value in params.items() if value is not None},
+            timeout=15,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    return every_item(fetch, **filters)
+
+
+def _unreadable(exc: Exception) -> str:
+    """Why a remote's variants could not be read, in words for the page."""
+    if isinstance(exc, NotAPagedList):
+        return "The remote runs an older phoxtail that does not page its lists; upgrade it to sync with it."
+    if isinstance(exc, ListChanged):
+        return "The remote's variants changed while they were being read; try again."
+    if isinstance(exc, httpx.HTTPStatusError):
+        return f"Remote returned {exc.response.status_code}."
+    return f"Could not reach remote: {exc}"
 
 
 def _build_streams_paginator_ctx(offset, limit, total, remote_id, q, mode="remote"):
@@ -217,20 +251,13 @@ def admin_sync_streams(request):
         if remote_id:
             try:
                 remote = get_object_or_404(Remote, pk=remote_id)
-                rresp = httpx.get(
-                    f"{remote.base_url}/api/streams/v1/variants/",
-                    headers={"Authorization": f"Bearer {remote.token}"},
-                    timeout=15,
-                    follow_redirects=True,
-                )
-                if rresp.is_success:
-                    for rv in rresp.json().get("variants", []):
-                        rb = rv["block"]
-                        rc = rv.get("collection") or {}
-                        rkey = (rb["identifier"], rc.get("identifier"), rv["identifier"])
-                        remote_hash_map[rkey] = rv.get("content_hash") or ""
-                else:
-                    remote_error = "Could not reach remote — sync states unavailable."
+                for rv in _remote_variants(remote):
+                    rb = rv["block"]
+                    rc = rv.get("collection") or {}
+                    rkey = (rb["identifier"], rc.get("identifier"), rv["identifier"])
+                    remote_hash_map[rkey] = rv.get("content_hash") or ""
+            except (ListChanged, NotAPagedList) as exc:
+                remote_error = f"{_unreadable(exc)} Sync states unavailable."
             except Exception:
                 remote_error = "Could not reach remote — sync states unavailable."
 
@@ -281,36 +308,17 @@ def admin_sync_streams(request):
 
     # mode == "remote" — browse remote variants.
     remote = get_object_or_404(Remote, pk=remote_id)
+    # Every page of the remote's list, then this project's own filter, then
+    # this page's slice: the filter runs here, so the remote cannot page it.
     try:
-        params = {"search": q} if q else {}
-        resp = httpx.get(
-            f"{remote.base_url}/api/streams/v1/variants/",
-            headers={"Authorization": f"Bearer {remote.token}"},
-            params=params,
-            timeout=15,
-            follow_redirects=True,
-        )
+        remote_variants = _remote_variants(remote, search=q or None)
     except Exception as exc:
         return render(
             request,
             f"{_T}/partials/streams_results.html",
-            {"items": [], "error": f"Could not reach remote: {exc}", "remote_id": remote_id, "q": q, "mode": "remote"},
+            {"items": [], "error": _unreadable(exc), "remote_id": remote_id, "q": q, "mode": "remote"},
         )
 
-    if not resp.is_success:
-        return render(
-            request,
-            f"{_T}/partials/streams_results.html",
-            {
-                "items": [],
-                "error": f"Remote returned {resp.status_code}.",
-                "remote_id": remote_id,
-                "q": q,
-                "mode": "remote",
-            },
-        )
-
-    data = resp.json()
     local_app_labels = {ac.label for ac in django_apps.get_app_configs()}
     local_hash_map = {
         (v.block.identifier, v.collection.identifier if v.collection_id else None, v.identifier): variant_content_hash(
@@ -319,7 +327,7 @@ def admin_sync_streams(request):
         for v in BlockVariant.objects.select_related("block", "collection").all()
     }
     all_items = []
-    for v in data.get("variants", []):
+    for v in remote_variants:
         block = v["block"]
         # Skip variants whose block requires apps not installed in this project.
         page_type_apps = {pt.rsplit(".", 1)[0] for pt in block.get("page_types", []) if "." in pt}
@@ -543,20 +551,10 @@ def admin_sync_variant_detail(request):
             _params: dict = {"block": v.block.identifier}
             if v.collection_id:
                 _params["collection"] = v.collection.identifier
-            list_resp = httpx.get(
-                f"{remote.base_url}/api/streams/v1/variants/",
-                headers={"Authorization": f"Bearer {remote.token}"},
-                params=_params,
-                timeout=15,
-                follow_redirects=True,
-            )
-            if list_resp.is_success:
-                for rv in list_resp.json().get("variants", []):
-                    if rv["identifier"] == v.identifier:
-                        remote_variant_id = rv["id"]
-                        break
-            else:
-                sync_state = "unknown"
+            for rv in _remote_variants(remote, **_params):
+                if rv["identifier"] == v.identifier:
+                    remote_variant_id = rv["id"]
+                    break
 
             if remote_variant_id is not None and sync_state != "unknown":
                 pull_resp = httpx.get(

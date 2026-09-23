@@ -247,14 +247,14 @@ class TestMCPToolRegistration:
 
 class TestListVariants:
     def test_returns_json(self, httpx_mock: HTTPXMock):
-        payload = {"variants": [SAMPLE_VARIANT_SUMMARY], "total": 1}
-        httpx_mock.add_response(url=url("/api/streams/v1/variants/"), json=payload)
+        payload = {"items": [SAMPLE_VARIANT_SUMMARY], "total": 1}
+        httpx_mock.add_response(url=url("/api/streams/v1/variants/?limit=50&offset=0"), json=payload)
         result = json.loads(list_variants())
         assert result["total"] == 1
-        assert result["variants"][0]["identifier"] == "centered"
+        assert result["items"][0]["identifier"] == "centered"
 
     def test_passes_filters(self, httpx_mock: HTTPXMock):
-        payload = {"variants": [], "total": 0}
+        payload = {"items": [], "total": 0}
         httpx_mock.add_response(json=payload)
         list_variants(block="hero", collection="general-unsorted")
         req = httpx_mock.get_request()
@@ -262,7 +262,7 @@ class TestListVariants:
         assert "collection=general-unsorted" in str(req.url)
 
     def test_passes_search(self, httpx_mock: HTTPXMock):
-        payload = {"variants": [], "total": 0}
+        payload = {"items": [], "total": 0}
         httpx_mock.add_response(json=payload)
         list_variants(search="hero")
         req = httpx_mock.get_request()
@@ -271,13 +271,13 @@ class TestListVariants:
 
 class TestListCollections:
     def test_returns_json(self, httpx_mock: HTTPXMock):
-        payload = {"collections": [], "total": 0}
-        httpx_mock.add_response(url=url("/api/streams/v1/collections/"), json=payload)
+        payload = {"items": [], "total": 0}
+        httpx_mock.add_response(url=url("/api/streams/v1/collections/?limit=50&offset=0"), json=payload)
         result = json.loads(list_collections())
         assert result["total"] == 0
 
     def test_passes_search(self, httpx_mock: HTTPXMock):
-        payload = {"collections": [], "total": 0}
+        payload = {"items": [], "total": 0}
         httpx_mock.add_response(json=payload)
         list_collections(search="ground")
         req = httpx_mock.get_request()
@@ -286,13 +286,13 @@ class TestListCollections:
 
 class TestListBlocks:
     def test_returns_json(self, httpx_mock: HTTPXMock):
-        payload = {"blocks": [], "total": 0}
-        httpx_mock.add_response(url=url("/api/streams/v1/blocks/"), json=payload)
+        payload = {"items": [], "total": 0}
+        httpx_mock.add_response(url=url("/api/streams/v1/blocks/?limit=50&offset=0"), json=payload)
         result = json.loads(list_blocks())
         assert result["total"] == 0
 
     def test_passes_search(self, httpx_mock: HTTPXMock):
-        payload = {"blocks": [], "total": 0}
+        payload = {"items": [], "total": 0}
         httpx_mock.add_response(json=payload)
         list_blocks(search="her")
         req = httpx_mock.get_request()

@@ -6,22 +6,20 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.streams.api.v1._helpers import (
-    collection_detail,
     collection_etag,
-    collection_summary,
     etag_matches,
     resolve_collection_by_pk,
 )
 from phoxtail.streams.api.v1.schemas import (
     Error,
     VariantCollectionCreate,
-    VariantCollectionList,
     VariantCollectionSummary,
     VariantCollectionUpdate,
 )
@@ -32,7 +30,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: VariantCollectionList},
+    response={200: list[VariantCollectionSummary]},
     summary="List VariantCollections",
     auth=guarded("phoxtail_streams.view_variantcollection"),
 )
@@ -40,11 +38,10 @@ def list_collections(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on collection name and identifier."),
 ):
-    qs = VariantCollection.objects.annotate(_variant_count=Count("variants", distinct=True)).order_by("name")
+    qs = VariantCollection.objects.annotate(variant_count=Count("variants", distinct=True)).order_by("name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    collections = [collection_summary(c, c._variant_count) for c in qs]
-    return {"collections": collections, "total": len(collections)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.get(
@@ -56,7 +53,7 @@ def list_collections(
 def get_collection_by_id(request: HttpRequest, response: HttpResponse, collection_id: int):
     c = resolve_collection_by_pk(collection_id)
     response["ETag"] = collection_etag(c)
-    return collection_detail(c, c.variants.count())
+    return c
 
 
 @router.patch(
@@ -107,7 +104,7 @@ def update_collection_by_id(
     c.save()
 
     response["ETag"] = collection_etag(c)
-    return collection_detail(c, c.variants.count())
+    return c
 
 
 @router.post(
@@ -138,7 +135,7 @@ def create_collection(request: HttpRequest, response: HttpResponse, payload: Var
         raise HttpError(409, "A collection with this identifier or name already exists.")
 
     response["ETag"] = collection_etag(c)
-    return 201, collection_detail(c, 0)
+    return 201, c
 
 
 @router.delete(

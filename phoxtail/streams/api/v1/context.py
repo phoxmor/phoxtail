@@ -12,12 +12,10 @@ included in the response.
 
 from __future__ import annotations
 
-import json
-
 from django.http import HttpRequest
-from ninja import Router
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 from phoxtail.design.models import FontRole, PaletteRole
 from phoxtail.streams.api.v1._helpers import (
     resolve_block_by_pk,
@@ -65,54 +63,14 @@ def get_context(request: HttpRequest, payload: ContextRequest):
     if payload.collection_id is not None:
         collection = resolve_collection_by_pk(payload.collection_id)
 
-    schema_json = json.dumps(block.schema.get_prep_value(), indent=2)
-    references = _resolve_references(payload.references)
-
-    palette_roles = [
-        {"name": r.name, "identifier": r.identifier, "description": r.description} for r in PaletteRole.objects.all()
-    ]
-    font_roles = [
-        {"name": r.name, "identifier": r.identifier, "description": r.description} for r in FontRole.objects.all()
-    ]
-
     return {
-        "block": {
-            "identifier": block.identifier,
-            "name": block.name,
-            "description": block.description,
-            "field_schema": schema_json,
-        },
-        "collection": (
-            {
-                "identifier": collection.identifier,
-                "name": collection.name,
-                "description": collection.description,
-            }
-            if collection is not None
-            else None
-        ),
+        "block": block,
+        "collection": collection,
         "design_tokens": {
-            "palette_roles": palette_roles,
-            "font_roles": font_roles,
+            "palette_roles": list(PaletteRole.objects.all()),
+            "font_roles": list(FontRole.objects.all()),
         },
-        "references": [
-            {
-                "identifier": r.identifier,
-                "name": r.name,
-                "description": r.description,
-                "html": r.html,
-                "css": r.css,
-                "javascript": r.javascript,
-                "block": {
-                    "id": r.block.id,
-                    "identifier": r.block.identifier,
-                    "name": r.block.name,
-                    "source_app": r.block.source_app,
-                    "page_types": [f"{ct.app_label}.{ct.model}" for ct in r.block.page_types.all()],
-                },
-            }
-            for r in references
-        ],
+        "references": _resolve_references(payload.references),
     }
 
 

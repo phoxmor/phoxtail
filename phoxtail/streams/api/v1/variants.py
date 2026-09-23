@@ -10,19 +10,18 @@ from __future__ import annotations
 
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
 from wagtail.images import get_image_model
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.streams.api.v1._helpers import (
     build_variant_envelope,
     etag_matches,
     resolve_variant_by_pk,
-    variant_detail,
     variant_etag,
-    variant_summary,
 )
 from phoxtail.streams.api.v1.schemas import (
     Error,
@@ -30,7 +29,7 @@ from phoxtail.streams.api.v1.schemas import (
     PushResponse,
     Variant,
     VariantCreate,
-    VariantList,
+    VariantSummary,
     VariantUpdate,
 )
 from phoxtail.streams.models import Block, BlockVariant, VariantCollection
@@ -78,7 +77,7 @@ def push_variant(request: HttpRequest, payload: PushPayload):
 
 @router.get(
     "/",
-    response={200: VariantList},
+    response={200: list[VariantSummary]},
     summary="List BlockVariants",
     auth=guarded("phoxtail_streams.view_blockvariant"),
 )
@@ -107,10 +106,8 @@ def list_variants(
     if collection:
         qs = qs.filter(collection__identifier=collection)
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-
-    variants = [variant_summary(v) for v in qs]
-    return {"variants": variants, "total": len(variants)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -154,7 +151,7 @@ def create_variant(
         is_default=payload.is_default,
     )
     response["ETag"] = variant_etag(v)
-    return 201, variant_detail(v)
+    return 201, v
 
 
 @router.get(
@@ -170,7 +167,7 @@ def get_variant_by_id(
 ):
     v = resolve_variant_by_pk(variant_id)
     response["ETag"] = variant_etag(v)
-    return variant_detail(v)
+    return v
 
 
 @router.put(
@@ -280,7 +277,7 @@ def update_variant_by_id(
         v.save()
 
     response["ETag"] = variant_etag(v)
-    return variant_detail(v)
+    return v
 
 
 @router.delete(

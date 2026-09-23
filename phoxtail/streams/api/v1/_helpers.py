@@ -111,99 +111,6 @@ def build_variant_envelope(v: BlockVariant) -> dict:
     }
 
 
-def variant_summary(v: BlockVariant) -> dict:
-    return {
-        "id": v.id,
-        "identifier": v.identifier,
-        "name": v.name,
-        "description": v.description,
-        "is_default": v.is_default,
-        "content_hash": variant_content_hash(v),
-        "block": {
-            "id": v.block.id,
-            "identifier": v.block.identifier,
-            "name": v.block.name,
-            "source_app": v.block.source_app,
-            "page_types": [f"{ct.app_label}.{ct.model}" for ct in v.block.page_types.all()],
-        },
-        "collection": (
-            {"id": v.collection.id, "identifier": v.collection.identifier, "name": v.collection.name}
-            if v.collection_id
-            else None
-        ),
-        "preview_desktop_light_url": _image_url(v.preview_image_desktop) or "",
-        "preview_desktop_dark_url": _image_url(v.preview_image_desktop_dark) or "",
-        "preview_tablet_light_url": _image_url(v.preview_image_tablet) or "",
-        "preview_tablet_dark_url": _image_url(v.preview_image_tablet_dark) or "",
-        "preview_mobile_light_url": _image_url(v.preview_image_mobile) or "",
-        "preview_mobile_dark_url": _image_url(v.preview_image_mobile_dark) or "",
-    }
-
-
-def variant_detail(v: BlockVariant) -> dict:
-    return {
-        **variant_summary(v),
-        "html": v.html,
-        "css": v.css,
-        "javascript": v.javascript,
-    }
-
-
-def collection_summary(c: VariantCollection, variant_count: int) -> dict:
-    return {
-        "id": c.id,
-        "identifier": c.identifier,
-        "name": c.name,
-        "description": c.description,
-        "variant_count": variant_count,
-    }
-
-
-def collection_detail(c: VariantCollection, variant_count: int) -> dict:
-    return collection_summary(c, variant_count)
-
-
-def block_summary(b: Block, variant_count: int) -> dict:
-    return {
-        "id": b.id,
-        "identifier": b.identifier,
-        "name": b.name,
-        "description": b.description,
-        "group": b.group,
-        "icon": b.icon,
-        "is_shared": b.is_shared,
-        "site_slot": b.site_slot,
-        "slot_order": b.slot_order,
-        "render_in_preview": b.render_in_preview,
-        "source_app": b.source_app,
-        "variant_count": variant_count,
-    }
-
-
-def block_detail(b: Block) -> dict:
-    variants = [
-        {
-            "id": v.id,
-            "identifier": v.identifier,
-            "name": v.name,
-            "is_default": v.is_default,
-            "collection": (
-                {"id": v.collection.id, "identifier": v.collection.identifier, "name": v.collection.name}
-                if v.collection_id
-                else None
-            ),
-        }
-        for v in b.variants.all()
-    ]
-    return {
-        **block_summary(b, len(variants)),
-        "page_types": [f"{ct.app_label}.{ct.model}" for ct in b.page_types.all()],
-        "variants": variants,
-        "field_schema": json.dumps(b.schema.get_prep_value(), indent=2),
-        "sort_order": b.sort_order or 0,
-    }
-
-
 # ---------------------------------------------------------------------------
 # ETags
 # ---------------------------------------------------------------------------
@@ -378,33 +285,6 @@ def resolve_locale(pk: int):
         raise HttpError(404, f"Locale {pk} not found.") from exc
 
 
-def shared_block_summary(sb: SharedBlock) -> dict:
-    return {
-        "id": sb.id,
-        "block_id": sb.block_id,
-        "block": {
-            "id": sb.block.id,
-            "identifier": sb.block.identifier,
-            "name": sb.block.name,
-        },
-        "site_id": sb.site_id,
-        "site_hostname": sb.site.hostname,
-        "locale_id": sb.locale_id,
-        "language_code": sb.locale.language_code,
-        "variant_id": sb.variant_id,
-        "variant_identifier": sb.variant.identifier if sb.variant_id else "",
-        "created_at": sb.created_at.isoformat(),
-        "updated_at": sb.updated_at.isoformat(),
-    }
-
-
-def shared_block_detail(sb: SharedBlock) -> dict:
-    return {
-        **shared_block_summary(sb),
-        "content": json.dumps(sb.content.get_prep_value() or [], indent=2),
-    }
-
-
 def shared_block_etag(sb: SharedBlock) -> str:
     h = hashlib.sha256()
     for part in (
@@ -430,15 +310,6 @@ def resolve_block_category_by_pk(pk: int) -> BlockCategory:
         return BlockCategory.objects.get(pk=pk)
     except BlockCategory.DoesNotExist as exc:
         raise HttpError(404, f"BlockCategory {pk} not found.") from exc
-
-
-def block_category_detail(c: BlockCategory) -> dict:
-    return {
-        "id": c.id,
-        "name": c.name,
-        "slug": c.slug,
-        "description": c.description,
-    }
 
 
 def block_category_etag(c: BlockCategory) -> str:

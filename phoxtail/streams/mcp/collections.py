@@ -8,6 +8,7 @@ from typing import Any
 from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.streams.mcp._http import get_json, request
 
 
@@ -15,13 +16,13 @@ from phoxtail.streams.mcp._http import get_json, request
     name="phoxtail_studio_list_collections",
     auth=[scoped("phoxtail_streams.view_variantcollection")],
     description=(
-        "List all variant collections in the project. "
+        "List the variant collections in the project. "
         "A collection groups variants under a shared design system "
-        "(e.g. 'general-unsorted', 'material-design-3')."
+        "(e.g. 'general-unsorted', 'material-design-3'). " + PAGED
     ),
 )
-def list_collections(search: str | None = None) -> str:
-    return json.dumps(get_json("/collections/", search=search), indent=2)
+def list_collections(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    return json.dumps(get_json("/collections/", search=search, limit=limit, offset=offset), indent=2)
 
 
 @mcp_server.tool(

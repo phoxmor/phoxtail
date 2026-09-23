@@ -7,6 +7,7 @@ from typing import Any
 
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.streams.mcp._http import get_json, request
 
 
@@ -14,17 +15,19 @@ from phoxtail.streams.mcp._http import get_json, request
     name="phoxtail_studio_list_shared_blocks",
     auth=[scoped("phoxtail_streams.view_sharedblock")],
     description=(
-        "List all shared blocks. Optionally filter by block_id, site_id, or "
+        "List shared blocks. Optionally filter by block_id, site_id, or "
         "locale_id. A shared block holds the site-scoped content for a Block "
-        "that has is_shared=True — one record per (block, site, locale) triplet."
+        "that has is_shared=True — one record per (block, site, locale) triplet. " + PAGED
     ),
 )
 def list_shared_blocks(
     block_id: int | None = None,
     site_id: int | None = None,
     locale_id: int | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
-    params: dict[str, Any] = {}
+    params: dict[str, Any] = {"limit": limit, "offset": offset}
     if block_id is not None:
         params["block"] = block_id
     if site_id is not None:

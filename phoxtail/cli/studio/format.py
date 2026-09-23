@@ -16,6 +16,8 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 
+from phoxtail.cli.utils.paging import page_title
+
 # ---------------------------------------------------------------------------
 # List renderers
 # ---------------------------------------------------------------------------
@@ -23,12 +25,12 @@ from rich.text import Text
 
 def render_variants(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /variants``."""
-    variants = data.get("variants", [])
+    variants = data.get("items", [])
     if not variants:
         console.print("[dim]No variants found.[/dim]")
         return
 
-    table = Table(title=f"Variants ({len(variants)})", expand=True)
+    table = Table(title=page_title("Variants", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")
@@ -52,12 +54,12 @@ def render_variants(data: dict[str, Any], console: Console) -> None:
 
 def render_collections(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /collections``."""
-    collections = data.get("collections", [])
+    collections = data.get("items", [])
     if not collections:
         console.print("[dim]No collections found.[/dim]")
         return
 
-    table = Table(title=f"Collections ({len(collections)})", expand=True)
+    table = Table(title=page_title("Collections", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")
@@ -77,12 +79,12 @@ def render_collections(data: dict[str, Any], console: Console) -> None:
 
 def render_blocks(data: dict[str, Any], console: Console) -> None:
     """Render the output of ``GET /blocks``."""
-    blocks = data.get("blocks", [])
+    blocks = data.get("items", [])
     if not blocks:
         console.print("[dim]No blocks found.[/dim]")
         return
 
-    table = Table(title=f"Blocks ({len(blocks)})", expand=True)
+    table = Table(title=page_title("Blocks", data), expand=True)
     table.add_column("ID", style="dim", no_wrap=True, justify="right")
     table.add_column("Identifier", style="cyan", no_wrap=True)
     table.add_column("Name")

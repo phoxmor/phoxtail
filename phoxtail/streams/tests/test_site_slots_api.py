@@ -5,14 +5,14 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 from ninja.errors import HttpError
 
-from phoxtail.streams.api.v1._helpers import (
-    block_detail,
-    block_summary,
-    build_variant_envelope,
-    shared_block_etag,
-    shared_block_summary,
+from phoxtail.streams.api.v1._helpers import build_variant_envelope, shared_block_etag
+from phoxtail.streams.api.v1.schemas import Block as BlockSchema
+from phoxtail.streams.api.v1.schemas import (
+    BlockSummary,
+    SharedBlockCreate,
+    SharedBlockSummary,
+    SharedBlockUpdate,
 )
-from phoxtail.streams.api.v1.schemas import SharedBlockCreate, SharedBlockUpdate
 from phoxtail.streams.api.v1.shared_blocks import (
     create_shared_block,
     update_shared_block_by_id,
@@ -29,13 +29,14 @@ pytestmark = pytest.mark.django_db
 
 def _patch(shared_block, **fields):
     request = RequestFactory().patch("/", HTTP_IF_MATCH=shared_block_etag(shared_block))
-    return update_shared_block_by_id(request, HttpResponse(), shared_block.pk, SharedBlockUpdate(**fields))
+    updated = update_shared_block_by_id(request, HttpResponse(), shared_block.pk, SharedBlockUpdate(**fields))
+    return SharedBlockSummary.from_orm(updated).model_dump()
 
 
 class TestBlockSerializers:
     def test_summary_and_detail_carry_slot_fields(self):
         block = BlockFactory(is_shared=True, site_slot="head_start", slot_order=3, render_in_preview=False)
-        for data in (block_summary(block, 0), block_detail(block)):
+        for data in (BlockSummary.from_orm(block).model_dump(), BlockSchema.from_orm(block).model_dump()):
             assert data["site_slot"] == "head_start"
             assert data["slot_order"] == 3
             assert data["render_in_preview"] is False
@@ -46,7 +47,7 @@ class TestSharedBlockVariant:
         block = make_site_wide_block()
         variant = BlockVariantFactory(block=block, collection=None)
         row = fill_shared_content(block, variant=variant)
-        data = shared_block_summary(row)
+        data = SharedBlockSummary.from_orm(row).model_dump()
         assert data["variant_id"] == variant.pk
         assert data["variant_identifier"] == variant.identifier
 

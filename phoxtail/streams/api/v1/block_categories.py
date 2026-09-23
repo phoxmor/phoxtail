@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from django.core.exceptions import ValidationError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.streams.api.v1._helpers import (
-    block_category_detail,
     block_category_etag,
     etag_matches,
     resolve_block_by_pk,
@@ -19,7 +19,6 @@ from phoxtail.streams.api.v1._helpers import (
 from phoxtail.streams.api.v1.schemas import (
     BlockCategoryCreate,
     BlockCategoryItem,
-    BlockCategoryList,
     BlockCategoryUpdate,
     Error,
 )
@@ -40,21 +39,18 @@ class _CategoryIdsPayload(Schema):
 
 @router.get(
     "/",
-    response={200: BlockCategoryList},
+    response={200: list[BlockCategoryItem]},
     summary="List BlockCategories",
     auth=guarded("phoxtail_streams.view_blockcategory"),
 )
 def list_block_categories(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on category name."),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
 ):
     qs = BlockCategory.objects.order_by("sort_order", "name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [block_category_detail(c) for c in qs[offset : offset + limit]]
-    return {"items": items, "total": qs.count()}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -76,7 +72,7 @@ def create_block_category(request: HttpRequest, response: HttpResponse, payload:
 
     c.save()
     response["ETag"] = block_category_etag(c)
-    return 201, block_category_detail(c)
+    return 201, c
 
 
 @router.get(
@@ -88,7 +84,7 @@ def create_block_category(request: HttpRequest, response: HttpResponse, payload:
 def get_block_category(request: HttpRequest, response: HttpResponse, category_id: int):
     c = resolve_block_category_by_pk(category_id)
     response["ETag"] = block_category_etag(c)
-    return block_category_detail(c)
+    return c
 
 
 @router.patch(
@@ -135,7 +131,7 @@ def update_block_category(
 
     c.save()
     response["ETag"] = block_category_etag(c)
-    return block_category_detail(c)
+    return c
 
 
 @router.delete(
@@ -157,19 +153,17 @@ def delete_block_category(request: HttpRequest, category_id: int):
 
 @assignment_router.get(
     "/{block_id}/categories/",
-    response={200: BlockCategoryList, 404: Error},
+    response={200: list[BlockCategoryItem], 404: Error},
     summary="List categories assigned to a block",
     auth=guarded("phoxtail_streams.view_block"),
 )
 def list_block_categories_for_block(request: HttpRequest, block_id: int):
-    b = resolve_block_by_pk(block_id)
-    items = [block_category_detail(c) for c in b.categories.order_by("sort_order", "name")]
-    return {"items": items, "total": len(items)}
+    return resolve_block_by_pk(block_id).categories.order_by("sort_order", "name")
 
 
 @assignment_router.put(
     "/{block_id}/categories/",
-    response={200: BlockCategoryList, 400: Error, 404: Error},
+    response={200: list[BlockCategoryItem], 400: Error, 404: Error},
     summary="Replace the full category set for a block",
     auth=guarded("phoxtail_streams.change_block"),
 )
@@ -179,8 +173,8 @@ def set_block_categories(request: HttpRequest, block_id: int, payload: _Category
     for cat_id in payload.category_ids:
         categories.append(resolve_block_category_by_pk(cat_id))
     b.categories.set(categories)
-    items = [block_category_detail(c) for c in b.categories.order_by("sort_order", "name")]
-    return {"items": items, "total": len(items)}
+    # A write answers with the set it made, whole: it is not a page of it.
+    return list(b.categories.order_by("sort_order", "name"))
 
 
 @assignment_router.post(
@@ -195,7 +189,7 @@ def add_block_category(request: HttpRequest, response: HttpResponse, block_id: i
     if b.categories.filter(pk=c.pk).exists():
         raise HttpError(409, f"Category {category_id} is already assigned to block {block_id}.")
     b.categories.add(c)
-    return 201, block_category_detail(c)
+    return 201, c
 
 
 @assignment_router.delete(

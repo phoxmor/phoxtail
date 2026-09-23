@@ -7,8 +7,7 @@ served at ``/api/streams/v1/``.
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.streams.api.v1.block_categories import assignment_router as block_category_assignment_router
 from phoxtail.streams.api.v1.block_categories import router as block_categories_router
 from phoxtail.streams.api.v1.blocks import router as blocks_router

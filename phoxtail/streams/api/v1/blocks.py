@@ -6,15 +6,14 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.streams.api.v1._helpers import (
-    block_detail,
     block_etag,
-    block_summary,
     etag_matches,
     resolve_block_by_pk,
     resolve_page_types,
@@ -22,7 +21,7 @@ from phoxtail.streams.api.v1._helpers import (
 from phoxtail.streams.api.v1.schemas import (
     Block,
     BlockCreate,
-    BlockList,
+    BlockSummary,
     BlockUpdate,
     Error,
 )
@@ -33,7 +32,7 @@ router = Router()
 
 @router.get(
     "/",
-    response={200: BlockList},
+    response={200: list[BlockSummary]},
     summary="List Blocks",
     auth=guarded("phoxtail_streams.view_block"),
 )
@@ -41,11 +40,10 @@ def list_blocks(
     request: HttpRequest,
     search: str | None = Query(None, description="Prefix search on block name and identifier."),
 ):
-    qs = BlockModel.objects.annotate(_variant_count=Count("variants", distinct=True)).order_by("group", "name")
+    qs = BlockModel.objects.annotate(variant_count=Count("variants", distinct=True)).order_by("group", "name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    blocks = [block_summary(b, b._variant_count) for b in qs]
-    return {"blocks": blocks, "total": len(blocks)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.get(
@@ -57,7 +55,7 @@ def list_blocks(
 def get_block_by_id(request: HttpRequest, response: HttpResponse, block_id: int):
     b = resolve_block_by_pk(block_id)
     response["ETag"] = block_etag(b)
-    return block_detail(b)
+    return b
 
 
 @router.patch(
@@ -134,7 +132,7 @@ def update_block_by_id(
 
     b = resolve_block_by_pk(block_id)
     response["ETag"] = block_etag(b)
-    return block_detail(b)
+    return b
 
 
 @router.post(
@@ -178,7 +176,7 @@ def create_block(request: HttpRequest, response: HttpResponse, payload: BlockCre
 
     b = resolve_block_by_pk(b.pk)
     response["ETag"] = block_etag(b)
-    return 201, block_detail(b)
+    return 201, b
 
 
 @router.delete(

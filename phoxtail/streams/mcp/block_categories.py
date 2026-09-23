@@ -12,6 +12,7 @@ from typing import Any
 from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 from phoxtail.streams.mcp._http import get_json, request
 
 
@@ -19,14 +20,14 @@ from phoxtail.streams.mcp._http import get_json, request
     name="phoxtail_studio_list_block_categories",
     auth=[scoped("phoxtail_streams.view_blockcategory")],
     description=(
-        "List all block categories. Call this before assigning categories to a block "
+        "List block categories. Call this before assigning categories to a block "
         "to avoid creating duplicates. Categories represent broad purpose groupings "
         "(e.g. Marketing, Ecommerce, Application UI) — the vocabulary should stay small "
-        "and governed (~5–8 buckets)."
+        "and governed (~5–8 buckets). " + PAGED
     ),
 )
-def list_block_categories(search: str | None = None) -> str:
-    return json.dumps(get_json("/block-categories/", search=search), indent=2)
+def list_block_categories(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    return json.dumps(get_json("/block-categories/", search=search, limit=limit, offset=offset), indent=2)
 
 
 @mcp_server.tool(
@@ -149,7 +150,8 @@ def delete_block_category(category_id: int) -> str:
     description=(
         "Replace the full set of categories assigned to a block. "
         "Pass a list of category IDs — existing assignments not in the list will be removed. "
-        "Call phoxtail_studio_list_block_categories first to get valid IDs."
+        "Call phoxtail_studio_list_block_categories first to get valid IDs. "
+        "Returns the block's categories as they now stand, as a list."
     ),
 )
 def set_block_categories(block_id: int, category_ids: list[int]) -> str:
