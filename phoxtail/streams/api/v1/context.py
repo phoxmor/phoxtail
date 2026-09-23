@@ -104,8 +104,11 @@ def get_context(request: HttpRequest, payload: ContextRequest):
                 "css": r.css,
                 "javascript": r.javascript,
                 "block": {
+                    "id": r.block.id,
                     "identifier": r.block.identifier,
                     "name": r.block.name,
+                    "source_app": r.block.source_app,
+                    "page_types": [f"{ct.app_label}.{ct.model}" for ct in r.block.page_types.all()],
                 },
             }
             for r in references
@@ -120,7 +123,11 @@ def _resolve_references(ids: list[int]) -> list[BlockVariant]:
     resolved: list[BlockVariant] = []
     for variant_id in ids:
         try:
-            resolved.append(BlockVariant.objects.select_related("block", "collection").get(pk=variant_id))
+            resolved.append(
+                BlockVariant.objects.select_related("block", "collection")
+                .prefetch_related("block__page_types")
+                .get(pk=variant_id)
+            )
         except BlockVariant.DoesNotExist:
             from ninja.errors import HttpError
 
