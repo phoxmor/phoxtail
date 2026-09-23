@@ -9,6 +9,10 @@ in a second type system.
 
 from __future__ import annotations
 
+import json
+from datetime import datetime
+from uuid import UUID
+
 from ninja import Schema
 
 
@@ -18,23 +22,34 @@ class Error(Schema):
 
 class MenuSummary(Schema):
     id: int
-    uuid: str
+    uuid: UUID
     site_id: int
     site_hostname: str
     locale_id: int
     language_code: str
     entry_count: int
-    created_at: str
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
+
+    @staticmethod
+    def resolve_site_hostname(menu) -> str:
+        return menu.site.hostname
+
+    @staticmethod
+    def resolve_language_code(menu) -> str:
+        return menu.locale.language_code
+
+    @staticmethod
+    def resolve_entry_count(menu) -> int:
+        return len(menu.items)
 
 
 class Menu(MenuSummary):
     items: str
 
-
-class MenuList(Schema):
-    menus: list[MenuSummary]
-    total: int
+    @staticmethod
+    def resolve_items(menu) -> str:
+        return json.dumps(menu.items.get_prep_value() or [], indent=2)
 
 
 class MenuCreate(Schema):

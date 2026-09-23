@@ -171,8 +171,9 @@ class TestWrites:
 
 
 # Apps whose lists still build their own envelopes. Each app's migration
-# removes its name; the test below fails if a name stays after its app is done.
-PENDING = {"dashboard"}
+# removed its name; the tests below fail if one is added back after its app
+# is done. Empty: every phoxtail app pages every list it serves.
+PENDING: set[str] = set()
 
 
 APPS = list(versioned_routers())

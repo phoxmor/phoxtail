@@ -8,6 +8,7 @@ from phoxtail.dashboard.mcp._error import error_envelope
 from phoxtail.dashboard.mcp._http import get_json, request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 ENTRY_SHAPES = (
     "Entries are stream data: a list of {'type': ..., 'value': {...}} objects. "
@@ -30,11 +31,16 @@ ENTRY_SHAPES = (
         "List the menus shown along the top of the dashboard. A menu belongs to one "
         "site in one language. Optionally filter by `site` or `locale` ID. Returns a "
         "summary of each menu including how many entries it holds — call "
-        "phoxtail_dashboard_get_menu for the entries themselves."
+        "phoxtail_dashboard_get_menu for the entries themselves. " + PAGED
     ),
 )
-def list_menus(site: int | None = None, locale: int | None = None) -> str:
-    return json.dumps(get_json("/menus/", site=site, locale=locale), indent=2)
+def list_menus(
+    site: int | None = None,
+    locale: int | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
+) -> str:
+    return json.dumps(get_json("/menus/", site=site, locale=locale, limit=limit, offset=offset), indent=2)
 
 
 @mcp_server.tool(

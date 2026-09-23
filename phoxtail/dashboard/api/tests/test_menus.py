@@ -36,7 +36,7 @@ def test_list_filters_by_locale(client, site, locale, greek):
 
     filtered = client.get(f"/dashboard/v1/menus/?locale={greek.id}")
     assert filtered.json()["total"] == 1
-    assert filtered.json()["menus"][0]["language_code"] == "el"
+    assert filtered.json()["items"][0]["language_code"] == "el"
 
 
 def test_unknown_locale_is_404(client, site):

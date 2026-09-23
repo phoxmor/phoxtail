@@ -9,38 +9,21 @@ from uuid import UUID
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router
+from ninja import Query
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
 from phoxtail.dashboard.api.v1.schemas import (
     Error,
     Menu,
     MenuCreate,
-    MenuList,
+    MenuSummary,
     MenuUpdate,
 )
 from phoxtail.dashboard.models import Menu as MenuModel
 
 router = Router()
-
-
-def _summary(menu: MenuModel) -> dict:
-    return {
-        "id": menu.id,
-        "uuid": str(menu.uuid),
-        "site_id": menu.site_id,
-        "site_hostname": menu.site.hostname,
-        "locale_id": menu.locale_id,
-        "language_code": menu.locale.language_code,
-        "entry_count": len(menu.items),
-        "created_at": menu.created_at.isoformat(),
-        "updated_at": menu.updated_at.isoformat(),
-    }
-
-
-def _detail(menu: MenuModel) -> dict:
-    return {**_summary(menu), "items": json.dumps(menu.items.get_prep_value() or [], indent=2)}
 
 
 def _etag(menu: MenuModel) -> str:
@@ -132,7 +115,7 @@ def _format_validation_error(exc: ValidationError) -> str:
 
 @router.get(
     "/",
-    response={200: MenuList, 403: Error},
+    response={200: list[MenuSummary], 403: Error},
     auth=guarded("phoxtail_dashboard.view_menu"),
     summary="List dashboard menus",
 )
@@ -146,8 +129,7 @@ def list_menus(
         qs = qs.filter(site_id=site)
     if locale is not None:
         qs = qs.filter(locale_id=locale)
-    menus = [_summary(menu) for menu in qs]
-    return {"menus": menus, "total": len(menus)}
+    return qs
 
 
 @router.get(
@@ -159,7 +141,7 @@ def list_menus(
 def get_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID):
     menu = _resolve(menu_uuid)
     response["ETag"] = _etag(menu)
-    return _detail(menu)
+    return menu
 
 
 @router.post(
@@ -201,7 +183,7 @@ def create_menu(request: HttpRequest, response: HttpResponse, payload: MenuCreat
 
     menu = _resolve(menu.uuid)
     response["ETag"] = _etag(menu)
-    return 201, _detail(menu)
+    return 201, menu
 
 
 @router.patch(
@@ -238,7 +220,7 @@ def update_menu(request: HttpRequest, response: HttpResponse, menu_uuid: UUID, p
 
     menu = _resolve(menu_uuid)
     response["ETag"] = _etag(menu)
-    return _detail(menu)
+    return menu
 
 
 @router.delete(

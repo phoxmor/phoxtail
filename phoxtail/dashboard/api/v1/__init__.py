@@ -7,8 +7,7 @@ to the auto-mount machinery at ``/api/dashboard/v1/`` by
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.dashboard.api.v1.menus import router as menus_router
 
 router = Router()
