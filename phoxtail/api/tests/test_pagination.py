@@ -195,6 +195,13 @@ def test_every_router_is_phoxtails(name, versions):
         assert foreign == []
 
 
+def test_the_apis_own_endpoints_are_on_phoxtails_router():
+    from phoxtail.api import api
+
+    assert isinstance(api.default_router, Router)
+    assert unpaginated(api.default_router) == []
+
+
 @pytest.mark.parametrize("name, versions", APPS, ids=[name for name, _ in APPS])
 def test_every_list_is_paged(name, versions):
     found = [f"/{name}/{version}: {op}" for version, router in versions.items() for op in unpaginated(router)]

@@ -29,6 +29,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from ninja import NinjaAPI, Schema
 
 from phoxtail.api.auth import Authorize, PhoxtailSessionAuth, authenticated
+from phoxtail.api.pagination import Router
 from phoxtail.tokens.bundles import is_bundle
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
@@ -59,6 +60,10 @@ api = NinjaAPI(
         "projects acting as sync remotes."
     ),
     urls_namespace="phoxtail_api",
+    # The router the API's own endpoints (``/ping/``, ``/whoami/``) are
+    # declared on is phoxtail's too, so a list added here is paged like any
+    # app's.
+    default_router=Router(),
     docs_url="/docs/" if _docs_enabled else None,
     openapi_url="/openapi.json" if _docs_enabled else None,
     # Default-deny: an endpoint that declares no ``auth=`` admits no one.
