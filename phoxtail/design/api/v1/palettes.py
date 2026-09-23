@@ -2,21 +2,25 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
     palette_etag,
-    palette_summary,
     require_if_match,
     resolve_palette,
 )
 
 router = Router()
+
+SHADES = (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)
 
 _SHADES = (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)
 
@@ -34,13 +38,20 @@ class PaletteSummary(Schema):
     description: str
     sort_order: int
     shades: dict
-    created_at: str | None
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
 
+    @staticmethod
+    def resolve_palette_set_name(palette) -> str:
+        return palette.palette_set.name
 
-class PaletteList(Schema):
-    palettes: list[PaletteSummary]
-    total: int
+    @staticmethod
+    def resolve_sort_order(palette) -> int:
+        return palette.sort_order or 0
+
+    @staticmethod
+    def resolve_shades(palette) -> dict:
+        return {str(shade): getattr(palette, f"shade_{shade}") or "" for shade in SHADES}
 
 
 class PaletteCreate(Schema):
@@ -90,7 +101,7 @@ class Error(Schema):
 
 @router.get(
     "/",
-    response={200: PaletteList},
+    response={200: list[PaletteSummary]},
     summary="List palettes",
     auth=guarded("phoxtail_design.view_palette"),
 )
@@ -105,9 +116,8 @@ def list_palettes(
     if palette_set_id is not None:
         qs = qs.filter(palette_set_id=palette_set_id)
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [palette_summary(p) for p in qs]
-    return {"palettes": items, "total": len(items)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -136,7 +146,7 @@ def create_palette(request: HttpRequest, response: HttpResponse, payload: Palett
 
     palette.palette_set = ps
     response["ETag"] = palette_etag(palette)
-    return 201, palette_summary(palette)
+    return 201, palette
 
 
 @router.get(
@@ -148,7 +158,7 @@ def create_palette(request: HttpRequest, response: HttpResponse, payload: Palett
 def get_palette(request: HttpRequest, response: HttpResponse, palette_id: int):
     p = resolve_palette(palette_id)
     response["ETag"] = palette_etag(p)
-    return palette_summary(p)
+    return p
 
 
 @router.patch(
@@ -193,7 +203,7 @@ def patch_palette(
 
     p.refresh_from_db()
     response["ETag"] = palette_etag(p)
-    return palette_summary(p)
+    return p
 
 
 @router.delete(

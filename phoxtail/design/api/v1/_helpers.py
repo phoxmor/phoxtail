@@ -6,8 +6,6 @@ import hashlib
 
 from ninja.errors import HttpError
 
-from phoxtail.core.utils import public_url
-
 # ---------------------------------------------------------------------------
 # ETag utilities
 # ---------------------------------------------------------------------------
@@ -82,86 +80,6 @@ def font_weight_etag(w) -> str:
         w.file.name if w.file else "",
         w.updated_at.isoformat(),
     )
-
-
-# ---------------------------------------------------------------------------
-# Serializers
-# ---------------------------------------------------------------------------
-
-
-def _shades(p) -> dict:
-    return {str(s): getattr(p, f"shade_{s}") or "" for s in (50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950)}
-
-
-def palette_set_summary(ps) -> dict:
-    return {
-        "id": ps.pk,
-        "name": ps.name,
-        "identifier": ps.identifier,
-        "description": ps.description,
-        "palette_count": ps._palette_count if hasattr(ps, "_palette_count") else ps.palettes.count(),
-        "created_at": ps.created_at.isoformat() if ps.created_at else None,
-        "updated_at": ps.updated_at.isoformat(),
-    }
-
-
-def palette_summary(p) -> dict:
-    return {
-        "id": p.pk,
-        "palette_set_id": p.palette_set_id,
-        "palette_set_name": p.palette_set.name if hasattr(p, "palette_set") else "",
-        "title": p.title,
-        "description": p.description,
-        "sort_order": p.sort_order or 0,
-        "shades": _shades(p),
-        "created_at": p.created_at.isoformat() if p.created_at else None,
-        "updated_at": p.updated_at.isoformat(),
-    }
-
-
-def palette_role_summary(r) -> dict:
-    return {
-        "id": r.pk,
-        "name": r.name,
-        "identifier": r.identifier,
-        "description": r.description,
-    }
-
-
-def font_family_summary(ff) -> dict:
-    return {
-        "id": ff.pk,
-        "name": ff.name,
-        "description": ff.description,
-        "category": ff.category,
-        "fallback": ff.fallback,
-        "weight_count": ff._weight_count if hasattr(ff, "_weight_count") else ff.weights.count(),
-        "created_at": ff.created_at.isoformat() if ff.created_at else None,
-        "updated_at": ff.updated_at.isoformat(),
-    }
-
-
-def font_role_summary(r) -> dict:
-    return {
-        "id": r.pk,
-        "name": r.name,
-        "identifier": r.identifier,
-        "description": r.description,
-    }
-
-
-def font_weight_summary(w) -> dict:
-    return {
-        "id": w.pk,
-        "font_family_id": w.family_id,
-        "font_family_name": w.family.name if hasattr(w, "family") else "",
-        "weight": w.weight,
-        "style": w.style,
-        "file_url": public_url(w.file.url) if w.file else None,
-        "file_name": w.file.name if w.file else None,
-        "created_at": w.created_at.isoformat() if w.created_at else None,
-        "updated_at": w.updated_at.isoformat(),
-    }
 
 
 # ---------------------------------------------------------------------------

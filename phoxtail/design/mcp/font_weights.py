@@ -13,6 +13,7 @@ from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp._http import outbound_token, url
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 # The MCP server runs inside the Docker container (WORKDIR /app), but agents
 # run on the host. In dev mode the project root is bind-mounted at /app, so a
@@ -46,11 +47,11 @@ def _auth_headers() -> dict:
     description=(
         "List font weight entries. "
         "Pass `font_family_id` to filter to a specific family. "
-        "Returns id, font_family_id, weight (100-900), style (normal/italic), file_url."
+        "Returns id, font_family_id, weight (100-900), style (normal/italic), file_url. " + PAGED
     ),
 )
-def font_weights_list(font_family_id: int | None = None) -> str:
-    params: dict = {}
+def font_weights_list(font_family_id: int | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if font_family_id is not None:
         params["font_family_id"] = font_family_id
     resp = request("GET", "/font-weights/", params=params)

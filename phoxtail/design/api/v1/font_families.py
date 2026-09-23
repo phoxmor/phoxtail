@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from django.db import IntegrityError
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
     font_family_etag,
-    font_family_summary,
     require_if_match,
     resolve_font_family,
 )
@@ -34,13 +36,15 @@ class FontFamilySummary(Schema):
     category: str
     fallback: str
     weight_count: int
-    created_at: str | None
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
 
-
-class FontFamilyList(Schema):
-    font_families: list[FontFamilySummary]
-    total: int
+    @staticmethod
+    def resolve_weight_count(family) -> int:
+        # Annotated onto the list's query; one row counts itself.
+        if "weight_count" in family.__dict__:
+            return family.weight_count
+        return family.weights.count()
 
 
 class FontFamilyCreate(Schema):
@@ -68,7 +72,7 @@ class Error(Schema):
 
 @router.get(
     "/",
-    response={200: FontFamilyList},
+    response={200: list[FontFamilySummary]},
     summary="List font families",
     auth=guarded("phoxtail_design.view_fontfamily"),
 )
@@ -79,13 +83,12 @@ def list_font_families(
 ):
     from phoxtail.design.models import FontFamily
 
-    qs = FontFamily.objects.annotate(_weight_count=Count("weights")).order_by("name")
+    qs = FontFamily.objects.annotate(weight_count=Count("weights")).order_by("name")
     if category:
         qs = qs.filter(category=category)
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [font_family_summary(ff) for ff in qs]
-    return {"font_families": items, "total": len(items)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -111,7 +114,7 @@ def create_font_family(request: HttpRequest, response: HttpResponse, payload: Fo
         raise HttpError(409, f"A font family named '{payload.name}' already exists.")
 
     response["ETag"] = font_family_etag(ff)
-    return 201, font_family_summary(ff)
+    return 201, ff
 
 
 @router.get(
@@ -123,7 +126,7 @@ def create_font_family(request: HttpRequest, response: HttpResponse, payload: Fo
 def get_font_family(request: HttpRequest, response: HttpResponse, font_id: int):
     ff = resolve_font_family(font_id)
     response["ETag"] = font_family_etag(ff)
-    return font_family_summary(ff)
+    return ff
 
 
 @router.patch(
@@ -161,7 +164,7 @@ def patch_font_family(
 
     ff.refresh_from_db()
     response["ETag"] = font_family_etag(ff)
-    return font_family_summary(ff)
+    return ff
 
 
 @router.delete(

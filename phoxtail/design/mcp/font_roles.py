@@ -8,21 +8,22 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 @mcp_server.tool(
     name="phoxtail_font_roles_list",
     auth=[scoped("phoxtail_design.view_fontrole")],
     description=(
-        "List all semantic font roles in the design system "
+        "List semantic font roles in the design system "
         "(e.g., 'heading', 'body', 'monospace'). "
         "Roles define how font families map to CSS variable namespaces "
         "like --font-{identifier}-*. "
-        "Read these before assigning fonts to understand design system semantics."
+        "Read these before assigning fonts to understand design system semantics. " + PAGED
     ),
 )
-def font_roles_list(search: str | None = None) -> str:
-    params = {}
+def font_roles_list(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search:
         params["search"] = search
     resp = request("GET", "/font-roles/", params=params)

@@ -8,20 +8,21 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 @mcp_server.tool(
     name="phoxtail_palette_sets_list",
     auth=[scoped("phoxtail_design.view_paletteset")],
     description=(
-        "List all palette sets in the project. "
+        "List palette sets in the project. "
         "A palette set groups related palettes under a shared concept "
         "(e.g., 'tailwind', 'spring', 'autumn'). "
-        "Returns id, name, identifier, description, and palette_count for each set."
+        "Returns id, name, identifier, description, and palette_count for each set. " + PAGED
     ),
 )
-def palette_sets_list(search: str | None = None) -> str:
-    params = {}
+def palette_sets_list(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search:
         params["search"] = search
     resp = request("GET", "/palette-sets/", params=params)

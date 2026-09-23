@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
     font_role_etag,
-    font_role_summary,
     require_if_match,
     resolve_font_role,
 )
@@ -29,11 +29,6 @@ class FontRoleSummary(Schema):
     name: str
     identifier: str
     description: str
-
-
-class FontRoleList(Schema):
-    font_roles: list[FontRoleSummary]
-    total: int
 
 
 class FontRoleCreate(Schema):
@@ -59,7 +54,7 @@ class Error(Schema):
 
 @router.get(
     "/",
-    response={200: FontRoleList},
+    response={200: list[FontRoleSummary]},
     summary="List font roles",
     auth=guarded("phoxtail_design.view_fontrole"),
 )
@@ -71,9 +66,8 @@ def list_font_roles(
 
     qs = FontRole.objects.order_by("name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [font_role_summary(r) for r in qs]
-    return {"font_roles": items, "total": len(items)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -97,7 +91,7 @@ def create_font_role(request: HttpRequest, response: HttpResponse, payload: Font
             f"A font role with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = font_role_etag(r)
-    return 201, font_role_summary(r)
+    return 201, r
 
 
 @router.get(
@@ -109,7 +103,7 @@ def create_font_role(request: HttpRequest, response: HttpResponse, payload: Font
 def get_font_role(request: HttpRequest, response: HttpResponse, role_id: int):
     r = resolve_font_role(role_id)
     response["ETag"] = font_role_etag(r)
-    return font_role_summary(r)
+    return r
 
 
 @router.patch(
@@ -143,7 +137,7 @@ def patch_font_role(
         raise HttpError(409, "A font role with that name or identifier already exists.")
 
     response["ETag"] = font_role_etag(r)
-    return font_role_summary(r)
+    return r
 
 
 @router.delete(

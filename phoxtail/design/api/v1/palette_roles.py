@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
     palette_role_etag,
-    palette_role_summary,
     require_if_match,
     resolve_palette_role,
 )
@@ -29,11 +29,6 @@ class PaletteRoleSummary(Schema):
     name: str
     identifier: str
     description: str
-
-
-class PaletteRoleList(Schema):
-    palette_roles: list[PaletteRoleSummary]
-    total: int
 
 
 class PaletteRoleCreate(Schema):
@@ -59,7 +54,7 @@ class Error(Schema):
 
 @router.get(
     "/",
-    response={200: PaletteRoleList},
+    response={200: list[PaletteRoleSummary]},
     summary="List palette roles",
     auth=guarded("phoxtail_design.view_paletterole"),
 )
@@ -71,9 +66,8 @@ def list_palette_roles(
 
     qs = PaletteRole.objects.order_by("name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [palette_role_summary(r) for r in qs]
-    return {"palette_roles": items, "total": len(items)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -97,7 +91,7 @@ def create_palette_role(request: HttpRequest, response: HttpResponse, payload: P
             f"A palette role with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = palette_role_etag(r)
-    return 201, palette_role_summary(r)
+    return 201, r
 
 
 @router.get(
@@ -109,7 +103,7 @@ def create_palette_role(request: HttpRequest, response: HttpResponse, payload: P
 def get_palette_role(request: HttpRequest, response: HttpResponse, role_id: int):
     r = resolve_palette_role(role_id)
     response["ETag"] = palette_role_etag(r)
-    return palette_role_summary(r)
+    return r
 
 
 @router.patch(
@@ -143,7 +137,7 @@ def patch_palette_role(
         raise HttpError(409, "A palette role with that name or identifier already exists.")
 
     response["ETag"] = palette_role_etag(r)
-    return palette_role_summary(r)
+    return r
 
 
 @router.delete(

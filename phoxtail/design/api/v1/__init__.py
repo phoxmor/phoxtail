@@ -6,8 +6,7 @@ its ``v1``, served at ``/api/design/v1/``.
 
 from __future__ import annotations
 
-from ninja import Router
-
+from phoxtail.api.pagination import Router
 from phoxtail.design.api.v1.font_families import router as font_families_router
 from phoxtail.design.api.v1.font_roles import router as font_roles_router
 from phoxtail.design.api.v1.font_weights import router as font_weights_router

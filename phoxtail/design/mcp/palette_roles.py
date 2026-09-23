@@ -8,21 +8,22 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 @mcp_server.tool(
     name="phoxtail_palette_roles_list",
     auth=[scoped("phoxtail_design.view_paletterole")],
     description=(
-        "List all semantic palette roles in the design system "
+        "List semantic palette roles in the design system "
         "(e.g., 'primary', 'surface', 'accent'). "
         "Roles define how palettes map to CSS variable namespaces "
         "like --color-{identifier}-{shade}. "
-        "Read these before creating palettes to understand the design system semantics."
+        "Read these before creating palettes to understand the design system semantics. " + PAGED
     ),
 )
-def palette_roles_list(search: str | None = None) -> str:
-    params = {}
+def palette_roles_list(search: str | None = None, limit: Limit = DEFAULT_LIMIT, offset: Offset = 0) -> str:
+    params: dict = {"limit": limit, "offset": offset}
     if search:
         params["search"] = search
     resp = request("GET", "/palette-roles/", params=params)

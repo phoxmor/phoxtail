@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse
-from ninja import Query, Router, Schema
+from ninja import Query, Schema
 from ninja.errors import HttpError
-from wagtail.search.backends import get_search_backend
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
     palette_set_etag,
-    palette_set_summary,
     require_if_match,
     resolve_palette_set,
 )
@@ -30,13 +32,15 @@ class PaletteSetSummary(Schema):
     identifier: str
     description: str
     palette_count: int
-    created_at: str | None
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
 
-
-class PaletteSetList(Schema):
-    palette_sets: list[PaletteSetSummary]
-    total: int
+    @staticmethod
+    def resolve_palette_count(palette_set) -> int:
+        # Annotated onto the list's query; one row counts itself.
+        if "palette_count" in palette_set.__dict__:
+            return palette_set.palette_count
+        return palette_set.palettes.count()
 
 
 class PaletteSetCreate(Schema):
@@ -62,7 +66,7 @@ class Error(Schema):
 
 @router.get(
     "/",
-    response={200: PaletteSetList},
+    response={200: list[PaletteSetSummary]},
     summary="List palette sets",
     auth=guarded("phoxtail_design.view_paletteset"),
 )
@@ -74,11 +78,10 @@ def list_palette_sets(
 
     from phoxtail.design.models import PaletteSet
 
-    qs = PaletteSet.objects.annotate(_palette_count=Count("palettes")).order_by("name")
+    qs = PaletteSet.objects.annotate(palette_count=Count("palettes")).order_by("name")
     if search:
-        qs = get_search_backend().autocomplete(search, qs)
-    items = [palette_set_summary(ps) for ps in qs]
-    return {"palette_sets": items, "total": len(items)}
+        qs = narrow_by_search(qs, search)
+    return qs
 
 
 @router.post(
@@ -102,7 +105,7 @@ def create_palette_set(request: HttpRequest, response: HttpResponse, payload: Pa
             f"A palette set with name '{payload.name}' or identifier '{payload.identifier}' already exists.",
         )
     response["ETag"] = palette_set_etag(ps)
-    return 201, palette_set_summary(ps)
+    return 201, ps
 
 
 @router.get(
@@ -121,7 +124,7 @@ def get_palette_set(request: HttpRequest, response: HttpResponse, palette_set_id
     except PaletteSet.DoesNotExist:
         raise HttpError(404, f"PaletteSet {palette_set_id} not found.")
     response["ETag"] = palette_set_etag(ps)
-    return palette_set_summary(ps)
+    return ps
 
 
 @router.patch(
@@ -155,7 +158,7 @@ def patch_palette_set(
         raise HttpError(409, "A palette set with that name or identifier already exists.")
 
     response["ETag"] = palette_set_etag(ps)
-    return palette_set_summary(ps)
+    return ps
 
 
 @router.delete(

@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from django.core.files.base import ContentFile
 
-from phoxtail.design.api.v1._helpers import font_weight_summary
+from phoxtail.design.api.v1.font_weights import FontWeightSummary
 from phoxtail.design.models import FontFamily, FontWeight
 
 
@@ -21,4 +21,4 @@ def test_font_file_url_is_built_on_the_configured_origin(settings):
         family=family, weight=400, style="normal", file=ContentFile(b"wOF2", name="inter.woff2")
     )
 
-    assert font_weight_summary(weight)["file_url"] == f"https://example.com{weight.file.url}"
+    assert FontWeightSummary.from_orm(weight).file_url == f"https://example.com{weight.file.url}"

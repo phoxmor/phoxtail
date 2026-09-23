@@ -8,6 +8,7 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 _CATEGORIES = "serif, sans-serif, monospace, display, handwriting"
 
@@ -16,16 +17,18 @@ _CATEGORIES = "serif, sans-serif, monospace, display, handwriting"
     name="phoxtail_font_families_list",
     auth=[scoped("phoxtail_design.view_fontfamily")],
     description=(
-        "List all font families in the design system. "
+        "List font families in the design system. "
         "Use `category` to filter (choices: " + _CATEGORIES + "). "
-        "Returns id, name, category, fallback CSS, weight_count."
+        "Returns id, name, category, fallback CSS, weight_count. " + PAGED
     ),
 )
 def font_families_list(
     search: str | None = None,
     category: str | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
-    params: dict = {}
+    params: dict = {"limit": limit, "offset": offset}
     if search:
         params["search"] = search
     if category:

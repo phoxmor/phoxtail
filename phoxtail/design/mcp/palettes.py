@@ -8,6 +8,7 @@ from phoxtail.design.mcp._error import error_envelope
 from phoxtail.design.mcp._http import request
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 @mcp_server.tool(
@@ -17,14 +18,16 @@ from phoxtail.mcp.authorization import scoped
         "List palettes. Use `palette_set_id` to filter by set, or `search` "
         "to prefix-search by title. "
         "Each palette includes its 11 hex shades (50–950) and palette set info. "
-        "Call phoxtail_palette_sets_list first to discover available sets."
+        "Call phoxtail_palette_sets_list first to discover available sets. " + PAGED
     ),
 )
 def palettes_list(
     palette_set_id: int | None = None,
     search: str | None = None,
+    limit: Limit = DEFAULT_LIMIT,
+    offset: Offset = 0,
 ) -> str:
-    params: dict = {}
+    params: dict = {"limit": limit, "offset": offset}
     if palette_set_id is not None:
         params["palette_set_id"] = palette_set_id
     if search:

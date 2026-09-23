@@ -5,18 +5,20 @@ from __future__ import annotations
 import io
 import ipaddress
 import socket
+from datetime import datetime
 from pathlib import PurePosixPath
 from urllib.parse import urlparse
 
 from django.core.files.base import ContentFile
 from django.http import HttpRequest, HttpResponse
-from ninja import File, Query, Router, Schema, UploadedFile
+from ninja import File, Query, Schema, UploadedFile
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import guarded
+from phoxtail.api.pagination import Router
+from phoxtail.core.utils import public_url
 from phoxtail.design.api.v1._helpers import (
     font_weight_etag,
-    font_weight_summary,
     require_if_match,
     resolve_font_family,
     resolve_font_weight,
@@ -45,13 +47,24 @@ class FontWeightSummary(Schema):
     style: str
     file_url: str | None
     file_name: str | None
-    created_at: str | None
-    updated_at: str
+    created_at: datetime | None = None
+    updated_at: datetime
 
+    @staticmethod
+    def resolve_font_family_id(weight) -> int:
+        return weight.family_id
 
-class FontWeightList(Schema):
-    font_weights: list[FontWeightSummary]
-    total: int
+    @staticmethod
+    def resolve_font_family_name(weight) -> str:
+        return weight.family.name
+
+    @staticmethod
+    def resolve_file_url(weight) -> str | None:
+        return public_url(weight.file.url) if weight.file else None
+
+    @staticmethod
+    def resolve_file_name(weight) -> str | None:
+        return weight.file.name if weight.file else None
 
 
 class Error(Schema):
@@ -162,7 +175,7 @@ def _fetch_url(font_url: str) -> bytes:
 
 @router.get(
     "/",
-    response={200: FontWeightList},
+    response={200: list[FontWeightSummary]},
     summary="List font weights",
     auth=guarded("phoxtail_design.view_fontweight"),
 )
@@ -175,8 +188,7 @@ def list_font_weights(
     qs = FontWeight.objects.select_related("family").order_by("family__name", "weight", "style")
     if font_family_id is not None:
         qs = qs.filter(family_id=font_family_id)
-    items = [font_weight_summary(w) for w in qs]
-    return {"font_weights": items, "total": len(items)}
+    return qs
 
 
 @router.get(
@@ -188,7 +200,7 @@ def list_font_weights(
 def get_font_weight(request: HttpRequest, response: HttpResponse, weight_id: int):
     w = resolve_font_weight(weight_id)
     response["ETag"] = font_weight_etag(w)
-    return font_weight_summary(w)
+    return w
 
 
 @router.post(
@@ -233,7 +245,7 @@ def upload_font_weight(
 
     fw.refresh_from_db()
     response["ETag"] = font_weight_etag(fw)
-    return 201, font_weight_summary(fw)
+    return 201, fw
 
 
 @router.post(
@@ -278,7 +290,7 @@ def ingest_font_weight_from_url(
 
     fw.refresh_from_db()
     response["ETag"] = font_weight_etag(fw)
-    return 201, font_weight_summary(fw)
+    return 201, fw
 
 
 @router.delete(
