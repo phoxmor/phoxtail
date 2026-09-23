@@ -11,7 +11,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from phoxtail.api.pagination import DEFAULT_LIMIT, MAX_LIMIT
+from phoxtail.core.paging import DEFAULT_LIMIT, MAX_LIMIT
 
 Limit = Annotated[int, Field(ge=1, le=MAX_LIMIT, description="Rows to return.")]
 Offset = Annotated[int, Field(ge=0, description="Rows to skip.")]

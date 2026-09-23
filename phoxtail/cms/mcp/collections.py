@@ -16,12 +16,11 @@ from __future__ import annotations
 
 import json
 
-from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.cms.mcp._http import request
 from phoxtail.cms.mcp.pages import _write_error_envelope
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
-from phoxtail.mcp.pagination import PAGED, Limit, Offset
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 @mcp_server.tool(

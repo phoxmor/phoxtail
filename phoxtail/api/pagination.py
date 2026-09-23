@@ -24,8 +24,7 @@ from ninja.constants import NOT_SET
 from ninja.pagination import PaginationBase, paginate
 from ninja.signature.details import is_collection_type
 
-DEFAULT_LIMIT = 50
-MAX_LIMIT = 500
+from phoxtail.core.paging import DEFAULT_LIMIT, MAX_LIMIT
 
 
 class Pagination(PaginationBase):

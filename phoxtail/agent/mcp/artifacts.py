@@ -12,10 +12,9 @@ from typing import Any
 
 from phoxtail.agent.mcp._error import error_envelope
 from phoxtail.agent.mcp._http import request
-from phoxtail.api.pagination import DEFAULT_LIMIT
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
-from phoxtail.mcp.pagination import PAGED, Limit, Offset
+from phoxtail.mcp.pagination import DEFAULT_LIMIT, PAGED, Limit, Offset
 
 
 def _with_etag(resp) -> str:
