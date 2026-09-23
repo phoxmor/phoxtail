@@ -145,6 +145,27 @@ def request(
     return response
 
 
+# What the API answers when a request is refused for its content: 400 from a
+# model's own validation, 422 from the schema. load reports either and moves
+# on to the next file; anything else stops the run.
+VALIDATION = (400, 422)
+
+
+def describe(body: Any) -> str:
+    """A refusal's reason as one line of text.
+
+    A 400 carries ``detail`` as a string; a 422 carries a list of errors,
+    each locating the field it is about.
+    """
+    detail = body.get("detail") or body.get("message") if isinstance(body, dict) else body
+    if isinstance(detail, list):
+        return "; ".join(
+            f"{error.get('loc', ['?'])[-1]}: {error.get('msg', error)}" if isinstance(error, dict) else str(error)
+            for error in detail
+        )
+    return str(detail) if detail else "validation error"
+
+
 def _raise_for_error(response: httpx.Response) -> None:
     detail = _extract_detail(response)
     console.print(f"[red]Error:[/red] {detail}")
@@ -162,8 +183,8 @@ def _extract_detail(response: httpx.Response) -> str:
         if "html" in content_type:
             return f"HTTP {response.status_code} (server returned an HTML error page)"
         return response.text or f"HTTP {response.status_code}"
-    if isinstance(payload, dict):
-        return payload.get("detail") or payload.get("message") or f"HTTP {response.status_code}: {payload}"
+    if isinstance(payload, dict) and (payload.get("detail") or payload.get("message")):
+        return describe(payload)
     return f"HTTP {response.status_code}: {payload}"
 
 
@@ -232,7 +253,7 @@ def update_variant_by_id(
         f"/variants/{variant_id}/",
         json_body=body,
         headers={"If-Match": etag},
-        allow_status=(400,),
+        allow_status=VALIDATION,
     )
     return response.json(), response.status_code, response.headers.get("ETag")
 
@@ -250,7 +271,7 @@ def update_collection_by_id(
         f"/collections/{collection_id}/",
         json_body={"name": name, "description": description, "template": template},
         headers={"If-Match": etag},
-        allow_status=(400,),
+        allow_status=VALIDATION,
     )
     return response.json(), response.status_code, response.headers.get("ETag")
 
@@ -282,7 +303,7 @@ def update_block_by_id(
             "sort_order": sort_order,
         },
         headers={"If-Match": etag},
-        allow_status=(400,),
+        allow_status=VALIDATION,
     )
     return response.json(), response.status_code, response.headers.get("ETag")
 
@@ -317,7 +338,7 @@ def create_variant(
             "javascript": javascript,
             "is_default": is_default,
         },
-        allow_status=(409, 400),
+        allow_status=(409, *VALIDATION),
     )
     return response.json(), response.status_code, response.headers.get("ETag")
 
@@ -348,7 +369,7 @@ def create_collection(
             "description": description,
             "template": template,
         },
-        allow_status=(409, 400),
+        allow_status=(409, *VALIDATION),
     )
     return response.json(), response.status_code
 
@@ -383,7 +404,7 @@ def create_block(
             "schema": schema or [],
             "sort_order": sort_order,
         },
-        allow_status=(409, 400),
+        allow_status=(409, *VALIDATION),
     )
     return response.json(), response.status_code
 
@@ -507,6 +528,6 @@ def attach_variant_previews(
         f"/variants/{variant_id}/",
         json_body=image_ids,
         headers={"If-Match": etag},
-        allow_status=(400,),
+        allow_status=VALIDATION,
     )
     return response.json(), response.status_code, response.headers.get("ETag")

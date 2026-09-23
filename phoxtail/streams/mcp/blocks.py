@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
@@ -47,7 +48,8 @@ def get_block(block_id: int) -> str:
     auth=[scoped("phoxtail_streams.add_block")],
     description=(
         "Create a new block with its field schema. Requires an identifier "
-        "(unique, lowercase_with_underscores), a human-readable name, and "
+        "(unique, lowercase_with_underscores), a human-readable name, a "
+        "description, and "
         "the schema definition as a list of field objects. "
         "Use the phoxtail://schema-reference resource to see available "
         "field types and their parameters. "
@@ -61,9 +63,9 @@ def get_block(block_id: int) -> str:
     ),
 )
 def create_block(
-    identifier: str,
-    name: str,
-    description: str = "",
+    identifier: NonBlank,
+    name: NonBlank,
+    description: NonBlank,
     icon: str = "",
     group: str = "",
     is_shared: bool = False,
@@ -101,7 +103,7 @@ def create_block(
                 "detail": resp.json().get("detail", "Block already exists."),
             }
         )
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps(
             {
                 "error": "validation_error",
@@ -135,9 +137,9 @@ def create_block(
 def update_block(
     block_id: int,
     etag: str,
-    identifier: str | None = None,
-    name: str | None = None,
-    description: str | None = None,
+    identifier: NonBlank | None = None,
+    name: NonBlank | None = None,
+    description: NonBlank | None = None,
     icon: str | None = None,
     group: str | None = None,
     is_shared: bool | None = None,
@@ -208,7 +210,7 @@ def update_block(
                 ),
             }
         )
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps(
             {
                 "error": "validation_error",

@@ -162,9 +162,8 @@ def sessions_commit(
         etag=etag,
     )
 
-    if status == 400:
-        detail = updated.get("detail") or updated.get("message") or "validation error"
-        console.print(f"[red]Error:[/red] server rejected the commit: {detail}")
+    if status in client.VALIDATION:
+        console.print(f"[red]Error:[/red] server rejected the commit: {client.describe(updated)}")
         raise typer.Exit(code=1)
 
     if clean:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
@@ -49,14 +50,14 @@ def get_collection(collection_id: int) -> str:
     description=(
         "Create a new variant collection — an optional ad-hoc design-system "
         "label that variants can belong to (e.g. 'Material Design 3', 'HIG'). "
-        "Requires an identifier (unique, lowercase_with_underscores) and a "
-        "human-readable name. Returns the created collection with its ETag."
+        "Requires an identifier (unique, lowercase_with_underscores), a "
+        "human-readable name and a description. Returns the created collection with its ETag."
     ),
 )
 def create_collection(
-    identifier: str,
-    name: str,
-    description: str = "",
+    identifier: NonBlank,
+    name: NonBlank,
+    description: NonBlank,
 ) -> str:
     resp = request(
         "POST",
@@ -74,7 +75,7 @@ def create_collection(
                 "detail": resp.json().get("detail", "Collection already exists."),
             }
         )
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps(
             {
                 "error": "validation_error",
@@ -105,9 +106,9 @@ def create_collection(
 def update_collection(
     collection_id: int,
     etag: str,
-    identifier: str | None = None,
-    name: str | None = None,
-    description: str | None = None,
+    identifier: NonBlank | None = None,
+    name: NonBlank | None = None,
+    description: NonBlank | None = None,
 ) -> str:
     body: dict[str, Any] = {}
     if identifier is not None:
@@ -151,7 +152,7 @@ def update_collection(
                 ),
             }
         )
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps(
             {
                 "error": "validation_error",

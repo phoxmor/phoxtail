@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from ninja import Field, Schema
 
+from phoxtail.api.schemas import NonBlank
+
 # ---------------------------------------------------------------------------
 # Shared references
 # ---------------------------------------------------------------------------
@@ -128,9 +130,9 @@ class VariantCollectionList(Schema):
 class VariantCollectionCreate(Schema):
     """Request body for ``POST /collections/``."""
 
-    identifier: str
-    name: str
-    description: str = ""
+    identifier: NonBlank
+    name: NonBlank
+    description: NonBlank
 
 
 class VariantCollectionUpdate(Schema):
@@ -140,9 +142,9 @@ class VariantCollectionUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
-    identifier: str | None = None
-    name: str | None = None
-    description: str | None = None
+    identifier: NonBlank | None = None
+    name: NonBlank | None = None
+    description: NonBlank | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -190,9 +192,9 @@ class BlockList(Schema):
 class BlockCreate(Schema):
     """Request body for ``POST /blocks/``."""
 
-    identifier: str
-    name: str
-    description: str = ""
+    identifier: NonBlank
+    name: NonBlank
+    description: NonBlank
     icon: str = ""
     group: str = ""
     is_shared: bool = False
@@ -211,9 +213,9 @@ class BlockUpdate(Schema):
     check happens via the ``If-Match`` header, not in the body.
     """
 
-    identifier: str | None = None
-    name: str | None = None
-    description: str | None = None
+    identifier: NonBlank | None = None
+    name: NonBlank | None = None
+    description: NonBlank | None = None
     icon: str | None = None
     group: str | None = None
     is_shared: bool | None = None
@@ -243,14 +245,14 @@ class BlockCategoryList(Schema):
 
 
 class BlockCategoryCreate(Schema):
-    name: str
-    slug: str
+    name: NonBlank
+    slug: NonBlank
     description: str = ""
 
 
 class BlockCategoryUpdate(Schema):
-    name: str | None = None
-    slug: str | None = None
+    name: NonBlank | None = None
+    slug: NonBlank | None = None
     description: str | None = None
 
 

@@ -382,8 +382,8 @@ def _load_collections(root: Path, *, force: bool = False, progress: Progress | N
             name=name,
             description=description,
         )
-        if status == 400:
-            detail = body.get("detail") or body.get("message") or "validation error"
+        if status in client.VALIDATION:
+            detail = client.describe(body)
             counts.warnings.append(f"{identifier}: {detail}")
             counts.skipped_other += 1
         elif status == 409:
@@ -401,8 +401,8 @@ def _load_collections(root: Path, *, force: bool = False, progress: Progress | N
                         template=existing_body.get("template", ""),
                         etag=etag or "*",
                     )
-                    if upd_status == 400:
-                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                    if upd_status in client.VALIDATION:
+                        detail = client.describe(upd_body)
                         counts.warnings.append(f"{identifier}: {detail}")
                         counts.skipped_other += 1
                     else:
@@ -499,8 +499,8 @@ def _load_blocks(
             schema=schema,
             sort_order=metadata.get("sort_order", 0),
         )
-        if status == 400:
-            detail = body.get("detail") or body.get("message") or "validation error"
+        if status in client.VALIDATION:
+            detail = client.describe(body)
             counts.warnings.append(f"{identifier}: {detail}")
             counts.skipped_other += 1
         elif status == 409:
@@ -523,8 +523,8 @@ def _load_blocks(
                         sort_order=metadata.get("sort_order", 0),
                         etag=etag or "*",
                     )
-                    if upd_status == 400:
-                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                    if upd_status in client.VALIDATION:
+                        detail = client.describe(upd_body)
                         counts.warnings.append(f"{identifier}: {detail}")
                         counts.skipped_other += 1
                     else:
@@ -600,8 +600,8 @@ def _attach_previews(
         image_ids=image_ids,
         etag=etag or "*",
     )
-    if upd_status == 400:
-        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+    if upd_status in client.VALIDATION:
+        detail = client.describe(upd_body)
         counts.warnings.append(f"{block_identifier}/{variant_identifier}: preview attach failed: {detail}")
     return new_etag or etag
 
@@ -710,8 +710,8 @@ def _load_variants(
             javascript=javascript,
             is_default=is_default,
         )
-        if status == 400:
-            detail = body.get("detail") or body.get("message") or "validation error"
+        if status in client.VALIDATION:
+            detail = client.describe(body)
             counts.warnings.append(f"{item.block_identifier}/{identifier}: {detail}")
             counts.skipped_other += 1
         elif status == 409:
@@ -733,8 +733,8 @@ def _load_variants(
                         is_default=is_default,
                         etag=etag or "*",
                     )
-                    if upd_status == 400:
-                        detail = upd_body.get("detail") or upd_body.get("message") or "validation error"
+                    if upd_status in client.VALIDATION:
+                        detail = client.describe(upd_body)
                         counts.warnings.append(f"{item.block_identifier}/{identifier}: {detail}")
                         counts.skipped_other += 1
                     else:

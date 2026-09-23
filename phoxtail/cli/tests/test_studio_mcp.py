@@ -578,6 +578,7 @@ class TestCreateBlock:
         create_block(
             identifier="stats",
             name="Stats",
+            description="Data statistics display.",
             schema=[{"type": "char_field", "value": {"name": "title"}}],
         )
         req = httpx_mock.get_request()
@@ -590,7 +591,7 @@ class TestCreateBlock:
             status_code=409,
             json={"detail": "Block 'stats' already exists."},
         )
-        result = json.loads(create_block(identifier="stats", name="Stats"))
+        result = json.loads(create_block(identifier="stats", name="Stats", description="Data statistics display."))
         assert result["error"] == "conflict"
 
     def test_validation_error(self, httpx_mock: HTTPXMock):
@@ -602,9 +603,19 @@ class TestCreateBlock:
             create_block(
                 identifier="bad",
                 name="Bad",
+                description="Invalid schema.",
                 schema=[{"type": "bad_field", "value": {}}],
             )
         )
+        assert result["error"] == "validation_error"
+
+    def test_a_422_is_a_validation_error_too(self, httpx_mock: HTTPXMock):
+        # The schema refuses blank required text before the model sees it.
+        httpx_mock.add_response(
+            status_code=422,
+            json={"detail": [{"loc": ["body", "payload", "description"], "msg": "too short"}]},
+        )
+        result = json.loads(create_block(identifier="stats", name="Stats", description="x"))
         assert result["error"] == "validation_error"
 
 

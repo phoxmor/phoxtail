@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from phoxtail.api.schemas import NonBlank
 from phoxtail.mcp import mcp_server
 from phoxtail.mcp.authorization import scoped
 from phoxtail.streams.mcp._http import get_json, request
@@ -56,8 +57,8 @@ def get_block_category(category_id: int) -> str:
     ),
 )
 def create_block_category(
-    name: str,
-    slug: str,
+    name: NonBlank,
+    slug: NonBlank,
     description: str = "",
 ) -> str:
     resp = request(
@@ -67,7 +68,7 @@ def create_block_category(
     )
     if resp.status_code == 409:
         return json.dumps({"error": "conflict", "detail": resp.json().get("detail", "Category already exists.")})
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps({"error": "validation_error", "detail": resp.json().get("detail", "Invalid data.")})
     resp.raise_for_status()
     data = resp.json()
@@ -87,8 +88,8 @@ def create_block_category(
 def update_block_category(
     category_id: int,
     etag: str,
-    name: str | None = None,
-    slug: str | None = None,
+    name: NonBlank | None = None,
+    slug: NonBlank | None = None,
     description: str | None = None,
 ) -> str:
     body: dict[str, Any] = {}
@@ -123,7 +124,7 @@ def update_block_category(
                 ),
             }
         )
-    if resp.status_code == 400:
+    if resp.status_code in (400, 422):
         return json.dumps({"error": "validation_error", "detail": resp.json().get("detail", "Invalid data.")})
     resp.raise_for_status()
     data = resp.json()
