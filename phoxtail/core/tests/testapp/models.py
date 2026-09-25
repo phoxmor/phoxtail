@@ -14,3 +14,10 @@ class TestAdminPermission(models.Model):
             ("access_test_management", "Can access test management"),
             ("manage_test_items", "Can manage test items"),
         ]
+
+
+class Occurrence(models.Model):
+    """Something that happens at a place: a moment, and the zone of that place's clocks."""
+
+    start_datetime = models.DateTimeField()
+    zone = models.CharField(max_length=64)
