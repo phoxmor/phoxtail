@@ -17,12 +17,14 @@ The refusals are ``ValidationError``, which the API answers with 422.
 A question asked in clock times — "what starts on Sunday", "what starts
 after 18:00 on 1 Nov" — is asked of each row on its own clocks:
 :func:`filter_on_local_clocks`. Django's ``__date`` and ``Trunc`` take one
-zone per query; rows at places in different zones need one per row.
+zone per query; rows at places in different zones need one per row. Any other
+condition that depends on the clocks — "ends today or later" — is asked the same
+way: :func:`on_local_clocks`.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import UTC, date, datetime, timedelta, tzinfo
 from zoneinfo import ZoneInfo
 
@@ -95,12 +97,32 @@ def filter_on_local_clocks(queryset: QuerySet, zone_path: str, zones: Iterable, 
             )
     if not any(_is_clock_time(value) for value in lookups.values()):
         return queryset.filter(**lookups)
-    condition = Q(pk__in=[])
+    return queryset.filter(
+        on_local_clocks(
+            zone_path,
+            zones,
+            lambda zone: Q(**{lookup: _bound(lookup, value, zone) for lookup, value in lookups.items()}),
+        )
+    )
+
+
+def on_local_clocks(zone_path: str, zones: Iterable, condition: Callable[[tzinfo], Q]) -> Q:
+    """Each row held to *condition* as it reads on the clocks of the row's own zone.
+
+    *condition* is called once for each of *zones*, with that zone's clocks, and
+    the rows at that zone are held to what it returns — "ends today or later"
+    compares each row with the date on its own clocks:
+    ``lambda zone: Q(end_date__gte=timezone.localdate(timezone=zone))``.
+    *zone_path* and *zones* are as for :func:`filter_on_local_clocks`: a row in
+    a zone left out is left out. Compare with values computed for the zone, never
+    with parts of a datetime (``__date``, ``__hour``, …), which Django reads in
+    one zone for every row.
+    """
+    combined = Q(pk__in=[])
     for zone in zones:
         clocks = zone if isinstance(zone, tzinfo) else ZoneInfo(str(zone))
-        bounds = {lookup: _bound(lookup, value, clocks) for lookup, value in lookups.items()}
-        condition |= Q(**{zone_path: zone}, **bounds)
-    return queryset.filter(condition)
+        combined |= Q(**{zone_path: zone}) & condition(clocks)
+    return combined
 
 
 # Django computes these parts of a datetime in its one current zone.

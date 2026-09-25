@@ -12,8 +12,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
-from phoxtail.core.clocks import _bound, filter_on_local_clocks, localize
+from phoxtail.core.clocks import _bound, filter_on_local_clocks, localize, on_local_clocks
 from phoxtail.core.tests.testapp.models import Occurrence
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -161,6 +162,33 @@ def test_a_row_in_a_zone_left_out_is_left_out():
     )
 
     assert set(kept.values_list("zone", flat=True)) == {"Europe/Athens"}
+
+
+@pytest.mark.django_db
+def test_a_condition_is_asked_of_each_row_on_its_own_clocks():
+    now = datetime(2026, 11, 1, 22, 30, tzinfo=UTC)  # already 2 Nov in Athens, still 1 Nov in Berlin
+    _starting(
+        ("Europe/Athens", datetime(2026, 11, 2, 8, 0, tzinfo=UTC)),  # 10:00 on 2 Nov, today there
+        ("Europe/Berlin", datetime(2026, 11, 2, 9, 0, tzinfo=UTC)),  # 10:00 on 2 Nov, tomorrow there
+    )
+    asked = []
+
+    def by_the_end_of_today(zone):
+        asked.append(zone)
+        tomorrow = now.astimezone(zone).date() + timedelta(days=1)
+        return Q(start_datetime__lt=datetime.combine(tomorrow, time.min, zone))
+
+    kept = Occurrence.objects.filter(on_local_clocks("zone", ZONES, by_the_end_of_today))
+
+    assert set(kept.values_list("zone", flat=True)) == {"Europe/Athens"}
+    assert asked == [ZoneInfo(zone) for zone in ZONES]
+
+
+@pytest.mark.django_db
+def test_without_zones_no_row_is_kept():
+    _starting(("Europe/Athens", datetime(2026, 11, 2, 8, 0, tzinfo=UTC)))
+
+    assert not Occurrence.objects.filter(on_local_clocks("zone", [], lambda zone: Q())).exists()
 
 
 @pytest.mark.parametrize(
