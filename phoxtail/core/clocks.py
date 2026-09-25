@@ -13,7 +13,6 @@ the instant it names, and refuses what does not name exactly one, as pytz's
   place, and the time cannot be trusted.
 
 The refusals are ``ValidationError``, which the API answers with 422.
-:data:`ON_LOCAL_CLOCKS` states the rule for whoever sends such times.
 """
 
 from __future__ import annotations
@@ -22,13 +21,6 @@ from datetime import UTC, datetime, timedelta, tzinfo
 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-ON_LOCAL_CLOCKS = (
-    "Times of things that happen at a place are on that place's clocks: give them "
-    "without an offset, or with the place's offset at that moment; any other offset "
-    "is refused, as is a time the clocks skip or show twice. Responses give them "
-    "with the place's offset, beside its IANA `timezone`."
-)
 
 
 def localize(value: datetime, zone: tzinfo) -> datetime:
