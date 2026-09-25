@@ -189,6 +189,18 @@ def test_parts_of_a_datetime_are_refused_rather_than_read_in_one_zone(lookups):
         filter_on_local_clocks(Occurrence.objects.all(), "zone", ZONES, **lookups)
 
 
+@pytest.mark.parametrize(
+    "lookups",
+    [
+        pytest.param({"start_datetime__gte": date(2026, 11, 1)}, id="date"),
+        pytest.param({"start_datetime__in": [date(2026, 11, 1)]}, id="dates-in-a-list"),
+    ],
+)
+def test_a_date_for_a_datetime_is_refused_rather_than_read_as_midnight_utc(lookups):
+    with pytest.raises(TypeError, match="datetime"):
+        filter_on_local_clocks(Occurrence.objects.all(), "zone", ZONES, **lookups)
+
+
 # --- Every clock change of 2026 in zones that change in unusual ways.
 
 AWKWARD_ZONES = (

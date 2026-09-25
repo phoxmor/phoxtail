@@ -23,7 +23,7 @@ zone per query; rows at places in different zones need one per row.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta, tzinfo
+from datetime import UTC, date, datetime, timedelta, tzinfo
 from zoneinfo import ZoneInfo
 
 from django.core.exceptions import FieldDoesNotExist, ValidationError
@@ -87,7 +87,7 @@ def filter_on_local_clocks(queryset: QuerySet, zone_path: str, zones: Iterable, 
     an upper bound (``__lt``, ``__lte``), its second.
     """
     for lookup, value in lookups.items():
-        _refuse_parts_of_a_datetime(queryset.model, lookup)
+        _refuse_one_zone_readings(queryset.model, lookup, value)
         if isinstance(value, (list, tuple, set)) and any(_is_clock_time(item) for item in value):
             raise TypeError(
                 f"{lookup}: clock times inside a list are not read on local clocks; "
@@ -121,8 +121,12 @@ _ZONED_PARTS = {
 }
 
 
-def _refuse_parts_of_a_datetime(model, lookup: str) -> None:
-    """``TypeError`` when *lookup* takes a part of a datetime field, such as ``__date`` or ``__hour``."""
+def _refuse_one_zone_readings(model, lookup: str, value) -> None:
+    """``TypeError`` for what Django reads in one zone for every row.
+
+    That is a part of a datetime field (``__date``, ``__hour``, …), or a plain
+    date given for one, which Django reads as that midnight.
+    """
     parts = lookup.split("__")
     for position, part in enumerate(parts):
         try:
@@ -132,11 +136,19 @@ def _refuse_parts_of_a_datetime(model, lookup: str) -> None:
         if field.is_relation:
             model = field.related_model
             continue
+        if not isinstance(field, DateTimeField):
+            return
         following = parts[position + 1] if position + 1 < len(parts) else None
-        if isinstance(field, DateTimeField) and following in _ZONED_PARTS:
+        if following in _ZONED_PARTS:
             raise TypeError(
                 f"{lookup}: Django reads __{following} in one zone for every row; "
                 "compare the datetime itself with bare datetimes, such as __gte and __lt."
+            )
+        values = value if isinstance(value, (list, tuple, set)) else [value]
+        if any(isinstance(item, date) and not isinstance(item, datetime) for item in values):
+            raise TypeError(
+                f"{lookup}: Django reads a date given for a datetime as midnight in one zone; "
+                "give a bare datetime, such as datetime(2026, 11, 1)."
             )
         return
 

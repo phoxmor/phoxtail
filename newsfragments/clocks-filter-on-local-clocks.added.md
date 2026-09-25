@@ -7,5 +7,6 @@ can be at; each turns the bound into one instant, so the database still
 compares instants. A bound with an offset is kept as that one moment. A bound
 the clocks skip starts where they resume, and a repeated one is its first
 showing, or its second for an upper bound. Clock times inside a
-list (`__range`, `__in`) and parts of a datetime (`__date`, `__hour`, …),
-which Django reads in one zone, are refused with `TypeError`.
+list (`__range`, `__in`), parts of a datetime (`__date`, `__hour`, …) and a
+plain date given for a datetime, which Django reads in one zone, are refused
+with `TypeError`.
