@@ -201,9 +201,6 @@ video {
     --font-body-weight-bold: var(--font-weight-bold);
     --font-body-weight-extrabold: var(--font-weight-extrabold);
     --font-body-weight-black: var(--font-weight-black);
-
-    /* Theme-aware card background */
-    --auth-card-bg: rgb(var(--color-surface-50) / 0.8);
 }
 
 body {
@@ -211,10 +208,6 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
-        --auth-card-bg: rgb(var(--color-surface-50) / 0.05);
-    }
-
     body {
         background-color: rgb(var(--color-surface-950));
     }

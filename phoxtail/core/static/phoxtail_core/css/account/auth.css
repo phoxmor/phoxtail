@@ -21,67 +21,21 @@
     background: rgb(var(--color-surface-50));
 }
 
-.auth-bg-orbs {
+.auth-bg-embers {
     position: fixed;
     inset: 0;
     overflow: hidden;
+    pointer-events: none;
     z-index: -10;
 }
 
-.auth-bg-orb {
+.auth-bg-ember {
     position: absolute;
-    border-radius: 9999px;
-    filter: blur(48px);
-    animation: float 6s ease-in-out infinite;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 12px currentColor;
 }
-
-.auth-bg-orb--1 {
-    top: 25%;
-    left: 25%;
-    width: 18rem;
-    height: 18rem;
-    background: linear-gradient(
-        to right,
-        rgb(var(--color-primary-400) / 0.12),
-        rgb(var(--color-accent-400) / 0.12)
-    );
-}
-
-.auth-bg-orb--2 {
-    top: 75%;
-    right: 25%;
-    width: 24rem;
-    height: 24rem;
-    background: linear-gradient(
-        to right,
-        rgb(var(--color-primary-400) / 0.06),
-        rgb(var(--color-primary-400) / 0.06)
-    );
-    animation-delay: -2s;
-}
-
-.auth-bg-orb--3 {
-    bottom: 25%;
-    left: 33%;
-    width: 16rem;
-    height: 16rem;
-    background: linear-gradient(
-        to right,
-        rgb(var(--color-accent-400) / 0.05),
-        rgb(var(--color-primary-400) / 0.05)
-    );
-    animation-delay: -4s;
-}
-
-.auth-bg-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
-    background-size: 50px 50px;
-}
-
 
 /* ========================================
    AUTH PAGES – Layout
@@ -121,20 +75,22 @@
 .auth-card {
     position: relative;
     z-index: 10;
-    background: var(--auth-card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* A white layer on the glass: the card reads brighter than the
+       surface-50 page. The blur stays light, so the embers behind it still
+       glimmer through; a heavier one would smear them into nothing */
+    background:
+        linear-gradient(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.6)),
+        rgb(var(--color-surface-50) / 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 1.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    /* Tinted by the surface, so on a light page it lifts the card rather than
+       smudging the paper beneath it. The faint halo reaches every side, so
+       the top edge still reads where the card and page share a colour. */
+    box-shadow:
+        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
+        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
     padding: 2rem;
-    transition: all 0.5s ease;
-}
-
-/* Stays in the surface-50 family rather than going to pure white: the pointer
-   rests on the card for the whole time a form is being filled, so this is the
-   state that is actually seen. */
-.auth-card:hover {
-    background: rgb(var(--color-surface-50) / 0.92);
 }
 
 
@@ -662,41 +618,12 @@ select.auth-input option {
         background: rgb(var(--color-surface-950));
     }
 
-    /* Background orbs - slightly more subtle on dark surface */
-    .auth-bg-orb--1 {
-        background: linear-gradient(
-            to right,
-            rgb(var(--color-primary-700) / 0.2),
-            rgb(var(--color-accent-700) / 0.2)
-        );
-    }
-
-    .auth-bg-orb--2 {
-        background: linear-gradient(
-            to right,
-            rgb(var(--color-primary-700) / 0.08),
-            rgb(var(--color-primary-700) / 0.08)
-        );
-    }
-
-    .auth-bg-orb--3 {
-        background: linear-gradient(
-            to right,
-            rgb(var(--color-accent-700) / 0.05),
-            rgb(var(--color-primary-700) / 0.05)
-        );
-    }
-
-    /* Background grid - make it more prominent on the darker background */
-    .auth-bg-grid {
-        background-image:
-            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    }
-
     /* Card */
-    .auth-card:hover {
-        background: rgb(var(--color-surface-50) / 0.08);
+    .auth-card {
+        background: rgb(var(--color-surface-50) / 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
 
     .auth-card-shimmer {
