@@ -5,25 +5,7 @@
         <meta charset="utf-8" />
         {% block_site_slot "head_start" %}
         {% wagtail_site as current_site %}
-        {% if settings.phoxtail_cms.SiteSetting.favicon and settings.phoxtail_cms.SiteSetting.favicon_dark %}
-            {% image settings.phoxtail_cms.SiteSetting.favicon max-32x32 as favicon_img %}
-            {% image settings.phoxtail_cms.SiteSetting.favicon_dark max-32x32 as favicon_dark_img %}
-            <link rel="icon"
-                  href="{{ favicon_img.url }}"
-                  media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
-            <link rel="icon"
-                  href="{{ favicon_dark_img.url }}"
-                  media="(prefers-color-scheme: dark)" />
-        {% else %}
-            <link rel="icon"
-                  type="image/svg+xml"
-                  href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-light.svg' %}"
-                  media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
-            <link rel="icon"
-                  type="image/svg+xml"
-                  href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-dark.svg' %}"
-                  media="(prefers-color-scheme: dark)" />
-        {% endif %}
+        {% include "phoxtail_core/favicon.html" %}
         {% if settings.phoxtail_cms.SiteSetting.og_image %}
             {% image settings.phoxtail_cms.SiteSetting.og_image width-1200 as og_img %}
             <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ og_img.url }}" />

@@ -1,0 +1,24 @@
+{% load static wagtailimages_tags %}
+{% comment %}
+The site's own favicons when both are set, phoxtail's symbol otherwise, each in
+a light and a dark version. Expects `settings` in the context (get_settings).
+{% endcomment %}
+{% if settings.phoxtail_cms.SiteSetting.favicon and settings.phoxtail_cms.SiteSetting.favicon_dark %}
+    {% image settings.phoxtail_cms.SiteSetting.favicon max-32x32 as favicon_img %}
+    {% image settings.phoxtail_cms.SiteSetting.favicon_dark max-32x32 as favicon_dark_img %}
+    <link rel="icon"
+          href="{{ favicon_img.url }}"
+          media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+    <link rel="icon"
+          href="{{ favicon_dark_img.url }}"
+          media="(prefers-color-scheme: dark)" />
+{% else %}
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-light.svg' %}"
+          media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)" />
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{% static 'phoxtail_core/phoxtail/logo/symbol-on-dark.svg' %}"
+          media="(prefers-color-scheme: dark)" />
+{% endif %}
