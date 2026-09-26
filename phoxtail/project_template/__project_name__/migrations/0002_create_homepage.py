@@ -39,68 +39,109 @@ _HTML = """\
     <main class="phxt-main-content">
         <div class="phxt-hero">
             <div class="phxt-phoenix-wrap" data-phxt-phoenix>
-                <svg class="phxt-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+                <svg class="phxt-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                     <defs>
-                        <radialGradient id="phxt-body-g-{{ block.id }}" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" stop-color="rgb(var(--color-accent-50))"/>
-                            <stop offset="60%" stop-color="rgb(var(--color-surface-500))"/>
-                            <stop offset="100%" stop-color="rgb(var(--color-surface-600))"/>
+                        <!-- One light, from the upper left, shapes every rounded part;
+                             the body's tones are set in the stylesheet -->
+                        <radialGradient id="phxt-body-g-{{ block.id }}" cx="38%" cy="30%" r="75%">
+                            <stop class="phxt-body-light" offset="0%"/>
+                            <stop class="phxt-body-mid" offset="50%"/>
+                            <stop class="phxt-body-shade" offset="100%"/>
                         </radialGradient>
+                        <linearGradient id="phxt-wing-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop class="phxt-body-mid" offset="0%"/>
+                            <stop class="phxt-body-shade" offset="100%"/>
+                        </linearGradient>
+                        <radialGradient id="phxt-shell-g-{{ block.id }}" cx="35%" cy="30%" r="85%">
+                            <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
+                            <stop offset="65%" stop-color="rgb(var(--color-surface-100))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-300))"/>
+                        </radialGradient>
+                        <radialGradient id="phxt-eye-g-{{ block.id }}" cx="50%" cy="60%" r="60%">
+                            <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
+                            <stop offset="75%" stop-color="rgb(var(--color-surface-100))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-300))"/>
+                        </radialGradient>
+                        <!-- The crest is lit like the rest: each feather deepens toward its root -->
+                        <linearGradient id="phxt-flame-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="rgb(var(--color-primary-600))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-primary-300))"/>
+                        </linearGradient>
+                        <linearGradient id="phxt-flame-core-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="rgb(var(--color-primary-500))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-secondary-200))"/>
+                        </linearGradient>
+                        <linearGradient id="phxt-feather-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="rgb(var(--color-surface-600))"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-surface-400))"/>
+                        </linearGradient>
+                        <!-- The halo's colour is set per theme in the stylesheet -->
                         <radialGradient id="phxt-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0.3"/>
-                            <stop offset="100%" stop-color="rgb(var(--color-surface-200))" stop-opacity="0"/>
+                            <stop class="phxt-halo-core" offset="0%"/>
+                            <stop class="phxt-halo-mid" offset="50%"/>
+                            <stop class="phxt-halo-edge" offset="100%"/>
                         </radialGradient>
                         <radialGradient id="phxt-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0.5"/>
-                            <stop offset="100%" stop-color="rgb(var(--color-primary-500))" stop-opacity="0"/>
+                            <stop offset="0%" stop-color="rgb(var(--color-primary-400))" stop-opacity="0.4"/>
+                            <stop offset="100%" stop-color="rgb(var(--color-primary-400))" stop-opacity="0"/>
                         </radialGradient>
-                        <linearGradient id="phxt-shell-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
-                            <stop offset="100%" stop-color="rgb(var(--color-surface-200))"/>
-                        </linearGradient>
-                        <filter id="phxt-shadow-{{ block.id }}" x="-10%" y="-10%" width="120%" height="120%">
-                            <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="rgb(var(--color-surface-900))" flood-opacity="0.12"/>
+                        <filter id="phxt-soft-{{ block.id }}" x="-50%" y="-100%" width="200%" height="300%">
+                            <feGaussianBlur stdDeviation="3"/>
                         </filter>
+                        <!-- Pupils stay inside the eye, however far they look -->
+                        <clipPath id="phxt-eye-l-{{ block.id }}"><circle cx="78" cy="88" r="14"/></clipPath>
+                        <clipPath id="phxt-eye-r-{{ block.id }}"><circle cx="122" cy="88" r="14"/></clipPath>
                     </defs>
 
                     <circle cx="100" cy="120" r="90" fill="url(#phxt-glow-g-{{ block.id }})"/>
-                    <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#phxt-body-g-{{ block.id }})"/>
+                    <ellipse class="phxt-ground" cx="100" cy="190" rx="36" ry="4.5" fill="rgb(var(--color-surface-900))" opacity="0.07" filter="url(#phxt-soft-{{ block.id }})"/>
 
-                    <path class="phxt-wing phxt-wing-l" d="M62,135 C35,125 40,150 65,155 Z" fill="rgb(var(--color-surface-600))"/>
-                    <path class="phxt-wing phxt-wing-r" d="M138,135 C165,125 160,150 135,155 Z" fill="rgb(var(--color-surface-600))"/>
+                    <g class="phxt-bird">
+                        <!-- The wings grow from behind the body, so its curve is their joint -->
+                        <path class="phxt-wing phxt-wing-l" d="M74,136 C58,132 46,146 52,152 C58,158 68,158 74,156 Z" fill="url(#phxt-wing-g-{{ block.id }})"/>
+                        <path class="phxt-wing phxt-wing-r" d="M126,136 C142,132 154,146 148,152 C142,158 132,158 126,156 Z" fill="url(#phxt-wing-g-{{ block.id }})"/>
 
-                    <circle cx="100" cy="88" r="44" fill="url(#phxt-body-g-{{ block.id }})"/>
+                        <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#phxt-body-g-{{ block.id }})"/>
 
-                    <g class="phxt-crest">
-                        <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="rgb(var(--color-primary-500))"/>
-                        <path d="M100,44 C105,15 120,5 120,5 C115,20 108,35 104,46 Z" fill="rgb(var(--color-surface-500))"/>
-                        <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="rgb(var(--color-secondary-300))"/>
-                    </g>
+                        <ellipse cx="100" cy="131" rx="30" ry="6" fill="rgb(var(--color-surface-900))" opacity="0.15" filter="url(#phxt-soft-{{ block.id }})"/>
+                        <!-- The crest grows from behind the crown, so the head hides every root -->
+                        <g class="phxt-crest">
+                            <path d="M98,47 C105,16 118,5 118,5 C113,20 104.5,36 101.3,48 Z" fill="url(#phxt-feather-g-{{ block.id }})"/>
+                            <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="url(#phxt-flame-g-{{ block.id }})"/>
+                            <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="url(#phxt-flame-core-g-{{ block.id }})"/>
+                        </g>
 
-                    <circle cx="70" cy="102" r="11" fill="url(#phxt-cheek-g-{{ block.id }})"/>
-                    <circle cx="130" cy="102" r="11" fill="url(#phxt-cheek-g-{{ block.id }})"/>
+                        <circle cx="100" cy="88" r="44" fill="url(#phxt-body-g-{{ block.id }})"/>
 
-                    <g class="phxt-eyes-wrap" data-phxt-eyes-wrap>
-                        <g class="phxt-eye" data-phxt-eye="left">
-                            <circle cx="78" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                            <g class="phxt-pupil-group" data-phxt-pupil>
-                                <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
-                                <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
-                                <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
+                        <circle cx="71" cy="104" r="10" fill="url(#phxt-cheek-g-{{ block.id }})"/>
+                        <circle cx="129" cy="104" r="10" fill="url(#phxt-cheek-g-{{ block.id }})"/>
+
+                        <g class="phxt-eyes-wrap" data-phxt-eyes-wrap>
+                            <g class="phxt-eye phxt-eye-l" data-phxt-eye="left">
+                                <g clip-path="url(#phxt-eye-l-{{ block.id }})">
+                                    <circle cx="78" cy="88" r="14" fill="url(#phxt-eye-g-{{ block.id }})"/>
+                                    <g class="phxt-pupil-group" data-phxt-pupil>
+                                        <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
+                                        <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
+                                        <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
+                                    </g>
+                                </g>
+                            </g>
+                            <g class="phxt-eye phxt-eye-r" data-phxt-eye="right">
+                                <g clip-path="url(#phxt-eye-r-{{ block.id }})">
+                                    <circle cx="122" cy="88" r="14" fill="url(#phxt-eye-g-{{ block.id }})"/>
+                                    <g class="phxt-pupil-group" data-phxt-pupil>
+                                        <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
+                                        <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
+                                        <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
+                                    </g>
+                                </g>
                             </g>
                         </g>
-                        <g class="phxt-eye" data-phxt-eye="right">
-                            <circle cx="122" cy="88" r="14" fill="rgb(var(--color-surface-100))"/>
-                            <g class="phxt-pupil-group" data-phxt-pupil>
-                                <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
-                                <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
-                                <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
-                            </g>
-                        </g>
-                    </g>
 
-                    <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
-                    <path class="phxt-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#phxt-shell-g-{{ block.id }})" filter="url(#phxt-shadow-{{ block.id }})"/>
+                        <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
+                        <path class="phxt-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#phxt-shell-g-{{ block.id }})"/>
+                    </g>
                 </svg>
             </div>
 
@@ -125,7 +166,7 @@ _HTML = """\
                     {% if block.value.cta_text %}
                         {{ block.value.cta_text }}
                     {% else %}
-                        Open Dashboard
+                        Open dashboard
                     {% endif %}
                 </span>
             </a>
@@ -174,19 +215,6 @@ _CSS = """\
     --sys-color-surface: var(--color-surface-50);
     --sys-color-on-surface: var(--color-surface-900);
     --sys-color-on-surface-variant: var(--color-surface-600);
-    --sys-color-outline-variant: var(--color-surface-200);
-
-    /* Tonal Surfaces */
-    --sys-color-surface-container-lowest: 255, 255, 255;
-    --sys-color-surface-container-low: var(--color-surface-100);
-    --sys-color-surface-container: var(--color-surface-200);
-    --sys-color-surface-container-high: var(--color-surface-300);
-
-    /* Primary Colors */
-    --sys-color-primary: var(--color-primary-600);
-    --sys-color-on-primary: 255, 255, 255;
-    --sys-color-primary-container: var(--color-primary-100);
-    --sys-color-on-primary-container: var(--color-primary-900);
 
     position: relative;
     display: flex;
@@ -221,7 +249,7 @@ _CSS = """\
 }
 
 #phxt-hatch-{{ block.id }} .phxt-top-bar-inner {
-    max-width: 1280px;
+    max-width: 1024px; /* Lines up with the cards below */
     margin: 0 auto;
     width: 100%;
     display: flex;
@@ -246,9 +274,14 @@ _CSS = """\
     font-family: var(--font-ui, system-ui, sans-serif);
     font-weight: var(--font-ui-weight-medium, 500);
     font-size: 0.875rem;
-    background-color: rgb(var(--sys-color-surface-container-high));
+    /* The cards' glass and shadow, so the badge reads as one of them */
+    background-color: rgb(var(--color-surface-50) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
+        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
     color: rgb(var(--sys-color-on-surface));
-    transition: background-color 0.3s ease;
 }
 
 /* ── Embers Particle System ── */
@@ -293,7 +326,6 @@ _CSS = """\
     width: 220px;
     height: 240px;
     margin-bottom: 2rem;
-    animation: phxt-breathe-{{ block.id }} 4s ease-in-out infinite;
 }
 
 #phxt-hatch-{{ block.id }} .phxt-phoenix {
@@ -302,9 +334,52 @@ _CSS = """\
     overflow: visible;
 }
 
+/* The chick floats; its shadow stays on the ground, shrinking as it rises */
+#phxt-hatch-{{ block.id }} .phxt-bird {
+    animation: phxt-breathe-{{ block.id }} 4s ease-in-out infinite;
+}
+
 @keyframes phxt-breathe-{{ block.id }} {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50% { transform: translateY(-11px); }
+}
+
+#phxt-hatch-{{ block.id }} .phxt-ground {
+    transform-origin: 100px 190px;
+    animation: phxt-ground-{{ block.id }} 4s ease-in-out infinite;
+}
+
+@keyframes phxt-ground-{{ block.id }} {
+    0%, 100% { transform: scaleX(1); opacity: 0.07; }
+    50% { transform: scaleX(0.8); opacity: 0.04; }
+}
+
+#phxt-hatch-{{ block.id }} .phxt-body-light {
+    stop-color: rgb(var(--color-surface-200));
+}
+
+#phxt-hatch-{{ block.id }} .phxt-body-mid {
+    stop-color: rgb(var(--color-surface-400));
+}
+
+#phxt-hatch-{{ block.id }} .phxt-body-shade {
+    stop-color: rgb(var(--color-surface-600));
+}
+
+/* A neutral halo, as the rest of the page: colour stays in the small accents */
+#phxt-hatch-{{ block.id }} .phxt-halo-core {
+    stop-color: rgb(var(--color-surface-300));
+    stop-opacity: 0.3;
+}
+
+#phxt-hatch-{{ block.id }} .phxt-halo-mid {
+    stop-color: rgb(var(--color-surface-300));
+    stop-opacity: 0.12;
+}
+
+#phxt-hatch-{{ block.id }} .phxt-halo-edge {
+    stop-color: rgb(var(--color-surface-300));
+    stop-opacity: 0;
 }
 
 #phxt-hatch-{{ block.id }} .phxt-crest {
@@ -318,12 +393,12 @@ _CSS = """\
 }
 
 #phxt-hatch-{{ block.id }} .phxt-wing-l {
-    transform-origin: 65px 145px;
+    transform-origin: 72px 146px;
     animation: phxt-flutter-l-{{ block.id }} 4s ease-in-out infinite;
 }
 
 #phxt-hatch-{{ block.id }} .phxt-wing-r {
-    transform-origin: 135px 145px;
+    transform-origin: 128px 146px;
     animation: phxt-flutter-r-{{ block.id }} 4s ease-in-out infinite;
 }
 
@@ -337,17 +412,30 @@ _CSS = """\
     50% { transform: rotate(6deg); }
 }
 
-#phxt-hatch-{{ block.id }} .phxt-eyes-wrap {
-    transform-origin: 100px 88px;
+/* Each eye closes about its own centre, not the drawing's */
+#phxt-hatch-{{ block.id }} .phxt-eye {
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#phxt-hatch-{{ block.id }} .phxt-eye {
-    transform-origin: center;
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+#phxt-hatch-{{ block.id }} .phxt-eye-l {
+    transform-origin: 78px 88px;
+}
+
+#phxt-hatch-{{ block.id }} .phxt-eye-r {
+    transform-origin: 122px 88px;
 }
 
 #phxt-hatch-{{ block.id }} .phxt-eyes-wrap.is-blinking .phxt-eye {
     transform: scaleY(0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #phxt-hatch-{{ block.id }} .phxt-bird,
+    #phxt-hatch-{{ block.id }} .phxt-ground,
+    #phxt-hatch-{{ block.id }} .phxt-crest,
+    #phxt-hatch-{{ block.id }} .phxt-wing {
+        animation: none;
+    }
 }
 
 /* ── Typography ── */
@@ -379,27 +467,29 @@ _CSS = """\
     gap: 0.5rem;
     height: 48px;
     padding: 0 1.5rem 0 1rem;
-    background-color: rgb(var(--sys-color-primary));
-    color: rgb(var(--sys-color-on-primary));
+    /* The cards' glass; as on their tiles, the colour lives in the icon */
+    background-color: rgb(var(--color-surface-50) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: rgb(var(--sys-color-on-surface));
     border-radius: 9999px; /* Pill shape */
     text-decoration: none;
     font-family: var(--font-ui, inherit);
     font-weight: var(--font-ui-weight-medium, 500);
     font-size: 0.875rem;
     letter-spacing: 0.01em;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
-}
-
-#phxt-hatch-{{ block.id }} .phxt-btn-filled:hover {
-    background-color: rgb(var(--color-primary-700));
-    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+    position: relative;
+    isolation: isolate;
+    box-shadow:
+        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
+        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
 }
 
 #phxt-hatch-{{ block.id }} .phxt-btn-icon {
     width: 1.25rem;
     height: 1.25rem;
     fill: currentColor;
+    color: rgb(var(--color-primary-600));
 }
 
 /* ── Bottom Cards Section ── */
@@ -426,21 +516,52 @@ _CSS = """\
 }
 
 /* ── Card ── */
+/* Borderless glass: the embers stay visible through it, and the shadow is
+   tinted by the surface so it lifts the card rather than smudging the page.
+   The faint halo reaches every side, so the top edge still reads where the
+   card and page share a colour. */
 #phxt-hatch-{{ block.id }} .phxt-card-filled {
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    background-color: rgb(var(--sys-color-surface-container-low));
-    border-radius: 24px;
+    background-color: rgb(var(--color-surface-50) / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 1.5rem;
+    box-shadow:
+        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
+        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
     text-decoration: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    border: 1px solid transparent;
+    position: relative;
+    isolation: isolate;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-card-filled:hover {
-    background-color: rgb(var(--sys-color-surface-container-low));
-    border-color: rgb(var(--sys-color-primary));
-    transform: translateY(-2px);
+/* The hover state lives on its own layer and only fades in, so the blurred
+   glass itself never changes.
+   The page is surface-50 too, so the card brightens past it and its shadow
+   deepens, as if lifted toward you. Shared by the cards and the button. */
+#phxt-hatch-{{ block.id }} .phxt-card-filled::before,
+#phxt-hatch-{{ block.id }} .phxt-btn-filled::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: rgb(255 255 255 / 0.85);
+    /* Adds to the resting shadow, which stays: a touch deeper, never darker */
+    box-shadow:
+        0 0 24px -6px rgb(var(--color-surface-900) / 0.02),
+        0 22px 42px -16px rgb(var(--color-surface-900) / 0.04);
+    opacity: 0;
+    pointer-events: none;
+    /* Just long enough to soften the switch; an even curve, since the change
+       is only a few shades and an ease-out would leave the last step alone */
+    transition: opacity 0.1s ease-in-out;
+}
+
+#phxt-hatch-{{ block.id }} .phxt-card-filled:hover::before,
+#phxt-hatch-{{ block.id }} .phxt-btn-filled:hover::before {
+    opacity: 1;
 }
 
 #phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
@@ -450,8 +571,10 @@ _CSS = """\
     width: 3rem;
     height: 3rem;
     border-radius: 12px;
-    background-color: rgb(var(--sys-color-primary-container));
-    color: rgb(var(--sys-color-on-primary-container));
+    /* A quiet surface tile, as on the dashboard widgets: the colour lives in
+       the icon alone */
+    background: rgb(var(--color-surface-100) / 0.7);
+    color: rgb(var(--color-primary-600));
     margin-bottom: 1.25rem;
 }
 
@@ -483,17 +606,6 @@ _CSS = """\
         --sys-color-surface: var(--color-surface-950);
         --sys-color-on-surface: var(--color-surface-100);
         --sys-color-on-surface-variant: var(--color-surface-300);
-        --sys-color-outline-variant: var(--color-surface-700);
-
-        --sys-color-surface-container-lowest: var(--color-surface-950);
-        --sys-color-surface-container-low: var(--color-surface-800);
-        --sys-color-surface-container: var(--color-surface-700);
-        --sys-color-surface-container-high: var(--color-surface-600);
-
-        --sys-color-primary: var(--color-primary-400);
-        --sys-color-on-primary: var(--color-surface-900);
-        --sys-color-primary-container: var(--color-primary-400);
-        --sys-color-on-primary-container: var(--color-primary-100);
     }
 
     #phxt-hatch-{{ block.id }} .phxt-logo-light {
@@ -504,12 +616,48 @@ _CSS = """\
         display: inline;
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-btn-filled:hover {
-        background-color: rgb(var(--color-primary-300));
+    #phxt-hatch-{{ block.id }} .phxt-halo-core,
+    #phxt-hatch-{{ block.id }} .phxt-halo-mid,
+    #phxt-hatch-{{ block.id }} .phxt-halo-edge {
+        stop-color: rgb(var(--color-surface-200));
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-halo-core {
+        stop-opacity: 0.06;
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-halo-mid {
+        stop-opacity: 0.025;
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-btn-filled {
+        background-color: rgb(var(--color-surface-50) / 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-btn-icon {
+        color: rgb(var(--color-primary-400));
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-card-filled {
+        background-color: rgb(var(--color-surface-50) / 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-card-filled::before,
+    #phxt-hatch-{{ block.id }} .phxt-btn-filled::before {
+        background-color: rgb(var(--color-surface-50) / 0.04);
+        box-shadow: none;
+    }
+
+    #phxt-hatch-{{ block.id }} .phxt-badge-tonal {
+        background-color: rgb(var(--color-surface-50) / 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     }
 
     #phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
-        background-color: rgb(var(--color-primary-400) / 0.15);
+        background: rgb(var(--color-surface-50) / 0.06);
+        color: rgb(var(--color-primary-400));
     }
 }"""
 
@@ -578,10 +726,20 @@ _JS = """\
         setTimeout(triggerBlink, 2000);
     }
 
-    /* ── Free-Floating Embers (Now with Gravitational Repel) ── */
+    /* ── Rising Embers ──
+       Every distance is measured in hundredths of the viewport's shorter side
+       and every speed per second, so a phone sees the same scene as a desktop,
+       only smaller, at any refresh rate. */
     var embersEl = root.querySelector("[data-phxt-embers]");
-    if (embersEl) {
-        var EMBER_COUNT = 45;
+    if (embersEl && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        var DENSITY = 45 / (1440 * 900); // embers per square pixel of a laptop screen
+        var RISE = [2, 5]; // upward speed
+        var DRIFT = 1.5; // largest sideways speed
+        var SWAY = 1; // speed of the side-to-side sway
+        var SWAY_RATE = 1.2; // radians per second
+        var REACH = 12; // how close the mouse must come to push an ember
+        var PUSH = 90; // strongest push, as an acceleration
+        var SETTLE = 2; // how quickly a pushed ember returns to its own course
         var colors = [
             "rgb(var(--color-secondary-400))",
             "rgb(var(--color-primary-500))",
@@ -589,19 +747,34 @@ _JS = """\
         ];
         var particles = [];
 
-        var emberMouseX = -1000;
-        var emberMouseY = -1000;
+        var unit, width, height;
 
-        root.addEventListener("mousemove", function(e) {
+        function measure() {
             var rect = root.getBoundingClientRect();
-            emberMouseX = e.clientX - rect.left;
-            emberMouseY = e.clientY - rect.top;
+            width = rect.width || window.innerWidth;
+            height = rect.height || window.innerHeight;
+            unit = Math.min(window.innerWidth, window.innerHeight) / 100;
+        }
+
+        var mouseX = -1000;
+        var mouseY = -1000;
+
+        /* Only a real mouse pushes: a tap on a phone would kick every ember near it */
+        root.addEventListener("pointermove", function (e) {
+            if (e.pointerType !== "mouse") return;
+            var rect = root.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
         });
 
-        root.addEventListener("mouseleave", function() {
-            emberMouseX = -1000;
-            emberMouseY = -1000;
+        root.addEventListener("mouseleave", function () {
+            mouseX = -1000;
+            mouseY = -1000;
         });
+
+        function between(range) {
+            return range[0] + Math.random() * (range[1] - range[0]);
+        }
 
         function createParticle() {
             var el = document.createElement("span");
@@ -616,14 +789,11 @@ _JS = """\
         }
 
         function resetParticle(p, isInitial) {
-            var rootRect = root.getBoundingClientRect();
-            var w = rootRect.width || window.innerWidth;
-            var h = rootRect.height || window.innerHeight;
-            p.x = Math.random() * w;
-            p.y = isInitial ? Math.random() * h : h + 20;
+            p.x = Math.random() * width;
+            p.y = isInitial ? Math.random() * height : height + 20;
 
-            p.baseVx = (Math.random() - 0.5) * 1.5;
-            p.baseVy = -(1 + Math.random() * 1.5);
+            p.baseVx = (Math.random() - 0.5) * 2 * DRIFT;
+            p.baseVy = -between(RISE);
 
             p.vx = p.baseVx;
             p.vy = p.baseVy;
@@ -632,44 +802,55 @@ _JS = """\
             return p;
         }
 
-        for (var i = 0; i < EMBER_COUNT; i++) {
+        measure();
+        var count = Math.max(12, Math.min(45, Math.round(width * height * DENSITY)));
+        for (var i = 0; i < count; i++) {
             particles.push(createParticle());
         }
 
-        function renderEmbers() {
-            var rootRect = root.getBoundingClientRect();
-            var w = rootRect.width || window.innerWidth;
+        window.addEventListener("resize", measure);
+
+        var last = performance.now();
+
+        function render(now) {
+            /* A long gap (a hidden tab) resumes calmly instead of leaping */
+            var dt = Math.min((now - last) / 1000, 0.05);
+            last = now;
+            var settle = 1 - Math.exp(-SETTLE * dt);
+            var reach = REACH * unit;
 
             for (var i = 0; i < particles.length; i++) {
                 var p = particles[i];
 
-                p.vx += (p.baseVx - p.vx) * 0.05;
-                p.vy += (p.baseVy - p.vy) * 0.05;
+                p.vx += (p.baseVx - p.vx) * settle;
+                p.vy += (p.baseVy - p.vy) * settle;
 
-                var dx = p.x - emberMouseX;
-                var dy = p.y - emberMouseY;
+                var dx = p.x - mouseX;
+                var dy = p.y - mouseY;
                 var dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < 120 && dist > 0) {
-                    var force = (120 - dist) / 120;
-                    p.vx += (dx / dist) * force * 1.5;
-                    p.vy += (dy / dist) * force * 1.5;
+                if (dist < reach && dist > 0) {
+                    /* Eases in from the edge of the reach, so there is no sudden kick */
+                    var t = (reach - dist) / reach;
+                    var force = t * t * (3 - 2 * t) * PUSH * dt;
+                    p.vx += (dx / dist) * force;
+                    p.vy += (dy / dist) * force;
                 }
 
-                p.life += 0.03;
-                p.x += p.vx + Math.sin(p.life) * 0.5;
-                p.y += p.vy;
+                p.life += SWAY_RATE * dt;
+                p.x += (p.vx + Math.sin(p.life) * SWAY) * unit * dt;
+                p.y += p.vy * unit * dt;
 
                 p.el.style.transform = "translate3d(" + p.x.toFixed(2) + "px, " + p.y.toFixed(2) + "px, 0)";
 
-                if (p.y < -50 || p.x < -50 || p.x > w + 50) {
+                if (p.y < -50 || p.x < -50 || p.x > width + 50) {
                     resetParticle(p, false);
                 }
             }
-            requestAnimationFrame(renderEmbers);
+            requestAnimationFrame(render);
         }
 
-        requestAnimationFrame(renderEmbers);
+        requestAnimationFrame(render);
     }
 })();"""
 
