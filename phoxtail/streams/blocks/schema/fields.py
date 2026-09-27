@@ -132,7 +132,7 @@ class BlockQuoteSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Block Quote"
-        icon = "openquote"
+        icon = "quote"
         group = "Text Fields"
 
 
@@ -175,7 +175,7 @@ class IntegerSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Integer"
-        icon = "form"
+        icon = "numbers"
         group = "Numeric Fields"
 
 
@@ -193,7 +193,7 @@ class FloatSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Float"
-        icon = "form"
+        icon = "numbers"
         group = "Numeric Fields"
 
 
@@ -221,7 +221,7 @@ class DecimalSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Decimal"
-        icon = "form"
+        icon = "numbers"
         group = "Numeric Fields"
 
 
@@ -258,7 +258,7 @@ class DateSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Date"
-        icon = "date"
+        icon = "calendar-today"
         group = "Date & Time"
 
 
@@ -273,7 +273,7 @@ class TimeSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Time"
-        icon = "time"
+        icon = "schedule"
         group = "Date & Time"
 
 
@@ -288,7 +288,7 @@ class DateTimeSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Date & Time"
-        icon = "date"
+        icon = "calendar-clock"
         group = "Date & Time"
 
 
@@ -350,7 +350,7 @@ class RichTextSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Rich Text Editor"
-        icon = "pilcrow"
+        icon = "format-paragraph"
         group = "Rich Content"
 
 
@@ -422,7 +422,7 @@ class ChoiceSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Choice"
-        icon = "list-ul"
+        icon = "radio-button-checked"
         group = "Advanced Fields"
 
 
@@ -441,7 +441,7 @@ class MultipleChoiceSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Multiple Choice"
-        icon = "list-ol"
+        icon = "checklist"
         group = "Advanced Fields"
 
 
@@ -466,7 +466,7 @@ class PageChooserSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Page Chooser"
-        icon = "doc-empty-inverse"
+        icon = "draft"
         group = "Chooser Fields"
 
 
@@ -475,7 +475,7 @@ class DocumentChooserSchemaBlock(FieldSchemaBlock):
 
     class Meta:
         label = "Document Chooser"
-        icon = "doc-full"
+        icon = "description"
         group = "Chooser Fields"
 
 

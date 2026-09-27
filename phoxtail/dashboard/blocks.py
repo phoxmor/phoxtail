@@ -28,7 +28,7 @@ class PageLinkBlock(MenuEntryBlock):
     page = blocks.PageChooserBlock(required=True, help_text=_("The page this entry opens."))
 
     class Meta:
-        icon = "doc-empty"
+        icon = "draft"
         label = _("Page")
 
 
@@ -62,7 +62,7 @@ class SeparatorBlock(blocks.StructBlock):
     label = blocks.CharBlock(required=False, help_text=_("Optional heading for the entries below."))
 
     class Meta:
-        icon = "minus"
+        icon = "horizontal-rule"
         label = _("Separator")
 
 
@@ -86,7 +86,7 @@ class DropdownBlock(blocks.StructBlock):
     )
 
     class Meta:
-        icon = "list-ul"
+        icon = "expand-circle-down"
         label = _("Dropdown")
 
 

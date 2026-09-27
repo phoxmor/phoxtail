@@ -126,7 +126,7 @@ class StreamSchemaBlockL1(FieldSchemaBlock):
     )
 
     class Meta:
-        icon = "list-ul"
+        icon = "view-stream"
         label = "Stream (L1)"
         group = "Layers"
 
