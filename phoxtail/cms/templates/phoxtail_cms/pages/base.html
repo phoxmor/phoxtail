@@ -1,4 +1,4 @@
-{% load static wagtailcore_tags wagtailimages_tags wagtailsettings_tags django_htmx phoxtail_cms_tags %}
+{% load static wagtailcore_tags wagtailimages_tags phoxtail_cms_tags %}
 <!DOCTYPE html>
 <html lang="{{ page.locale.language_code }}">
     <head>
@@ -30,24 +30,12 @@
         {% if page.search_description %}<meta property="og:description" content="{{ page.search_description }}" />{% endif %}
         {% if current_site.site_name %}<meta property="og:site_name" content="{{ current_site.site_name }}" />{% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <!-- Global App Stylesheets -->
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
-        {% htmx_script %}
-        {% django_htmx_script %}
-        <!-- Modal Media -->
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
-        <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
-        <!-- Core Widgets CSS -->
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+        <!-- Phoxtail core styles -->
+        {% include "phoxtail_core/stylesheets.html" %}
+        <!-- Phoxtail core scripts -->
+        {% include "phoxtail_core/scripts.html" %}
         <!-- Force All Links to Open in New Tab in Wagtail Preview Panel -->
         {% if request.in_preview_panel %}<base target="_blank">{% endif %}
-        {% get_settings %}
-        <style>
-            :root {
-                {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
-            }
-            {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
-        </style>
         {% block extra_css %}{% endblock %}
         {% block_site_slot "head_end" %}
     </head>

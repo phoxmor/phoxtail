@@ -1,0 +1,12 @@
+{% load static wagtailsettings_tags %}
+{# Include before the page's own sheets, so they can override core. #}
+<link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
+{% get_settings %}
+<style>
+    :root {
+        {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
+    }
+    {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
+</style>
+<link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+<link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">

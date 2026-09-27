@@ -10,15 +10,11 @@
             {% block head_title %}
             {% endblock head_title %}
         </title>
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+        <!-- Phoxtail core styles -->
+        {% include "phoxtail_core/stylesheets.html" %}
+        <!-- Phoxtail core scripts -->
+        {% include "phoxtail_core/scripts.html" %}
         <link rel="stylesheet" href="{% static 'phoxtail_core/css/account/auth.css' %}">
-        <style>
-            :root {
-                {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
-            }
-            {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
-        </style>
         {% block extra_head %}
         {% endblock extra_head %}
     </head>

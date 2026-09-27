@@ -1,21 +1,14 @@
 {% extends "wagtailadmin/base.html" %}
-{% load static wagtailsettings_tags django_htmx phoxtail_design_tags %}
+{% load static phoxtail_design_tags %}
 {% block titletag %}Remotes{% endblock %}
 {% block extra_css %}
-    {% htmx_script %}
-    {% django_htmx_script %}
-    <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
-    <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
+    <!-- Phoxtail core styles -->
+    {% include "phoxtail_core/stylesheets.html" %}
     <link rel="stylesheet" href="{% static 'phoxtail_remotes/admin/remotes/admin.css' %}">
-    {% get_settings %}
-    <style>
-        :root {
-            {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
-        }
-        {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
-    </style>
+{% endblock %}
+{% block extra_js %}
+    <!-- Phoxtail core scripts -->
+    {% include "phoxtail_core/scripts.html" %}
 {% endblock %}
 {% block content %}
     {% url 'remotes:add_form' as add_form_url %}

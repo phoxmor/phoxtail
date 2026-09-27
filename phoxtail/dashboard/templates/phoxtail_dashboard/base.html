@@ -1,4 +1,4 @@
-{% load i18n static wagtailsettings_tags django_htmx %}
+{% load i18n static %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -16,24 +16,12 @@
             {% block head_title %}
             {% endblock head_title %}
         </title>
-        {% htmx_script %}
-        {% django_htmx_script %}
-        <!-- Modal Media -->
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/modal.css' %}">
-        <script src="{% static 'phoxtail_core/js/modal.js' %}"></script>
-        <!-- Core CSS (fallback custom properties) -->
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/main.css' %}" />
+        <!-- Phoxtail core styles -->
+        {% include "phoxtail_core/stylesheets.html" %}
+        <!-- Phoxtail core scripts -->
+        {% include "phoxtail_core/scripts.html" %}
         <!-- Dashboard CSS -->
         <link rel="stylesheet" href="{% static 'phoxtail_dashboard/css/dashboard.css' %}">
-        <link rel="stylesheet" href="{% static 'phoxtail_core/css/widgets.css' %}">
-        <!-- SiteSetting overrides -->
-        {% get_settings %}
-        <style>
-            :root {
-                {{ settings.phoxtail_cms.SiteSetting.css_variables|safe }}
-            }
-            {{ settings.phoxtail_cms.SiteSetting.font_face_declarations|safe }}
-        </style>
         {% block extra_css %}
         {% endblock extra_css %}
     </head>
