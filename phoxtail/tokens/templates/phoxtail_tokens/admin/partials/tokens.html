@@ -71,16 +71,16 @@
                                             </div>
                                             {% if can_manage_all %}
                                                 <div class="tka-card__meta-row">
-                                                    {% include 'phoxtail_core/svgs/user.html' %}
+                                                    {% include 'phoxtail_core/svgs/person.html' %}
                                                     <span class="tka-card__meta-value tka-card__meta-value--truncate">{{ t.user.get_full_name|default:t.user.email }}</span>
                                                 </div>
                                             {% endif %}
                                             <div class="tka-card__meta-row">
-                                                {% include 'phoxtail_core/svgs/calendar.html' %}
+                                                {% include 'phoxtail_core/svgs/calendar_month.html' %}
                                                 <span class="tka-card__meta-value">Created {{ t.created_at|date:"M j, Y" }}</span>
                                             </div>
                                             <div class="tka-card__meta-row">
-                                                {% include 'phoxtail_core/svgs/clock.html' %}
+                                                {% include 'phoxtail_core/svgs/schedule.html' %}
                                                 <span class="tka-card__meta-value">
                                                     {% if t.last_used_at %}
                                                         Last used {{ t.last_used_at|date:"M j, Y H:i" }}
