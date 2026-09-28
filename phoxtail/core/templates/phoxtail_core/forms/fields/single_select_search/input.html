@@ -19,8 +19,11 @@
              tabindex="{% if is_active == False %}-1{% else %}0{% endif %}"
              aria-expanded="false"
              aria-controls="{{ wid }}-panel"
-             aria-haspopup="listbox">
-            <span class="fw-sss-trigger-label">
+             aria-haspopup="listbox"{% if field.auto_id %}
+             aria-labelledby="{{ field.auto_id }}_label {{ field.auto_id }}_pick"{% if supporting == "errors" %}
+             aria-describedby="{{ field.auto_id }}_error"{% elif supporting == "help" %}
+             aria-describedby="{{ field.auto_id }}_helptext"{% endif %}{% endif %}>
+            <span class="fw-sss-trigger-label"{% if field.auto_id %} id="{{ field.auto_id }}_pick"{% endif %}>
                 {% if selected_item and is_active != False %}
                     {% if item_template %}
                         {% include item_template with item=selected_item %}

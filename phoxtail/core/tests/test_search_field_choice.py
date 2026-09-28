@@ -54,3 +54,29 @@ def test_a_value_that_picks_nothing_sends_nothing(active):
     html = render_field("single_select_search", PickForm({"user": "abc"})["user"])
 
     assert 'name="user"' not in html
+
+
+def test_the_trigger_is_named_by_the_label_and_the_pick(active):
+    html = render_field("single_select_search", PickForm({"user": str(active.pk)})["user"])
+
+    assert 'aria-labelledby="id_user_label id_user_pick"' in html
+    assert 'id="id_user_label"' in html
+    assert 'id="id_user_pick"' in html
+
+
+def test_the_trigger_points_at_the_help_text_by_djangos_ids(active):
+    class HelpForm(forms.Form):
+        user = SingleSelectSearchField(queryset=get_user_model().objects.all(), help_text="Search for a user")
+
+    html = render_field("single_select_search", HelpForm()["user"])
+
+    assert 'aria-describedby="id_user_helptext"' in html
+    assert 'id="id_user_helptext">Search for a user' in html
+
+
+def test_errors_take_the_help_texts_place_under_the_field(active):
+    html = render_field("single_select_search", PickForm({"user": ""})["user"])
+
+    assert 'aria-describedby="id_user_error"' in html
+    assert 'id="id_user_error"' in html
+    assert "getElementById('id_user_error')" in html

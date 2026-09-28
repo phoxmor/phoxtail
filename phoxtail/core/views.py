@@ -161,7 +161,6 @@ class SingleSelectSearchView(PermissionMixin, View):
       - search_url_name: URL name for reverse() (e.g. "studio:search_collection")
 
     Optional attributes:
-      - widget_id: Defaults to field_name
       - item_template: Path to rich item display template
       - hx_include: CSS selector for extra fields to include in HTMX requests
       - oob_response_template: Template for selection-change responses with OOB updates
@@ -176,7 +175,6 @@ class SingleSelectSearchView(PermissionMixin, View):
     form_class = None
     field_name = None
     search_url_name = None
-    widget_id = None
     item_template = None
     hx_include = None
     oob_response_template = None
@@ -192,7 +190,7 @@ class SingleSelectSearchView(PermissionMixin, View):
         return reverse(self.search_url_name)
 
     def get(self, request, *args, **kwargs):
-        widget_id = self.widget_id or self.field_name
+        widget_id = self.field_name
 
         # Read current value and handle select/clear mutations
         current_value = request.GET.get(self.field_name, "")
@@ -236,6 +234,8 @@ class SingleSelectSearchView(PermissionMixin, View):
             "search_url": self.get_search_url(),
             "search_value": search_value,
             "widget_id": widget_id,
+            # A pick is not a save, so the line under the field shows no error.
+            "supporting": "help" if field.help_text else "",
             "item_template": self.item_template,
             "hx_include": self.hx_include,
         }

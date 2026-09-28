@@ -14,9 +14,6 @@ Required context:
     - search_url: URL for HTMX search endpoint
 
 Optional context:
-    - selected_item: Model instance or None (auto-derived from field if not provided)
-    - available_items: Queryset of available items (auto-derived from field if not provided)
-    - widget_id: Unique identifier (default: field.html_name)
     - hx_include: Selector for additional form fields to include in requests
     - show_label/show_help_text: Whether to show label/help (default: True)
     - label: Custom label text; pass "" to render no label at all
@@ -27,8 +24,7 @@ Optional context:
     - trigger_placeholder: Optional hint shown in the trigger while the panel
       is open and nothing is selected (the resting label covers the closed state)
 {% endcomment %}
-{# Derive widget_id and item data from field if not provided #}
-{% with widget_id=widget_id|default:field.html_name selected_item=selected_item|default:field.selected_item available_items=available_items|default:field.available_items %}
+{% with widget_id=field.html_name selected_item=field.selected_item available_items=field.available_items %}
     <div id="{{ widget_id }}-widget" class="fw-sss-widget fw-md3{% if field.errors %} fw-md3--error{% endif %}">
         <div class="fw-md3-outlined fw-sss-outlined">
             {# HTMX swap target — trigger, hidden value, and panel only #}
@@ -37,7 +33,7 @@ Optional context:
                 {% include 'phoxtail_core/forms/fields/single_select_search/input.html' %}
             </div>
             {% if show_label != False and label != "" %}
-                <label class="fw-md3-label">
+                <label class="fw-md3-label"{% if field.auto_id %} id="{{ field.auto_id }}_label"{% endif %}>
                     {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
                 </label>
             {% endif %}
@@ -47,8 +43,8 @@ Optional context:
                 </legend>
             </fieldset>
         </div>
-        {% if field.errors %}
-            <div class="fw-md3-supporting" id="{{ widget_id }}-errors">
+        {% if supporting == "errors" %}
+            <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
                 {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
             </div>
             <script>
@@ -63,13 +59,13 @@ Optional context:
                     if (e.detail.target !== container) return;
                     var widget = document.getElementById('{{ widget_id }}-widget');
                     if (widget) widget.classList.remove('fw-md3--error');
-                    var errors = document.getElementById('{{ widget_id }}-errors');
+                    var errors = document.getElementById('{{ field.auto_id }}_error');
                     if (errors) errors.remove();
                 });
             })();
             </script>
-        {% elif show_help_text != False and help_text|default:field.help_text %}
-            <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
+        {% elif supporting == "help" %}
+            <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
         {% endif %}
     </div>
 {% endwith %}
