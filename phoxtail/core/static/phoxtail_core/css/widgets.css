@@ -200,8 +200,9 @@
 
 /* ── Password ──
    .fw-password-wrap / .fw-password-input remain in the markup purely as JS
-   hooks for fwTogglePassword; the field chrome is the shared fw-md3 outlined
-   anatomy and the toggle button is a .fw-md3-trailing-btn. */
+   hooks for the password toggle in js/fields.js; the field chrome is the
+   shared fw-md3 outlined anatomy and the toggle button is a
+   .fw-md3-trailing-btn. */
 
 .fw-password-eye {
     display: flex;

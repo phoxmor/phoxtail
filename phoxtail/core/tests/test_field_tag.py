@@ -219,3 +219,18 @@ def test_the_password_field_never_writes_the_typed_value_back():
     assert 'type="password"' in html
     assert 'autocomplete="current-password"' in html
     assert "hunter2" not in html
+
+
+def test_the_password_toggle_carries_no_script_of_its_own():
+    """The toggle lives once in js/fields.js, so a page with two password fields has no repeated code."""
+    html = render_field("password", SecretForm()["secret"])
+
+    assert "<script" not in html
+    assert "onclick" not in html
+    assert "data-password-toggle" in html
+
+
+def test_the_shared_scripts_load_the_field_behaviour():
+    from django.template.loader import render_to_string
+
+    assert "phoxtail_core/js/fields.js" in render_to_string("phoxtail_core/scripts.html")
