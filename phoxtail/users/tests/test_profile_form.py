@@ -6,6 +6,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
 
+from phoxtail.core.fields import render_field
 from phoxtail.users.forms import UserProfileForm
 
 User = get_user_model()
@@ -50,10 +51,7 @@ class TestPhoneNumberRoundTrip:
 
     def test_widget_posts_the_names_the_field_reads(self, user):
         """The rendered field must carry the suffixed names, or nothing binds."""
-        html = render_to_string(
-            "phoxtail_core/forms/widgets/phone.html",
-            {"field": UserProfileForm(instance=user)["phone_number"]},
-        )
+        html = render_field("phone", UserProfileForm(instance=user)["phone_number"])
         assert 'name="phone_number_0"' in html
         assert 'name="phone_number_1"' in html
         assert 'name="phone_number"' not in html

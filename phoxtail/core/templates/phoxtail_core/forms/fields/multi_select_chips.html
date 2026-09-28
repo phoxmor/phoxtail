@@ -33,7 +33,7 @@ Optional context:
         {# Compact Widget Container #}
         <div id="{{ widget_id }}-container"
              class="fw-widget-container{% if is_active == False or field.field.disabled %} fw-widget-container--inactive{% endif %}">
-            {% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html' %}
+            {% include 'phoxtail_core/forms/fields/multi_select_chips/compact_input.html' %}
         </div>
         {% if field.errors %}
             <div class="fw-md3-supporting" id="{{ widget_id }}-errors">

@@ -241,16 +241,14 @@ class MultiSelectChipsSearchView(PermissionMixin, View):
         if not selection_changed:
             return render(
                 request,
-                "phoxtail_core/forms/widgets/htmx/multi_select_chips/results_content.html",
+                "phoxtail_core/forms/fields/multi_select_chips/results_content.html",
                 context,
             )
 
         # Selection changed: return full widget + optional OOB updates
         context.update(self.get_extra_context(form))
 
-        template = (
-            self.oob_response_template or "phoxtail_core/forms/widgets/htmx/multi_select_chips/compact_input.html"
-        )
+        template = self.oob_response_template or "phoxtail_core/forms/fields/multi_select_chips/compact_input.html"
         return render(request, template, context)
 
 
@@ -348,12 +346,12 @@ class SingleSelectSearchView(PermissionMixin, View):
         if not selection_changed:
             return render(
                 request,
-                "phoxtail_core/forms/widgets/htmx/single_select_search/results_content.html",
+                "phoxtail_core/forms/fields/single_select_search/results_content.html",
                 context,
             )
 
         # Selection changed: return full widget + optional OOB updates
         context.update(self.get_extra_context(form))
 
-        template = self.oob_response_template or "phoxtail_core/forms/widgets/htmx/single_select_search/input.html"
+        template = self.oob_response_template or "phoxtail_core/forms/fields/single_select_search/input.html"
         return render(request, template, context)

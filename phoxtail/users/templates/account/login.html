@@ -1,5 +1,5 @@
 {% extends "account/base_entrance.html" %}
-{% load static i18n %}
+{% load static i18n phoxtail_core_tags %}
 {% load allauth account %}
 {% block head_title %}
     {% trans "Sign In" %}
@@ -44,16 +44,16 @@
                             </p>
                         {% endfor %}
                     {% endif %}
-                    {% include "phoxtail_core/forms/widgets/input.html" with field=form.login autofocus=True %}
+                    {% field "input" form.login autofocus=True %}
                     {# help_text is allauth's own "Forgot your password?" anchor; the styled link below replaces it #}
-                    {% include "phoxtail_core/forms/widgets/password.html" with field=form.password show_help_text=False %}
+                    {% field "password" form.password show_help_text=False %}
                     <div class="auth-pt-2 auth-text-center">
                         <a href="{% url 'account_reset_password' %}"
                            class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>
                     </div>
                     {# allauth drops this field entirely when SESSION_REMEMBER is set #}
                     {% if form.remember %}
-                        {% include "phoxtail_core/forms/widgets/checkbox.html" with field=form.remember %}
+                        {% field "checkbox" form.remember %}
                     {% endif %}
                     {{ redirect_field }}
                     {# the alternatives belong in Login's stack, not behind a divider #}

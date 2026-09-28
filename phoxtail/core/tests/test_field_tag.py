@@ -1,9 +1,13 @@
 """`{% field %}` draws a core field template from the values it is given."""
 
+from pathlib import Path
+
 import pytest
 from django import forms
+from django.forms.renderers import get_default_renderer
 from django.template import Context, Template, TemplateDoesNotExist
 
+from phoxtail.core import fields
 from phoxtail.core.fields import render_field
 
 
@@ -44,7 +48,7 @@ def test_the_field_is_drawn_by_django_like_its_own_field_templates():
     html = _render("{% autoescape off %}" + tag + "{% endautoescape %}", form=form, label="<b>Email</b>")
 
     assert html == form["email"].render(
-        "phoxtail_core/forms/widgets/input.html", {"field": form["email"], "label": "<b>Email</b>"}
+        "phoxtail_core/forms/fields/input.html", {"field": form["email"], "label": "<b>Email</b>"}
     )
     assert "&lt;b&gt;Email&lt;/b&gt;" in html
 
@@ -73,3 +77,51 @@ def test_a_view_draws_a_field_the_same_way_as_the_tag():
     assert render_field("input", form["email"], show_label=False) == _render(
         '{% field "input" form.email show_label=False %}', form=form
     )
+
+
+class EventForm(forms.Form):
+    title = forms.CharField()
+    status = forms.ChoiceField(choices=[("draft", "Draft"), ("live", "Live")])
+    seats = forms.IntegerField()
+    starts = forms.DateTimeField()
+
+
+MERGED = [("input", "title"), ("select", "status"), ("number", "seats"), ("datetime", "starts")]
+
+
+@pytest.mark.parametrize(("name", "form_field"), MERGED)
+def test_hx_get_makes_the_field_talk_to_the_server(name, form_field):
+    html = render_field(name, EventForm()[form_field], hx_get="/search/", hx_target="#results")
+
+    assert 'hx-get="/search/"' in html
+    assert 'hx-target="#results"' in html
+    assert 'hx-swap="innerHTML"' in html
+    assert 'hx-trigger="change"' in html
+
+
+@pytest.mark.parametrize(("name", "form_field"), MERGED)
+def test_an_explicit_swap_and_trigger_win_over_the_defaults(name, form_field):
+    html = render_field(name, EventForm()[form_field], hx_get="/search/", hx_swap="outerHTML", hx_trigger="input")
+
+    assert 'hx-swap="outerHTML"' in html
+    assert 'hx-trigger="input"' in html
+
+
+@pytest.mark.parametrize(("name", "form_field"), MERGED)
+def test_without_hx_get_the_field_is_plain(name, form_field):
+    """Settings without a request to make would be inert; the field writes none of them."""
+    html = render_field(name, EventForm()[form_field], hx_target="#results", hx_swap="outerHTML")
+
+    assert "hx-" not in html
+
+
+FIELD_FILES = sorted(
+    path.relative_to(Path(fields.__file__).parent / "templates").as_posix()
+    for path in (Path(fields.__file__).parent / "templates" / fields.FIELD_TEMPLATES).rglob("*.html")
+)
+
+
+@pytest.mark.parametrize("template_name", FIELD_FILES)
+def test_every_field_template_loads_through_the_form_renderer(template_name):
+    """Fields are drawn by the form renderer, not the page's engine; each file, parts included, must load there."""
+    get_default_renderer().get_template(template_name)

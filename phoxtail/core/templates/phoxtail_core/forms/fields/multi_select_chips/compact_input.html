@@ -28,7 +28,7 @@
         </div>
         {# Results container - only this swaps during search #}
         <div id="{{ wid }}-results">
-            {% include 'phoxtail_core/forms/widgets/htmx/multi_select_chips/results_content.html' with widget_id=wid show_dropdown=False %}
+            {% include 'phoxtail_core/forms/fields/multi_select_chips/results_content.html' with widget_id=wid show_dropdown=False %}
         </div>
         {# Selected chips - displayed below (hidden when inactive) #}
         {% if selected_items and is_active != False %}

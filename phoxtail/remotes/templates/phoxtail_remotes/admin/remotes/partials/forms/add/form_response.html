@@ -1,3 +1,4 @@
+{% load phoxtail_core_tags %}
 {% if messages %}
     <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
 {% endif %}
@@ -16,9 +17,9 @@
               hx-indicator="#add-remote-submit-btn">
             {% csrf_token %}
             <div class="phoxtail-form-stack">
-                {% include "phoxtail_core/forms/widgets/input.html" with field=form.name show_label=True show_help_text=True placeholder="e.g. Phoxtail Registry" %}
-                {% include "phoxtail_core/forms/widgets/input.html" with field=form.base_url input_type="url" show_label=True show_help_text=True placeholder="https://registry.example.com" %}
-                {% include "phoxtail_core/forms/widgets/password.html" with field=form.token show_label=True show_help_text=True placeholder="phxt_…" %}
+                {% field "input" form.name show_label=True show_help_text=True placeholder="e.g. Phoxtail Registry" %}
+                {% field "input" form.base_url input_type="url" show_label=True show_help_text=True placeholder="https://registry.example.com" %}
+                {% field "password" form.token show_label=True show_help_text=True placeholder="phxt_…" %}
             </div>
         </form>
     </div>

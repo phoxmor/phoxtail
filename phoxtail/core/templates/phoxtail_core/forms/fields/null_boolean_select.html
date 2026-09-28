@@ -1,6 +1,7 @@
 {% comment %}
-MD3 outlined exposed dropdown, HTMX variant of ../select.html — identical
-anatomy, plus the hx-* passthrough attributes on the control.
+MD3 outlined exposed dropdown for NullBooleanField filters (see
+select.html) — keeps the Unknown→"All" relabeling and the
+None/true/false selected-state mapping of the original widget.
 {% endcomment %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined">
@@ -17,11 +18,15 @@ anatomy, plus the hx-* passthrough attributes on the control.
                 {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
                 {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
                 {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}>
-            {% with choices=field.field.choices|default:field.field.widget.choices %}
-                {% for value, label in choices %}
-                    <option value="{{ value }}"
-                            {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                        {{ label }}
+            {% with choices=field.field.choices|default:field.field.widget.choices current_value=field.value %}
+                {% for choice_value, choice_label in choices %}
+                    <option value="{{ choice_value }}"
+                            {% if current_value == None and choice_value == "unknown" or current_value == None and choice_value == "" or current_value == True and choice_value == "true" or current_value == False and choice_value == "false" %}selected{% endif %}>
+                        {% if choice_label == "Unknown" %}
+                            All
+                        {% else %}
+                            {{ choice_label }}
+                        {% endif %}
                     </option>
                 {% endfor %}
             {% endwith %}

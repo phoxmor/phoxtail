@@ -3,7 +3,7 @@ from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
 
-FIELD_TEMPLATES = "phoxtail_core/forms/widgets"
+FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
 
 

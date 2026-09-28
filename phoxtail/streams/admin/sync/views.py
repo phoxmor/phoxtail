@@ -212,7 +212,7 @@ def admin_sync_remote_select(request):
     if not selection_changed:
         return render(
             request,
-            "phoxtail_core/forms/widgets/htmx/single_select_search/results_content.html",
+            "phoxtail_core/forms/fields/single_select_search/results_content.html",
             context,
         )
     return render(request, f"{_T}/partials/remote_select_oob.html", context)
