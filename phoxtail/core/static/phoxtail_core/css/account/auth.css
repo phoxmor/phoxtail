@@ -163,13 +163,16 @@
 /* ========================================
    AUTH PAGES – Form
    ======================================== */
+/* --fw-field-gap: the space between fields, which fields made of parts (the
+   phone number) keep between their parts too. */
 .auth-form {
+    --fw-field-gap: 1.5rem;
     position: relative;
     z-index: 10;
 }
 
 .auth-form > * + * {
-    margin-top: 1.5rem;
+    margin-top: var(--fw-field-gap);
 }
 
 /* ========================================

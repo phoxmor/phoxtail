@@ -1057,36 +1057,28 @@ input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
    breakpoint an even half would clip the country name, so the pair stacks
    instead. Containment sits on .fw-field, not the row: a container query
    cannot size an element against a context that element establishes. */
-.fw-field:has(.fw-phone-row) {
-    container-type: inline-size;
-}
-
 /* A fieldset (the two parts are one answer); its default border, padding
-   and min-content width go. */
+   and min-content width go. One row at every width, as a phone number is
+   written: a narrow country box — its choices lead with the code, so the
+   code stays in view when the name is cut off — and the number. The gap is
+   the form's own gap between fields (--fw-field-gap), so the pair keeps the
+   form's rhythm. */
 .fw-phone-row {
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    /* The same rhythm the surrounding stack uses between fields, so the pair
-       reads as two fields on one line rather than one split control. */
-    gap: 1.5rem;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: var(--fw-field-gap, 1.5rem);
 }
 
-@container (min-width: 380px) {
-    .fw-phone-row {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-}
-
-@supports not (container-type: inline-size) {
-    @media (min-width: 380px) {
-        .fw-phone-row {
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        }
-    }
+/* A native select cuts its text off without an ellipsis; a country name too
+   long for the box fades out before the arrow instead of stopping mid-letter.
+   The text ends 3rem from the right, where the arrow's space begins. */
+.fw-phone-row__prefix .fw-md3-control {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.25rem), transparent calc(100% - 3rem));
+    mask-image: linear-gradient(to right, #000 calc(100% - 4.25rem), transparent calc(100% - 3rem));
 }
 
 /* Multiline variant: the container grows with the textarea and the resting

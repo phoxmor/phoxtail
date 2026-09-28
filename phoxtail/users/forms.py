@@ -1,10 +1,13 @@
+import babel
 from allauth.account.forms import LoginForm as AllauthLoginForm
 from allauth.account.forms import SignupForm as AllauthSignupForm
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from phonenumber_field.formfields import PrefixChoiceField, SplitPhoneNumberField
+from phonenumber_field.formfields import REGION_CODE_TO_COUNTRY_CODE, PrefixChoiceField, SplitPhoneNumberField
 
 from phoxtail.users.models import Gender
 
@@ -12,18 +15,25 @@ User = get_user_model()
 
 
 class CustomPrefixChoiceField(PrefixChoiceField):
-    """Prefix field whose blank choice names itself instead of dashes.
+    """Country prefix whose choices lead with the code: "+30 Greece".
 
-    Kept short: the label sits in a narrow column, and a native <select>
-    truncates rather than wraps, so a longer prompt would be cut off.
+    The prefix sits in a narrow box beside the number, and a native <select>
+    cuts its text off rather than shortening it, so the code comes first to
+    stay in view; the choices stay in the order of the country names. The
+    blank choice is a single dash: the box's label already says what it asks,
+    and Django's long dashes would be cut off.
     """
 
     def __init__(self, *args, **kwargs):
+        if kwargs.get("choices") is None:
+            locale = babel.Locale(translation.to_locale(translation.get_language() or settings.LANGUAGE_CODE))
+            countries = sorted(
+                (name, region, code)
+                for region, code in REGION_CODE_TO_COUNTRY_CODE.items()
+                if (name := locale.territories.get(region))
+            )
+            kwargs["choices"] = [("", "—")] + [(region, f"+{code} {name}") for name, region, code in countries]
         super().__init__(*args, **kwargs)
-        if self.choices and self.choices[0][0] == "":
-            choices_list = list(self.choices)
-            choices_list[0] = ("", str(_("Country code")))
-            self.choices = choices_list
 
 
 class CustomSplitPhoneNumberField(SplitPhoneNumberField):

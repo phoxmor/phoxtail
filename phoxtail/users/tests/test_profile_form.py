@@ -69,6 +69,14 @@ class TestPhoneNumberRoundTrip:
         assert '<fieldset class="fw-phone-row" aria-describedby="id_phone_number_error">' in html
         assert 'id="id_phone_number_error"' in html
 
+    def test_country_choices_lead_with_the_code(self, user):
+        """The narrow country box cuts its text off; the code must come first to stay in view."""
+        choices = UserProfileForm(instance=user).fields["phone_number"].fields[0].choices
+        assert choices[0] == ("", "—")
+        assert ("GR", "+30 Greece") in choices
+        names = [label.split(" ", 1)[1] for value, label in choices[1:]]
+        assert names == sorted(names)
+
     def test_the_phone_frame_refuses_another_widget(self, user):
         with pytest.raises(TypeError, match="PhoneNumberPrefixWidget"):
             render_field("phone", UserProfileForm(instance=user)["first_name"])
