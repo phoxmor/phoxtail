@@ -191,15 +191,27 @@
     grid-column: 1 / -1;
 }
 
-/* 7-column layout for weekday selection (Mon–Sun) */
+/* 7-column layout for weekday selection (Mon–Sun). Four columns until the
+   grid itself — not the screen — is wide enough for seven short day names
+   (a wide screen with a narrow drawer used to force seven cells too small
+   for their labels); seven need ~27rem at the spacing below. */
 .fw-checkbox-grid--7col {
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
-@media (min-width: 1024px) {
+@container (min-width: 28rem) {
     .fw-checkbox-grid--7col {
         grid-template-columns: repeat(7, 1fr);
+        gap: 0.25rem;
+    }
+}
+
+@supports not (container-type: inline-size) {
+    @media (min-width: 1024px) {
+        .fw-checkbox-grid--7col {
+            grid-template-columns: repeat(7, 1fr);
+        }
     }
 }
 
