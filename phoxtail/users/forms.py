@@ -46,7 +46,6 @@ class CustomSplitPhoneNumberField(SplitPhoneNumberField):
         # Add placeholder to phone number input
         if len(self.widget.widgets) >= 2:
             self.widget.widgets[1].attrs["placeholder"] = _("Enter phone number")
-            self.widget.widgets[1].attrs["type"] = "tel"
 
 
 class LoginForm(AllauthLoginForm):

@@ -58,6 +58,8 @@ class TestPhoneNumberRoundTrip:
         # The stored number decompresses back into the two controls.
         assert 'value="GR" selected' in html
         assert 'value="6912345678"' in html
+        # The number box's widget is a tel input already; the type is written once.
+        assert html.count('type="tel"') == 1
         # Each control gets its own outline, label and tap target.
         assert html.count("fw-md3-outlined") == 2
         assert 'for="id_phone_number_0"' in html
