@@ -1,5 +1,6 @@
 """`{% field %}` draws a core field template from the values it is given."""
 
+import datetime
 import decimal
 from pathlib import Path
 
@@ -292,3 +293,25 @@ def test_a_note_starting_with_a_blank_line_keeps_it():
     html = render_field("textarea", NoteForm(data={"note": "\nsecond line"})["note"])
 
     assert ">\n\nsecond line</textarea>" in html
+
+
+class BirthdayForm(forms.Form):
+    born_at = forms.DateField(initial=datetime.date(1990, 3, 14), widget=forms.DateInput(attrs={"type": "date"}))
+    typed = forms.DateField(initial=datetime.date(1990, 3, 14))
+
+
+@pytest.mark.parametrize("language", ["en", "de", "el"])
+def test_a_date_picker_reads_iso_in_every_language(language):
+    """Django writes the language's format (German 14.03.1990); a browser date picker reads only ISO."""
+    with translation.override(language):
+        html = render_field("date", BirthdayForm()["born_at"])
+
+    assert 'type="date"' in html
+    assert 'value="1990-03-14"' in html
+
+
+def test_a_forced_date_type_is_written_in_iso_too():
+    with translation.override("de"):
+        html = render_field("date", BirthdayForm()["typed"], input_type="date")
+
+    assert 'value="1990-03-14"' in html

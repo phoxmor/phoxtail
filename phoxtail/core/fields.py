@@ -3,12 +3,16 @@ import re
 from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
+from django.forms.widgets import DateTimeBaseInput
 from django.utils.html import escape
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
 HTMX_DEFAULTS = {"hx_swap": "innerHTML", "hx_trigger": "change"}
 HTMX_REQUESTS = ("hx_get", "hx_post", "hx_put", "hx_patch", "hx_delete")
+# A browser's date, date-time and time pickers read only these formats,
+# whatever the language; Django's widgets write the language's own.
+PICKER_FORMATS = {"date": "%Y-%m-%d", "datetime-local": "%Y-%m-%dT%H:%M", "time": "%H:%M"}
 
 
 class MultiSelectChipsBoundField(BoundField):
@@ -136,6 +140,8 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     widget = copy.copy(bound_field.field.widget)
     if input_type:
         widget.input_type = input_type
+    if isinstance(widget, DateTimeBaseInput) and widget.input_type in PICKER_FORMATS:
+        widget.format = PICKER_FORMATS[widget.input_type]
     htmx = {**(htmx or {}), **{key: options.pop(key) for key in list(options) if key.startswith("hx_")}}
     attrs = {key.replace("_", "-"): value for key, value in options.items() if _given(value)}
     if any(_given(htmx.get(key)) for key in HTMX_REQUESTS):
