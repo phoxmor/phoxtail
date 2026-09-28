@@ -88,7 +88,7 @@ class EventForm(forms.Form):
     starts = forms.DateTimeField()
 
 
-MERGED = [("input", "title"), ("select", "status"), ("number", "seats"), ("datetime", "starts")]
+MERGED = [("input", "title"), ("input", "seats"), ("select", "status"), ("datetime", "starts")]
 
 
 @pytest.mark.parametrize(("name", "form_field"), MERGED)
@@ -260,9 +260,13 @@ def test_a_value_from_a_variable_is_escaped_only_once():
     assert 'placeholder="a&amp;b"' in html
 
 
-def test_the_number_field_keeps_its_decimal_point_in_every_language():
-    with translation.override("el"):
-        html = render_field("number", ProfileForm()["price"])
+def test_a_number_is_drawn_by_the_input_field():
+    """One field for text and numbers: the form's widget decides the box type."""
+    html = render_field("input", EventForm()["seats"])
 
     assert 'type="number"' in html
-    assert 'value="1234.5"' in html
+
+
+def test_there_is_no_separate_number_field():
+    with pytest.raises(TemplateDoesNotExist):
+        render_field("number", EventForm()["seats"])
