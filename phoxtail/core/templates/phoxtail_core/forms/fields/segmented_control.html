@@ -7,6 +7,8 @@ segmented_control/options.html and segmented_control/option.html, so
 values, the checked segment, ids, disabled and every hx_* option reach each
 input; the chosen radio submits its own value. A disabled form field greys
 the whole control. Help text and errors render as MD3 supporting text.
+Looks: outlined + large (default, for forms) or variant="filled"
+size="small" (a pill, for toolbars and page headers).
 {% endcomment %}
 {% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
@@ -15,13 +17,15 @@ the whole control. Help text and errors render as MD3 supporting text.
             {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
         </span>
     {% endif %}
-    <div class="fw-segmented-control{% if field.field.disabled %} fw-segmented-control--locked{% endif %}"
-         style="--fw-seg-count: {{ field.field.choices|length }}">
-        <div class="fw-segmented-track">
-            {% widget field class="fw-segmented-radio" template_name="phoxtail_core/forms/fields/segmented_control/options.html" option_template_name="phoxtail_core/forms/fields/segmented_control/option.html" htmx=htmx %}
-            <div class="fw-segmented-slider"></div>
+    {% with variant=variant|default:"outlined" size=size|default:"large" %}
+        <div class="fw-segmented-control fw-segmented-control--{{ variant }} fw-segmented-control--{{ size }}{% if field.field.disabled %} fw-segmented-control--locked{% endif %}"
+             style="--fw-seg-count: {{ field.field.choices|length }}">
+            <div class="fw-segmented-track">
+                {% widget field class="fw-segmented-radio" template_name="phoxtail_core/forms/fields/segmented_control/options.html" option_template_name="phoxtail_core/forms/fields/segmented_control/option.html" htmx=htmx %}
+                <div class="fw-segmented-slider"></div>
+            </div>
         </div>
-    </div>
+    {% endwith %}
     {% if supporting == "errors" %}
         <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}

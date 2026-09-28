@@ -771,7 +771,8 @@
    same 56px height, same outline token/hover/error border treatment and 4px
    corners as .fw-md3-outline, transparent track. The thumb is glassy — a
    low-alpha primary tint over a backdrop blur with a primary hairline —
-   and the selected label carries the primary accent. */
+   and the selected label carries the primary accent. That is the outlined
+   + large look, for forms; --filled --small is a pill (below). */
 
 .fw-segmented-control {
     position: relative !important;
@@ -903,6 +904,63 @@
 
 .fw-segmented-track:has(.fw-segmented-radio:nth-of-type(5):checked) .fw-segmented-slider {
     transform: translateX(400%) !important;
+}
+
+/* filled + small: a pill for toolbars and page headers — a grey track with
+   a raised white thumb (the outlined + large default is for forms). */
+.fw-segmented-control--filled {
+    border-radius: 9999px !important;
+    border-color: rgb(var(--color-surface-300)) !important;
+    background: rgb(var(--color-surface-200)) !important;
+    padding: 3px !important;
+}
+
+.fw-segmented-control--filled:hover {
+    border-color: rgb(var(--color-surface-300)) !important;
+}
+
+.fw-segmented-control--small {
+    height: 2.25rem !important;
+}
+
+.fw-segmented-control--filled .fw-segmented-slider {
+    border-radius: 9999px !important;
+    background: rgb(var(--color-surface-50)) !important;
+    border: 1px solid rgb(0 0 0 / 0.05) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04) !important;
+}
+
+.fw-segmented-control--filled .fw-segmented-label {
+    font-size: 0.8125rem !important;
+    color: rgb(var(--color-surface-500)) !important;
+}
+
+.fw-segmented-control--filled .fw-segmented-radio:checked + .fw-segmented-label {
+    color: rgb(var(--color-surface-900)) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .fw-segmented-control--filled,
+    .fw-segmented-control--filled:hover {
+        border-color: rgb(var(--color-surface-800)) !important;
+        background: rgb(var(--color-surface-900)) !important;
+    }
+
+    .fw-segmented-control--filled .fw-segmented-slider {
+        background: rgb(var(--color-surface-800)) !important;
+        border-color: rgb(255 255 255 / 0.08) !important;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.1) !important;
+    }
+
+    .fw-segmented-control--filled .fw-segmented-label {
+        color: rgb(var(--color-surface-400)) !important;
+    }
+
+    .fw-segmented-control--filled .fw-segmented-radio:checked + .fw-segmented-label {
+        color: rgb(var(--color-surface-50)) !important;
+    }
 }
 
 /* A disabled field disables every segment, so it takes the MD3 disabled
@@ -1424,11 +1482,11 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
 /* ── Dark Mode ── */
 
 @media (prefers-color-scheme: dark) {
-    /* Choice, toggle, and segmented widgets are dark-mode-aware through the
-       .fw-md3 token block — no per-rule overrides needed here. */
+    /* Choice, toggle, and outlined segmented widgets are dark-mode-aware
+       through the .fw-md3 token block; the filled segmented pill has its own
+       dark rules beside it. */
 
     /* Search — dark mode tokens are handled by .fw-sss-input media query above */
 
-    /* Multi Select Chips and Segmented Control — dark mode handled by the
-       .fw-md3 token block. */
+    /* Multi Select Chips — dark mode handled by the .fw-md3 token block. */
 }

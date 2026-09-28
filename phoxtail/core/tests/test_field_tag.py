@@ -492,3 +492,11 @@ def test_a_disabled_segmented_control_is_locked():
 
     assert "fw-segmented-control--locked" in html
     assert html.count("disabled") == 2
+
+
+def test_the_segmented_control_is_outlined_and_large_unless_asked():
+    outlined = render_field("segmented_control", ModeForm()["mode"])
+    pill = render_field("segmented_control", ModeForm()["mode"], variant="filled", size="small")
+
+    assert "fw-segmented-control--outlined fw-segmented-control--large" in outlined
+    assert "fw-segmented-control--filled fw-segmented-control--small" in pill
