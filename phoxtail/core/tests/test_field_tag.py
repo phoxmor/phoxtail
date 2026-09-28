@@ -258,3 +258,11 @@ def test_a_value_from_a_variable_is_escaped_only_once():
     html = _render('{% field "input" form.email placeholder=ph %}', form=ContactForm(), ph="a&b")
 
     assert 'placeholder="a&amp;b"' in html
+
+
+def test_the_number_field_keeps_its_decimal_point_in_every_language():
+    with translation.override("el"):
+        html = render_field("number", ProfileForm()["price"])
+
+    assert 'type="number"' in html
+    assert 'value="1234.5"' in html
