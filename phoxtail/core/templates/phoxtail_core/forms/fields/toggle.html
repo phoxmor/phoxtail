@@ -1,54 +1,24 @@
 {% comment %}
 MD3 switch (styled in widgets.css: 52x32dp track, growing handle) in a plain
 label row — no pill container. Help text and errors render as MD3 supporting
-text below instead of the hover tooltip.
+text below. Django's own widget draws the box, so it carries what the form
+declares; the help text and errors take Django's ids, which the box's
+aria-describedby points at.
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    {% if show_label != False and label != "" %}
-        <label class="fw-toggle-label">
-            <span class="fw-toggle-name">{{ label|default:field.label }}</span>
-            <!-- Toggle Switch -->
-            <div class="fw-toggle-wrapper">
-                <input type="checkbox"
-                       name="{{ field.html_name }}"
-                       id="{{ field.id_for_label }}"
-                       {% if field.value %}checked{% endif %}
-                       class="fw-toggle-input"
-                       {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-                       {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-                       {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
-                       {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-                       {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-                       {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
-                       {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
-                       {% if field.field.disabled %}disabled{% endif %}>
-                <div class="fw-toggle-track"></div>
-            </div>
-        </label>
-    {% else %}
-        <!-- Standalone toggle without label wrapper -->
-        <div class="fw-toggle-wrapper">
-            <input type="checkbox"
-                   name="{{ field.html_name }}"
-                   id="{{ field.id_for_label }}"
-                   {% if field.value %}checked{% endif %}
-                   class="fw-toggle-input"
-                   {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
-                   {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-                   {% if hx_swap %}hx-swap="{{ hx_swap }}"{% else %}hx-swap="none"{% endif %}
-                   {% if hx_trigger %}hx-trigger="{{ hx_trigger }}"{% else %}hx-trigger="change"{% endif %}
-                   {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-                   {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
-                   {% if hx_indicator %}hx-indicator="{{ hx_indicator }}"{% endif %}
-                   {% if field.field.disabled %}disabled{% endif %}>
-            <div class="fw-toggle-track"></div>
-        </div>
-    {% endif %}
-    {% if field.errors %}
-        <div class="fw-md3-supporting">
+    <label class="fw-toggle-label">
+        <span class="fw-toggle-name">{{ label|default:field.label }}</span>
+        <span class="fw-toggle-wrapper">
+            {% widget field class="fw-toggle-input" htmx=htmx %}
+            <span class="fw-toggle-track"></span>
+        </span>
+    </label>
+    {% if supporting == "errors" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
-    {% elif show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-md3-supporting">{{ help_text|default:field.help_text }}</div>
+    {% elif supporting == "help" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

@@ -347,7 +347,14 @@ class ChoiceWidgetsForm(forms.Form):
 
 @pytest.mark.parametrize(
     ("name", "form_field"),
-    [("select", "level"), ("select", "tags"), ("input", "agree"), ("textarea", "level"), ("checkbox", "level")],
+    [
+        ("select", "level"),
+        ("select", "tags"),
+        ("input", "agree"),
+        ("textarea", "level"),
+        ("checkbox", "level"),
+        ("toggle", "level"),
+    ],
 )
 def test_a_frame_refuses_a_widget_it_cannot_wrap(name, form_field):
     """Radio buttons inside a dropdown's outline is a broken field; it fails loudly instead."""
@@ -422,3 +429,33 @@ def test_every_option_gets_the_htmx_settings():
 def test_choices_refuses_a_dropdown():
     with pytest.raises(TypeError, match="RadioSelect or CheckboxSelectMultiple"):
         render_field("choices", PickForm()["plain"])
+
+
+@pytest.mark.parametrize(("initial", "on"), [(True, True), (False, False)])
+def test_the_toggle_is_on_by_its_value(initial, on):
+    html = render_field("toggle", ConsentForm(initial={"agree": initial})["agree"])
+
+    assert ("checked" in html) is on
+
+
+def test_the_toggle_points_at_its_help_text():
+    html = render_field("toggle", ConsentForm()["agree"])
+
+    assert 'aria-describedby="id_agree_helptext"' in html
+    assert 'id="id_agree_helptext"' in html
+
+
+def test_the_toggle_writes_htmx_only_when_it_makes_a_request():
+    quiet = render_field("toggle", ConsentForm()["agree"], hx_swap="none")
+    live = render_field("toggle", ConsentForm()["agree"], hx_get="/filters/", hx_swap="none")
+
+    assert "hx-" not in quiet
+    assert 'hx-get="/filters/"' in live
+    assert 'hx-swap="none"' in live
+
+
+def test_the_toggle_points_at_its_error():
+    html = render_field("toggle", ConsentForm(data={})["agree"])
+
+    assert "id_agree_error" in html.split('aria-describedby="')[1].split('"')[0]
+    assert 'id="id_agree_error"' in html

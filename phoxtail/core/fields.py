@@ -31,6 +31,7 @@ FRAME_WIDGETS = {
     "textarea": (Textarea, ()),
     "select": (Select, (SelectMultiple,)),
     "checkbox": (CheckboxInput, ()),
+    "toggle": (CheckboxInput, ()),
     "choices": ((RadioSelect, CheckboxSelectMultiple), ()),
 }
 # The button at the end of the box follows the box's type.
