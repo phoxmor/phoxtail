@@ -2,7 +2,7 @@ import copy
 import re
 from functools import cached_property
 
-from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
+from django.forms import BoundField, ModelChoiceField
 from django.forms.widgets import (
     CheckboxInput,
     CheckboxSelectMultiple,
@@ -42,47 +42,6 @@ FRAME_WIDGETS = {
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
-
-
-class MultiSelectChipsBoundField(BoundField):
-    """BoundField that exposes selected/available items as properties."""
-
-    @cached_property
-    def selected_items(self):
-        queryset = self.field.queryset
-        if queryset is None:
-            return []
-        value = self.value()
-        if not value:
-            return queryset.none()
-        if isinstance(value, (list, tuple)):
-            pks = [str(pk) for pk in value if pk]
-        else:
-            pks = [str(value)] if value else []
-        if not pks:
-            return queryset.none()
-        return queryset.model.objects.filter(pk__in=pks)
-
-    @cached_property
-    def available_items(self):
-        queryset = self.field.queryset
-        if queryset is None:
-            return []
-        value = self.value()
-        if isinstance(value, (list, tuple)):
-            selected_pks = [str(pk) for pk in value if pk]
-        else:
-            selected_pks = [str(value)] if value else []
-        if selected_pks:
-            return queryset.exclude(pk__in=selected_pks)
-        return queryset
-
-
-class MultiSelectChipsField(ModelMultipleChoiceField):
-    """ModelMultipleChoiceField with selected/available items."""
-
-    def get_bound_field(self, form, field_name):
-        return MultiSelectChipsBoundField(form, self, field_name)
 
 
 class SingleSelectSearchBoundField(BoundField):

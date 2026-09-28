@@ -355,110 +355,7 @@
     outline-offset: 2px;
 }
 
-/* ── Search Widget — Shared (single select search + multi select chips) ── */
-
-.fw-search-wrap {
-    /* token definitions — light (self-contained so widget works outside .fw-sss-input) */
-    --md-sys-color-surface-container-low: var(--color-surface-100);
-    --md-sys-color-outline-variant: var(--color-surface-200);
-    --md-sys-color-on-surface: var(--color-surface-900);
-    --md-sys-color-on-surface-variant: var(--color-surface-600);
-    --md-sys-color-primary: var(--color-primary-600);
-
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: rgb(var(--md-sys-color-surface-container-low));
-    border: 1px solid rgb(var(--md-sys-color-outline-variant));
-    border-radius: 9999px !important;
-    padding: 0 1.25rem;
-    height: 38px;
-    line-height: 1.5;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.fw-search-wrap:focus-within {
-    border-color: rgb(var(--md-sys-color-primary)) !important;
-    box-shadow: 0 0 0 3px rgb(var(--md-sys-color-primary) / 0.15) !important;
-}
-
-.fw-search-icon-wrap {
-    display: flex !important;
-    align-items: center;
-    flex-shrink: 0;
-    color: rgb(var(--md-sys-color-on-surface-variant));
-    pointer-events: none;
-    position: static !important;
-    transform: none !important;
-    left: auto !important;
-    top: auto !important;
-    z-index: auto !important;
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
-
-.fw-search-icon {
-    display: block !important;
-    width: 1.25rem !important;
-    height: 1.25rem !important;
-    color: inherit !important;
-    background: none !important;
-    border: none !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
-
-.fw-search-input {
-    flex: 1 !important;
-    min-width: 0 !important;
-    width: auto !important;
-    border: none !important;
-    outline: none !important;
-    background: transparent !important;
-    font-size: 0.9375rem !important;
-    color: rgb(var(--md-sys-color-on-surface)) !important;
-    font-family: inherit !important;
-    padding: 0 !important;
-    height: auto !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    transition: none !important;
-}
-
-.fw-search-input::placeholder {
-    color: rgb(var(--md-sys-color-on-surface-variant));
-    font-weight: 400;
-}
-
-.fw-search-input:hover,
-.fw-search-input:focus {
-    border-color: transparent !important;
-    box-shadow: none !important;
-}
-
-.fw-search-dropdown {
-    position: absolute;
-    z-index: 100;
-    left: 0;
-    right: 0;
-    margin-top: 0.5rem;
-    min-width: 14rem;
-    max-height: 15rem;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    background: rgb(var(--md-sys-color-surface-container-low));
-    border: 1px solid rgb(var(--md-sys-color-outline-variant));
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
-    scrollbar-width: thin;
-    scrollbar-color: rgb(var(--md-sys-color-outline-variant)) transparent;
-}
+/* ── Search Results (single select search) ── */
 
 .fw-search-divider {
     margin: 0;
@@ -482,10 +379,6 @@
 
 .fw-search-item:hover {
     background: rgb(var(--md-sys-color-on-surface) / 0.06);
-}
-
-.fw-search-item-icon {
-    display: none;
 }
 
 .fw-search-item-text {
@@ -517,8 +410,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .fw-sss-input,
-    .fw-search-wrap {
+    .fw-sss-input {
         --md-sys-color-surface-container-low: var(--color-surface-800);
         --md-sys-color-outline-variant: var(--color-surface-700);
         --md-sys-color-on-surface: var(--color-surface-100);
@@ -666,75 +558,6 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--md-sys-color-outline-variant)) transparent;
-}
-
-/* ── Multi Select Chips ── */
-
-.fw-msc-compact-input {
-    position: relative;
-}
-
-/* MD3 input chips: 32dp tall, 8dp corners, 1dp outline, label-large text
-   with a remove icon — wrapping inline instead of the old full-width rows. */
-.fw-msc-chips {
-    margin-top: 0.75rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.fw-msc-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: auto;
-    height: 2rem;
-    margin: 0;
-    padding: 0 1rem 0 0.5rem;
-    text-align: left;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(var(--md-sys-color-on-surface));
-    background: transparent;
-    border: 1px solid rgb(var(--md-sys-color-outline));
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 150ms var(--md-sys-motion-easing-standard);
-}
-
-.fw-msc-chip:hover {
-    background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
-}
-
-.fw-msc-chip-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 1.125rem;
-    height: 1.125rem;
-    margin: 0;
-    color: rgb(var(--md-sys-color-on-surface-variant));
-    background: none;
-    border: none;
-    border-radius: 0;
-    transition: color 150ms var(--md-sys-motion-easing-standard);
-}
-
-.fw-msc-chip-icon svg {
-    width: 1.125rem;
-    height: 1.125rem;
-}
-
-.fw-msc-chip:hover .fw-msc-chip-icon {
-    color: rgb(var(--md-sys-color-on-surface));
-}
-
-.fw-msc-chip-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 18rem;
 }
 
 /* ── Segmented Control ──
@@ -948,7 +771,7 @@
 }
 
 /* ── MD3 Outlined Field (pilot: select widget) ──
-   Tokens are scoped to .fw-md3 for now, mirroring the .fw-search-wrap /
+   Tokens are scoped to .fw-md3 for now, mirroring the
    .fw-sss-input pattern; hoist to :root once the remaining widgets migrate.
    The outline is a fieldset/legend so the label notch is a real border gap —
    no background patch behind the label, safe over glass surfaces. */
