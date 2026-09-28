@@ -1,6 +1,10 @@
+import re
 from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
+
+FIELD_TEMPLATES = "phoxtail_core/forms/widgets"
+FIELD_NAME = re.compile(r"[a-z_]+")
 
 
 class MultiSelectChipsBoundField(BoundField):
@@ -77,3 +81,23 @@ class SingleSelectSearchField(ModelChoiceField):
 
     def get_bound_field(self, form, field_name):
         return SingleSelectSearchBoundField(form, self, field_name)
+
+
+def render_field(name, bound_field, /, **options):
+    """Draw a bound form field with one of core's field templates.
+
+    Django's own ``BoundField.render`` draws it, through the form's renderer, so
+    the template sees the field and the options passed here, nothing else.
+    """
+    if not isinstance(name, str) or not FIELD_NAME.fullmatch(name):
+        raise ValueError(
+            f"{name!r} is not a field name: use a template name from "
+            f"{FIELD_TEMPLATES}/, without folders (a field's parts are not "
+            "drawn on their own)"
+        )
+    if not isinstance(bound_field, BoundField):
+        raise TypeError(
+            f"the {name!r} field needs a form field, got {bound_field!r}; "
+            "check the spelling of the form and field names"
+        )
+    return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", {**options, "field": bound_field})

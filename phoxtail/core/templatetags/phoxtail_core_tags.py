@@ -3,7 +3,23 @@ from django.conf import settings
 from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
 
+from phoxtail.core.fields import render_field
+
 register = template.Library()
+
+
+@register.simple_tag
+def field(name, bound_field, **options):
+    """Draw a bound form field with one of core's field templates.
+
+    The field sees only what is passed here, never the page's values, so a
+    value set higher up cannot change it.
+
+    Usage:
+        {% field "input" form.email %}
+        {% field "select" form.status show_label=False hx_get=url %}
+    """
+    return render_field(name, bound_field, **options)
 
 
 @register.filter(name="add_class")
