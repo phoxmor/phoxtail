@@ -2,6 +2,7 @@ import copy
 import re
 from functools import cached_property
 
+from django.core.exceptions import ValidationError
 from django.forms import BoundField, ModelChoiceField
 from django.forms.widgets import (
     CheckboxInput,
@@ -49,16 +50,16 @@ class SingleSelectSearchBoundField(BoundField):
 
     @cached_property
     def selected_item(self):
-        queryset = self.field.queryset
-        if queryset is None:
+        """The chosen item, if it is one of the field's choices.
+
+        The field's own check (``to_python``) looks it up in the field's
+        queryset and refuses a value that is not a choice or not a key at all.
+        """
+        if self.field.queryset is None:
             return None
-        value = self.value()
-        if not value:
-            return None
-        pk = str(value)
         try:
-            return queryset.model.objects.get(pk=pk)
-        except queryset.model.DoesNotExist:
+            return self.field.to_python(self.value())
+        except ValidationError:
             return None
 
     @cached_property
@@ -66,9 +67,8 @@ class SingleSelectSearchBoundField(BoundField):
         queryset = self.field.queryset
         if queryset is None:
             return []
-        value = self.value()
-        if value:
-            return queryset.exclude(pk=str(value))
+        if self.selected_item:
+            return queryset.exclude(pk=self.selected_item.pk)
         return queryset
 
 
