@@ -304,7 +304,7 @@ class BirthdayForm(forms.Form):
 def test_a_date_picker_reads_iso_in_every_language(language):
     """Django writes the language's format (German 14.03.1990); a browser date picker reads only ISO."""
     with translation.override(language):
-        html = render_field("date", BirthdayForm()["born_at"])
+        html = render_field("input", BirthdayForm()["born_at"])
 
     assert 'type="date"' in html
     assert 'value="1990-03-14"' in html
@@ -312,6 +312,6 @@ def test_a_date_picker_reads_iso_in_every_language(language):
 
 def test_a_forced_date_type_is_written_in_iso_too():
     with translation.override("de"):
-        html = render_field("date", BirthdayForm()["typed"], input_type="date")
+        html = render_field("input", BirthdayForm()["typed"], input_type="date")
 
     assert 'value="1990-03-14"' in html

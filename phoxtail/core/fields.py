@@ -13,6 +13,8 @@ HTMX_REQUESTS = ("hx_get", "hx_post", "hx_put", "hx_patch", "hx_delete")
 # A browser's date, date-time and time pickers read only these formats,
 # whatever the language; Django's widgets write the language's own.
 PICKER_FORMATS = {"date": "%Y-%m-%d", "datetime-local": "%Y-%m-%dT%H:%M", "time": "%H:%M"}
+# The button at the end of the box follows the box's type.
+TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock"}
 
 
 class MultiSelectChipsBoundField(BoundField):
@@ -113,8 +115,14 @@ def render_field(name, bound_field, /, **options):
         "field": bound_field,
         "supporting": supporting(bound_field, options),
         "htmx": {key: value for key, value in options.items() if key.startswith("hx_")},
+        "trailing": TRAILING.get(control_type(bound_field, options.get("input_type")), ""),
     }
     return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
+
+
+def control_type(bound_field, input_type=None):
+    """The type of the box a field draws: the caller's override, else the form's widget."""
+    return input_type or getattr(bound_field.field.widget, "input_type", "")
 
 
 def supporting(bound_field, options):
@@ -140,8 +148,12 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     widget = copy.copy(bound_field.field.widget)
     if input_type:
         widget.input_type = input_type
-    if isinstance(widget, DateTimeBaseInput) and widget.input_type in PICKER_FORMATS:
+    picker = control_type(bound_field, input_type) in PICKER_FORMATS
+    if picker and isinstance(widget, DateTimeBaseInput):
         widget.format = PICKER_FORMATS[widget.input_type]
+    if picker:
+        # A picker shows its own scaffold; HTML gives it no placeholder.
+        options.pop("placeholder", None)
     htmx = {**(htmx or {}), **{key: options.pop(key) for key in list(options) if key.startswith("hx_")}}
     attrs = {key.replace("_", "-"): value for key, value in options.items() if _given(value)}
     if any(_given(htmx.get(key)) for key in HTMX_REQUESTS):
