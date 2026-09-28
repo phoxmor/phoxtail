@@ -9,12 +9,14 @@ from django.forms.widgets import (
     DateTimeBaseInput,
     HiddenInput,
     Input,
+    NullBooleanSelect,
     RadioSelect,
     Select,
     SelectMultiple,
     Textarea,
 )
 from django.utils.html import escape
+from django.utils.translation import gettext_lazy as _
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
@@ -113,6 +115,18 @@ class SingleSelectSearchField(ModelChoiceField):
 
     def get_bound_field(self, form, field_name):
         return SingleSelectSearchBoundField(form, self, field_name)
+
+
+class BooleanFilterSelect(NullBooleanSelect):
+    """A yes/no filter's dropdown: All, Yes, No.
+
+    Django's NullBooleanSelect, whose empty choice reads "All" rather than
+    "Unknown": in a filter, no answer means no filtering.
+    """
+
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        self.choices = [("unknown", _("All")), ("true", _("Yes")), ("false", _("No"))]
 
 
 def render_field(name, bound_field, /, **options):

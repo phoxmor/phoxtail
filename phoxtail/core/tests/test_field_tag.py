@@ -500,3 +500,18 @@ def test_the_segmented_control_is_outlined_and_large_unless_asked():
 
     assert "fw-segmented-control--outlined fw-segmented-control--large" in outlined
     assert "fw-segmented-control--filled fw-segmented-control--small" in pill
+
+
+class ActiveFilterForm(forms.Form):
+    active = forms.NullBooleanField(required=False, widget=fields.BooleanFilterSelect)
+
+
+@pytest.mark.parametrize(
+    ("data", "chosen"), [({}, "unknown"), ({"active": "true"}, "true"), ({"active": "false"}, "false")]
+)
+def test_a_boolean_filter_offers_all_yes_and_no(data, chosen):
+    html = render_field("select", ActiveFilterForm(data=data)["active"])
+
+    assert re.findall(r'<option value="(\w+)"', html) == ["unknown", "true", "false"]
+    assert re.findall(r'<option value="(\w+)" selected>', html) == [chosen]
+    assert ">All</option>" in html
