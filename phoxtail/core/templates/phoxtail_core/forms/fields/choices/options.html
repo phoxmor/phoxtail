@@ -1,0 +1,7 @@
+{% comment %}
+A choice group's options, drawn by Django's widget: Django's own
+multiple_input.html without its wrapper, since choices.html holds the grid.
+{% endcomment %}
+{% for group, options, index in widget.optgroups %}{% if group %}
+<span class="fw-md3-group-label">{{ group }}</span>{% endif %}{% for option in options %}
+{% include option.template_name with widget=option %}{% endfor %}{% endfor %}

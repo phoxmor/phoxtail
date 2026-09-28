@@ -186,6 +186,11 @@
     }
 }
 
+/* A grouped choice's heading spans the whole row above its options. */
+.fw-checkbox-grid > .fw-md3-group-label {
+    grid-column: 1 / -1;
+}
+
 /* 7-column layout for weekday selection (Mon–Sun) */
 .fw-checkbox-grid--7col {
     grid-template-columns: repeat(4, 1fr);

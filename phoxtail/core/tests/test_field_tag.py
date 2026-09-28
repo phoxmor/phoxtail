@@ -384,3 +384,41 @@ def test_the_checkbox_points_at_its_help_text():
 
     assert 'aria-describedby="id_agree_helptext"' in html
     assert 'id="id_agree_helptext"' in html
+
+
+class PickForm(forms.Form):
+    size = forms.ChoiceField(choices=[("s", "Small"), ("l", "Large")], widget=forms.RadioSelect, initial="l")
+    days = forms.MultipleChoiceField(choices=[("0", "Monday"), ("1", "Tuesday")], widget=forms.CheckboxSelectMultiple)
+    grouped = forms.ChoiceField(
+        choices=[("Berlin", [("b1", "Room 1")]), ("Athens", [("a1", "Hall")])], widget=forms.RadioSelect
+    )
+    plain = forms.ChoiceField(choices=[("x", "X")])
+
+
+def test_choices_draws_radios_or_checkboxes_as_the_form_says():
+    radios = render_field("choices", PickForm()["size"])
+    boxes = render_field("choices", PickForm()["days"])
+
+    assert radios.count('type="radio"') == 2
+    assert "fw-choice-input--radio" in radios
+    assert 'value="l" class="fw-choice-input fw-choice-input--radio" required id="id_size_1" checked' in radios
+    assert boxes.count('type="checkbox"') == 2
+    assert "fw-choice-input--checkbox" in boxes
+
+
+def test_choices_draws_grouped_options_under_their_heading():
+    html = render_field("choices", PickForm()["grouped"])
+
+    assert html.index("Berlin") < html.index("Room 1") < html.index("Athens") < html.index("Hall")
+
+
+def test_every_option_gets_the_htmx_settings():
+    html = render_field("choices", PickForm()["size"], hx_get="/x/", hx_indicator="#spin")
+
+    assert html.count('hx-get="/x/"') == 2
+    assert html.count('hx-indicator="#spin"') == 2
+
+
+def test_choices_refuses_a_dropdown():
+    with pytest.raises(TypeError, match="RadioSelect or CheckboxSelectMultiple"):
+        render_field("choices", PickForm()["plain"])

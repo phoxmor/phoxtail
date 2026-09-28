@@ -3,7 +3,17 @@ import re
 from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
-from django.forms.widgets import CheckboxInput, DateTimeBaseInput, HiddenInput, Input, Select, SelectMultiple, Textarea
+from django.forms.widgets import (
+    CheckboxInput,
+    CheckboxSelectMultiple,
+    DateTimeBaseInput,
+    HiddenInput,
+    Input,
+    RadioSelect,
+    Select,
+    SelectMultiple,
+    Textarea,
+)
 from django.utils.html import escape
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
@@ -21,6 +31,7 @@ FRAME_WIDGETS = {
     "textarea": (Textarea, ()),
     "select": (Select, (SelectMultiple,)),
     "checkbox": (CheckboxInput, ()),
+    "choices": ((RadioSelect, CheckboxSelectMultiple), ()),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
@@ -123,8 +134,9 @@ def render_field(name, bound_field, /, **options):
         widget = bound_field.field.widget
         accepted, refused = FRAME_WIDGETS[name]
         if not isinstance(widget, accepted) or isinstance(widget, refused):
+            kinds = " or ".join(kind.__name__ for kind in (accepted if isinstance(accepted, tuple) else (accepted,)))
             raise TypeError(
-                f"the {name!r} field draws a {accepted.__name__} widget, but "
+                f"the {name!r} field draws a {kinds} widget, but "
                 f"{bound_field.name!r} uses {type(widget).__name__}; draw it with "
                 "the field that matches its widget, or change the widget in the form"
             )
@@ -134,6 +146,7 @@ def render_field(name, bound_field, /, **options):
         "supporting": supporting(bound_field, options),
         "htmx": {key: value for key, value in options.items() if key.startswith("hx_")},
         "trailing": TRAILING.get(control_type(bound_field, options.get("input_type")), ""),
+        "control_type": control_type(bound_field, options.get("input_type")),
     }
     return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
 
@@ -166,6 +179,11 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     widget = copy.copy(bound_field.field.widget)
     if input_type:
         widget.input_type = input_type
+    # Django's documented hooks for how a widget draws itself and its options.
+    for hook in ("template_name", "option_template_name"):
+        if options.get(hook):
+            setattr(widget, hook, options.pop(hook))
+        options.pop(hook, None)
     picker = control_type(bound_field, input_type) in PICKER_FORMATS
     if picker and isinstance(widget, DateTimeBaseInput):
         widget.format = PICKER_FORMATS[widget.input_type]
