@@ -270,15 +270,23 @@
 /* ── Toggle (MD3 switch) ──
    52x32dp track. Unselected: surface-container-highest fill, 2dp outline
    border, 16dp on-surface-variant handle. Selected: primary fill, handle
-   grows to 24dp in on-primary and slides right. Plain label row, no pill. */
+   grows to 24dp in on-primary and slides right. A list row like the
+   checkbox's: padded, highlighted on hover, no pill. */
 
 .fw-toggle-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.5rem 0;
+    padding: 0.75rem;
+    border-radius: var(--md-sys-shape-corner-extra-small, 4px);
     cursor: pointer;
+    transition: background-color 150ms var(--md-sys-motion-easing-standard);
+}
+
+/* The whole row answers the pointer, as the checkbox row does. */
+.fw-toggle-label:hover {
+    background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
 .fw-toggle-name {
