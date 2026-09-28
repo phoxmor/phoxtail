@@ -234,3 +234,11 @@ def test_the_shared_scripts_load_the_field_behaviour():
     from django.template.loader import render_to_string
 
     assert "phoxtail_core/js/fields.js" in render_to_string("phoxtail_core/scripts.html")
+
+
+def test_the_password_toggle_is_a_labelled_toggle_button():
+    """One constant label; aria-pressed tells a screen reader whether the password is shown."""
+    html = render_field("password", SecretForm()["secret"])
+
+    assert 'aria-label="Show password"' in html
+    assert 'aria-pressed="false"' in html

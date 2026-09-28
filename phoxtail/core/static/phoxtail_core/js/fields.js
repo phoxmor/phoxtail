@@ -15,6 +15,7 @@ document.addEventListener('click', function (event) {
     var input = button.closest('.fw-password-wrap').querySelector('.fw-password-input');
     var isVisible = input.type === 'text';
     input.type = isVisible ? 'password' : 'text';
+    button.setAttribute('aria-pressed', isVisible ? 'false' : 'true');
     button.querySelector('.fw-password-eye--show').style.display = isVisible ? '' : 'none';
     button.querySelector('.fw-password-eye--hide').style.display = isVisible ? 'none' : '';
 }, true);
