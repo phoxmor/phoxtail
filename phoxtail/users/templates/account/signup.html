@@ -58,8 +58,8 @@
                         {# the phone field keeps its own two-part row: prefix select beside the number #}
                         {% field "phone" form.phone_number %}
                         {# help_text is Django's validator list; the rules belong on a failed submit, not under an empty field #}
-                        {% field "password" form.password1 show_help_text=False %}
-                        {% field "password" form.password2 show_help_text=False %}
+                        {% field "input" form.password1 show_help_text=False %}
+                        {% field "input" form.password2 show_help_text=False %}
                         {{ redirect_field }}
                         <div class="auth-actions">
                             {% include "allauth/components/submit_button.html" with text_key="Sign Up" button_type="submit" %}

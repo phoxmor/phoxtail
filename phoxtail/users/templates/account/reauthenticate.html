@@ -14,7 +14,7 @@
                 </p>
             {% endfor %}
         {% endif %}
-        {% field "password" form.password autofocus=True %}
+        {% field "input" form.password autofocus=True %}
         {{ redirect_field }}
         <div class="auth-actions">
             {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" %}

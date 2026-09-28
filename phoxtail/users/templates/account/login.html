@@ -46,7 +46,7 @@
                     {% endif %}
                     {% field "input" form.login autofocus=True %}
                     {# help_text is allauth's own "Forgot your password?" anchor; the styled link below replaces it #}
-                    {% field "password" form.password show_help_text=False %}
+                    {% field "input" form.password show_help_text=False %}
                     <div class="auth-pt-2 auth-text-center">
                         <a href="{% url 'account_reset_password' %}"
                            class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>

@@ -30,7 +30,7 @@ served by Django's LoginView. The form posts back to its own URL, query string i
                         </p>
                     {% endfor %}
                     {% field "input" form.username input_type="email" autofocus=True %}
-                    {% field "password" form.password %}
+                    {% field "input" form.password %}
                     {# only where allauth's URLs are mounted; this page must not depend on them #}
                     {% url 'account_reset_password' as reset_url %}
                     {% if reset_url %}

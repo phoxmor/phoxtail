@@ -215,7 +215,7 @@ class SecretForm(forms.Form):
 
 def test_the_password_field_never_writes_the_typed_value_back():
     """A form re-shown with errors must not put the password into the page."""
-    html = render_field("password", SecretForm(data={"secret": "hunter2", "other": "x"})["secret"])
+    html = render_field("input", SecretForm(data={"secret": "hunter2", "other": "x"})["secret"])
 
     assert 'type="password"' in html
     assert 'autocomplete="current-password"' in html
@@ -224,7 +224,7 @@ def test_the_password_field_never_writes_the_typed_value_back():
 
 def test_the_password_toggle_carries_no_script_of_its_own():
     """The toggle lives once in js/fields.js, so a page with two password fields has no repeated code."""
-    html = render_field("password", SecretForm()["secret"])
+    html = render_field("input", SecretForm()["secret"])
 
     assert "<script" not in html
     assert "onclick" not in html
@@ -239,7 +239,7 @@ def test_the_shared_scripts_load_the_field_behaviour():
 
 def test_the_password_toggle_is_a_labelled_toggle_button():
     """One constant label; aria-pressed tells a screen reader whether the password is shown."""
-    html = render_field("password", SecretForm()["secret"])
+    html = render_field("input", SecretForm()["secret"])
 
     assert 'aria-label="Show password"' in html
     assert 'aria-pressed="false"' in html
@@ -266,11 +266,6 @@ def test_a_number_is_drawn_by_the_input_field():
     html = render_field("input", EventForm()["seats"])
 
     assert 'type="number"' in html
-
-
-def test_there_is_no_separate_number_field():
-    with pytest.raises(TemplateDoesNotExist):
-        render_field("number", EventForm()["seats"])
 
 
 class NoteForm(forms.Form):
@@ -315,3 +310,10 @@ def test_a_forced_date_type_is_written_in_iso_too():
         html = render_field("input", BirthdayForm()["typed"], input_type="date")
 
     assert 'value="1990-03-14"' in html
+
+
+@pytest.mark.parametrize("name", ["number", "date", "datetime", "password"])
+def test_one_input_field_draws_every_box_type(name):
+    """The template names the look; the form's widget decides the type."""
+    with pytest.raises(TemplateDoesNotExist):
+        render_field(name, EventForm()["title"])

@@ -14,7 +14,7 @@ HTMX_REQUESTS = ("hx_get", "hx_post", "hx_put", "hx_patch", "hx_delete")
 # whatever the language; Django's widgets write the language's own.
 PICKER_FORMATS = {"date": "%Y-%m-%d", "datetime-local": "%Y-%m-%dT%H:%M", "time": "%H:%M"}
 # The button at the end of the box follows the box's type.
-TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock"}
+TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
 
 
 class MultiSelectChipsBoundField(BoundField):

@@ -12,7 +12,7 @@ document.addEventListener('click', function (event) {
     if (!button) {
         return;
     }
-    var input = button.closest('.fw-password-wrap').querySelector('.fw-password-input');
+    var input = button.closest('.fw-md3-outlined').querySelector('.fw-md3-control');
     var isVisible = input.type === 'text';
     input.type = isVisible ? 'password' : 'text';
     button.setAttribute('aria-pressed', isVisible ? 'false' : 'true');

@@ -3,7 +3,9 @@ MD3 outlined text field for every box the form's widget draws — text,
 numbers, dates, date-times: the widget decides the type (see select.html for
 the anatomy notes). A date or date-time box never matches :placeholder-shown,
 so its label is permanently floated; the browser's picker indicator is
-hidden in CSS and the trailing calendar button opens the picker instead. Django's own
+hidden in CSS and the trailing calendar button opens the picker instead. A
+password box gets the show/hide button (js/fields.js); like Django, it never
+writes the typed value back. Django's own
 widget draws the control, so it carries what the form declares: the value
 formatted for the active language, type, required, disabled, maxlength,
 autocomplete, and the aria-describedby link to the line under it (Django's
@@ -15,7 +17,7 @@ place, per MD3). input_type overrides the widget's type. Any hx_* option
 reaches the control; the htmx settings are written only when it makes a
 request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
 {% endcomment %}
-{% load phoxtail_core_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined">
         {% widget field class="fw-md3-control" placeholder=placeholder|default:" " input_type=input_type autofocus=autofocus htmx=htmx %}
@@ -29,6 +31,18 @@ request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
                 {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
             </legend>
         </fieldset>
+        {% if trailing == "eye" %}
+            <button type="button"
+                    class="fw-md3-trailing-btn"
+                    aria-label="{% translate "Show password" %}"
+                    aria-pressed="false"
+                    data-password-toggle>
+                <span class="fw-password-eye fw-password-eye--show">{% icon "visibility" %}</span>
+                <span class="fw-password-eye fw-password-eye--hide" style="display:none">
+                    {% icon "visibility_lock" %}
+                </span>
+            </button>
+        {% endif %}
         {% if trailing == "calendar" and not field.field.disabled %}
             <button type="button" class="fw-md3-trailing-btn" tabindex="-1" aria-hidden="true"
                     onclick="var c = this.parentElement.querySelector('.fw-md3-control'); try { c.showPicker(); } catch (e) { c.focus(); }">
