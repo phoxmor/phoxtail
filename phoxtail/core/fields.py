@@ -1,3 +1,4 @@
+import copy
 import re
 from functools import cached_property
 
@@ -5,6 +6,8 @@ from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
+HTMX_DEFAULTS = {"hx_swap": "innerHTML", "hx_trigger": "change"}
+HTMX_REQUESTS = ("hx_get", "hx_post", "hx_put", "hx_patch", "hx_delete")
 
 
 class MultiSelectChipsBoundField(BoundField):
@@ -100,4 +103,46 @@ def render_field(name, bound_field, /, **options):
             f"the {name!r} field needs a form field, got {bound_field!r}; "
             "check the spelling of the form and field names"
         )
-    return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", {**options, "field": bound_field})
+    values = {
+        **options,
+        "field": bound_field,
+        "supporting": supporting(bound_field, options),
+        "htmx": {key: value for key, value in options.items() if key.startswith("hx_")},
+    }
+    return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
+
+
+def supporting(bound_field, options):
+    """What the line under a field shows: its errors, else its help text, else nothing."""
+    if bound_field.errors:
+        return "errors"
+    if options.get("show_help_text") is not False and (options.get("help_text") or bound_field.help_text):
+        return "help"
+    return ""
+
+
+def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
+    """Draw a field's control with Django's own widget, plus phoxtail's attributes.
+
+    The widget brings what the form declares (value formatted for the active
+    language, ``required``, ``disabled``, ``maxlength``, ``autocomplete``,
+    ``aria-describedby``...); ``options`` add HTML attributes on top:
+    ``class="x"``, ``autofocus=True``, and any ``hx_*`` setting, written only
+    when the control makes a request (``hx_get``, ``hx_post``, ``hx_put``,
+    ``hx_patch`` or ``hx_delete``). ``htmx`` takes a field's ``hx_*`` options at
+    once, as ``render_field`` gathers them.
+    """
+    widget = copy.copy(bound_field.field.widget)
+    if input_type:
+        widget.input_type = input_type
+    htmx = {**(htmx or {}), **{key: options.pop(key) for key in list(options) if key.startswith("hx_")}}
+    attrs = {key.replace("_", "-"): value for key, value in options.items() if _given(value)}
+    if any(_given(htmx.get(key)) for key in HTMX_REQUESTS):
+        for key, value in {**HTMX_DEFAULTS, **{k: v for k, v in htmx.items() if _given(v)}}.items():
+            attrs[key.replace("_", "-")] = value
+    return bound_field.as_widget(widget=widget, attrs=attrs)
+
+
+def _given(value):
+    """An option counts unless it is missing, False or empty; 0 counts."""
+    return value is not None and value is not False and value != ""

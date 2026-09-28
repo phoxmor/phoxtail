@@ -3,7 +3,7 @@ from django.conf import settings
 from django.forms.renderers import get_default_renderer
 from django.utils.safestring import mark_safe
 
-from phoxtail.core.fields import render_field
+from phoxtail.core.fields import render_control, render_field
 
 register = template.Library()
 
@@ -20,6 +20,16 @@ def field(name, bound_field, **options):
         {% field "select" form.status show_label=False hx_get=url %}
     """
     return render_field(name, bound_field, **options)
+
+
+@register.simple_tag
+def widget(bound_field, **options):
+    """Draw a field's control with Django's own widget, inside a field template.
+
+    Usage:
+        {% widget field class="fw-md3-control" placeholder=" " htmx=htmx %}
+    """
+    return render_control(bound_field, **options)
 
 
 @register.filter(name="add_class")

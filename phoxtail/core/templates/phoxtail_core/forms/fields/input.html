@@ -1,38 +1,20 @@
 {% comment %}
-MD3 outlined text field (see select.html for the anatomy notes). The label
-rests inside the container and floats into the outline notch on
-focus/populate, driven by :placeholder-shown — hence the single-space
-placeholder fallback. A caller-supplied placeholder is kept but only becomes
-visible on focus (CSS hides it while the label rests in its place, per MD3).
-With hx_get (plus optional hx_target, hx_swap, hx_trigger, hx_include,
-hx_vals) the control talks to the server; without it, it is a plain field.
+MD3 outlined text field (see select.html for the anatomy notes). Django's own
+widget draws the control, so it carries what the form declares: the value
+formatted for the active language, type, required, disabled, maxlength,
+autocomplete, and the aria-describedby link to the line under it (Django's
+ids: <id>_helptext, <id>_error). The label rests inside the container and floats into the
+outline notch on focus/populate, driven by :placeholder-shown — hence the
+single-space placeholder fallback. A caller-supplied placeholder is kept but
+only becomes visible on focus (CSS hides it while the label rests in its
+place, per MD3). input_type overrides the widget's type. Any hx_* option
+reaches the control; the htmx settings are written only when it makes a
+request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined">
-        <input type="{{ input_type|default:field.field.widget.input_type|default:'text' }}"
-               name="{{ field.html_name }}"
-               id="{{ field.id_for_label }}"
-               {# emptiness is None, not falsiness: real values like Decimal("0") must render #}
-               value="{% if field.value is not None %}{{ field.value }}{% endif %}"
-               placeholder="{{ placeholder|default:' ' }}"
-               class="fw-md3-control{% if field.field.disabled %} fw-md3-control--readonly{% endif %}"
-               {# the field owns these; hand-written markup would drop what the form declared #}
-               {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
-               {% if field.field.widget.attrs.minlength %}minlength="{{ field.field.widget.attrs.minlength }}"{% endif %}
-               {% if field.field.widget.attrs.maxlength %}maxlength="{{ field.field.widget.attrs.maxlength }}"{% endif %}
-               {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
-               {% if field.errors %}aria-invalid="true"{% endif %}
-               {% if field.field.required %}required{% endif %}
-               {% if field.field.disabled %}disabled{% endif %}
-               {% if autofocus %}autofocus{% endif %}
-               {% if hx_get %}
-                   hx-get="{{ hx_get }}"
-                   {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-                   hx-swap="{{ hx_swap|default:'innerHTML' }}"
-                   hx-trigger="{{ hx_trigger|default:'change' }}"
-                   {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-                   {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
-               {% endif %}>
+        {% widget field class="fw-md3-control" placeholder=placeholder|default:" " input_type=input_type autofocus=autofocus htmx=htmx %}
         {% if show_label != False and label != "" %}
             <label for="{{ field.id_for_label }}" class="fw-md3-label">
                 {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
@@ -44,11 +26,11 @@ hx_vals) the control talks to the server; without it, it is a plain field.
             </legend>
         </fieldset>
     </div>
-    {% if field.errors %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+    {% if supporting == "errors" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
-    {% elif show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
+    {% elif supporting == "help" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

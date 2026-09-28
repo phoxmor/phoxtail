@@ -1,11 +1,13 @@
 """`{% field %}` draws a core field template from the values it is given."""
 
+import decimal
 from pathlib import Path
 
 import pytest
 from django import forms
 from django.forms.renderers import get_default_renderer
 from django.template import Context, Template, TemplateDoesNotExist
+from django.utils import translation
 
 from phoxtail.core import fields
 from phoxtail.core.fields import render_field
@@ -125,3 +127,82 @@ FIELD_FILES = sorted(
 def test_every_field_template_loads_through_the_form_renderer(template_name):
     """Fields are drawn by the form renderer, not the page's engine; each file, parts included, must load there."""
     get_default_renderer().get_template(template_name)
+
+
+class ProfileForm(forms.Form):
+    nickname = forms.CharField(
+        max_length=20, help_text="Shown to others", widget=forms.TextInput(attrs={"autocomplete": "nickname"})
+    )
+    price = forms.DecimalField(initial=decimal.Decimal("1234.5"))
+
+
+def test_django_draws_the_input_with_what_the_form_declares():
+    html = render_field("input", ProfileForm()["nickname"])
+
+    assert 'maxlength="20"' in html
+    assert 'autocomplete="nickname"' in html
+    assert "required" in html
+    assert 'class="fw-md3-control"' in html
+    assert 'placeholder=" "' in html
+
+
+def test_a_number_keeps_its_decimal_point_in_every_language():
+    """A number input cannot read "1234,5"; Django's widget writes the value unlocalised."""
+    with translation.override("el"):
+        html = render_field("input", ProfileForm()["price"])
+
+    assert 'type="number"' in html
+    assert 'value="1234.5"' in html
+
+
+def test_the_control_points_at_the_help_text_by_djangos_ids():
+    html = render_field("input", ProfileForm()["nickname"])
+
+    assert 'aria-describedby="id_nickname_helptext"' in html
+    assert 'id="id_nickname_helptext"' in html
+
+
+def test_errors_take_the_help_texts_place_under_the_field():
+    form = ProfileForm(data={"nickname": ""})
+    html = render_field("input", form["nickname"])
+
+    assert 'aria-describedby="id_nickname_helptext id_nickname_error"' in html
+    assert 'id="id_nickname_error"' in html
+    assert "Shown to others" not in html
+
+
+def test_input_type_overrides_the_widget_type_without_changing_the_form():
+    form = ProfileForm()
+    html = render_field("input", form["nickname"], input_type="url")
+
+    assert 'type="url"' in html
+    assert form["nickname"].field.widget.input_type == "text"
+
+
+def test_a_zero_attribute_is_kept():
+    """0 == False in Python; a caller asking for tabindex=0 must still get it."""
+    html = render_field("input", ProfileForm()["nickname"])
+    assert 'tabindex="0"' in fields.render_control(ProfileForm()["nickname"], tabindex=0)
+    assert "tabindex" not in html
+
+
+def test_a_form_without_ids_gets_no_empty_ids():
+    html = render_field("input", ProfileForm(auto_id=False)["nickname"])
+
+    assert "_helptext" not in html
+    assert "_error" not in html
+
+
+def test_any_htmx_setting_reaches_the_input():
+    html = render_field("input", ProfileForm()["nickname"], hx_post="/save/", hx_indicator="#spin", hx_confirm="Sure?")
+
+    assert 'hx-post="/save/"' in html
+    assert 'hx-indicator="#spin"' in html
+    assert 'hx-confirm="Sure?"' in html
+    assert 'hx-trigger="change"' in html
+
+
+def test_htmx_settings_without_a_request_are_not_written():
+    html = render_field("input", ProfileForm()["nickname"], hx_indicator="#spin", hx_target="#x")
+
+    assert "hx-" not in html
