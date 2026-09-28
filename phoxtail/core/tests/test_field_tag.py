@@ -206,3 +206,16 @@ def test_htmx_settings_without_a_request_are_not_written():
     html = render_field("input", ProfileForm()["nickname"], hx_indicator="#spin", hx_target="#x")
 
     assert "hx-" not in html
+
+
+class SecretForm(forms.Form):
+    secret = forms.CharField(widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
+
+
+def test_the_password_field_never_writes_the_typed_value_back():
+    """A form re-shown with errors must not put the password into the page."""
+    html = render_field("password", SecretForm(data={"secret": "hunter2", "other": "x"})["secret"])
+
+    assert 'type="password"' in html
+    assert 'autocomplete="current-password"' in html
+    assert "hunter2" not in html
