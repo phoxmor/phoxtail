@@ -40,6 +40,7 @@ FRAME_WIDGETS = {
     "choices": ((RadioSelect, CheckboxSelectMultiple), ()),
     "segmented_control": (RadioSelect, (CheckboxSelectMultiple,)),
     "phone": (PhoneNumberPrefixWidget, ()),
+    "single_select_search": (HiddenInput, ()),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
@@ -73,7 +74,13 @@ class SingleSelectSearchBoundField(BoundField):
 
 
 class SingleSelectSearchField(ModelChoiceField):
-    """ModelChoiceField with selected_item/available_items."""
+    """ModelChoiceField with selected_item/available_items.
+
+    The pick travels in a hidden box; the search panel around it is drawn by
+    the field template.
+    """
+
+    widget = HiddenInput
 
     def get_bound_field(self, form, field_name):
         return SingleSelectSearchBoundField(form, self, field_name)

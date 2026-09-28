@@ -4,7 +4,7 @@ import pytest
 from django import forms
 from django.contrib.auth import get_user_model
 
-from phoxtail.core.fields import SingleSelectSearchField
+from phoxtail.core.fields import SingleSelectSearchField, render_field
 
 pytestmark = pytest.mark.django_db
 
@@ -42,3 +42,15 @@ def test_a_value_that_is_not_a_key_picks_nothing(active):
 
     assert field.selected_item is None
     assert list(field.available_items) == [active]
+
+
+def test_django_draws_the_hidden_box_that_carries_the_pick(active):
+    html = render_field("single_select_search", PickForm({"user": str(active.pk)})["user"])
+
+    assert f'<input type="hidden" name="user" value="{active.pk}" id="id_user">' in html
+
+
+def test_a_value_that_picks_nothing_sends_nothing(active):
+    html = render_field("single_select_search", PickForm({"user": "abc"})["user"])
+
+    assert 'name="user"' not in html

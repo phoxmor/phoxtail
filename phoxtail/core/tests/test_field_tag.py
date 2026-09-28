@@ -358,6 +358,7 @@ class ChoiceWidgetsForm(forms.Form):
         ("toggle", "level"),
         ("segmented_control", "tags"),
         ("segmented_control", "boxes"),
+        ("single_select_search", "level"),
     ],
 )
 def test_a_frame_refuses_a_widget_it_cannot_wrap(name, form_field):

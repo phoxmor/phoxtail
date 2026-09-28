@@ -1,4 +1,4 @@
-{% load i18n phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {# Single select: MD3-field trigger opens a panel with search bar + items inside. #}
 {# The floating label and outline live in the parent template (outside this   #}
 {# swap target); the empty trigger shows nothing while closed — the resting    #}
@@ -9,11 +9,7 @@
     <div id="{{ wid }}-input" class="fw-sss-input">
         {# Hidden input for form submission — its presence also drives the label float (CSS :has) #}
         <div id="{{ wid }}-selected-value" class="fw-hidden">
-            {% if selected_item and is_active != False %}
-                <input type="hidden"
-                       name="{{ field.html_name }}"
-                       value="{{ selected_item.pk }}">
-            {% endif %}
+            {% if selected_item and is_active != False %}{% widget field %}{% endif %}
         </div>
 
         {# Field-shaped trigger — div so the clear button can nest inside without invalid HTML #}

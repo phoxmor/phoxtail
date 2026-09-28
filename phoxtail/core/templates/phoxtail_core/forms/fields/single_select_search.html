@@ -10,7 +10,7 @@ context; float state is driven purely by CSS :has() (a hidden input exists
 only while something is selected), so it survives swaps.
 
 Required context:
-    - field: The form field (SingleSelectSearchField or ModelChoiceField)
+    - field: A SingleSelectSearchField (its hidden widget carries the pick)
     - search_url: URL for HTMX search endpoint
 
 Optional context:
