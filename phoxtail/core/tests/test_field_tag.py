@@ -317,3 +317,17 @@ def test_one_input_field_draws_every_box_type(name):
     """The template names the look; the form's widget decides the type."""
     with pytest.raises(TemplateDoesNotExist):
         render_field(name, EventForm()["title"])
+
+
+class AlarmForm(forms.Form):
+    at = forms.TimeField(initial=datetime.time(7, 30), widget=forms.TimeInput(attrs={"type": "time"}))
+
+
+def test_a_time_box_gets_a_clock_button_and_an_iso_value():
+    with translation.override("de"):
+        html = render_field("input", AlarmForm()["at"])
+
+    assert 'type="time"' in html
+    assert 'value="07:30"' in html
+    assert "fw-md3-trailing-btn" in html
+    assert "placeholder" not in html
