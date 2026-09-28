@@ -1,3 +1,5 @@
+import unicodedata
+
 import babel
 from allauth.account.forms import LoginForm as AllauthLoginForm
 from allauth.account.forms import SignupForm as AllauthSignupForm
@@ -14,8 +16,8 @@ from phoxtail.users.models import Gender
 User = get_user_model()
 
 
-class CustomPrefixChoiceField(PrefixChoiceField):
-    """Country prefix whose choices lead with the code: "+30 Greece".
+def prefix_choices():
+    """Country prefixes in the active language, leading with the code: "+30 Greece".
 
     The prefix sits in a narrow box beside the number, and a native <select>
     cuts its text off rather than shortening it, so the code comes first to
@@ -23,16 +25,30 @@ class CustomPrefixChoiceField(PrefixChoiceField):
     blank choice is a single dash: the box's label already says what it asks,
     and Django's long dashes would be cut off.
     """
+    locale = babel.Locale(translation.to_locale(translation.get_language() or settings.LANGUAGE_CODE))
+    countries = sorted(
+        (_alphabetical(name), name, region, code)
+        for region, code in REGION_CODE_TO_COUNTRY_CODE.items()
+        if (name := locale.territories.get(region))
+    )
+    return [("", "—")] + [(region, f"+{code} {name}") for _key, name, region, code in countries]
+
+
+def _alphabetical(name):
+    """A name as a dictionary orders it: accents do not move a letter ("Κάτω" after "Καζ")."""
+    return "".join(c for c in unicodedata.normalize("NFD", name) if not unicodedata.combining(c)).casefold()
+
+
+class CustomPrefixChoiceField(PrefixChoiceField):
+    """Country prefix whose choices follow the page's language.
+
+    Django calls a choices function each time the list is used, so the names
+    are those of the request's language, not of the language the form class
+    was loaded in.
+    """
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get("choices") is None:
-            locale = babel.Locale(translation.to_locale(translation.get_language() or settings.LANGUAGE_CODE))
-            countries = sorted(
-                (name, region, code)
-                for region, code in REGION_CODE_TO_COUNTRY_CODE.items()
-                if (name := locale.territories.get(region))
-            )
-            kwargs["choices"] = [("", "—")] + [(region, f"+{code} {name}") for name, region, code in countries]
+        kwargs.setdefault("choices", prefix_choices)
         super().__init__(*args, **kwargs)
 
 

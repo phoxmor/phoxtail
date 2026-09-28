@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.template.loader import render_to_string
+from django.utils import translation
 
 from phoxtail.core.fields import render_field
 from phoxtail.users.forms import UserProfileForm
@@ -77,7 +80,16 @@ class TestPhoneNumberRoundTrip:
         assert choices[0] == ("", "—")
         assert ("GR", "+30 Greece") in choices
         names = [label.split(" ", 1)[1] for value, label in choices[1:]]
-        assert names == sorted(names)
+        assert names.index("Afghanistan") < names.index("Åland Islands") < names.index("Albania")
+
+    def test_country_names_follow_the_page_language(self, user):
+        """The form class loads once; its country names must still be the request's."""
+        form = UserProfileForm(instance=user)
+        with translation.override("el"):
+            html = render_field("phone", form["phone_number"])
+        assert "+30 Ελλάδα" in html
+        names = re.findall(r'<option value="[A-Z]{2}"[^>]*>\+\d+ ([^<]+)</option>', html)
+        assert names.index("Καζακστάν") < names.index("Κάτω Χώρες") < names.index("Κένυα")
 
     def test_the_phone_frame_refuses_another_widget(self, user):
         with pytest.raises(TypeError, match="PhoneNumberPrefixWidget"):

@@ -12,18 +12,19 @@ native <select> cannot ellipsis, so a long country name in a shared row hides
 the number entirely.
 
 Optional context:
-    - prefix_label: label for the country-code shell (default "Country code")
+    - prefix_label: label for the country-code shell (default "Country code",
+      translated)
 {% endcomment %}
-{% load phoxtail_core_tags %}
+{% load i18n phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <fieldset class="fw-phone-row"{% if field.aria_describedby %} aria-describedby="{{ field.aria_describedby }}"{% endif %}>
         <legend class="fw-sr-only">{{ label|default:field.label }}</legend>
         <div class="fw-md3-outlined fw-phone-row__prefix">
             {% widget field part=0 class="fw-md3-control" htmx=htmx %}
-            <label for="{{ field.auto_id }}_0" class="fw-md3-label">{{ prefix_label|default:"Country code" }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
+            <label for="{{ field.auto_id }}_0" class="fw-md3-label">{{ prefix_label|default:_("Country code") }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
             <fieldset class="fw-md3-outline" aria-hidden="true">
                 <legend class="fw-md3-notch">
-                    <span>{{ prefix_label|default:"Country code" }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>
+                    <span>{{ prefix_label|default:_("Country code") }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>
                 </legend>
             </fieldset>
             <svg class="fw-md3-trailing" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
