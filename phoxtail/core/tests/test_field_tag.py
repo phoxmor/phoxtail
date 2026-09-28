@@ -242,3 +242,19 @@ def test_the_password_toggle_is_a_labelled_toggle_button():
 
     assert 'aria-label="Show password"' in html
     assert 'aria-pressed="false"' in html
+
+
+def test_quotes_in_a_template_written_option_do_not_break_the_attribute():
+    """Template string literals are marked safe; their quotes must still be escaped in the attribute."""
+    html = _render(
+        """{% field "input" form.email hx_get="/x/" hx_vals='js:{a: document.getElementById("id_b").value}' %}""",
+        form=ContactForm(),
+    )
+
+    assert 'hx-vals="js:{a: document.getElementById(&quot;id_b&quot;).value}"' in html
+
+
+def test_a_value_from_a_variable_is_escaped_only_once():
+    html = _render('{% field "input" form.email placeholder=ph %}', form=ContactForm(), ph="a&b")
+
+    assert 'placeholder="a&amp;b"' in html

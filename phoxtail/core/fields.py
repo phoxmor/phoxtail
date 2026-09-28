@@ -3,6 +3,7 @@ import re
 from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
+from django.utils.html import escape
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
@@ -140,6 +141,9 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     if any(_given(htmx.get(key)) for key in HTMX_REQUESTS):
         for key, value in {**HTMX_DEFAULTS, **{k: v for k, v in htmx.items() if _given(v)}}.items():
             attrs[key.replace("_", "-")] = value
+    # A string written in a template is marked safe, so Django would print its
+    # quotes raw and break the attribute; each value is escaped here, once.
+    attrs = {key: escape(value) if isinstance(value, str) else value for key, value in attrs.items()}
     return bound_field.as_widget(widget=widget, attrs=attrs)
 
 
