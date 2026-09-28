@@ -30,11 +30,6 @@ def widget(bound_field, **options):
     return render_control(bound_field, **options)
 
 
-@register.filter(name="add_class")
-def add_class(field, css_class):
-    return field.as_widget(attrs={"class": css_class})
-
-
 @register.simple_tag
 def get_proper_page_range(paginator, current_page, show_adjacent=1):
     """
