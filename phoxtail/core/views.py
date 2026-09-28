@@ -135,6 +135,22 @@ def get_core_modal_level_1_with_htmx(request):
     return _render_modal(request, "phoxtail_core/modal_level_1.html")
 
 
+def _search_within(queryset, query, limit):
+    """The best matches for ``query`` among the rows of ``queryset``, best first.
+
+    The search backend refuses to filter on a column the model has not
+    declared an ``index.FilterField``, and a form narrows its choices on any
+    column it likes. So the search sees only "these ids" (the model declares
+    ``index.FilterField`` on its primary key), and the matches are read back through
+    ``queryset``, which keeps its select_related and prefetch_related.
+    """
+    model = queryset.model
+    allowed = model._default_manager.filter(pk__in=queryset.values("pk"))
+    pks = [hit.pk for hit in get_search_backend().autocomplete(query, allowed)[:limit]]
+    rows = queryset.in_bulk(pks)
+    return [rows[pk] for pk in pks if pk in rows]
+
+
 class SingleSelectSearchView(PermissionMixin, View):
     """
     Generic CBV for the single-select search widget endpoint.
@@ -208,10 +224,9 @@ class SingleSelectSearchView(PermissionMixin, View):
         # The search input lives inside #context-parent-fields, so its value
         # leaks into select/clear requests via hx-include — skip it there.
         if search_value and not selection_changed:
-            s = get_search_backend()
-            available_items = s.autocomplete(search_value, available_items)
-
-        available_items = available_items[: self.max_results]
+            available_items = _search_within(available_items, search_value, self.max_results)
+        else:
+            available_items = available_items[: self.max_results]
 
         # Base context for widget
         context = {

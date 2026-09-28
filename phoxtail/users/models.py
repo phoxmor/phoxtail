@@ -59,6 +59,8 @@ class AbstractPhoxtailUser(
         index.AutocompleteField("last_name"),
         index.AutocompleteField("get_short_id"),
         index.FilterField("is_active"),
+        # A search field searches only its allowed choices, by id.
+        index.FilterField("id"),
     ]
 
     class Meta:
