@@ -19,3 +19,18 @@ document.addEventListener('click', function (event) {
     button.querySelector('.fw-password-eye--show').style.display = isVisible ? '' : 'none';
     button.querySelector('.fw-password-eye--hide').style.display = isVisible ? 'none' : '';
 }, true);
+
+document.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-picker-open]');
+    if (!button) {
+        return;
+    }
+    var input = button.closest('.fw-md3-outlined').querySelector('.fw-md3-control');
+    try {
+        input.showPicker();
+    } catch (error) {
+        // Browsers without showPicker(), or a picker the user has not
+        // activated yet: focusing still lets them type or use the keyboard.
+        input.focus();
+    }
+}, true);

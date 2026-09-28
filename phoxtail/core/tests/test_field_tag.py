@@ -331,3 +331,9 @@ def test_a_time_box_gets_a_clock_button_and_an_iso_value():
     assert 'value="07:30"' in html
     assert "fw-md3-trailing-btn" in html
     assert "placeholder" not in html
+
+
+def test_the_picker_buttons_carry_no_script_of_their_own():
+    for html in (render_field("input", BirthdayForm()["born_at"]), render_field("input", AlarmForm()["at"])):
+        assert "onclick" not in html
+        assert "data-picker-open" in html
