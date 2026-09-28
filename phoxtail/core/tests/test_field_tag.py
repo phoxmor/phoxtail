@@ -270,3 +270,25 @@ def test_a_number_is_drawn_by_the_input_field():
 def test_there_is_no_separate_number_field():
     with pytest.raises(TemplateDoesNotExist):
         render_field("number", EventForm()["seats"])
+
+
+class NoteForm(forms.Form):
+    note = forms.CharField(max_length=500, widget=forms.Textarea)
+
+
+def test_the_textarea_keeps_our_height_and_the_forms_limit():
+    html = render_field("textarea", NoteForm()["note"])
+
+    assert 'rows="2"' in html
+    assert 'maxlength="500"' in html
+
+
+def test_the_textarea_takes_rows_from_the_caller():
+    assert 'rows="6"' in render_field("textarea", NoteForm()["note"], rows=6)
+
+
+def test_a_note_starting_with_a_blank_line_keeps_it():
+    """Browsers drop the first newline after <textarea>; Django writes one so a real one survives."""
+    html = render_field("textarea", NoteForm(data={"note": "\nsecond line"})["note"])
+
+    assert ">\n\nsecond line</textarea>" in html

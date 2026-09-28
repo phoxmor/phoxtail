@@ -2,18 +2,13 @@
 MD3 outlined text field, multiline variant. Same anatomy as input.html; the
 --textarea modifier lets the container grow with the content and pins the
 resting label to the first text line instead of the vertical center.
+Django's own widget draws the control, so it carries what the form declares
+(maxlength, required...); rows (default 2) replaces Django's default of 10.
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined fw-md3-outlined--textarea">
-        <textarea name="{{ field.html_name }}"
-                  id="{{ field.id_for_label }}"
-                  placeholder=" "
-                  class="fw-md3-control"
-                  rows="{{ rows|default:2 }}"
-                  {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
-                  {% if field.errors %}aria-invalid="true"{% endif %}
-                  {% if field.field.required %}required{% endif %}
-                  {% if field.field.disabled %}disabled{% endif %}>{{ field.value|default:'' }}</textarea>
+        {% widget field class="fw-md3-control" placeholder=" " rows=rows|default:2 htmx=htmx %}
         {% if show_label != False and label != "" %}
             <label for="{{ field.id_for_label }}" class="fw-md3-label">
                 {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
@@ -25,11 +20,11 @@ resting label to the first text line instead of the vertical center.
             </legend>
         </fieldset>
     </div>
-    {% if field.errors %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+    {% if supporting == "errors" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
-    {% elif show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
+    {% elif supporting == "help" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>
