@@ -89,7 +89,7 @@ class EventForm(forms.Form):
     starts = forms.DateTimeField()
 
 
-MERGED = [("input", "title"), ("input", "seats"), ("select", "status"), ("datetime", "starts")]
+MERGED = [("input", "title"), ("input", "seats"), ("select", "status"), ("input", "starts")]
 
 
 @pytest.mark.parametrize(("name", "form_field"), MERGED)
