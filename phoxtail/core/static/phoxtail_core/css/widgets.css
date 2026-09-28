@@ -1061,7 +1061,13 @@ input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
     container-type: inline-size;
 }
 
+/* A fieldset (the two parts are one answer); its default border, padding
+   and min-content width go. */
 .fw-phone-row {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     /* The same rhythm the surrounding stack uses between fields, so the pair

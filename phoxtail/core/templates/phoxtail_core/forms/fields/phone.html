@@ -1,22 +1,25 @@
-{% load phoxtail_core_tags %}
 {% comment %}
 MD3 outlined field pair for a split phone number (see select.html for the
 anatomy notes, duplicated here for the same reason single_select_search.html
 duplicates it: the label/outline must wrap each control individually).
 
 The control is a MultiWidget — a country-prefix <select> plus the national
-number — so the controls are rendered by the field itself: hand-written markup
-would post a single "phone_number" key that the field never reads. They get
-one shell each rather than one shared outline; a native <select> cannot
-ellipsis, so a long country name in a shared row hides the number entirely.
+number. Django's own widget draws each part ({% widget … part=… %}), with the
+compound name and value the field reads back, and the form's attributes; the
+help text and errors take Django's ids, which each part's aria-describedby
+points at. The parts get one shell each rather than one shared outline; a
+native <select> cannot ellipsis, so a long country name in a shared row hides
+the number entirely.
 
 Optional context:
     - prefix_label: label for the country-code shell (default "Country code")
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    <div class="fw-phone-row">
+    <fieldset class="fw-phone-row"{% if field.aria_describedby %} aria-describedby="{{ field.aria_describedby }}"{% endif %}>
+        <legend class="fw-sr-only">{{ label|default:field.label }}</legend>
         <div class="fw-md3-outlined fw-phone-row__prefix">
-            {% subwidget field 0 "fw-md3-control" %}
+            {% widget field part=0 class="fw-md3-control" htmx=htmx %}
             <label for="{{ field.auto_id }}_0" class="fw-md3-label">{{ prefix_label|default:"Country code" }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
             <fieldset class="fw-md3-outline" aria-hidden="true">
                 <legend class="fw-md3-notch">
@@ -28,7 +31,7 @@ Optional context:
             </svg>
         </div>
         <div class="fw-md3-outlined fw-phone-row__number">
-            {% subwidget field 1 "fw-md3-control" %}
+            {% widget field part=1 class="fw-md3-control" htmx=htmx %}
             {% if show_label != False and label != "" %}
                 <label for="{{ field.auto_id }}_1" class="fw-md3-label">
                     {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
@@ -40,12 +43,12 @@ Optional context:
                 </legend>
             </fieldset>
         </div>
-    </div>
-    {% if field.errors %}
-        <div class="fw-md3-supporting" id="{{ field.auto_id }}_supporting">
+    </fieldset>
+    {% if supporting == "errors" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
-    {% elif show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-md3-supporting" id="{{ field.auto_id }}_supporting">{{ help_text|default:field.help_text }}</div>
+    {% elif supporting == "help" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

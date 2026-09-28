@@ -1,7 +1,5 @@
 from django import template
 from django.conf import settings
-from django.forms.renderers import get_default_renderer
-from django.utils.safestring import mark_safe
 
 from phoxtail.core.fields import render_control, render_field
 
@@ -35,23 +33,6 @@ def widget(bound_field, **options):
 @register.filter(name="add_class")
 def add_class(field, css_class):
     return field.as_widget(attrs={"class": css_class})
-
-
-@register.simple_tag
-def subwidget(field, index, css_class=""):
-    """Render one control of a MultiWidget field on its own.
-
-    A bound field renders its MultiWidget as a single block, which forces
-    every control of a composite field (the phone prefix and number, say)
-    into one shell. This yields just one of them — with the compound name
-    and value the field will read back — so each can sit in its own shell.
-    """
-    widget = field.field.widget
-    attrs = field.build_widget_attrs({"class": css_class} if css_class else {}, widget)
-    attrs["id"] = field.auto_id
-    context = widget.get_context(field.html_name, field.value(), attrs)
-    sub = context["widget"]["subwidgets"][int(index)]
-    return mark_safe(get_default_renderer().render(sub["template_name"], {"widget": sub}))
 
 
 @register.simple_tag

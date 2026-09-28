@@ -63,6 +63,16 @@ class TestPhoneNumberRoundTrip:
         assert 'for="id_phone_number_0"' in html
         assert 'for="id_phone_number_1"' in html
 
+    def test_the_pair_points_at_the_error(self, user):
+        """The two controls are one group, as Django groups them; the group names the error."""
+        html = render_field("phone", UserProfileForm(_payload(phone_number_1="123"), instance=user)["phone_number"])
+        assert '<fieldset class="fw-phone-row" aria-describedby="id_phone_number_error">' in html
+        assert 'id="id_phone_number_error"' in html
+
+    def test_the_phone_frame_refuses_another_widget(self, user):
+        with pytest.raises(TypeError, match="PhoneNumberPrefixWidget"):
+            render_field("phone", UserProfileForm(instance=user)["first_name"])
+
 
 @pytest.mark.urls("phoxtail.users.tests.urls")
 class TestFailedSaveResponse:

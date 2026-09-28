@@ -16,7 +16,9 @@ from django.forms.widgets import (
     Textarea,
 )
 from django.utils.html import escape
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
@@ -36,6 +38,7 @@ FRAME_WIDGETS = {
     "toggle": (CheckboxInput, ()),
     "choices": ((RadioSelect, CheckboxSelectMultiple), ()),
     "segmented_control": (RadioSelect, (CheckboxSelectMultiple,)),
+    "phone": (PhoneNumberPrefixWidget, ()),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
@@ -181,7 +184,7 @@ def supporting(bound_field, options):
     return ""
 
 
-def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
+def render_control(bound_field, /, *, input_type=None, htmx=None, part=None, **options):
     """Draw a field's control with Django's own widget, plus phoxtail's attributes.
 
     The widget brings what the form declares (value formatted for the active
@@ -190,7 +193,9 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     ``class="x"``, ``autofocus=True``, and any ``hx_*`` setting, written only
     when the control makes a request (``hx_get``, ``hx_post``, ``hx_put``,
     ``hx_patch`` or ``hx_delete``). ``htmx`` takes a field's ``hx_*`` options at
-    once, as ``render_field`` gathers them.
+    once, as ``render_field`` gathers them. ``part`` draws one control of a
+    multi-part widget (a phone number's country and number), so each can sit
+    in its own outline; it keeps the name and value the field reads back.
     """
     widget = copy.copy(bound_field.field.widget)
     if input_type:
@@ -214,7 +219,23 @@ def render_control(bound_field, /, *, input_type=None, htmx=None, **options):
     # A string written in a template is marked safe, so Django would print its
     # quotes raw and break the attribute; each value is escaped here, once.
     attrs = {key: escape(value) if isinstance(value, str) else value for key, value in attrs.items()}
-    return bound_field.as_widget(widget=widget, attrs=attrs)
+    if part is None:
+        return bound_field.as_widget(widget=widget, attrs=attrs)
+    return _render_part(bound_field, widget, attrs, part)
+
+
+def _render_part(bound_field, widget, attrs, part):
+    """One control of a MultiWidget, drawn as BoundField.as_widget draws a whole one.
+
+    Django draws a MultiWidget's controls together, through one template; this
+    takes the context Django builds for them and draws only the one asked for.
+    """
+    attrs = bound_field.build_widget_attrs(attrs, widget)
+    if bound_field.auto_id and "id" not in widget.attrs:
+        attrs.setdefault("id", bound_field.auto_id)
+    context = widget.get_context(bound_field.html_name, bound_field.value(), attrs)
+    control = context["widget"]["subwidgets"][part]
+    return mark_safe(bound_field.form.renderer.render(control["template_name"], {"widget": control}))
 
 
 def _given(value):
