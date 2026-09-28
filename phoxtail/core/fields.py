@@ -20,6 +20,7 @@ FRAME_WIDGETS = {
     "input": (Input, (CheckboxInput, HiddenInput)),
     "textarea": (Textarea, ()),
     "select": (Select, (SelectMultiple,)),
+    "checkbox": (CheckboxInput, ()),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}

@@ -2,30 +2,27 @@
 MD3 checkbox row: 18dp rounded-square control (styled in widgets.css) with
 body-large label and optional supporting text under it, list-item style —
 no pill container. Errors render as MD3 supporting text below the row.
+Django's own widget draws the box, so it carries what the form declares;
+the help text and errors take Django's ids, which the box's
+aria-describedby points at.
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <label for="{{ field.id_for_label }}"
            class="fw-choice-label fw-checkbox-label">
-        <input type="checkbox"
-               name="{{ field.html_name }}"
-               id="{{ field.id_for_label }}"
-               {% if field.value %}checked{% endif %}
-               class="fw-choice-input fw-choice-input--checkbox"
-               {% if field.errors %}aria-invalid="true"{% endif %}
-               {% if field.field.required %}required{% endif %}
-               {% if field.field.disabled %}disabled{% endif %}>
+        {% widget field class="fw-choice-input fw-choice-input--checkbox" htmx=htmx %}
         <div class="fw-choice-text">
             <span class="fw-choice-name">
                 {{ label|default:field.label }}
                 {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
             </span>
             {% if show_help_text != False and help_text|default:field.help_text %}
-                <p class="fw-choice-help">{{ help_text|default:field.help_text }}</p>
+                <p class="fw-choice-help"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</p>
             {% endif %}
         </div>
     </label>
     {% if field.errors %}
-        <div class="fw-md3-supporting">
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% endif %}

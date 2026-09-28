@@ -346,7 +346,8 @@ class ChoiceWidgetsForm(forms.Form):
 
 
 @pytest.mark.parametrize(
-    ("name", "form_field"), [("select", "level"), ("select", "tags"), ("input", "agree"), ("textarea", "level")]
+    ("name", "form_field"),
+    [("select", "level"), ("select", "tags"), ("input", "agree"), ("textarea", "level"), ("checkbox", "level")],
 )
 def test_a_frame_refuses_a_widget_it_cannot_wrap(name, form_field):
     """Radio buttons inside a dropdown's outline is a broken field; it fails loudly instead."""
@@ -359,3 +360,27 @@ def test_the_select_marks_the_chosen_option_by_value():
 
     assert '<option value="live" selected>' in html
     assert '<option value="draft">' in html
+
+
+class ConsentForm(forms.Form):
+    agree = forms.BooleanField(help_text="You can change this later")
+
+
+@pytest.mark.parametrize(("initial", "ticked"), [(True, True), (False, False)])
+def test_the_checkbox_is_ticked_by_its_value(initial, ticked):
+    html = render_field("checkbox", ConsentForm(initial={"agree": initial})["agree"])
+
+    assert ("checked" in html) is ticked
+
+
+def test_a_submitted_false_is_unticked():
+    html = render_field("checkbox", ConsentForm(data={"agree": "false"})["agree"])
+
+    assert "checked" not in html
+
+
+def test_the_checkbox_points_at_its_help_text():
+    html = render_field("checkbox", ConsentForm()["agree"])
+
+    assert 'aria-describedby="id_agree_helptext"' in html
+    assert 'id="id_agree_helptext"' in html
