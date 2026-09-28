@@ -337,3 +337,25 @@ def test_the_picker_buttons_carry_no_script_of_their_own():
     for html in (render_field("input", BirthdayForm()["born_at"]), render_field("input", AlarmForm()["at"])):
         assert "onclick" not in html
         assert "data-picker-open" in html
+
+
+class ChoiceWidgetsForm(forms.Form):
+    level = forms.ChoiceField(choices=[("a", "A"), ("b", "B")], widget=forms.RadioSelect)
+    tags = forms.MultipleChoiceField(choices=[("a", "A")])
+    agree = forms.BooleanField()
+
+
+@pytest.mark.parametrize(
+    ("name", "form_field"), [("select", "level"), ("select", "tags"), ("input", "agree"), ("textarea", "level")]
+)
+def test_a_frame_refuses_a_widget_it_cannot_wrap(name, form_field):
+    """Radio buttons inside a dropdown's outline is a broken field; it fails loudly instead."""
+    with pytest.raises(TypeError, match="widget"):
+        render_field(name, ChoiceWidgetsForm()[form_field])
+
+
+def test_the_select_marks_the_chosen_option_by_value():
+    html = render_field("select", EventForm(initial={"status": "live"})["status"])
+
+    assert '<option value="live" selected>' in html
+    assert '<option value="draft">' in html

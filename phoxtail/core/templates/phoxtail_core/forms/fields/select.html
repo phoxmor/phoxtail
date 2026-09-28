@@ -5,36 +5,16 @@ the border — works over any background (glass drawers included) with no
 background-color patch behind the label. A native <select> always renders a
 selection, so the label is permanently floated into the notch; there is no
 resting/floating animation to manage. The legend holds an invisible copy of
-the label text purely to size the notch.
-With hx_get (plus optional hx_target, hx_swap, hx_trigger, hx_include,
-hx_vals) the control talks to the server; without it, it is a plain field.
+the label text purely to size the notch. Django's own widget draws the <select>
+and its options (groups included), marks the chosen one by value and follows
+HTML's rule for the required attribute.
+Any hx_* option reaches the control; the htmx settings are written only when
+it makes a request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
 {% endcomment %}
+{% load phoxtail_core_tags %}
 <div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
     <div class="fw-md3-outlined">
-        <select name="{{ field.html_name }}"
-                id="{{ field.id_for_label }}"
-                class="fw-md3-control"
-                {% if field.errors or show_help_text != False and help_text|default:field.help_text %}aria-describedby="{{ field.id_for_label }}_supporting"{% endif %}
-                {% if field.errors %}aria-invalid="true"{% endif %}
-                {% if field.field.required %}required{% endif %}
-                {% if field.field.disabled %}disabled{% endif %}
-                {% if hx_get %}
-                    hx-get="{{ hx_get }}"
-                    {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
-                    hx-swap="{{ hx_swap|default:'innerHTML' }}"
-                    hx-trigger="{{ hx_trigger|default:'change' }}"
-                    {% if hx_include %}hx-include="{{ hx_include }}"{% endif %}
-                    {% if hx_vals %}hx-vals='{{ hx_vals }}'{% endif %}
-                {% endif %}>
-            {% with choices=field.field.choices|default:field.field.widget.choices %}
-                {% for value, label in choices %}
-                    <option value="{{ value }}"
-                            {% if field.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            {% endwith %}
-        </select>
+        {% widget field class="fw-md3-control" htmx=htmx %}
         {% if show_label != False and label != "" %}
             <label for="{{ field.id_for_label }}" class="fw-md3-label">
                 {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
@@ -49,11 +29,11 @@ hx_vals) the control talks to the server; without it, it is a plain field.
             <path d="M7 10l5 5 5-5z"/>
         </svg>
     </div>
-    {% if field.errors %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">
+    {% if supporting == "errors" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
-    {% elif show_help_text != False and help_text|default:field.help_text %}
-        <div class="fw-md3-supporting" id="{{ field.id_for_label }}_supporting">{{ help_text|default:field.help_text }}</div>
+    {% elif supporting == "help" %}
+        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

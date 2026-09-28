@@ -3,7 +3,7 @@ import re
 from functools import cached_property
 
 from django.forms import BoundField, ModelChoiceField, ModelMultipleChoiceField
-from django.forms.widgets import DateTimeBaseInput
+from django.forms.widgets import CheckboxInput, DateTimeBaseInput, HiddenInput, Input, Select, SelectMultiple, Textarea
 from django.utils.html import escape
 
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
@@ -13,6 +13,14 @@ HTMX_REQUESTS = ("hx_get", "hx_post", "hx_put", "hx_patch", "hx_delete")
 # A browser's date, date-time and time pickers read only these formats,
 # whatever the language; Django's widgets write the language's own.
 PICKER_FORMATS = {"date": "%Y-%m-%d", "datetime-local": "%Y-%m-%dT%H:%M", "time": "%H:%M"}
+# The widget each frame is built around. Django draws the control, so a
+# frame given another widget would wrap the wrong element (radio buttons in
+# a dropdown's outline); render_field refuses the pair instead.
+FRAME_WIDGETS = {
+    "input": (Input, (CheckboxInput, HiddenInput)),
+    "textarea": (Textarea, ()),
+    "select": (Select, (SelectMultiple,)),
+}
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
 
@@ -110,6 +118,15 @@ def render_field(name, bound_field, /, **options):
             f"the {name!r} field needs a form field, got {bound_field!r}; "
             "check the spelling of the form and field names"
         )
+    if name in FRAME_WIDGETS:
+        widget = bound_field.field.widget
+        accepted, refused = FRAME_WIDGETS[name]
+        if not isinstance(widget, accepted) or isinstance(widget, refused):
+            raise TypeError(
+                f"the {name!r} field draws a {accepted.__name__} widget, but "
+                f"{bound_field.name!r} uses {type(widget).__name__}; draw it with "
+                "the field that matches its widget, or change the widget in the form"
+            )
     values = {
         **options,
         "field": bound_field,
