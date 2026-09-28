@@ -105,9 +105,10 @@ def _remote_select_field(remotes_qs=None):
     return field
 
 
-def _mode_field(mode: str):
-    form = SyncModeForm({"sync_toggle": mode == "local"})
-    return form["sync_toggle"]
+def _mode_field(mode: str, locked: bool):
+    form = SyncModeForm(initial={"mode": mode})
+    form.fields["mode"].disabled = locked
+    return form["mode"]
 
 
 def _variant_differs(local_v, remote_variant_data: dict, remote_block_data: dict) -> bool:
@@ -147,11 +148,14 @@ def admin_sync_index(request):
     has_selected_remote = bool(getattr(remote_select_field, "_auto_select", None))
     no_remotes = not remotes.exists()
     locked_local = not has_selected_remote
-    mode = request.GET.get("mode", "local" if locked_local else "remote")
+    default_mode = "local" if locked_local else "remote"
+    mode = request.GET.get("mode", default_mode)
+    if not SyncModeForm.base_fields["mode"].valid_value(mode):
+        mode = default_mode
     context = {
         "remotes": remotes,
         "remote_select_field": remote_select_field,
-        "mode_field": _mode_field(mode),
+        "mode_field": _mode_field(mode, locked_local),
         "mode": mode,
         "no_remotes": no_remotes,
         "locked_local": locked_local,
@@ -204,7 +208,7 @@ def admin_sync_remote_select(request):
         "search_placeholder": "Search remotes",
         "trigger_placeholder": "Select remote",
         "selected_remote": selected_item,
-        "mode_field": _mode_field("remote" if selected_item else "local"),
+        "mode_field": _mode_field("remote" if selected_item else "local", not selected_item),
         "locked_local": not bool(selected_item),
         "skeleton_range": range(_DEFAULT_LIMIT),
     }

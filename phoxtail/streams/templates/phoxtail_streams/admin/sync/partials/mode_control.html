@@ -1,3 +1,3 @@
 {% load phoxtail_core_tags %}
 {% url 'streams-sync:streams' as streams_url %}
-{% field "segmented_control" mode_field label_off="Remote" label_on="Local" hx_get=streams_url hx_target="#streams-results" hx_swap="innerHTML" hx_include="#remote-selected-value, #streams-search-input" locked=locked_local %}
+{% field "segmented_control" mode_field hx_get=streams_url hx_target="#streams-results" hx_swap="innerHTML" hx_include="#remote-selected-value, #streams-search-input" %}

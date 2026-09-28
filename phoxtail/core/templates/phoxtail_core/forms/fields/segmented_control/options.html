@@ -1,0 +1,7 @@
+{% comment %}
+A segmented control's segments, drawn by Django's widget: Django's own
+multiple_input.html without its wrapper, since segmented_control.html holds
+the track.
+{% endcomment %}
+{% for group, options, index in widget.optgroups %}{% for option in options %}
+{% include option.template_name with widget=option %}{% endfor %}{% endfor %}

@@ -33,6 +33,7 @@ FRAME_WIDGETS = {
     "checkbox": (CheckboxInput, ()),
     "toggle": (CheckboxInput, ()),
     "choices": ((RadioSelect, CheckboxSelectMultiple), ()),
+    "segmented_control": (RadioSelect, (CheckboxSelectMultiple,)),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}

@@ -34,7 +34,7 @@
                            hx-target="#streams-results"
                            hx-swap="innerHTML"
                            hx-include="#remote-selected-value"
-                           hx-vals='js:{mode: document.getElementById("{{ mode_field.id_for_label }}_local").checked ? "local" : "remote"}'
+                           hx-vals='js:{mode: document.querySelector("[name={{ mode_field.html_name }}]:checked").value}'
                            hx-trigger="input changed delay:300ms">
                     <span id="streams-results-count" class="ss-search-results-count">
                         {% if total is not None %}

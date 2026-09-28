@@ -2,6 +2,7 @@
 
 import datetime
 import decimal
+import re
 from pathlib import Path
 
 import pytest
@@ -343,6 +344,7 @@ class ChoiceWidgetsForm(forms.Form):
     level = forms.ChoiceField(choices=[("a", "A"), ("b", "B")], widget=forms.RadioSelect)
     tags = forms.MultipleChoiceField(choices=[("a", "A")])
     agree = forms.BooleanField()
+    boxes = forms.MultipleChoiceField(choices=[("a", "A")], widget=forms.CheckboxSelectMultiple)
 
 
 @pytest.mark.parametrize(
@@ -354,6 +356,8 @@ class ChoiceWidgetsForm(forms.Form):
         ("textarea", "level"),
         ("checkbox", "level"),
         ("toggle", "level"),
+        ("segmented_control", "tags"),
+        ("segmented_control", "boxes"),
     ],
 )
 def test_a_frame_refuses_a_widget_it_cannot_wrap(name, form_field):
@@ -459,3 +463,32 @@ def test_the_toggle_points_at_its_error():
 
     assert "id_agree_error" in html.split('aria-describedby="')[1].split('"')[0]
     assert 'id="id_agree_error"' in html
+
+
+class ModeForm(forms.Form):
+    mode = forms.ChoiceField(choices=[("remote", "Remote"), ("local", "Local")], widget=forms.RadioSelect)
+
+
+def test_the_segmented_control_draws_one_segment_per_choice():
+    html = render_field("segmented_control", ModeForm(initial={"mode": "local"})["mode"])
+
+    assert "--fw-seg-count: 2" in html
+    assert 'value="remote"' in html
+    assert re.search(r'<input type="radio" name="mode" value="local"[^>]* checked>', html)
+    assert '<label for="id_mode_1" class="fw-segmented-label">Local</label>' in html
+
+
+def test_the_chosen_segment_sends_its_own_value():
+    html = render_field("segmented_control", ModeForm()["mode"], hx_get="/streams/")
+
+    assert html.count('hx-get="/streams/"') == 2
+    assert "hx-vals" not in html
+
+
+def test_a_disabled_segmented_control_is_locked():
+    form = ModeForm(initial={"mode": "local"})
+    form.fields["mode"].disabled = True
+    html = render_field("segmented_control", form["mode"])
+
+    assert "fw-segmented-control--locked" in html
+    assert html.count("disabled") == 2

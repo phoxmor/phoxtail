@@ -12,4 +12,4 @@ class RemoteSelectForm(forms.Form):
 
 
 class SyncModeForm(forms.Form):
-    sync_toggle = forms.BooleanField(required=False, label="")
+    mode = forms.ChoiceField(choices=[("remote", "Remote"), ("local", "Local")], widget=forms.RadioSelect, label="")
