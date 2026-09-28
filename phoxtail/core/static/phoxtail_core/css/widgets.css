@@ -484,25 +484,6 @@
     background: rgb(var(--md-sys-color-on-surface) / 0.06);
 }
 
-/* Choice dropdown: the currently selected option is excluded from its own
-   panel (there's nothing useful about being able to "pick" what's already
-   picked) rather than just highlighted. Removing it can leave a dangling
-   divider on either side, depending on whether it was the first item (no
-   leading divider to begin with — hide the one trailing it instead) or a
-   middle/last item (hide its own leading divider, keep the trailing one as
-   the separator for its former neighbors). */
-.fw-cdd-panel .fw-search-item[aria-selected="true"] {
-    display: none;
-}
-
-.fw-cdd-panel .fw-search-divider:has(+ .fw-search-item[aria-selected="true"]) {
-    display: none;
-}
-
-.fw-cdd-panel .fw-search-item[aria-selected="true"]:first-child + .fw-search-divider {
-    display: none;
-}
-
 .fw-search-item-icon {
     display: none;
 }
@@ -629,15 +610,6 @@
     border-radius: 12px;
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
     overflow: hidden;
-}
-
-/* Choice dropdown panel — no search bar. Per MD3 exposed dropdowns the menu
-   is at least as wide as its field and left-aligned to it; max-content lets
-   a long option stretch it a bit further. */
-.fw-cdd-panel {
-    min-width: 100%;
-    max-width: 22rem;
-    width: max-content;
 }
 
 /* Search bar inside panel */
@@ -1217,7 +1189,7 @@ textarea.fw-md3-control {
 }
 
 /* ── MD3 anatomy for the search-family widgets ──
-   (single_select_search, choice_dropdown). The pill trigger becomes the
+   (single_select_search). The pill trigger becomes the
    outlined field's control; label/outline live outside the HTMX swap target,
    so float state is driven by :has() — a hidden input exists only while
    something is selected, and aria-expanded flags an open panel. */
