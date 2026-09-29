@@ -25,7 +25,7 @@ Optional context:
       is open and nothing is selected (the resting label covers the closed state)
 {% endcomment %}
 {% with widget_id=field.html_name selected_item=field.selected_item available_items=field.available_items %}
-    <div id="{{ widget_id }}-widget" data-search-field class="phx-single-select-search phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <div id="{{ widget_id }}-widget" data-single-select-search class="phx-single-select-search phx-field{% if field.errors %} phx-field--error{% endif %}">
         <div class="phx-field__box phx-single-select-search__box">
             {# HTMX swap target — trigger, hidden value, and panel only #}
             <div id="{{ widget_id }}-container"

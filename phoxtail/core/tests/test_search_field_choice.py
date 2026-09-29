@@ -86,5 +86,5 @@ def test_the_search_field_carries_no_script_of_its_own(active):
     html = render_field("single_select_search", PickForm({"user": ""})["user"])
 
     assert "<script" not in html
-    assert "data-search-field" in html
-    assert "data-search-trigger" in html
+    assert "data-single-select-search" in html
+    assert "data-single-select-search-trigger" in html
