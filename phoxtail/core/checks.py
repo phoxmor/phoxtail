@@ -1,8 +1,9 @@
-"""System checks for the field templates' callers.
+"""System checks for the fields and their callers.
 
-A ``{% field %}`` call with a wrong name or option fails only when its page
-is drawn, and many are drawn only after a click (a drawer, an htmx piece).
-This check reads every template of every installed app at startup instead.
+Both catch at startup what would otherwise fail only after a click: a
+``{% field %}`` call with a wrong name or option (many are drawn only in a
+drawer or an htmx piece), and a search field over a model the search
+engine cannot narrow (it fails on the first keystroke).
 """
 
 from pathlib import Path
@@ -13,9 +14,12 @@ from django.template import Origin, Template, TemplateDoesNotExist, TemplateSynt
 from django.template.backends.django import DjangoTemplates
 from django.template.base import Lexer, TokenType
 from django.template.library import SimpleNode
+from django.urls import URLResolver, get_resolver
+from wagtail.search import index
 
 from phoxtail.core.fields import FIELD_NAME, FIELD_TEMPLATES, refuse_unknown_options
 from phoxtail.core.templatetags.phoxtail_core_tags import field
+from phoxtail.core.views import SingleSelectSearchView
 
 
 @register(Tags.templates)
@@ -72,3 +76,46 @@ def _check_template(engine, folder, path):
         except TypeError as error:
             errors.append(Error(f"{where}: {error}", id="phoxtail_core.E002"))
     return errors
+
+
+@register(Tags.urls)
+def searched_models(app_configs, **kwargs):
+    """Every model a search field searches declares its key a FilterField.
+
+    The search sees only the form's allowed rows ("id is one of these"), and
+    the search engine filters only on declared columns. A view no URL reaches
+    cannot be searched, so the routed views are the ones checked.
+    """
+    views = {}
+    for pattern in _patterns(get_resolver()):
+        view = getattr(pattern.callback, "view_class", None)
+        if isinstance(view, type) and issubclass(view, SingleSelectSearchView):
+            form_field = view.form_class.base_fields.get(view.field_name)
+            queryset = getattr(form_field, "queryset", None)
+            if queryset is not None:
+                views.setdefault(queryset.model, set()).add(view.__name__)
+    errors = []
+    for model, names in views.items():
+        key = model._meta.pk.attname
+        indexed = issubclass(model, index.Indexed)
+        fields = model.get_search_fields() if indexed else []
+        if not any(isinstance(f, index.FilterField) and f.get_attname(model) == key for f in fields):
+            hint = f'Add index.FilterField("{key}") to {model.__name__}.search_fields.'
+            errors.append(
+                Error(
+                    f"{model.__name__} is searched by {', '.join(sorted(names))}, but the search "
+                    f"engine cannot narrow it to the form's choices.",
+                    hint=hint if indexed else f"Make {model.__name__} an index.Indexed model. {hint}",
+                    obj=model,
+                    id="phoxtail_core.E003",
+                )
+            )
+    return errors
+
+
+def _patterns(resolver):
+    for pattern in resolver.url_patterns:
+        if isinstance(pattern, URLResolver):
+            yield from _patterns(pattern)
+        else:
+            yield pattern
