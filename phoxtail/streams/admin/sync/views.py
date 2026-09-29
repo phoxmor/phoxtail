@@ -18,8 +18,9 @@ from django.urls import reverse
 
 from phoxtail.core.paging import ListChanged, NotAPagedList, every_item
 from phoxtail.core.utils import page_range_entries
+from phoxtail.core.views import SingleSelectSearchView
 from phoxtail.remotes.models import Remote
-from phoxtail.remotes.permissions import remotes_permission_required
+from phoxtail.remotes.permissions import RemotesPermissionMixin, remotes_permission_required
 from phoxtail.streams.api.v1._helpers import (
     canonical_content_parts,
     schema_fingerprint,
@@ -172,54 +173,23 @@ def admin_sync_index(request):
 # ─────────────────────────────────────────────────────────────────
 
 
-@remotes_permission_required("manage_remotes")
-def admin_sync_remote_select(request):
-    widget_id = "remote"
-    current_value = request.GET.get("remote", "")
-    selection_changed = False
+class RemoteSelectView(RemotesPermissionMixin, SingleSelectSearchView):
+    required_permissions = ["manage_remotes"]
+    form_class = RemoteSelectForm
+    field_name = "remote"
+    search_url_name = "streams-sync:remote_select"
+    oob_response_template = f"{_T}/partials/remote_select_oob.html"
 
-    select_pk = request.GET.get(f"{widget_id}_select")
-    if select_pk:
-        current_value = select_pk
-        selection_changed = True
-
-    if request.GET.get(f"{widget_id}_clear"):
-        current_value = ""
-        selection_changed = True
-
-    mutable = request.GET.copy()
-    mutable["remote"] = current_value
-    form = RemoteSelectForm(mutable)
-    field = form["remote"]
-    selected_item = field.selected_item
-    available_items = field.available_items
-
-    search_value = request.GET.get(f"{widget_id}_search", "").strip()
-    if search_value and not selection_changed:
-        available_items = available_items.filter(name__icontains=search_value)
-
-    context = {
-        "field": field,
-        "widget_id": widget_id,
-        "selected_item": selected_item,
-        "available_items": available_items,
-        "search_url": reverse("streams-sync:remote_select"),
-        "search_value": search_value,
-        "search_placeholder": "Search remotes",
-        "trigger_placeholder": "Select remote",
-        "selected_remote": selected_item,
-        "mode_field": _mode_field("remote" if selected_item else "local", not selected_item),
-        "locked_local": not bool(selected_item),
-        "skeleton_range": range(_DEFAULT_LIMIT),
-    }
-
-    if not selection_changed:
-        return render(
-            request,
-            "phoxtail_core/forms/fields/single_select_search/results_content.html",
-            context,
-        )
-    return render(request, f"{_T}/partials/remote_select_oob.html", context)
+    def get_extra_context(self, form):
+        selected = form["remote"].selected_item
+        return {
+            "search_placeholder": "Search remotes",
+            "trigger_placeholder": "Select remote",
+            "selected_remote": selected,
+            "mode_field": _mode_field("remote" if selected else "local", not selected),
+            "locked_local": not selected,
+            "skeleton_range": range(_DEFAULT_LIMIT),
+        }
 
 
 # ─────────────────────────────────────────────────────────────────

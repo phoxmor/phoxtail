@@ -4,10 +4,10 @@ from django.utils.translation import gettext_lazy as _
 from phoxtail.remotes.permissions import RemotesPermissionedViewSet
 
 from .views import (
+    RemoteSelectView,
     admin_sync_index,
     admin_sync_pull,
     admin_sync_push,
-    admin_sync_remote_select,
     admin_sync_streams,
     admin_sync_variant_detail,
 )
@@ -23,7 +23,7 @@ class StreamsSyncViewSet(RemotesPermissionedViewSet):
     def get_urlpatterns(self):
         return [
             path("", admin_sync_index, name="index"),
-            path("remote-select/", admin_sync_remote_select, name="remote_select"),
+            path("remote-select/", RemoteSelectView.as_view(), name="remote_select"),
             path("streams/", admin_sync_streams, name="streams"),
             path("pull/", admin_sync_pull, name="pull"),
             path("push/", admin_sync_push, name="push"),

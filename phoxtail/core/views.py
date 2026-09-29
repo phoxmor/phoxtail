@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from functools import wraps
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from django import forms
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseBadRequest, QueryDict
 from django.shortcuts import render
@@ -172,12 +173,12 @@ class SingleSelectSearchView(PermissionMixin, View):
 
     http_method_names = ["get"]
 
-    form_class = None
-    field_name = None
-    search_url_name = None
-    item_template = None
-    hx_include = None
-    oob_response_template = None
+    form_class: type[forms.Form]
+    field_name: str
+    search_url_name: str
+    item_template: str | None = None
+    hx_include: str | None = None
+    oob_response_template: str | None = None
     max_results = 20
 
     def get_form(self, data):

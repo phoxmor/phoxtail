@@ -28,6 +28,7 @@ class Remote(UUIDMixin, TimestampMixin, index.Indexed, models.Model):
         index.SearchField("name"),
         index.AutocompleteField("base_url"),
         index.SearchField("base_url"),
+        index.FilterField("id"),
     ]
 
     class Meta:
