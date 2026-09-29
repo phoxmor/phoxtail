@@ -6,19 +6,19 @@ declares; the help text and errors take Django's ids, which the box's
 aria-describedby points at.
 {% endcomment %}
 {% load phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    <label class="fw-toggle-label">
-        <span class="fw-toggle-name">{{ label|default:field.label }}</span>
-        <span class="fw-toggle-wrapper">
-            {% widget field class="fw-toggle-input" htmx=htmx %}
-            <span class="fw-toggle-track"></span>
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <label class="phx-toggle">
+        <span class="phx-toggle__name">{{ label|default:field.label }}</span>
+        <span class="phx-toggle__wrapper">
+            {% widget field class="phx-toggle__input" htmx=htmx %}
+            <span class="phx-toggle__track"></span>
         </span>
     </label>
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

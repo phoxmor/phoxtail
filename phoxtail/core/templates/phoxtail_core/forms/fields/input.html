@@ -19,47 +19,47 @@ reaches the control; the htmx settings are written only when it makes a
 request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
 {% endcomment %}
 {% load i18n phoxtail_core_tags phoxtail_design_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    <div class="fw-md3-outlined">
-        {% widget field class="fw-md3-control" placeholder=placeholder|default:" " input_type=input_type autofocus=autofocus htmx=htmx %}
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <div class="phx-field__box">
+        {% widget field class="phx-field__control" placeholder=placeholder|default:" " input_type=input_type autofocus=autofocus htmx=htmx %}
         {% if show_label != False and label != "" %}
-            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+            <label for="{{ field.id_for_label }}" class="phx-field__label">
                 {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
             </label>
         {% endif %}
-        <fieldset class="fw-md3-outline" aria-hidden="true">
-            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+        <fieldset class="phx-field__outline" aria-hidden="true">
+            <legend class="phx-field__notch{% if show_label == False or label == "" %} phx-field__notch--empty{% endif %}">
                 {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
             </legend>
         </fieldset>
         {% if trailing == "eye" %}
             <button type="button"
-                    class="fw-md3-trailing-btn"
+                    class="phx-field__trailing-button"
                     aria-label="{% translate "Show password" %}"
                     aria-pressed="false"
                     data-password-toggle>
-                <span class="fw-password-eye fw-password-eye--show">{% icon "visibility" %}</span>
-                <span class="fw-password-eye fw-password-eye--hide" style="display:none">
+                <span class="phx-input__password-eye phx-input__password-eye--show">{% icon "visibility" %}</span>
+                <span class="phx-input__password-eye phx-input__password-eye--hide" style="display:none">
                     {% icon "visibility_lock" %}
                 </span>
             </button>
         {% endif %}
         {% if trailing == "calendar" and not field.field.disabled %}
-            <button type="button" class="fw-md3-trailing-btn" tabindex="-1" aria-hidden="true" data-picker-open>
+            <button type="button" class="phx-field__trailing-button" tabindex="-1" aria-hidden="true" data-picker-open>
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
             </button>
         {% endif %}
         {% if trailing == "clock" and not field.field.disabled %}
-            <button type="button" class="fw-md3-trailing-btn" tabindex="-1" aria-hidden="true" data-picker-open>
+            <button type="button" class="phx-field__trailing-button" tabindex="-1" aria-hidden="true" data-picker-open>
                 {% icon "schedule" %}
             </button>
         {% endif %}
     </div>
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

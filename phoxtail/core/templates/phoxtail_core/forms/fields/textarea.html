@@ -6,25 +6,25 @@ Django's own widget draws the control, so it carries what the form declares
 (maxlength, required...); rows (default 2) replaces Django's default of 10.
 {% endcomment %}
 {% load phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    <div class="fw-md3-outlined fw-md3-outlined--textarea">
-        {% widget field class="fw-md3-control" placeholder=" " rows=rows|default:2 htmx=htmx %}
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <div class="phx-field__box phx-field__box--textarea">
+        {% widget field class="phx-field__control" placeholder=" " rows=rows|default:2 htmx=htmx %}
         {% if show_label != False and label != "" %}
-            <label for="{{ field.id_for_label }}" class="fw-md3-label">
+            <label for="{{ field.id_for_label }}" class="phx-field__label">
                 {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
             </label>
         {% endif %}
-        <fieldset class="fw-md3-outline" aria-hidden="true">
-            <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+        <fieldset class="phx-field__outline" aria-hidden="true">
+            <legend class="phx-field__notch{% if show_label == False or label == "" %} phx-field__notch--empty{% endif %}">
                 {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
             </legend>
         </fieldset>
     </div>
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

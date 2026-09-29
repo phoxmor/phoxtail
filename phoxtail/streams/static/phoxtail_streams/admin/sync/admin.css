@@ -1316,7 +1316,7 @@
         width: 100%;
     }
 
-    .fw-segmented-control {
+    .phx-segmented-control {
         order: 1;
         width: 100% !important;
     }

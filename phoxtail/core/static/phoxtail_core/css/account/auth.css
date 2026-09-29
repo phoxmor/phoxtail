@@ -163,16 +163,16 @@
 /* ========================================
    AUTH PAGES – Form
    ======================================== */
-/* --fw-field-gap: the space between fields, which fields made of parts (the
+/* --phx-field-gap: the space between fields, which fields made of parts (the
    phone number) keep between their parts too. */
 .auth-form {
-    --fw-field-gap: 1.5rem;
+    --phx-field-gap: 1.5rem;
     position: relative;
     z-index: 10;
 }
 
 .auth-form > * + * {
-    margin-top: var(--fw-field-gap);
+    margin-top: var(--phx-field-gap);
 }
 
 /* ========================================
@@ -429,7 +429,7 @@ select.auth-input option {
 
    The outline is the widgets' own field border (surface-400 light, surface-600
    dark, hovering to on-surface) written out in surface tokens, because the
-   --md-sys-* tokens are scoped to .fw-md3 and do not resolve here. An opaque
+   --md-sys-* tokens are scoped to .phx-field and do not resolve here. An opaque
    fill would blend into the card, so the button is a hairline on nothing —
    exactly what the inputs above it look like. */
 .auth-btn--secondary .auth-btn-inner,

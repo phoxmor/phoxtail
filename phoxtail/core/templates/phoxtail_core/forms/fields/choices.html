@@ -6,24 +6,24 @@ draws radios, CheckboxSelectMultiple checkboxes. Django draws each option
 through its own widget, pointed at choices/options.html and
 choices/option.html, so values, ticks, ids, groups, disabled and every
 hx_* option reach each input. grid_modifier adds grid classes, e.g.
-fw-checkbox-grid--7col (the weekday picker, whose form gives short names).
+phx-choices--7col (the weekday picker, whose form gives short names).
 Help text and errors render as MD3 supporting text.
 {% endcomment %}
 {% load phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
     {% if show_label != False and label != "" %}
-        <span class="fw-md3-group-label">
+        <span class="phx-field__group-label">
             {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
         </span>
     {% endif %}
-    <div class="fw-checkbox-grid {{ grid_modifier }}">
-        {% widget field class="fw-choice-input fw-choice-input--"|add:control_type template_name="phoxtail_core/forms/fields/choices/options.html" option_template_name="phoxtail_core/forms/fields/choices/option.html" htmx=htmx %}
+    <div class="phx-choices {{ grid_modifier }}">
+        {% widget field class="phx-choice__input phx-choice__input--"|add:control_type template_name="phoxtail_core/forms/fields/choices/options.html" option_template_name="phoxtail_core/forms/fields/choices/option.html" htmx=htmx %}
     </div>
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

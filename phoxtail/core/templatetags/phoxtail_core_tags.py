@@ -25,7 +25,7 @@ def widget(bound_field, **options):
     """Draw a field's control with Django's own widget, inside a field template.
 
     Usage:
-        {% widget field class="fw-md3-control" placeholder=" " htmx=htmx %}
+        {% widget field class="phx-field__control" placeholder=" " htmx=htmx %}
     """
     return render_control(bound_field, **options)
 

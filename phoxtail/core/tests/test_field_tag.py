@@ -116,7 +116,7 @@ def test_without_hx_get_the_field_is_plain(name, form_field):
     """Settings without a request to make would be inert; the field writes none of them."""
     html = render_field(name, EventForm()[form_field], hx_target="#results", hx_swap="outerHTML")
 
-    assert "hx-" not in html
+    assert not re.search(r"\bhx-", html)
 
 
 FIELD_FILES = sorted(
@@ -144,7 +144,7 @@ def test_django_draws_the_input_with_what_the_form_declares():
     assert 'maxlength="20"' in html
     assert 'autocomplete="nickname"' in html
     assert "required" in html
-    assert 'class="fw-md3-control"' in html
+    assert 'class="phx-field__control"' in html
     assert 'placeholder=" "' in html
 
 
@@ -207,7 +207,7 @@ def test_any_htmx_setting_reaches_the_input():
 def test_htmx_settings_without_a_request_are_not_written():
     html = render_field("input", ProfileForm()["nickname"], hx_indicator="#spin", hx_target="#x")
 
-    assert "hx-" not in html
+    assert not re.search(r"\bhx-", html)
 
 
 class SecretForm(forms.Form):
@@ -330,7 +330,7 @@ def test_a_time_box_gets_a_clock_button_and_an_iso_value():
 
     assert 'type="time"' in html
     assert 'value="07:30"' in html
-    assert "fw-md3-trailing-btn" in html
+    assert "phx-field__trailing-button" in html
     assert "placeholder" not in html
 
 
@@ -412,10 +412,10 @@ def test_choices_draws_radios_or_checkboxes_as_the_form_says():
     boxes = render_field("choices", PickForm()["days"])
 
     assert radios.count('type="radio"') == 2
-    assert "fw-choice-input--radio" in radios
-    assert 'value="l" class="fw-choice-input fw-choice-input--radio" required id="id_size_1" checked' in radios
+    assert "phx-choice__input--radio" in radios
+    assert 'value="l" class="phx-choice__input phx-choice__input--radio" required id="id_size_1" checked' in radios
     assert boxes.count('type="checkbox"') == 2
-    assert "fw-choice-input--checkbox" in boxes
+    assert "phx-choice__input--checkbox" in boxes
 
 
 def test_choices_draws_grouped_options_under_their_heading():
@@ -454,7 +454,7 @@ def test_the_toggle_writes_htmx_only_when_it_makes_a_request():
     quiet = render_field("toggle", ConsentForm()["agree"], hx_swap="none")
     live = render_field("toggle", ConsentForm()["agree"], hx_get="/filters/", hx_swap="none")
 
-    assert "hx-" not in quiet
+    assert not re.search(r"\bhx-", quiet)
     assert 'hx-get="/filters/"' in live
     assert 'hx-swap="none"' in live
 
@@ -473,10 +473,10 @@ class ModeForm(forms.Form):
 def test_the_segmented_control_draws_one_segment_per_choice():
     html = render_field("segmented_control", ModeForm(initial={"mode": "local"})["mode"])
 
-    assert "--fw-seg-count: 2" in html
+    assert "--phx-segmented-control-count: 2" in html
     assert 'value="remote"' in html
     assert re.search(r'<input type="radio" name="mode" value="local"[^>]* checked>', html)
-    assert '<label for="id_mode_1" class="fw-segmented-label">Local</label>' in html
+    assert '<label for="id_mode_1" class="phx-segmented-control__label">Local</label>' in html
 
 
 def test_the_chosen_segment_sends_its_own_value():
@@ -491,7 +491,7 @@ def test_a_disabled_segmented_control_is_locked():
     form.fields["mode"].disabled = True
     html = render_field("segmented_control", form["mode"])
 
-    assert "fw-segmented-control--locked" in html
+    assert "phx-segmented-control--locked" in html
     assert html.count("disabled") == 2
 
 
@@ -499,8 +499,8 @@ def test_the_segmented_control_is_outlined_and_large_unless_asked():
     outlined = render_field("segmented_control", ModeForm()["mode"])
     pill = render_field("segmented_control", ModeForm()["mode"], variant="filled", size="small")
 
-    assert "fw-segmented-control--outlined fw-segmented-control--large" in outlined
-    assert "fw-segmented-control--filled fw-segmented-control--small" in pill
+    assert "phx-segmented-control--outlined phx-segmented-control--large" in outlined
+    assert "phx-segmented-control--filled phx-segmented-control--small" in pill
 
 
 class ActiveFilterForm(forms.Form):

@@ -16,40 +16,40 @@ Optional context:
       translated)
 {% endcomment %}
 {% load i18n phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
-    <fieldset class="fw-phone-row"{% if field.aria_describedby %} aria-describedby="{{ field.aria_describedby }}"{% endif %}>
-        <legend class="fw-sr-only">{{ label|default:field.label }}</legend>
-        <div class="fw-md3-outlined fw-phone-row__prefix">
-            {% widget field part=0 class="fw-md3-control" htmx=htmx %}
-            <label for="{{ field.auto_id }}_0" class="fw-md3-label">{{ prefix_label|default:_("Country code") }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
-            <fieldset class="fw-md3-outline" aria-hidden="true">
-                <legend class="fw-md3-notch">
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <fieldset class="phx-phone"{% if field.aria_describedby %} aria-describedby="{{ field.aria_describedby }}"{% endif %}>
+        <legend class="phx-sr-only">{{ label|default:field.label }}</legend>
+        <div class="phx-field__box phx-phone__prefix">
+            {% widget field part=0 class="phx-field__control" htmx=htmx %}
+            <label for="{{ field.auto_id }}_0" class="phx-field__label">{{ prefix_label|default:_("Country code") }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</label>
+            <fieldset class="phx-field__outline" aria-hidden="true">
+                <legend class="phx-field__notch">
                     <span>{{ prefix_label|default:_("Country code") }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>
                 </legend>
             </fieldset>
-            <svg class="fw-md3-trailing" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <svg class="phx-field__trailing" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M7 10l5 5 5-5z"/>
             </svg>
         </div>
-        <div class="fw-md3-outlined fw-phone-row__number">
-            {% widget field part=1 class="fw-md3-control" htmx=htmx %}
+        <div class="phx-field__box phx-phone__number">
+            {% widget field part=1 class="phx-field__control" htmx=htmx %}
             {% if show_label != False and label != "" %}
-                <label for="{{ field.auto_id }}_1" class="fw-md3-label">
+                <label for="{{ field.auto_id }}_1" class="phx-field__label">
                     {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
                 </label>
             {% endif %}
-            <fieldset class="fw-md3-outline" aria-hidden="true">
-                <legend class="fw-md3-notch{% if show_label == False or label == "" %} fw-md3-notch--empty{% endif %}">
+            <fieldset class="phx-field__outline" aria-hidden="true">
+                <legend class="phx-field__notch{% if show_label == False or label == "" %} phx-field__notch--empty{% endif %}">
                     {% if show_label != False and label != "" %}<span>{{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}</span>{% endif %}
                 </legend>
             </fieldset>
         </div>
     </fieldset>
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

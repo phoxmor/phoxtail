@@ -12,12 +12,12 @@ document.addEventListener('click', function (event) {
     if (!button) {
         return;
     }
-    var input = button.closest('.fw-md3-outlined').querySelector('.fw-md3-control');
+    var input = button.closest('.phx-field__box').querySelector('.phx-field__control');
     var isVisible = input.type === 'text';
     input.type = isVisible ? 'password' : 'text';
     button.setAttribute('aria-pressed', isVisible ? 'false' : 'true');
-    button.querySelector('.fw-password-eye--show').style.display = isVisible ? '' : 'none';
-    button.querySelector('.fw-password-eye--hide').style.display = isVisible ? 'none' : '';
+    button.querySelector('.phx-input__password-eye--show').style.display = isVisible ? '' : 'none';
+    button.querySelector('.phx-input__password-eye--hide').style.display = isVisible ? 'none' : '';
 }, true);
 
 document.addEventListener('click', function (event) {
@@ -25,7 +25,7 @@ document.addEventListener('click', function (event) {
     if (!button) {
         return;
     }
-    var input = button.closest('.fw-md3-outlined').querySelector('.fw-md3-control');
+    var input = button.closest('.phx-field__box').querySelector('.phx-field__control');
     try {
         input.showPicker();
     } catch (error) {
@@ -43,7 +43,7 @@ document.addEventListener('click', function (event) {
         if (!panel) {
             return;
         }
-        panel.classList.toggle('fw-hidden', !open);
+        panel.classList.toggle('phx-hidden', !open);
         trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
         var input = open && panel.querySelector('input');
         if (input) {
@@ -80,12 +80,12 @@ document.addEventListener('click', function (event) {
    outside the part htmx redraws. */
 document.addEventListener('htmx:afterSwap', function (event) {
     var field = event.detail.target.closest('[data-search-field]');
-    if (!field || !event.detail.target.matches('.fw-widget-container')) {
+    if (!field || !event.detail.target.matches('.phx-single-select-search__container')) {
         return;
     }
-    if (field.classList.contains('fw-md3--error')) {
-        field.classList.remove('fw-md3--error');
-        var errors = field.querySelector(':scope > .fw-md3-supporting');
+    if (field.classList.contains('phx-field--error')) {
+        field.classList.remove('phx-field--error');
+        var errors = field.querySelector(':scope > .phx-field__supporting');
         if (errors) {
             errors.remove();
         }

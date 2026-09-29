@@ -882,8 +882,8 @@
         width: 100%;
     }
 
-    .rga-registry-select .fw-sss-input,
-    .rga-registry-select .fw-sss-trigger {
+    .rga-registry-select .phx-single-select-search__input,
+    .rga-registry-select .phx-single-select-search__trigger {
         width: 100%;
         min-width: 0;
     }

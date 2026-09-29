@@ -223,13 +223,13 @@
     display: block;
 }
 
-/* --fw-field-gap: the space between fields, which fields made of parts (the
+/* --phx-field-gap: the space between fields, which fields made of parts (the
    phone number) keep between their parts too. */
 .phoxtail-form-stack {
-    --fw-field-gap: 1.25rem;
+    --phx-field-gap: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: var(--fw-field-gap);
+    gap: var(--phx-field-gap);
 }
 
 .phoxtail-danger-section {

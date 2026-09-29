@@ -1,4 +1,4 @@
 {% comment %}
 One option row: Django's own input, inside phoxtail's label row.
 {% endcomment %}
-<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="fw-choice-label">{% include "django/forms/widgets/input.html" %}<span class="fw-choice-text">{{ widget.label }}</span></label>
+<label{% if widget.attrs.id %} for="{{ widget.attrs.id }}"{% endif %} class="phx-choice">{% include "django/forms/widgets/input.html" %}<span class="phx-choice__text">{{ widget.label }}</span></label>

@@ -7,22 +7,22 @@ the help text and errors take Django's ids, which the box's
 aria-describedby points at.
 {% endcomment %}
 {% load phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
     <label for="{{ field.id_for_label }}"
-           class="fw-choice-label fw-checkbox-label">
-        {% widget field class="fw-choice-input fw-choice-input--checkbox" htmx=htmx %}
-        <div class="fw-choice-text">
-            <span class="fw-choice-name">
+           class="phx-choice phx-checkbox">
+        {% widget field class="phx-choice__input phx-choice__input--checkbox" htmx=htmx %}
+        <div class="phx-choice__text">
+            <span class="phx-choice__name">
                 {{ label|default:field.label }}
-                {% if show_required != False and required|default:field.field.required %}<span class="fw-required">*</span>{% endif %}
+                {% if show_required != False and required|default:field.field.required %}<span class="phx-field__required">*</span>{% endif %}
             </span>
             {% if show_help_text != False and help_text|default:field.help_text %}
-                <p class="fw-choice-help"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</p>
+                <p class="phx-choice__help"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</p>
             {% endif %}
         </div>
     </label>
     {% if field.errors %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% endif %}

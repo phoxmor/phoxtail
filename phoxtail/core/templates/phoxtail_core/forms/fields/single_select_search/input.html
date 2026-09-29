@@ -6,14 +6,14 @@
 {# revealed while the panel is open (CSS), replacing the old hardcoded         #}
 {# "Select remote" default.                                                    #}
 {% with wid=widget_id|default:field.html_name %}
-    <div id="{{ wid }}-input" class="fw-sss-input">
+    <div id="{{ wid }}-input" class="phx-single-select-search__input">
         {# Hidden input for form submission — its presence also drives the label float (CSS :has) #}
-        <div id="{{ wid }}-selected-value" class="fw-hidden">
+        <div id="{{ wid }}-selected-value" class="phx-hidden">
             {% if selected_item and is_active != False %}{% widget field %}{% endif %}
         </div>
 
         {# Field-shaped trigger — div so the clear button can nest inside without invalid HTML #}
-        <div class="fw-sss-trigger fw-md3-control"
+        <div class="phx-single-select-search__trigger phx-field__control"
              id="{{ wid }}-trigger"
              data-search-trigger
              role="button"
@@ -24,7 +24,7 @@
              aria-labelledby="{{ field.auto_id }}_label {{ field.auto_id }}_pick"{% if supporting == "errors" %}
              aria-describedby="{{ field.auto_id }}_error"{% elif supporting == "help" %}
              aria-describedby="{{ field.auto_id }}_helptext"{% endif %}{% endif %}>
-            <span class="fw-sss-trigger-label"{% if field.auto_id %} id="{{ field.auto_id }}_pick"{% endif %}>
+            <span class="phx-single-select-search__trigger-label"{% if field.auto_id %} id="{{ field.auto_id }}_pick"{% endif %}>
                 {% if selected_item and is_active != False %}
                     {% if item_template %}
                         {% include item_template with item=selected_item %}
@@ -32,12 +32,12 @@
                         {{ selected_item }}
                     {% endif %}
                 {% elif trigger_placeholder %}
-                    <span class="fw-sss-placeholder">{{ trigger_placeholder }}</span>
+                    <span class="phx-single-select-search__placeholder">{{ trigger_placeholder }}</span>
                 {% endif %}
             </span>
             {% if selected_item and is_active != False %}
                 <button type="button"
-                        class="fw-sss-trigger-clear"
+                        class="phx-single-select-search__trigger-clear"
                         hx-get="{{ search_url }}"
                         hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
                         hx-vals='{"{{ wid }}_clear": "1"}'
@@ -47,14 +47,14 @@
                     {% icon "close" %}
                 </button>
             {% else %}
-                {% icon "chevron_down" class="fw-sss-chevron" %}
+                {% icon "chevron_down" class="phx-single-select-search__chevron" %}
             {% endif %}
         </div>
 
         {# Dropdown panel — hidden by default, toggled by trigger #}
-        <div id="{{ wid }}-panel" class="fw-sss-panel fw-hidden" role="listbox">
-            <div class="fw-sss-panel-search">
-                {% icon "search" class="fw-sss-panel-search-icon" %}
+        <div id="{{ wid }}-panel" class="phx-single-select-search__panel phx-hidden" role="listbox">
+            <div class="phx-single-select-search__panel-search">
+                {% icon "search" class="phx-single-select-search__panel-search-icon" %}
                 <input type="text"
                        id="{{ wid }}-search-input"
                        name="{{ wid }}_search"
@@ -62,14 +62,14 @@
                        placeholder="{{ search_placeholder|default:_("Search…") }}"
                        autocomplete="off"
                        {% if is_active == False %}disabled{% endif %}
-                       class="fw-sss-panel-input"
+                       class="phx-single-select-search__panel-input"
                        hx-get="{{ search_url }}"
                        hx-include="#{{ wid }}-selected-value{% if hx_include %}, {{ hx_include }}{% endif %}"
                        hx-target="#{{ wid }}-results"
                        hx-swap="innerHTML"
                        hx-trigger="input changed delay:300ms">
             </div>
-            <div id="{{ wid }}-results" class="fw-sss-results">
+            <div id="{{ wid }}-results" class="phx-single-select-search__results">
                 {% include 'phoxtail_core/forms/fields/single_select_search/results_content.html' with widget_id=wid %}
             </div>
         </div>

@@ -1,16 +1,16 @@
 /* core/css/widgets.css — Shared form widget styles
-   Prefix: fw- (form widget)
+   Classes: phx- + BEM — .phx-<field>__<part>--<modifier>
    Used by: core/templates/phoxtail_core/forms/fields/ */
 
 /* ── Field Wrapper ── */
 
-.fw-field {
+.phx-field {
     display: block;
 }
 
 /* ── Required Marker ── */
 
-.fw-required {
+.phx-field__required {
     color: rgb(var(--color-destructive-500));
 }
 
@@ -20,7 +20,7 @@
    selected shows a primary ring with a primary inner dot (radial gradient —
    ::before/::after are reserved/reset for third-party interop below). */
 
-.fw-choice-input {
+.phx-choice__input {
     appearance: none !important;
     -webkit-appearance: none !important;
     flex-shrink: 0;
@@ -32,25 +32,25 @@
                 border-color 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-choice-input::before,
-.fw-choice-input::after {
+.phx-choice__input::before,
+.phx-choice__input::after {
     display: none !important;
     content: none !important;
 }
 
-.fw-choice-input--checkbox {
+.phx-choice__input--checkbox {
     width: 1.125rem !important;
     height: 1.125rem !important;
     border-radius: 2px !important;
 }
 
-.fw-choice-input--radio {
+.phx-choice__input--radio {
     width: 1.25rem !important;
     height: 1.25rem !important;
     border-radius: 50% !important;
 }
 
-.fw-choice-input--checkbox:checked {
+.phx-choice__input--checkbox:checked {
     background-color: rgb(var(--md-sys-color-primary)) !important;
     border-color: rgb(var(--md-sys-color-primary)) !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='3' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m4.5 12.75 6 6 9-13.5'/%3E%3C/svg%3E") !important;
@@ -60,19 +60,19 @@
 }
 
 /* Selected radio: primary ring + centered primary dot (10dp of the 20dp). */
-.fw-choice-input--radio:checked {
+.phx-choice__input--radio:checked {
     border-color: rgb(var(--md-sys-color-primary)) !important;
     background: radial-gradient(circle,
         rgb(var(--md-sys-color-primary)) 0 31%,
         transparent 34%) !important;
 }
 
-.fw-choice-input:focus-visible {
+.phx-choice__input:focus-visible {
     outline: 2px solid rgb(var(--md-sys-color-primary));
     outline-offset: 2px;
 }
 
-.fw-choice-input:disabled {
+.phx-choice__input:disabled {
     border-color: rgb(var(--md-sys-color-on-surface) / 0.38) !important;
     cursor: default;
 }
@@ -81,7 +81,7 @@
    Plain MD3 list rows — the control and a body-large label, state layer on
    hover, no pill/glass container. */
 
-.fw-choice-label {
+.phx-choice {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -92,46 +92,46 @@
     transition: background-color 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-choice-label:hover {
+.phx-choice:hover {
     background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
 /* Larger padding for standalone single-checkbox */
-.fw-checkbox-label {
+.phx-checkbox {
     padding: 0.75rem;
 }
 
 /* In single-checkbox context, the text container fills remaining space */
-.fw-checkbox-label .fw-choice-text {
+.phx-checkbox .phx-choice__text {
     flex: 1;
 }
 
-.fw-choice-text {
+.phx-choice__text {
     font-size: 1rem;
     color: rgb(var(--md-sys-color-on-surface));
 }
 
 /* Tighter rows inside grids so narrow cells (e.g. the 7-column weekday
    picker) don't clip their labels. */
-.fw-checkbox-grid .fw-choice-label {
+.phx-choices .phx-choice {
     padding: 0.375rem 0.375rem;
     gap: 0.5rem;
 }
 
 /* Truncate text when inside a grid (multi-choice context) */
-.fw-checkbox-grid .fw-choice-text {
+.phx-choices .phx-choice__text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.fw-choice-name {
+.phx-choice__name {
     display: block;
     font-size: 1rem;
     color: rgb(var(--md-sys-color-on-surface));
 }
 
-.fw-choice-help {
+.phx-choice__help {
     display: block;
     margin-top: 0.125rem;
     font-size: 0.75rem;
@@ -147,47 +147,47 @@
    viewport size a fixed media-query breakpoint would key off of. Falls back
    to viewport-based breakpoints for browsers without container query
    support (behavior identical to the previous implementation).
-   Containment lives on the .fw-field wrapper, not the grid itself — a
+   Containment lives on the .phx-field wrapper, not the grid itself — a
    container query can't size an element against a containment context the
    element itself establishes, it only sees ancestor containers. */
-.fw-field:has(.fw-checkbox-grid) {
+.phx-field:has(.phx-choices) {
     container-type: inline-size;
 }
 
-.fw-checkbox-grid {
+.phx-choices {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.5rem;
 }
 
 @container (min-width: 400px) {
-    .fw-checkbox-grid {
+    .phx-choices {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @container (min-width: 640px) {
-    .fw-checkbox-grid {
+    .phx-choices {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
 @supports not (container-type: inline-size) {
     @media (min-width: 640px) {
-        .fw-checkbox-grid {
+        .phx-choices {
             grid-template-columns: repeat(2, 1fr);
         }
     }
 
     @media (min-width: 1024px) {
-        .fw-checkbox-grid {
+        .phx-choices {
             grid-template-columns: repeat(3, 1fr);
         }
     }
 }
 
 /* A grouped choice's heading spans the whole row above its options. */
-.fw-checkbox-grid > .fw-md3-group-label {
+.phx-choices > .phx-field__group-label {
     grid-column: 1 / -1;
 }
 
@@ -195,13 +195,13 @@
    grid itself — not the screen — is wide enough for seven short day names
    (a wide screen with a narrow drawer used to force seven cells too small
    for their labels); seven need ~27rem at the spacing below. */
-.fw-checkbox-grid--7col {
+.phx-choices--7col {
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
 @container (min-width: 28rem) {
-    .fw-checkbox-grid--7col {
+    .phx-choices--7col {
         grid-template-columns: repeat(7, 1fr);
         gap: 0.25rem;
     }
@@ -209,17 +209,17 @@
 
 @supports not (container-type: inline-size) {
     @media (min-width: 1024px) {
-        .fw-checkbox-grid--7col {
+        .phx-choices--7col {
             grid-template-columns: repeat(7, 1fr);
         }
     }
 }
 
 /* ── Password ──
-   The password box is the shared fw-md3 outlined field (input.html); its
-   show/hide button is a .fw-md3-trailing-btn driven by js/fields.js. */
+   The password box is the shared phx-field outlined field (input.html); its
+   show/hide button is a .phx-field__trailing-button driven by js/fields.js. */
 
-.fw-password-eye {
+.phx-input__password-eye {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -227,14 +227,14 @@
     height: 1.25rem;
 }
 
-.fw-password-eye svg {
+.phx-input__password-eye svg {
     width: 1.25rem;
     height: 1.25rem;
 }
 
 /* ── Hidden Utility ── */
 
-.fw-hidden {
+.phx-hidden {
     display: none;
 }
 
@@ -242,7 +242,7 @@
    native constraint validation — unlike display:none, this lets a `required`
    select still be validated and (if invalid) focused by the browser on
    submit instead of throwing "not focusable" and silently blocking it. */
-.fw-sr-only {
+.phx-sr-only {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -256,11 +256,11 @@
 
 /* ── Widget Container (complex HTMX widgets) ── */
 
-.fw-widget-container {
+.phx-single-select-search__container {
     position: relative;
 }
 
-.fw-widget-container--inactive {
+.phx-single-select-search__container--inactive {
     opacity: 0.4;
     pointer-events: none;
     user-select: none;
@@ -273,7 +273,7 @@
    grows to 24dp in on-primary and slides right. A list row like the
    checkbox's: padded, highlighted on hover, no pill. */
 
-.fw-toggle-label {
+.phx-toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -285,23 +285,23 @@
 }
 
 /* The whole row answers the pointer, as the checkbox row does. */
-.fw-toggle-label:hover {
+.phx-toggle:hover {
     background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
-.fw-toggle-name {
+.phx-toggle__name {
     font-size: 1rem;
     color: rgb(var(--md-sys-color-on-surface));
 }
 
-.fw-toggle-wrapper {
+.phx-toggle__wrapper {
     position: relative;
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
 }
 
-.fw-toggle-input {
+.phx-toggle__input {
     position: absolute;
     width: 0 !important;
     height: 0 !important;
@@ -309,7 +309,7 @@
     appearance: none !important;
 }
 
-.fw-toggle-track {
+.phx-toggle__track {
     position: relative;
     width: 3.25rem;
     height: 2rem;
@@ -321,7 +321,7 @@
                 border-color 200ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-toggle-track::before {
+.phx-toggle__track::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -337,32 +337,32 @@
                 background-color 200ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-toggle-input:checked + .fw-toggle-track {
+.phx-toggle__input:checked + .phx-toggle__track {
     background-color: rgb(var(--md-sys-color-primary));
     border-color: rgb(var(--md-sys-color-primary));
 }
 
 /* 24dp handle, 4dp from the track's right inner edge. */
-.fw-toggle-input:checked + .fw-toggle-track::before {
+.phx-toggle__input:checked + .phx-toggle__track::before {
     width: 1.5rem;
     height: 1.5rem;
     background-color: rgb(var(--md-sys-color-on-primary));
     transform: translate(0.875rem, -50%);
 }
 
-.fw-toggle-input:focus-visible + .fw-toggle-track {
+.phx-toggle__input:focus-visible + .phx-toggle__track {
     outline: 2px solid rgb(var(--md-sys-color-primary));
     outline-offset: 2px;
 }
 
 /* ── Search Results (single select search) ── */
 
-.fw-search-divider {
+.phx-single-select-search__divider {
     margin: 0;
     border-top: 1px solid rgb(var(--md-sys-color-outline-variant));
 }
 
-.fw-search-item {
+.phx-single-select-search__item {
     display: flex;
     align-items: center;
     width: 100%;
@@ -377,18 +377,18 @@
     white-space: nowrap;
 }
 
-.fw-search-item:hover {
+.phx-single-select-search__item:hover {
     background: rgb(var(--md-sys-color-on-surface) / 0.06);
 }
 
-.fw-search-item-text {
+.phx-single-select-search__item-text {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.fw-search-empty {
+.phx-single-select-search__empty {
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
     color: rgb(var(--md-sys-color-on-surface-variant));
@@ -398,7 +398,7 @@
 
 /* ── Single Select Search ── */
 
-.fw-sss-input {
+.phx-single-select-search__input {
     position: relative;
     /* token definitions — light; cascade to trigger, panel, results */
     --md-sys-color-surface-container-low: var(--color-surface-100);
@@ -406,34 +406,34 @@
     --md-sys-color-on-surface: var(--color-surface-900);
     --md-sys-color-on-surface-variant: var(--color-surface-600);
     --md-sys-color-primary: var(--color-primary-600);
-    --fw-sss-panel-bg: var(--color-surface-100);
+    --phx-single-select-search-panel-background: var(--color-surface-100);
 }
 
 @media (prefers-color-scheme: dark) {
-    .fw-sss-input {
+    .phx-single-select-search__input {
         --md-sys-color-surface-container-low: var(--color-surface-800);
         --md-sys-color-outline-variant: var(--color-surface-700);
         --md-sys-color-on-surface: var(--color-surface-100);
         --md-sys-color-on-surface-variant: var(--color-surface-400);
         --md-sys-color-primary: var(--color-primary-400);
-        --fw-sss-panel-bg: var(--color-surface-950, 8 8 8);
+        --phx-single-select-search-panel-background: var(--color-surface-950, 8 8 8);
     }
 }
 
 /* Trigger — a bare flex row; all field chrome (background, outline, focus
-   and open states) comes from the shared .fw-md3-control / .fw-md3-outline
+   and open states) comes from the shared .phx-field__control / .phx-field__outline
    anatomy, never from the trigger itself. */
-.fw-sss-trigger {
+.phx-single-select-search__trigger {
     white-space: nowrap;
     outline: none !important;
 }
 
-.fw-sss-trigger:disabled {
+.phx-single-select-search__trigger:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-.fw-sss-trigger-label {
+.phx-single-select-search__trigger-label {
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -443,7 +443,7 @@
 }
 
 /* Chevron icon — rotates when panel is open */
-.fw-sss-chevron {
+.phx-single-select-search__chevron {
     width: 1rem !important;
     height: 1rem !important;
     color: rgb(var(--md-sys-color-on-surface-variant));
@@ -457,12 +457,12 @@
     border-radius: 0 !important;
 }
 
-.fw-sss-trigger[aria-expanded="true"] .fw-sss-chevron {
+.phx-single-select-search__trigger[aria-expanded="true"] .phx-single-select-search__chevron {
     transform: rotate(180deg);
 }
 
 /* Clear button (replaces chevron when an item is selected) */
-.fw-sss-trigger-clear {
+.phx-single-select-search__trigger-clear {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -478,26 +478,26 @@
     line-height: 0;
 }
 
-.fw-sss-trigger-clear svg {
+.phx-single-select-search__trigger-clear svg {
     width: 1rem;
     height: 1rem;
     display: block;
 }
 
-.fw-sss-trigger-clear:hover {
+.phx-single-select-search__trigger-clear:hover {
     color: rgb(var(--md-sys-color-on-surface)) !important;
     background: none !important;
 }
 
 /* Panel (the dropdown) */
-.fw-sss-panel {
+.phx-single-select-search__panel {
     position: absolute;
     top: calc(100% + 0.5rem);
     left: 0;
     z-index: 100;
     min-width: 14rem;
     max-width: 22rem;
-    background: rgb(var(--fw-sss-panel-bg));
+    background: rgb(var(--phx-single-select-search-panel-background));
     border: 1px solid rgb(var(--md-sys-color-outline-variant));
     border-radius: 12px;
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
@@ -505,7 +505,7 @@
 }
 
 /* Search bar inside panel */
-.fw-sss-panel-search {
+.phx-single-select-search__panel-search {
     display: flex;
     align-items: center;
     gap: 0.625rem;
@@ -513,7 +513,7 @@
     border-bottom: 1px solid rgb(var(--md-sys-color-outline-variant));
 }
 
-.fw-sss-panel-search-icon {
+.phx-single-select-search__panel-search-icon {
     width: 1rem !important;
     height: 1rem !important;
     flex-shrink: 0;
@@ -526,7 +526,7 @@
     border-radius: 0 !important;
 }
 
-.fw-sss-panel-input {
+.phx-single-select-search__panel-input {
     flex: 1 !important;
     border: none !important;
     outline: none !important;
@@ -541,18 +541,18 @@
     width: auto !important;
 }
 
-.fw-sss-panel-input::placeholder {
+.phx-single-select-search__panel-input::placeholder {
     color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
-.fw-sss-panel-input:hover,
-.fw-sss-panel-input:focus {
+.phx-single-select-search__panel-input:hover,
+.phx-single-select-search__panel-input:focus {
     border-color: transparent !important;
     box-shadow: none !important;
 }
 
 /* Items list */
-.fw-sss-results {
+.phx-single-select-search__results {
     padding: 0.375rem 0;
     max-height: 14rem;
     overflow-y: auto;
@@ -564,12 +564,12 @@
    Keeps the original sliding-thumb design (a deliberate departure from MD3
    segmented buttons, by design decision) but dressed as an outlined field:
    same 56px height, same outline token/hover/error border treatment and 4px
-   corners as .fw-md3-outline, transparent track. The thumb is glassy — a
+   corners as .phx-field__outline, transparent track. The thumb is glassy — a
    low-alpha primary tint over a backdrop blur with a primary hairline —
    and the selected label carries the primary accent. That is the outlined
    + large look, for forms; --filled --small is a pill (below). */
 
-.fw-segmented-control {
+.phx-segmented-control {
     position: relative !important;
     display: inline-flex !important;
     height: 3.5rem !important;
@@ -584,18 +584,18 @@
     transition: border-color 200ms var(--md-sys-motion-easing-standard);
 }
 
-/* Hover/error borders mirror .fw-md3-outline so the control never stands out
+/* Hover/error borders mirror .phx-field__outline so the control never stands out
    from the outlined fields sharing its row. */
-.fw-segmented-control:hover {
+.phx-segmented-control:hover {
     border-color: rgb(var(--md-sys-color-on-surface)) !important;
 }
 
-.fw-md3--error .fw-segmented-control,
-.fw-md3--error .fw-segmented-control:hover {
+.phx-field--error .phx-segmented-control,
+.phx-field--error .phx-segmented-control:hover {
     border-color: rgb(var(--md-sys-color-error)) !important;
 }
 
-.fw-segmented-radio {
+.phx-segmented-control__radio {
     position: absolute !important;
     width: 0 !important;
     height: 0 !important;
@@ -605,7 +605,7 @@
     pointer-events: none !important;
 }
 
-.fw-segmented-track {
+.phx-segmented-control__track {
     position: relative !important;
     width: 100% !important;
     height: 100% !important;
@@ -618,7 +618,7 @@
     background: transparent !important;
 }
 
-.fw-segmented-slider {
+.phx-segmented-control__slider {
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
@@ -640,7 +640,7 @@
     box-sizing: border-box !important;
 }
 
-.fw-segmented-label {
+.phx-segmented-control__label {
     flex: 1 1 0% !important;
     width: auto !important;
     min-width: 0 !important;
@@ -667,58 +667,58 @@
 
 /* One segment per choice: labels share the width, the thumb is one share
    wide and slides to the checked radio (up to five segments). */
-.fw-segmented-control .fw-segmented-label {
+.phx-segmented-control .phx-segmented-control__label {
     padding: 0 16px !important;
     white-space: nowrap !important;
 }
 
-.fw-segmented-slider {
-    width: calc(100% / var(--fw-seg-count, 2)) !important;
+.phx-segmented-control__slider {
+    width: calc(100% / var(--phx-segmented-control-count, 2)) !important;
 }
 
 /* Neutral thumb; the selection is voiced by the primary label. */
-.fw-segmented-radio:checked + .fw-segmented-label {
+.phx-segmented-control__radio:checked + .phx-segmented-control__label {
     color: rgb(var(--md-sys-color-primary)) !important;
 }
 
-.fw-segmented-track:has(.fw-segmented-radio:nth-of-type(1):checked) .fw-segmented-slider {
+.phx-segmented-control__track:has(.phx-segmented-control__radio:nth-of-type(1):checked) .phx-segmented-control__slider {
     transform: translateX(0) !important;
 }
 
-.fw-segmented-track:has(.fw-segmented-radio:nth-of-type(2):checked) .fw-segmented-slider {
+.phx-segmented-control__track:has(.phx-segmented-control__radio:nth-of-type(2):checked) .phx-segmented-control__slider {
     transform: translateX(100%) !important;
 }
 
-.fw-segmented-track:has(.fw-segmented-radio:nth-of-type(3):checked) .fw-segmented-slider {
+.phx-segmented-control__track:has(.phx-segmented-control__radio:nth-of-type(3):checked) .phx-segmented-control__slider {
     transform: translateX(200%) !important;
 }
 
-.fw-segmented-track:has(.fw-segmented-radio:nth-of-type(4):checked) .fw-segmented-slider {
+.phx-segmented-control__track:has(.phx-segmented-control__radio:nth-of-type(4):checked) .phx-segmented-control__slider {
     transform: translateX(300%) !important;
 }
 
-.fw-segmented-track:has(.fw-segmented-radio:nth-of-type(5):checked) .fw-segmented-slider {
+.phx-segmented-control__track:has(.phx-segmented-control__radio:nth-of-type(5):checked) .phx-segmented-control__slider {
     transform: translateX(400%) !important;
 }
 
 /* filled + small: a pill for toolbars and page headers — a grey track with
    a raised white thumb (the outlined + large default is for forms). */
-.fw-segmented-control--filled {
+.phx-segmented-control--filled {
     border-radius: 9999px !important;
     border-color: rgb(var(--color-surface-300)) !important;
     background: rgb(var(--color-surface-200)) !important;
     padding: 3px !important;
 }
 
-.fw-segmented-control--filled:hover {
+.phx-segmented-control--filled:hover {
     border-color: rgb(var(--color-surface-300)) !important;
 }
 
-.fw-segmented-control--small {
+.phx-segmented-control--small {
     height: 2.25rem !important;
 }
 
-.fw-segmented-control--filled .fw-segmented-slider {
+.phx-segmented-control--filled .phx-segmented-control__slider {
     border-radius: 9999px !important;
     background: rgb(var(--color-surface-50)) !important;
     border: 1px solid rgb(0 0 0 / 0.05) !important;
@@ -727,56 +727,56 @@
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04) !important;
 }
 
-.fw-segmented-control--filled .fw-segmented-label {
+.phx-segmented-control--filled .phx-segmented-control__label {
     font-size: 0.8125rem !important;
     color: rgb(var(--color-surface-500)) !important;
 }
 
-.fw-segmented-control--filled .fw-segmented-radio:checked + .fw-segmented-label {
+.phx-segmented-control--filled .phx-segmented-control__radio:checked + .phx-segmented-control__label {
     color: rgb(var(--color-surface-900)) !important;
 }
 
 @media (prefers-color-scheme: dark) {
-    .fw-segmented-control--filled,
-    .fw-segmented-control--filled:hover {
+    .phx-segmented-control--filled,
+    .phx-segmented-control--filled:hover {
         border-color: rgb(var(--color-surface-800)) !important;
         background: rgb(var(--color-surface-900)) !important;
     }
 
-    .fw-segmented-control--filled .fw-segmented-slider {
+    .phx-segmented-control--filled .phx-segmented-control__slider {
         background: rgb(var(--color-surface-800)) !important;
         border-color: rgb(255 255 255 / 0.08) !important;
         box-shadow: 0 1px 3px rgb(0 0 0 / 0.2), 0 1px 2px rgb(0 0 0 / 0.1) !important;
     }
 
-    .fw-segmented-control--filled .fw-segmented-label {
+    .phx-segmented-control--filled .phx-segmented-control__label {
         color: rgb(var(--color-surface-400)) !important;
     }
 
-    .fw-segmented-control--filled .fw-segmented-radio:checked + .fw-segmented-label {
+    .phx-segmented-control--filled .phx-segmented-control__radio:checked + .phx-segmented-control__label {
         color: rgb(var(--color-surface-50)) !important;
     }
 }
 
 /* A disabled field disables every segment, so it takes the MD3 disabled
    look: faded labels and outline. */
-.fw-segmented-control--locked .fw-segmented-label {
+.phx-segmented-control--locked .phx-segmented-control__label {
     opacity: 0.38 !important;
     cursor: default !important;
 }
 
-.fw-segmented-control--locked,
-.fw-segmented-control--locked:hover {
+.phx-segmented-control--locked,
+.phx-segmented-control--locked:hover {
     border-color: rgb(var(--md-sys-color-on-surface) / 0.12) !important;
 }
 
 /* ── MD3 Outlined Field (pilot: select widget) ──
-   Tokens are scoped to .fw-md3 for now, mirroring the
-   .fw-sss-input pattern; hoist to :root once the remaining widgets migrate.
+   Tokens are scoped to .phx-field for now, mirroring the
+   .phx-single-select-search__input pattern; hoist to :root once the remaining widgets migrate.
    The outline is a fieldset/legend so the label notch is a real border gap —
    no background patch behind the label, safe over glass surfaces. */
 
-.fw-md3 {
+.phx-field {
     --md-sys-color-primary: var(--color-primary-600);
     --md-sys-color-on-primary: 255 255 255;
     --md-sys-color-error: var(--color-destructive-600);
@@ -795,7 +795,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .fw-md3 {
+    .phx-field {
         --md-sys-color-primary: var(--color-primary-400);
         --md-sys-color-on-primary: var(--color-primary-950, 0 0 0);
         --md-sys-color-error: var(--color-destructive-400);
@@ -810,7 +810,7 @@
     }
 }
 
-.fw-md3-outlined {
+.phx-field__box {
     position: relative;
     display: flex;
     align-items: center;
@@ -824,7 +824,7 @@
    sometimes with attribute selectors that out-rank a single class). State
    rules (focus, error, disabled) target the sibling outline/label, so they
    are unaffected by these. */
-.fw-md3-control {
+.phx-field__control {
     appearance: none !important;
     -webkit-appearance: none !important;
     width: 100% !important;
@@ -844,86 +844,86 @@
     box-sizing: border-box !important;
 }
 
-select.fw-md3-control {
+select.phx-field__control {
     cursor: pointer;
 }
 
 /* MD3 fields don't show native number spinners; the trailing area stays clean. */
-input.fw-md3-control[type="number"] {
+input.phx-field__control[type="number"] {
     -moz-appearance: textfield;
 }
 
-input.fw-md3-control[type="number"]::-webkit-outer-spin-button,
-input.fw-md3-control[type="number"]::-webkit-inner-spin-button {
+input.phx-field__control[type="number"]::-webkit-outer-spin-button,
+input.phx-field__control[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
 /* Reserve room for the trailing icon (24dp icon + 12dp inset per spec). */
-.fw-md3-outlined:has(.fw-md3-trailing, .fw-md3-trailing-btn) .fw-md3-control {
+.phx-field__box:has(.phx-field__trailing, .phx-field__trailing-button) .phx-field__control {
     padding-right: 3rem !important;
 }
 
 /* A caller-supplied placeholder must not fight the resting label for the
    same spot: per MD3 it only shows once the label has floated (focus). The
    single-space float-driver placeholder is unaffected — it has no glyphs. */
-.fw-md3-control:not(:focus)::placeholder {
+.phx-field__control:not(:focus)::placeholder {
     color: transparent;
 }
 
-.fw-md3-control:focus::placeholder {
+.phx-field__control:focus::placeholder {
     color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
 /* Split phone field: the country prefix and the national number are separate
    controls, each in its own outline, sharing the row evenly. Below the
    breakpoint an even half would clip the country name, so the pair stacks
-   instead. Containment sits on .fw-field, not the row: a container query
+   instead. Containment sits on .phx-field, not the row: a container query
    cannot size an element against a context that element establishes. */
 /* A fieldset (the two parts are one answer); its default border, padding
    and min-content width go. One row at every width, as a phone number is
    written: a narrow country box — its choices lead with the code, so the
    code stays in view when the name is cut off — and the number. The gap is
-   the form's own gap between fields (--fw-field-gap), so the pair keeps the
+   the form's own gap between fields (--phx-field-gap), so the pair keeps the
    form's rhythm. */
-.fw-phone-row {
+.phx-phone {
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
     display: grid;
     grid-template-columns: 8rem minmax(0, 1fr);
-    gap: var(--fw-field-gap, 1.5rem);
+    gap: var(--phx-field-gap, 1.5rem);
 }
 
 /* A native select cuts its text off without an ellipsis; a country name too
    long for the box fades out before the arrow instead of stopping mid-letter.
    The text ends 3rem from the right, where the arrow's space begins. */
-.fw-phone-row__prefix .fw-md3-control {
+.phx-phone__prefix .phx-field__control {
     -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.25rem), transparent calc(100% - 3rem));
     mask-image: linear-gradient(to right, #000 calc(100% - 4.25rem), transparent calc(100% - 3rem));
 }
 
 /* Multiline variant: the container grows with the textarea and the resting
    label pins to the first text line instead of the vertical center. */
-.fw-md3-outlined--textarea {
+.phx-field__box--textarea {
     height: auto;
     min-height: 56px;
 }
 
-textarea.fw-md3-control {
+textarea.phx-field__control {
     padding: 1rem !important;
     resize: vertical;
     line-height: 1.5rem;
     min-height: 56px;
 }
 
-.fw-md3-outlined--textarea .fw-md3-label {
+.phx-field__box--textarea .phx-field__label {
     top: 1.75rem;
 }
 
-.fw-md3-control:focus ~ .fw-md3-label,
-.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-label {
+.phx-field__control:focus ~ .phx-field__label,
+.phx-field__control:not(:placeholder-shown) ~ .phx-field__label {
     /* Repeated after the --textarea override so floating wins there too. */
     top: 0;
 }
@@ -931,7 +931,7 @@ textarea.fw-md3-control {
 /* Interactive trailing slot (password visibility, date/time pickers):
    24dp icon centered in a 40dp round target, 4dp from the field edge so the
    icon itself sits at the spec's 12dp inset. */
-.fw-md3-trailing-btn {
+.phx-field__trailing-button {
     position: absolute;
     right: 0.25rem;
     display: inline-flex;
@@ -948,16 +948,16 @@ textarea.fw-md3-control {
     transition: background-color 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-md3-trailing-btn:hover {
+.phx-field__trailing-button:hover {
     background-color: rgb(var(--md-sys-color-on-surface) / 0.08);
 }
 
-.fw-md3-trailing-btn:focus-visible {
+.phx-field__trailing-button:focus-visible {
     outline: 2px solid rgb(var(--md-sys-color-primary));
     outline-offset: 1px;
 }
 
-.fw-md3-trailing-btn svg {
+.phx-field__trailing-button svg {
     width: 1.5rem;
     height: 1.5rem;
     display: block;
@@ -968,7 +968,7 @@ textarea.fw-md3-control {
    own date-input chrome, which otherwise leaves two calendar icons side by
    side. background-image is re-asserted for the same reason — some admin
    skins paint an icon onto the input itself. */
-.fw-md3 input.fw-md3-control::-webkit-calendar-picker-indicator {
+.phx-field input.phx-field__control::-webkit-calendar-picker-indicator {
     display: none !important;
     -webkit-appearance: none !important;
     opacity: 0 !important;
@@ -977,8 +977,8 @@ textarea.fw-md3-control {
     padding: 0 !important;
 }
 
-.fw-md3 input.fw-md3-control,
-.fw-md3 select.fw-md3-control {
+.phx-field input.phx-field__control,
+.phx-field select.phx-field__control {
     background-image: none !important;
 }
 
@@ -989,7 +989,7 @@ textarea.fw-md3-control {
    clipped and remains the single visible calendar icon. Scoped to Firefox
    via @supports; in Chromium the indicator is hidden by the rule above. */
 @supports (-moz-appearance: none) {
-    .fw-md3-outlined:has(.fw-md3-trailing-btn) input.fw-md3-control {
+    .phx-field__box:has(.phx-field__trailing-button) input.phx-field__control {
         padding-right: 0.5rem !important;
         clip-path: inset(0 2.75rem 0 0);
     }
@@ -997,7 +997,7 @@ textarea.fw-md3-control {
 
 /* Group label for checkbox/radio groups: styled like a floated field label,
    since these controls have no container to notch it into. */
-.fw-md3-group-label {
+.phx-field__group-label {
     display: block;
     margin-bottom: 0.5rem;
     font-size: 0.75rem;
@@ -1005,7 +1005,7 @@ textarea.fw-md3-control {
     color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
-.fw-md3--error .fw-md3-group-label {
+.phx-field--error .phx-field__group-label {
     color: rgb(var(--md-sys-color-error));
 }
 
@@ -1018,14 +1018,14 @@ textarea.fw-md3-control {
 /* The outlined wrapper is a flex row; without explicit sizes the swap
    container shrinks to its content (an empty trigger label), leaving only a
    small clickable square — force the control chain to fill the field. */
-.fw-sss-outlined .fw-widget-container,
-.fw-sss-outlined .fw-sss-input {
+.phx-single-select-search__box .phx-single-select-search__container,
+.phx-single-select-search__box .phx-single-select-search__input {
     height: 100%;
     width: 100%;
     min-width: 0;
 }
 
-.fw-sss-trigger.fw-md3-control {
+.phx-single-select-search__trigger.phx-field__control {
     display: flex !important;
     align-items: center;
     gap: 0.5rem;
@@ -1039,60 +1039,58 @@ textarea.fw-md3-control {
 /* Optional trigger placeholder: hidden while closed (the resting label
    occupies that spot), revealed while the panel is open — MD3 placeholder
    semantics. */
-.fw-sss-placeholder {
+.phx-single-select-search__placeholder {
     opacity: 0;
     color: rgb(var(--md-sys-color-on-surface-variant));
     transition: opacity 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-sss-placeholder {
+.phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]) .phx-single-select-search__placeholder {
     opacity: 1;
 }
 
-/* Float the label / open the notch when: always-floated variant (choice
-   dropdown), something is selected (hidden input present), or panel open. */
-.fw-md3-outlined--floated .fw-md3-label,
-.fw-sss-outlined:has(input[type="hidden"]) .fw-md3-label,
-.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-label {
+/* Float the label / open the notch when something is selected (hidden input
+   present) or the panel is open. */
+.phx-single-select-search__box:has(input[type="hidden"]) .phx-field__label,
+.phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]) .phx-field__label {
     top: 0;
     font-size: 0.75rem;
 }
 
-.fw-md3-outlined--floated .fw-md3-notch,
-.fw-sss-outlined:has(input[type="hidden"]) .fw-md3-notch,
-.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-notch {
+.phx-single-select-search__box:has(input[type="hidden"]) .phx-field__notch,
+.phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]) .phx-field__notch {
     padding: 0 0.25rem;
     max-width: 100%;
 }
 
 /* Open/keyboard-focused trigger mirrors the control focus state. */
-.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-outline,
-.fw-sss-outlined:has(.fw-sss-trigger:focus-visible) .fw-md3-outline {
+.phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]) .phx-field__outline,
+.phx-single-select-search__box:has(.phx-single-select-search__trigger:focus-visible) .phx-field__outline {
     border-width: 2px;
     border-color: rgb(var(--md-sys-color-primary));
 }
 
-.fw-sss-outlined:has(.fw-sss-trigger[aria-expanded="true"]) .fw-md3-label {
+.phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]) .phx-field__label {
     color: rgb(var(--md-sys-color-primary));
 }
 
 /* Error keeps the whole field in error color, beating the open-state primary
    (same specificity, later in the cascade). */
-.fw-md3--error .fw-sss-outlined .fw-md3-outline {
+.phx-field--error .phx-single-select-search__box .phx-field__outline {
     border-color: rgb(var(--md-sys-color-error));
 }
 
-.fw-md3--error .fw-sss-outlined .fw-md3-label {
+.phx-field--error .phx-single-select-search__box .phx-field__label {
     color: rgb(var(--md-sys-color-error));
 }
 
-.fw-md3-control option {
+.phx-field__control option {
     background-color: rgb(var(--color-surface-50));
     color: rgb(var(--color-surface-900));
 }
 
 @media (prefers-color-scheme: dark) {
-    .fw-md3-control option {
+    .phx-field__control option {
         background-color: rgb(var(--color-surface-800));
         color: rgb(var(--color-surface-100));
     }
@@ -1104,7 +1102,7 @@ textarea.fw-md3-control {
    placeholder for exactly this, and a <select> can never match
    :placeholder-shown, so its label is permanently floated — correct, since a
    native select always renders a selection. */
-.fw-md3-label {
+.phx-field__label {
     position: absolute !important;
     top: 50%;
     left: 1rem !important;
@@ -1123,15 +1121,15 @@ textarea.fw-md3-control {
                 color 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-md3-control:focus ~ .fw-md3-label,
-.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-label {
+.phx-field__control:focus ~ .phx-field__label,
+.phx-field__control:not(:placeholder-shown) ~ .phx-field__label {
     top: 0;
     font-size: 0.75rem;
 }
 
 /* The outline itself. Top inset compensates for the legend's line box so the
    border-top aligns with the visual top of the field. */
-.fw-md3-outline {
+.phx-field__outline {
     position: absolute !important;
     inset: -0.375rem 0 0 0 !important;
     display: block !important;
@@ -1153,8 +1151,8 @@ textarea.fw-md3-control {
    but everything that lets the legend cut its notch gap is armored:
    Wagtail's admin CSS floats legends inline at 16.67% width, which silently
    disables the fieldset notch. */
-.fw-md3-notch,
-fieldset.fw-md3-outline > legend.fw-md3-notch {
+.phx-field__notch,
+fieldset.phx-field__outline > legend.phx-field__notch {
     float: none !important;
     display: block !important;
     position: static !important;
@@ -1167,7 +1165,7 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
 
 /* The notch is collapsed while the label rests inside the field and opens
    (4dp padding each side, per spec) when the label floats. */
-.fw-md3-notch {
+.phx-field__notch {
     padding: 0;
     max-width: 0;
     white-space: nowrap;
@@ -1178,20 +1176,20 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
                 padding 150ms var(--md-sys-motion-easing-standard);
 }
 
-.fw-md3-control:focus ~ .fw-md3-outline .fw-md3-notch,
-.fw-md3-control:not(:placeholder-shown) ~ .fw-md3-outline .fw-md3-notch {
+.phx-field__control:focus ~ .phx-field__outline .phx-field__notch,
+.phx-field__control:not(:placeholder-shown) ~ .phx-field__outline .phx-field__notch {
     padding: 0 0.25rem;
     max-width: 100%;
 }
 
 /* Invisible twin of the label text — only there to size the border gap. */
-.fw-md3-notch > span {
+.phx-field__notch > span {
     visibility: hidden;
 }
 
 /* Explicitly label-less fields must never open a gap in the top border —
    !important so the focus/populated notch-opening states can't override. */
-.fw-md3-notch--empty {
+.phx-field__notch--empty {
     padding: 0 !important;
     max-width: 0 !important;
     width: 0 !important;
@@ -1201,11 +1199,11 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
    at the fieldset's own top edge — 6px above the field — instead of pushing
    it down through the legend's middle like labeled fields do. A zero-width
    space restores the line box without opening a notch. */
-.fw-md3-notch--empty::before {
+.phx-field__notch--empty::before {
     content: "\200B";
 }
 
-.fw-md3-trailing {
+.phx-field__trailing {
     position: absolute;
     right: 0.75rem;
     width: 1.5rem;
@@ -1217,49 +1215,49 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
 
 /* States: hover darkens the outline, focus thickens it to 2px in primary —
    no glow/box-shadow halo, per MD3. */
-.fw-md3-outlined:hover .fw-md3-outline {
+.phx-field__box:hover .phx-field__outline {
     border-color: rgb(var(--md-sys-color-on-surface));
 }
 
-.fw-md3-control:focus ~ .fw-md3-outline {
+.phx-field__control:focus ~ .phx-field__outline {
     border-width: 2px;
     border-color: rgb(var(--md-sys-color-primary));
 }
 
-.fw-md3-control:focus ~ .fw-md3-label {
+.phx-field__control:focus ~ .phx-field__label {
     color: rgb(var(--md-sys-color-primary));
 }
 
 /* Error state colors the whole field, not just the message. */
-.fw-md3--error .fw-md3-outline,
-.fw-md3--error .fw-md3-outlined:hover .fw-md3-outline,
-.fw-md3--error .fw-md3-control:focus ~ .fw-md3-outline {
+.phx-field--error .phx-field__outline,
+.phx-field--error .phx-field__box:hover .phx-field__outline,
+.phx-field--error .phx-field__control:focus ~ .phx-field__outline {
     border-color: rgb(var(--md-sys-color-error));
 }
 
-.fw-md3--error .fw-md3-label,
-.fw-md3--error .fw-md3-control:focus ~ .fw-md3-label,
-.fw-md3--error .fw-md3-supporting {
+.phx-field--error .phx-field__label,
+.phx-field--error .phx-field__control:focus ~ .phx-field__label,
+.phx-field--error .phx-field__supporting {
     color: rgb(var(--md-sys-color-error));
 }
 
 /* Disabled: MD3 uses on-surface at 38% for content, 12% for the outline. */
-.fw-md3-control:disabled {
+.phx-field__control:disabled {
     color: rgb(var(--md-sys-color-on-surface) / 0.38);
     cursor: default;
 }
 
-.fw-md3-control:disabled ~ .fw-md3-outline {
+.phx-field__control:disabled ~ .phx-field__outline {
     border-color: rgb(var(--md-sys-color-on-surface) / 0.12);
 }
 
-.fw-md3-control:disabled ~ .fw-md3-label,
-.fw-md3-control:disabled ~ .fw-md3-trailing {
+.phx-field__control:disabled ~ .phx-field__label,
+.phx-field__control:disabled ~ .phx-field__trailing {
     color: rgb(var(--md-sys-color-on-surface) / 0.38);
 }
 
 /* Supporting text replaces the hover help tooltip; also hosts errors. */
-.fw-md3-supporting {
+.phx-field__supporting {
     margin: 0.25rem 0 0 !important;
     padding: 0 1rem !important;
     font-size: 0.75rem !important;
@@ -1268,7 +1266,7 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
     color: rgb(var(--md-sys-color-on-surface-variant));
 }
 
-.fw-md3-supporting span {
+.phx-field__supporting span {
     display: block;
 }
 
@@ -1276,10 +1274,10 @@ fieldset.fw-md3-outline > legend.fw-md3-notch {
 
 @media (prefers-color-scheme: dark) {
     /* Choice, toggle, and outlined segmented widgets are dark-mode-aware
-       through the .fw-md3 token block; the filled segmented pill has its own
+       through the .phx-field token block; the filled segmented pill has its own
        dark rules beside it. */
 
-    /* Search — dark mode tokens are handled by .fw-sss-input media query above */
+    /* Search — dark mode tokens are handled by .phx-single-select-search__input media query above */
 
-    /* Multi Select Chips — dark mode handled by the .fw-md3 token block. */
+    /* Multi Select Chips — dark mode handled by the .phx-field token block. */
 }

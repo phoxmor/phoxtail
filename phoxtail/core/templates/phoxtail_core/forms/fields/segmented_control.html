@@ -11,26 +11,26 @@ Looks: outlined + large (default, for forms) or variant="filled"
 size="small" (a pill, for toolbars and page headers).
 {% endcomment %}
 {% load phoxtail_core_tags %}
-<div class="fw-field fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+<div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
     {% if show_label != False and label|default:field.label %}
-        <span class="fw-md3-group-label">
+        <span class="phx-field__group-label">
             {{ label|default:field.label }}{% if show_required != False and required|default:field.field.required %}&nbsp;*{% endif %}
         </span>
     {% endif %}
     {% with variant=variant|default:"outlined" size=size|default:"large" %}
-        <div class="fw-segmented-control fw-segmented-control--{{ variant }} fw-segmented-control--{{ size }}{% if field.field.disabled %} fw-segmented-control--locked{% endif %}"
-             style="--fw-seg-count: {{ field.field.choices|length }}">
-            <div class="fw-segmented-track">
-                {% widget field class="fw-segmented-radio" template_name="phoxtail_core/forms/fields/segmented_control/options.html" option_template_name="phoxtail_core/forms/fields/segmented_control/option.html" htmx=htmx %}
-                <div class="fw-segmented-slider"></div>
+        <div class="phx-segmented-control phx-segmented-control--{{ variant }} phx-segmented-control--{{ size }}{% if field.field.disabled %} phx-segmented-control--locked{% endif %}"
+             style="--phx-segmented-control-count: {{ field.field.choices|length }}">
+            <div class="phx-segmented-control__track">
+                {% widget field class="phx-segmented-control__radio" template_name="phoxtail_core/forms/fields/segmented_control/options.html" option_template_name="phoxtail_core/forms/fields/segmented_control/option.html" htmx=htmx %}
+                <div class="phx-segmented-control__slider"></div>
             </div>
         </div>
     {% endwith %}
     {% if supporting == "errors" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
             {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
         </div>
     {% elif supporting == "help" %}
-        <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
+        <div class="phx-field__supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
     {% endif %}
 </div>

@@ -64,14 +64,14 @@ class TestPhoneNumberRoundTrip:
         # The number box's widget is a tel input already; the type is written once.
         assert html.count('type="tel"') == 1
         # Each control gets its own outline, label and tap target.
-        assert html.count("fw-md3-outlined") == 2
+        assert html.count("phx-field__box") == 2
         assert 'for="id_phone_number_0"' in html
         assert 'for="id_phone_number_1"' in html
 
     def test_the_pair_points_at_the_error(self, user):
         """The two controls are one group, as Django groups them; the group names the error."""
         html = render_field("phone", UserProfileForm(_payload(phone_number_1="123"), instance=user)["phone_number"])
-        assert '<fieldset class="fw-phone-row" aria-describedby="id_phone_number_error">' in html
+        assert '<fieldset class="phx-phone" aria-describedby="id_phone_number_error">' in html
         assert 'id="id_phone_number_error"' in html
 
     def test_country_choices_lead_with_the_code(self, user):
