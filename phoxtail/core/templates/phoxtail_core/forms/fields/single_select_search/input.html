@@ -15,6 +15,7 @@
         {# Field-shaped trigger — div so the clear button can nest inside without invalid HTML #}
         <div class="fw-sss-trigger fw-md3-control"
              id="{{ wid }}-trigger"
+             data-search-trigger
              role="button"
              tabindex="{% if is_active == False %}-1{% else %}0{% endif %}"
              aria-expanded="false"
@@ -73,57 +74,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-    (function () {
-        var trigger   = document.getElementById('{{ wid }}-trigger');
-        var panel     = document.getElementById('{{ wid }}-panel');
-        var searchIn  = document.getElementById('{{ wid }}-search-input');
-        var container = document.getElementById('{{ wid }}-input');
-        if (!trigger || !panel) return;
-
-        function open() {
-            panel.classList.remove('fw-hidden');
-            trigger.setAttribute('aria-expanded', 'true');
-            if (searchIn) setTimeout(function () { searchIn.focus(); }, 0);
-        }
-
-        function close() {
-            panel.classList.add('fw-hidden');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
-
-        trigger.addEventListener('click', function (e) {
-            /* Clear button fires its own HTMX action — don't toggle panel */
-            if (e.target.closest('.fw-sss-trigger-clear')) return;
-            trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
-        });
-
-        trigger.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                trigger.getAttribute('aria-expanded') === 'true' ? close() : open();
-            }
-        });
-
-        /* Document-level listeners are keyed on window and replaced on every
-           HTMX re-render — otherwise each swap would stack another listener
-           holding the previous DOM. Closes on any click outside the widget
-           (trigger AND panel) and on Escape. Capture phase on purpose:
-           modal drawers stopPropagation() on inner clicks, which would
-           otherwise keep bubbling clicks from ever reaching the document. */
-        var clickKey = 'fwSssClick-{{ wid }}';
-        var keyKey = 'fwSssKey-{{ wid }}';
-        if (window[clickKey]) document.removeEventListener('click', window[clickKey], true);
-        if (window[keyKey]) document.removeEventListener('keydown', window[keyKey]);
-        window[clickKey] = function (e) {
-            if (container && !container.contains(e.target)) close();
-        };
-        window[keyKey] = function (e) {
-            if (e.key === 'Escape') close();
-        };
-        document.addEventListener('click', window[clickKey], true);
-        document.addEventListener('keydown', window[keyKey]);
-    })();
-    </script>
 {% endwith %}

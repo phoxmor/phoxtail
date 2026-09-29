@@ -25,7 +25,7 @@ Optional context:
       is open and nothing is selected (the resting label covers the closed state)
 {% endcomment %}
 {% with widget_id=field.html_name selected_item=field.selected_item available_items=field.available_items %}
-    <div id="{{ widget_id }}-widget" class="fw-sss-widget fw-md3{% if field.errors %} fw-md3--error{% endif %}">
+    <div id="{{ widget_id }}-widget" data-search-field class="fw-sss-widget fw-md3{% if field.errors %} fw-md3--error{% endif %}">
         <div class="fw-md3-outlined fw-sss-outlined">
             {# HTMX swap target — trigger, hidden value, and panel only #}
             <div id="{{ widget_id }}-container"
@@ -47,23 +47,6 @@ Optional context:
             <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_error"{% endif %}>
                 {% for error in field.errors %}<span>{{ error }}</span>{% endfor %}
             </div>
-            <script>
-            (function () {
-                /* Errors live outside the HTMX swap target (the label/outline
-                   anatomy requires it), so clear them by hand once the user
-                   changes the selection — the container re-render used to do
-                   this for free when errors lived inside it. */
-                var container = document.getElementById('{{ widget_id }}-container');
-                if (!container) return;
-                container.addEventListener('htmx:afterSwap', function (e) {
-                    if (e.detail.target !== container) return;
-                    var widget = document.getElementById('{{ widget_id }}-widget');
-                    if (widget) widget.classList.remove('fw-md3--error');
-                    var errors = document.getElementById('{{ field.auto_id }}_error');
-                    if (errors) errors.remove();
-                });
-            })();
-            </script>
         {% elif supporting == "help" %}
             <div class="fw-md3-supporting"{% if field.auto_id %} id="{{ field.auto_id }}_helptext"{% endif %}>{{ help_text|default:field.help_text }}</div>
         {% endif %}

@@ -79,4 +79,12 @@ def test_errors_take_the_help_texts_place_under_the_field(active):
 
     assert 'aria-describedby="id_user_error"' in html
     assert 'id="id_user_error"' in html
-    assert "getElementById('id_user_error')" in html
+
+
+def test_the_search_field_carries_no_script_of_its_own(active):
+    """Its panel and error line are handled once, in js/fields.js."""
+    html = render_field("single_select_search", PickForm({"user": ""})["user"])
+
+    assert "<script" not in html
+    assert "data-search-field" in html
+    assert "data-search-trigger" in html
