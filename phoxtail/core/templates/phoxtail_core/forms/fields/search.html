@@ -1,0 +1,26 @@
+{% comment %}
+Search bar for a list's filters: one pill holding a magnifier (a clear button
+once there is text), the box and, when count is given, the number of results.
+Looks: filled + small (a pill, for toolbars); no other look exists yet.
+Django's own widget draws the box. Typing sends the field's request half a
+second after the last key; Enter and the clear button send it at once
+(js/fields.js), through the box's "search" trigger, which is kept whatever
+trigger the caller sets. The answer is expected to redraw the list out of
+band, so the box itself swaps nothing (hx_swap "none"). Any hx_* option
+reaches the box and overrides these defaults; the htmx settings are written only when it makes a
+request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
+{% endcomment %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
+<div class="phx-search phx-search--filled phx-search--small">
+    <span class="phx-search__icon{% if field.value %} phx-hidden{% endif %}" data-search-icon>{% icon "search" %}</span>
+    <button type="button"
+            class="phx-search__clear{% if not field.value %} phx-hidden{% endif %}"
+            aria-label="{% translate "Clear search" %}"
+            data-search-clear>
+        {% icon "close" %}
+    </button>
+    {% widget field class="phx-search__input" placeholder=placeholder|default:_("Search…") aria_label=field.label hx_trigger=htmx.hx_trigger|default:"input changed delay:500ms"|add:", search" hx_swap=htmx.hx_swap|default:"none" htmx=htmx %}
+    {% if count is not None %}
+        <span class="phx-search__count">{% blocktranslate count counter=count %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktranslate %}</span>
+    {% endif %}
+</div>

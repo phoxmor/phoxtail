@@ -516,3 +516,76 @@ def test_a_boolean_filter_offers_all_yes_and_no(data, chosen):
     assert re.findall(r'<option value="(\w+)"', html) == ["unknown", "true", "false"]
     assert re.findall(r'<option value="(\w+)" selected>', html) == [chosen]
     assert ">All</option>" in html
+
+
+class ListFilterForm(forms.Form):
+    search = forms.CharField(label="Search", required=False)
+    status = forms.ChoiceField(choices=[("", "All"), ("paid", "Paid")], required=False)
+
+
+def test_the_search_bar_draws_djangos_box_in_a_pill():
+    html = render_field("search", ListFilterForm(data={"search": "ada"})["search"])
+
+    assert 'class="phx-search phx-search--filled phx-search--small"' in html
+    assert 'type="text" name="search" value="ada"' in html
+    assert 'id="id_search"' in html
+    assert 'aria-label="Search"' in html
+    assert 'placeholder="Search…"' in html
+
+
+@pytest.mark.parametrize(("data", "icon", "clear"), [({}, "", " phx-hidden"), ({"search": "ada"}, " phx-hidden", "")])
+def test_the_clear_button_takes_the_magnifiers_place_once_there_is_text(data, icon, clear):
+    html = render_field("search", ListFilterForm(data=data)["search"])
+
+    assert f'class="phx-search__icon{icon}" data-search-icon' in html
+    assert f'class="phx-search__clear{clear}"' in html
+
+
+@pytest.mark.parametrize(("count", "text"), [(0, "0 results"), (1, "1 result"), (12, "12 results")])
+def test_the_search_bar_shows_the_count_it_is_given(count, text):
+    html = render_field("search", ListFilterForm()["search"], count=count)
+
+    assert f'<span class="phx-search__count">{text}</span>' in html
+
+
+def test_without_a_count_the_search_bar_shows_none():
+    assert "phx-search__count" not in render_field("search", ListFilterForm()["search"])
+
+
+def test_the_search_bar_sends_as_you_type_and_when_cleared():
+    html = render_field("search", ListFilterForm()["search"], hx_get="/list/search/", hx_include="#filters")
+
+    assert 'hx-get="/list/search/"' in html
+    assert 'hx-include="#filters"' in html
+    assert 'hx-swap="none"' in html
+    assert 'hx-trigger="input changed delay:500ms, search"' in html
+
+
+def test_a_search_bar_without_a_request_writes_no_htmx():
+    html = render_field("search", ListFilterForm()["search"], hx_include="#filters")
+
+    assert not re.search(r"\bhx-", html)
+
+
+def test_the_search_bar_refuses_a_dropdown():
+    with pytest.raises(TypeError, match="'search' field draws a TextInput widget"):
+        render_field("search", ListFilterForm()["status"])
+
+
+def test_a_callers_settings_win_over_the_search_bars_own():
+    """Its "search" trigger stays: Enter and the clear button send through it."""
+    html = render_field(
+        "search", ListFilterForm()["search"], hx_get="/list/search/", hx_trigger="keyup", hx_swap="outerHTML"
+    )
+
+    assert 'hx-trigger="keyup, search"' in html
+    assert 'hx-swap="outerHTML"' in html
+
+
+def test_the_search_bar_refuses_a_browser_search_box():
+    """A browser draws its own clear button in a search box, beside the bar's."""
+    form = ListFilterForm()
+    form.fields["search"].widget = forms.SearchInput()
+
+    with pytest.raises(TypeError, match="uses SearchInput"):
+        render_field("search", form["search"])

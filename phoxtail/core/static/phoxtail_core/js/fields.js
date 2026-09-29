@@ -76,6 +76,48 @@ document.addEventListener('click', function (event) {
     });
 })();
 
+/* Search bar: the magnifier gives way to the clear button once there is
+   text. Enter and the clear button send the request at once (the box's
+   "search" trigger); Enter would otherwise submit the page's form and reload
+   the page. A box that makes no request (no hx-trigger) keeps the browser's
+   own Enter. The clear button leaves the cursor in the box. */
+(function () {
+    function showClear(bar, show) {
+        bar.querySelector('[data-search-icon]').classList.toggle('phx-hidden', show);
+        bar.querySelector('[data-search-clear]').classList.toggle('phx-hidden', !show);
+    }
+
+    document.addEventListener('input', function (event) {
+        var bar = event.target.closest('.phx-search');
+        if (bar && event.target.matches('.phx-search__input')) {
+            showClear(bar, event.target.value.trim().length > 0);
+        }
+    }, true);
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-search-clear]');
+        if (!button) {
+            return;
+        }
+        var bar = button.closest('.phx-search');
+        var input = bar.querySelector('.phx-search__input');
+        input.value = '';
+        showClear(bar, false);
+        input.focus();
+        if (input.hasAttribute('hx-trigger')) {
+            input.dispatchEvent(new Event('search'));
+        }
+    }, true);
+
+    document.addEventListener('keydown', function (event) {
+        var box = event.target;
+        if (event.key === 'Enter' && !event.isComposing && box.matches('.phx-search__input[hx-trigger]')) {
+            event.preventDefault();
+            box.dispatchEvent(new Event('search'));
+        }
+    }, true);
+})();
+
 /* A new pick clears the single select search's error: the line under the
    field sits outside the part htmx redraws. */
 document.addEventListener('htmx:afterSwap', function (event) {

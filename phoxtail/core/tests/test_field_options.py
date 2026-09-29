@@ -5,11 +5,11 @@ from pathlib import Path
 import pytest
 from django import forms
 from django.forms.renderers import get_default_renderer
-from django.template.base import TextNode, Variable, VariableNode
+from django.template.base import TextNode, TokenType, Variable, VariableNode
 from django.template.defaulttags import CommentNode, ForNode, IfNode, LoadNode, TemplateLiteral, WithNode
 from django.template.library import SimpleNode
 from django.template.loader_tags import IncludeNode
-from django.templatetags.i18n import TranslateNode
+from django.templatetags.i18n import BlockTranslateNode, TranslateNode
 
 from phoxtail.core import fields
 from phoxtail.core.fields import FIELD_OPTIONS, render_field
@@ -50,6 +50,12 @@ def _reads(nodelist):
             names |= _names(node.filter_expression)
         elif isinstance(node, TranslateNode) and node.asvar is None:
             names |= _names(node.filter_expression)
+        elif isinstance(node, BlockTranslateNode) and node.asvar is None:
+            own = set(node.extra_context) | ({node.countervar} if node.countervar else set())
+            text = [*node.singular, *(node.plural or [])]
+            inside = {token.contents.split(".")[0] for token in text if token.token_type == TokenType.VAR}
+            counter = _names(node.counter) if node.counter else set()
+            names |= set().union(counter, *map(_names, node.extra_context.values())) | (inside - own)
         elif isinstance(node, SimpleNode) and node.target_var is None:
             for arg in [*node.args, *node.kwargs.values()]:
                 names |= _names(arg)
@@ -83,7 +89,9 @@ def test_a_fields_options_are_what_its_template_reads(name):
     reads = _reads(ENGINE.get_template(f"{fields.FIELD_TEMPLATES}/{name}.html").nodelist)
     options, htmx = FIELD_OPTIONS[name]
 
-    assert reads - SET_BY_RENDER - SET_BY_VIEW.get(name, set()) | READ_BY_RENDER == options
+    # render_field reads the help options for the line under a field.
+    by_render = READ_BY_RENDER if "supporting" in reads else set()
+    assert reads - SET_BY_RENDER - SET_BY_VIEW.get(name, set()) | by_render == options
     assert ("htmx" in reads) == htmx
 
 

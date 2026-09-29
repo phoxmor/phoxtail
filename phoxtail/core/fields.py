@@ -15,6 +15,7 @@ from django.forms.widgets import (
     Select,
     SelectMultiple,
     Textarea,
+    TextInput,
 )
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -41,6 +42,7 @@ FRAME_WIDGETS = {
     "segmented_control": (RadioSelect, (CheckboxSelectMultiple,)),
     "phone": (PhoneNumberPrefixWidget, ()),
     "single_select_search": (HiddenInput, ()),
+    "search": (TextInput, ()),
 }
 # The options each field reads, and whether it passes any hx_* option on to
 # its control. render_field refuses others, so a misspelled option fails
@@ -60,6 +62,7 @@ FIELD_OPTIONS = {
         | {"search_url", "hx_include", "item_template", "is_active", "search_placeholder", "trigger_placeholder"},
         False,
     ),
+    "search": ({"placeholder", "count"}, True),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}

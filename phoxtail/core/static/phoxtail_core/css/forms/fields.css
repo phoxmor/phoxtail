@@ -355,6 +355,124 @@
     outline-offset: 2px;
 }
 
+/* ── Search ──
+   filled + small: one pill for a list's toolbar — the magnifier (or the
+   clear button once there is text), the box and the result count sit inside
+   it. 2.25rem, as the buttons beside it. */
+
+.phx-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.phx-search--small {
+    height: 2.25rem;
+    padding: 0 1rem;
+}
+
+.phx-search--filled {
+    background: rgb(var(--color-surface-100));
+    border-radius: 999px;
+    transition: background-color 150ms ease;
+}
+
+/* The box drops its own outline, so focus is a step up in surface. */
+.phx-search--filled:focus-within {
+    background: rgb(var(--color-surface-200));
+}
+
+/* !important: Wagtail's admin styles every input. */
+.phx-search__input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: 100% !important;
+    /* Right padding reserves room for the absolutely positioned count. */
+    padding: 0 3.25rem 0 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: rgb(var(--color-surface-900)) !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.phx-search__input::placeholder {
+    color: rgb(var(--color-surface-600));
+}
+
+/* The magnifier and the clear button share one slot — one is visible. */
+.phx-search__icon,
+.phx-search__clear {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.phx-search__icon.phx-hidden,
+.phx-search__clear.phx-hidden {
+    display: none;
+}
+
+.phx-search__icon {
+    pointer-events: none;
+}
+
+.phx-search__clear {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.phx-search__icon svg,
+.phx-search__clear svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+    color: rgb(var(--color-surface-600));
+}
+
+.phx-search__count {
+    position: absolute;
+    right: 1rem;
+    color: rgb(var(--color-surface-600));
+    font-size: 0.75rem;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Dark: an overlay darkens whatever the pill sits on (a page, a drawer), so
+   it reads as a well on every ground. */
+@media (prefers-color-scheme: dark) {
+    .phx-search--filled {
+        background: rgb(0 0 0 / 0.2);
+    }
+
+    .phx-search--filled:focus-within {
+        background: rgb(0 0 0 / 0.28);
+    }
+
+    .phx-search__input {
+        color: rgb(var(--color-surface-50)) !important;
+    }
+
+    .phx-search__input::placeholder {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .phx-search__icon svg,
+    .phx-search__clear svg,
+    .phx-search__count {
+        color: rgb(var(--color-surface-300));
+    }
+}
+
 /* ── Search Results (single select search) ── */
 
 .phx-single-select-search__divider {
