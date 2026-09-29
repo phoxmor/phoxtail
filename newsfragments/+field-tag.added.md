@@ -4,5 +4,6 @@ A template can draw a form field with one of phoxtail's field templates using
 Django's own field rendering. Options are passed by name, as in
 `{% field "select" form.status show_label=False %}`; the field sees only what it
 is given, so values set elsewhere on the page cannot change it. A misspelled form
-field or a template name with a folder fails with an error instead of drawing a
-broken field.
+field, an option the field does not take (the error lists the ones it does) or a
+template name with a folder fails with an error instead of drawing a broken
+field.

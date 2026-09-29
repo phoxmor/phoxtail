@@ -42,6 +42,25 @@ FRAME_WIDGETS = {
     "phone": (PhoneNumberPrefixWidget, ()),
     "single_select_search": (HiddenInput, ()),
 }
+# The options each field reads, and whether it passes any hx_* option on to
+# its control. render_field refuses others, so a misspelled option fails
+# instead of being ignored; a test keeps each list equal to its template.
+SHARED_OPTIONS = {"label", "show_label", "required", "show_required", "help_text", "show_help_text"}
+FIELD_OPTIONS = {
+    "input": (SHARED_OPTIONS | {"autofocus", "input_type", "placeholder"}, True),
+    "textarea": (SHARED_OPTIONS | {"rows"}, True),
+    "select": (SHARED_OPTIONS, True),
+    "checkbox": (SHARED_OPTIONS - {"show_label"}, True),
+    "toggle": ({"label", "help_text", "show_help_text"}, True),
+    "choices": (SHARED_OPTIONS | {"grid_modifier"}, True),
+    "segmented_control": (SHARED_OPTIONS | {"variant", "size"}, True),
+    "phone": (SHARED_OPTIONS | {"prefix_label"}, True),
+    "single_select_search": (
+        SHARED_OPTIONS
+        | {"search_url", "hx_include", "item_template", "is_active", "search_placeholder", "trigger_placeholder"},
+        False,
+    ),
+}
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
 
@@ -125,6 +144,12 @@ def render_field(name, bound_field, /, **options):
                 f"{bound_field.name!r} uses {type(widget).__name__}; draw it with "
                 "the field that matches its widget, or change the widget in the form"
             )
+    if name in FIELD_OPTIONS:
+        known, htmx = FIELD_OPTIONS[name]
+        unknown = sorted(key for key in options if key not in known and not (htmx and key.startswith("hx_")))
+        if unknown:
+            valid = ", ".join(sorted(known) + (["hx_*"] if htmx else []))
+            raise TypeError(f"the {name!r} field has no option {', '.join(unknown)}; its options are {valid}")
     values = {
         **options,
         "field": bound_field,
