@@ -144,12 +144,7 @@ def render_field(name, bound_field, /, **options):
                 f"{bound_field.name!r} uses {type(widget).__name__}; draw it with "
                 "the field that matches its widget, or change the widget in the form"
             )
-    if name in FIELD_OPTIONS:
-        known, htmx = FIELD_OPTIONS[name]
-        unknown = sorted(key for key in options if key not in known and not (htmx and key.startswith("hx_")))
-        if unknown:
-            valid = ", ".join(sorted(known) + (["hx_*"] if htmx else []))
-            raise TypeError(f"the {name!r} field has no option {', '.join(unknown)}; its options are {valid}")
+    refuse_unknown_options(name, options)
     values = {
         **options,
         "field": bound_field,
@@ -159,6 +154,17 @@ def render_field(name, bound_field, /, **options):
         "control_type": control_type(bound_field, options.get("input_type")),
     }
     return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
+
+
+def refuse_unknown_options(name, options):
+    """Raise if a field is given an option it does not take, naming the ones it does."""
+    if name not in FIELD_OPTIONS:
+        return
+    known, htmx = FIELD_OPTIONS[name]
+    unknown = sorted(key for key in options if key not in known and not (htmx and key.startswith("hx_")))
+    if unknown:
+        valid = ", ".join(sorted(known) + (["hx_*"] if htmx else []))
+        raise TypeError(f"the {name!r} field has no option {', '.join(unknown)}; its options are {valid}")
 
 
 def control_type(bound_field, input_type=None):

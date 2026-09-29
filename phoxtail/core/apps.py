@@ -17,3 +17,6 @@ class PhoxtailCoreConfig(PhoxtailAppConfig):
         from phoxtail.api import mount_discovered_routers
 
         mount_discovered_routers()
+
+        # Every {% field %} call is checked at startup, not when its page is drawn.
+        from phoxtail.core import checks  # noqa: F401

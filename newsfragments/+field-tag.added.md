@@ -7,3 +7,6 @@ is given, so values set elsewhere on the page cannot change it. A misspelled for
 field, an option the field does not take (the error lists the ones it does) or a
 template name with a folder fails with an error instead of drawing a broken
 field.
+`manage.py check` (and so `runserver` and `migrate`) reads every installed
+template and reports a `{% field %}` call with an unknown field or option,
+with its file and line, before its page is ever drawn.
