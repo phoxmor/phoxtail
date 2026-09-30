@@ -589,3 +589,84 @@ def test_the_search_bar_refuses_a_browser_search_box():
 
     with pytest.raises(TypeError, match="uses SearchInput"):
         render_field("search", form["search"])
+
+
+class DayForm(forms.Form):
+    date = forms.DateField(label="Select date", required=False)
+    note = forms.CharField(required=False)
+
+
+def test_the_date_stepper_draws_djangos_box_between_two_arrows():
+    html = render_field(
+        "date_stepper", DayForm(data={"date": "2026-10-03"})["date"], previous="2026-10-02", next="2026-10-04"
+    )
+
+    assert 'class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small phx-date-stepper--day"' in html
+    assert re.search(r'<input type="date" name="date" value="2026-10-03" class="phx-date-stepper__input"', html)
+    assert 'aria-label="Select date"' in html
+    assert re.findall(r'data-date-step="([^"]*)"', html) == ["2026-10-02", "2026-10-04"]
+    assert re.findall(r'phx-date-stepper__step"[^>]*?aria-label="([^"]*)"', html) == ["Previous", "Next"]
+
+
+def test_the_date_stepper_writes_the_date_as_the_picker_reads_it_in_any_language():
+    with translation.override("el"):
+        html = render_field("date_stepper", DayForm(initial={"date": datetime.date(2026, 10, 3)})["date"])
+
+    assert 'value="2026-10-03"' in html
+
+
+def test_the_date_stepper_shows_its_text_in_place_of_the_date():
+    html = render_field("date_stepper", DayForm()["date"], text="Sep 28 – Oct 4, 2026")
+
+    assert 'class="phx-date-stepper__date phx-date-stepper__date--text"' in html
+    assert '<span class="phx-date-stepper__text">Sep 28 – Oct 4, 2026</span>' in html
+
+
+def test_without_text_the_date_stepper_shows_the_box_alone():
+    html = render_field("date_stepper", DayForm()["date"])
+
+    assert "phx-date-stepper__text" not in html
+    assert "phx-date-stepper__date--text" not in html
+
+
+def test_the_date_stepper_sends_on_its_step_event():
+    html = render_field("date_stepper", DayForm()["date"], hx_get="/day/", hx_target="#page")
+
+    assert 'hx-get="/day/"' in html
+    assert 'hx-target="#page"' in html
+    assert 'hx-trigger="step"' in html
+    assert 'hx-swap="innerHTML"' in html
+
+
+def test_the_arrows_are_named_by_the_caller():
+    html = render_field("date_stepper", DayForm()["date"], previous_label="Previous day", next_label="Next day")
+
+    assert re.findall(r'phx-date-stepper__step"[^>]*?aria-label="([^"]*)"', html) == ["Previous day", "Next day"]
+
+
+def test_the_date_stepper_refuses_a_text_box():
+    with pytest.raises(TypeError, match="'date_stepper' field draws a DateInput widget"):
+        render_field("date_stepper", DayForm()["note"])
+
+
+def test_a_callers_trigger_is_followed_by_the_steppers_own():
+    """The arrows and the picker send through "step", whatever the caller sets."""
+    html = render_field("date_stepper", DayForm()["date"], hx_get="/day/", hx_trigger="load")
+
+    assert 'hx-trigger="load, step"' in html
+
+
+@pytest.mark.parametrize(("period", "modifier"), [(None, "day"), ("week", "week")])
+def test_the_period_names_the_pills_look(period, modifier):
+    options = {"period": period} if period else {}
+    html = render_field("date_stepper", DayForm()["date"], **options)
+
+    assert f'phx-date-stepper--small phx-date-stepper--{modifier}"' in html
+
+
+def test_the_arrows_carry_ids_from_the_fields():
+    """htmx gives the focus back by id after a redraw, so a keyboard can step on."""
+    html = render_field("date_stepper", DayForm()["date"])
+
+    assert 'id="id_date_previous"' in html
+    assert 'id="id_date_next"' in html

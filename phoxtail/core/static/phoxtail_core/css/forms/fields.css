@@ -473,6 +473,190 @@
     }
 }
 
+/* ── Date Stepper ──
+   filled + small: ‹ date › for a toolbar — one pill in three segments, a
+   faint line between them. The outer radius is half the height, not 999px:
+   an oversized radius makes the browser shrink every corner of the box. */
+
+.phx-date-stepper {
+    display: inline-flex;
+}
+
+.phx-date-stepper > * {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.phx-date-stepper--small > * {
+    height: 2.25rem;
+}
+
+.phx-date-stepper > :first-child {
+    border-start-start-radius: 1.125rem;
+    border-end-start-radius: 1.125rem;
+}
+
+.phx-date-stepper > :last-child {
+    border-start-end-radius: 1.125rem;
+    border-end-end-radius: 1.125rem;
+}
+
+/* The fill comes from the ground the pill sits on: a page or drawer whose
+   own colour needs another sets --phx-control-fill and --phx-control-fill-hover. */
+.phx-date-stepper--filled > * {
+    background: var(--phx-control-fill, rgb(var(--color-surface-100)));
+    color: rgb(var(--color-surface-600));
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+
+.phx-date-stepper--filled > :hover {
+    background: var(--phx-control-fill-hover, rgb(var(--color-surface-200)));
+}
+
+/* The focused segment is lifted, or its neighbour paints over its ring. */
+.phx-date-stepper > :focus-visible {
+    position: relative;
+    z-index: 1;
+}
+
+.phx-date-stepper__step {
+    justify-content: center;
+    width: 2.25rem;
+    padding: 0;
+    border: none;
+}
+
+/* The line between segments darkens (lightens, in dark) whatever fill it
+   crosses, so it shows on every ground. */
+.phx-date-stepper--filled > :first-child {
+    border-inline-end: 1px solid rgb(0 0 0 / 0.08);
+}
+
+.phx-date-stepper--filled > :last-child {
+    border-inline-start: 1px solid rgb(0 0 0 / 0.08);
+}
+
+.phx-date-stepper__step svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.phx-date-stepper__date {
+    flex: 1;
+    gap: 0.5rem;
+    padding-inline-end: 1rem;
+}
+
+/* Sheds Wagtail's input[type=date] styling (!important: Wagtail's admin
+   styles every input) and lets clicks through to the date, which opens the
+   picker from anywhere on it rather than editing day, month and year one by
+   one. The box spans the date from its start edge, where the picker anchors,
+   and pads its text back in. */
+.phx-date-stepper__input {
+    pointer-events: none;
+    appearance: none;
+    align-self: stretch;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 0 0 1rem !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: none !important;
+    color: inherit !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    color-scheme: light dark;
+    /* Outranks Wagtail's global :focus-visible ring: the ring moves to the
+       whole date, where Firefox's clip (below) cannot cut it. */
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.phx-date-stepper__date:focus-within {
+    position: relative;
+    z-index: 1;
+    outline: 3px solid var(--w-color-focus, currentColor);
+    outline-offset: 2px;
+}
+
+/* With text, the box stays in place, unseen, for the picker to anchor to; it
+   shows, over the text, while the keyboard is in it. The text and its icon
+   sit centred. */
+.phx-date-stepper__date--text {
+    position: relative;
+    justify-content: center;
+    padding-inline-start: 1rem;
+}
+
+/* A week's text changes width as it steps ("Feb 2 – 8, 2026", "28. Dez.
+   2026 – 3. Jan. 2027"), which would move the arrows under the pointer; its
+   pill keeps room for the longest. A day's text keeps one width. */
+.phx-date-stepper--week .phx-date-stepper__date {
+    min-width: 15rem;
+}
+
+.phx-date-stepper__date--text .phx-date-stepper__input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+}
+
+.phx-date-stepper__date--text .phx-date-stepper__input:focus {
+    opacity: 1;
+}
+
+.phx-date-stepper__date--text:focus-within .phx-date-stepper__text {
+    visibility: hidden;
+}
+
+/* Text as the buttons beside it; trimmed to its letters, which a font's box
+   otherwise sets high (it leaves room below for descenders). */
+.phx-date-stepper__text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+}
+
+/* As the icons in the buttons beside it. */
+.phx-date-stepper__icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.phx-date-stepper__input::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
+/* Firefox has no pseudo-element for its icon: clip the strip it paints and
+   pull the glyph over it. */
+@supports (-moz-appearance: none) {
+    .phx-date-stepper__input {
+        clip-path: inset(0 1.5rem 0 0);
+        margin-inline-end: -1.5rem;
+    }
+}
+
+/* Dark: an overlay darkens whatever the pill sits on, as the search bar's. */
+@media (prefers-color-scheme: dark) {
+    .phx-date-stepper--filled > * {
+        background: var(--phx-control-fill, rgb(0 0 0 / 0.2));
+        color: rgb(var(--color-surface-300));
+    }
+
+    .phx-date-stepper--filled > :hover {
+        background: var(--phx-control-fill-hover, rgb(0 0 0 / 0.28));
+    }
+
+    .phx-date-stepper--filled > :first-child,
+    .phx-date-stepper--filled > :last-child {
+        border-color: rgb(255 255 255 / 0.08);
+    }
+}
+
 /* ── Search Results (single select search) ── */
 
 .phx-single-select-search__divider {

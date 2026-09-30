@@ -7,6 +7,7 @@ from django.forms import BoundField, ModelChoiceField
 from django.forms.widgets import (
     CheckboxInput,
     CheckboxSelectMultiple,
+    DateInput,
     DateTimeBaseInput,
     HiddenInput,
     Input,
@@ -43,6 +44,7 @@ FRAME_WIDGETS = {
     "phone": (PhoneNumberPrefixWidget, ()),
     "single_select_search": (HiddenInput, ()),
     "search": (TextInput, ()),
+    "date_stepper": (DateInput, ()),
 }
 # The options each field reads, and whether it passes any hx_* option on to
 # its control. render_field refuses others, so a misspelled option fails
@@ -63,6 +65,7 @@ FIELD_OPTIONS = {
         False,
     ),
     "search": ({"placeholder", "count"}, True),
+    "date_stepper": ({"previous", "next", "previous_label", "next_label", "text", "period"}, True),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}

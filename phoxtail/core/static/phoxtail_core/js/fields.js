@@ -25,15 +25,94 @@ document.addEventListener('click', function (event) {
     if (!button) {
         return;
     }
-    var input = button.closest('.phx-field__box').querySelector('.phx-field__control');
+    var input = button.closest('.phx-field__box, .phx-date-stepper')
+        .querySelector('.phx-field__control, .phx-date-stepper__input');
     try {
         input.showPicker();
     } catch (error) {
         // Browsers without showPicker(), or a picker the user has not
-        // activated yet: focusing still lets them type or use the keyboard.
+        // activated yet: focusing still lets them type or use the keyboard,
+        // and the stepper's box takes the next click itself.
+        input.style.pointerEvents = 'auto';
         input.focus();
     }
 }, true);
+
+/* Date stepper: the box sends its request on "step". An arrow or a picked day
+   sends at once; a date typed key by key waits for Enter or for the box to be
+   left, since the browser reports every finished part (the "1" of "15") as a
+   change, and the redraw would swallow the next key. */
+(function () {
+    var STEPPER = '.phx-date-stepper__input';
+
+    function step(input) {
+        delete input.dataset.typed;
+        input.dispatchEvent(new Event('step'));
+    }
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-date-step]');
+        if (!button) {
+            return;
+        }
+        var input = button.closest('.phx-date-stepper').querySelector(STEPPER);
+        input.value = button.dataset.dateStep;
+        step(input);
+    }, true);
+
+    // A change during a key press was typed; any other came from the picker.
+    document.addEventListener('keydown', function (event) {
+        if (!event.target.matches(STEPPER)) {
+            return;
+        }
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            if (event.target.dataset.typed !== undefined) {
+                step(event.target);
+            }
+            return;
+        }
+        event.target.dataset.keyDown = '';
+    }, true);
+
+    document.addEventListener('keyup', function (event) {
+        if (event.target.matches(STEPPER)) {
+            delete event.target.dataset.keyDown;
+        }
+    }, true);
+
+    document.addEventListener('change', function (event) {
+        var input = event.target;
+        if (!input.matches(STEPPER)) {
+            return;
+        }
+        if (input.dataset.keyDown !== undefined) {
+            input.dataset.typed = '';
+        } else {
+            step(input);
+        }
+    }, true);
+
+    // Tab moves focus away before the key comes back up, so leaving the box
+    // (or pressing on the pill) forgets the key, or the next pick would be
+    // taken for typing and never sent.
+    document.addEventListener('focusout', function (event) {
+        if (!event.target.matches(STEPPER)) {
+            return;
+        }
+        delete event.target.dataset.keyDown;
+        if (event.target.dataset.typed !== undefined) {
+            step(event.target);
+        }
+    }, true);
+
+    document.addEventListener('pointerdown', function (event) {
+        var stepper = event.target.closest('.phx-date-stepper');
+        if (stepper) {
+            delete stepper.querySelector(STEPPER).dataset.keyDown;
+        }
+    }, true);
+})();
 
 /* Single select search: its button opens and closes the panel it controls; a
    click outside the field or Escape closes it. */

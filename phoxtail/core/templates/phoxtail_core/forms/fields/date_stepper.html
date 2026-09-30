@@ -1,0 +1,46 @@
+{% comment %}
+Date stepper for a page that shows one day or week at a time: one pill holding
+the date between two arrows that step it back and forward (previous and next:
+the neighbouring values). text, when given, is shown in place of the date,
+e.g. the week it falls in; the date shows while the keyboard is in the box.
+period is what one step moves, "day" (the default) or "week": a week's text
+changes width as it steps, so its pill keeps room for the longest.
+Looks: filled + small (a pill, for toolbars); no other look exists yet.
+Django's own widget draws the box, always a date box. A click anywhere on the
+date opens the browser's picker. The box sends the field's request on its
+"step" event (js/fields.js): an arrow or a picked day sends at once, a typed
+date on Enter or when the box is left, so a half-typed date is never sent.
+Any hx_* option reaches the box; a caller's trigger is followed by "step",
+which the arrows and the picker need. The htmx settings are written only when
+it makes a request (hx_get, hx_post, hx_put, hx_patch, hx_delete). The arrows
+carry ids from the field's, so a redraw gives the focus back to the one that
+had it.
+{% endcomment %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
+{% with period=period|default:"day" %}
+<div class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small phx-date-stepper--{{ period }}">
+    <button type="button"
+            class="phx-date-stepper__step"
+            {% if field.auto_id %}id="{{ field.auto_id }}_previous"{% endif %}
+            aria-label="{{ previous_label|default:_("Previous") }}"
+            data-date-step="{{ previous }}">
+        {% icon "chevron_left" %}
+    </button>
+    <div class="phx-date-stepper__date{% if text %} phx-date-stepper__date--text{% endif %}" data-picker-open>
+        {% if htmx.hx_trigger %}
+            {% widget field input_type="date" class="phx-date-stepper__input" aria_label=field.label hx_trigger=htmx.hx_trigger|add:", step" htmx=htmx %}
+        {% else %}
+            {% widget field input_type="date" class="phx-date-stepper__input" aria_label=field.label hx_trigger="step" htmx=htmx %}
+        {% endif %}
+        {% if text %}<span class="phx-date-stepper__text">{{ text }}</span>{% endif %}
+        <svg class="phx-date-stepper__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+    </div>
+    <button type="button"
+            class="phx-date-stepper__step"
+            {% if field.auto_id %}id="{{ field.auto_id }}_next"{% endif %}
+            aria-label="{{ next_label|default:_("Next") }}"
+            data-date-step="{{ next }}">
+        {% icon "chevron_right" %}
+    </button>
+</div>
+{% endwith %}
