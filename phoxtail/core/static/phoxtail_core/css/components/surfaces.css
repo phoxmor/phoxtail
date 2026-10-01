@@ -46,6 +46,13 @@ html:has(> body.phx-ground) {
     }
 }
 
+/* --flush: no padding, for a card whose parts reach its edges (a
+   collapsible's summary). */
+.phx-card--flush {
+    padding: 0;
+    overflow: hidden;
+}
+
 /* Cards stacked in a form sit as far apart as they sit from a drawer's edge. */
 .phoxtail-form-stack:has(> .phx-card) {
     --phx-field-gap: 1rem;

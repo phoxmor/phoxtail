@@ -71,6 +71,18 @@
     width: 100%;
 }
 
+/* A compact button, for actions repeated on every row of a list. */
+.phx-button--small {
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.6875rem;
+}
+
+.phx-button--small svg {
+    width: 0.75rem;
+    height: 0.75rem;
+}
+
 @media (prefers-color-scheme: dark) {
     .phx-button--secondary {
         color: rgb(var(--color-surface-300));
