@@ -213,6 +213,52 @@ body {
     }
 }
 
+/* Surfaces. A page or drawer is the ground; what stands on it rises; a
+   control inside something risen is cut in. --phx-raised-* is what rises;
+   --phx-control-* is what a control takes from the box it sits in, set again
+   by every core box (surfaces.css) for what it holds. Here: cut in, the
+   default for a page that is no ground yet. */
+:root {
+    --phx-raised-background: rgb(255 255 255);
+    --phx-raised-background-hover: rgb(255 255 255);
+    --phx-raised-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+    --phx-raised-shadow-hover: 0 4px 12px rgb(0 0 0 / 0.1);
+    --phx-section-fill: rgb(0 0 0 / 0.025);
+}
+
+:root,
+.phx-card,
+.phx-popover {
+    --phx-control-background: rgb(0 0 0 / 0.05);
+    --phx-control-background-hover: rgb(0 0 0 / 0.1);
+    --phx-control-shadow: none;
+    --phx-control-shadow-hover: none;
+}
+
+.phx-ground {
+    --phx-control-background: var(--phx-raised-background);
+    --phx-control-background-hover: var(--phx-raised-background-hover);
+    --phx-control-shadow: var(--phx-raised-shadow);
+    --phx-control-shadow-hover: var(--phx-raised-shadow-hover);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --phx-raised-background: rgb(var(--color-surface-900));
+        --phx-raised-background-hover: rgb(var(--color-surface-800));
+        --phx-raised-shadow: none;
+        --phx-raised-shadow-hover: 0 4px 12px rgb(0 0 0 / 0.3);
+        --phx-section-fill: rgb(255 255 255 / 0.03);
+    }
+
+    :root,
+    .phx-card,
+    .phx-popover {
+        --phx-control-background: rgb(255 255 255 / 0.08);
+        --phx-control-background-hover: rgb(255 255 255 / 0.12);
+    }
+}
+
 /* Every block wrapper is a container-query context: variant CSS written
    with @container rules adapts to the actual space a block lives in
    (page column, chat pane, ...) instead of the browser viewport. */

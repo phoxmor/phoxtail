@@ -261,7 +261,7 @@
 }
 
 .phx-single-select-search__container--inactive {
-    opacity: 0.4;
+    opacity: 0.38;
     pointer-events: none;
     user-select: none;
     transition: opacity 300ms;
@@ -375,14 +375,21 @@
 }
 
 .phx-search--filled {
-    background: rgb(var(--color-surface-100));
+    background: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
     border-radius: 999px;
-    transition: background-color 150ms ease;
+    transition: background-color 150ms ease, box-shadow 200ms ease;
 }
 
-/* The box drops its own outline, so focus is a step up in surface. */
+.phx-search--filled:hover {
+    background: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
+}
+
+/* The box drops its own outline, so focus draws the fields' ring. */
 .phx-search--filled:focus-within {
-    background: rgb(var(--color-surface-200));
+    outline: 2px solid rgb(var(--color-primary-600));
+    outline-offset: 2px;
 }
 
 /* !important: Wagtail's admin styles every input. */
@@ -403,8 +410,11 @@
     box-shadow: none !important;
 }
 
+/* The placeholder and the count are labels, weighted as the buttons beside
+   the bar; what is typed stays regular. */
 .phx-search__input::placeholder {
     color: rgb(var(--color-surface-600));
+    font-weight: 600;
 }
 
 /* The magnifier and the clear button share one slot — one is visible. */
@@ -443,19 +453,14 @@
     right: 1rem;
     color: rgb(var(--color-surface-600));
     font-size: 0.75rem;
+    font-weight: 600;
     white-space: nowrap;
     pointer-events: none;
 }
 
-/* Dark: an overlay darkens whatever the pill sits on (a page, a drawer), so
-   it reads as a well on every ground. */
 @media (prefers-color-scheme: dark) {
-    .phx-search--filled {
-        background: rgb(0 0 0 / 0.2);
-    }
-
     .phx-search--filled:focus-within {
-        background: rgb(0 0 0 / 0.28);
+        outline-color: rgb(var(--color-primary-400));
     }
 
     .phx-search__input {
@@ -502,17 +507,27 @@
     border-end-end-radius: 1.125rem;
 }
 
-/* The fill comes from the ground the pill sits on: a page or drawer whose
-   own colour needs another sets --phx-control-fill and --phx-control-fill-hover. */
+/* What the box it sits in hands its controls (main.css): the shadow on the
+   whole pill, the fill on each segment. */
+.phx-date-stepper--filled {
+    border-radius: 1.125rem;
+    box-shadow: var(--phx-control-shadow);
+    transition: box-shadow 200ms ease;
+}
+
+.phx-date-stepper--filled:hover {
+    box-shadow: var(--phx-control-shadow-hover);
+}
+
 .phx-date-stepper--filled > * {
-    background: var(--phx-control-fill, rgb(var(--color-surface-100)));
+    background: var(--phx-control-background);
     color: rgb(var(--color-surface-600));
     cursor: pointer;
     transition: background-color 150ms ease;
 }
 
 .phx-date-stepper--filled > :hover {
-    background: var(--phx-control-fill-hover, rgb(var(--color-surface-200)));
+    background: var(--phx-control-background-hover);
 }
 
 /* The focused segment is lifted, or its neighbour paints over its ring. */
@@ -640,15 +655,9 @@
     }
 }
 
-/* Dark: an overlay darkens whatever the pill sits on, as the search bar's. */
 @media (prefers-color-scheme: dark) {
     .phx-date-stepper--filled > * {
-        background: var(--phx-control-fill, rgb(0 0 0 / 0.2));
         color: rgb(var(--color-surface-300));
-    }
-
-    .phx-date-stepper--filled > :hover {
-        background: var(--phx-control-fill-hover, rgb(0 0 0 / 0.28));
     }
 
     .phx-date-stepper--filled > :first-child,
@@ -708,7 +717,6 @@
     --md-sys-color-on-surface: var(--color-surface-900);
     --md-sys-color-on-surface-variant: var(--color-surface-600);
     --md-sys-color-primary: var(--color-primary-600);
-    --phx-single-select-search-panel-background: var(--color-surface-100);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -718,7 +726,6 @@
         --md-sys-color-on-surface: var(--color-surface-100);
         --md-sys-color-on-surface-variant: var(--color-surface-400);
         --md-sys-color-primary: var(--color-primary-400);
-        --phx-single-select-search-panel-background: var(--color-surface-950, 8 8 8);
     }
 }
 
@@ -731,7 +738,7 @@
 }
 
 .phx-single-select-search__trigger:disabled {
-    opacity: 0.5;
+    opacity: 0.38;
     cursor: not-allowed;
 }
 
@@ -799,10 +806,7 @@
     z-index: 100;
     min-width: 14rem;
     max-width: 22rem;
-    background: rgb(var(--phx-single-select-search-panel-background));
-    border: 1px solid rgb(var(--md-sys-color-outline-variant));
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
     overflow: hidden;
 }
 

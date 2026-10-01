@@ -103,7 +103,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
+    background-color: rgb(var(--color-surface-50, 255 255 255));
     backdrop-filter: blur(28px) saturate(1.6);
     -webkit-backdrop-filter: blur(28px) saturate(1.6);
     border-left: 1px solid rgb(0 0 0 / 0.07);
@@ -147,8 +147,7 @@
 
 .phoxtail-drawer__header {
     flex-shrink: 0;
-    padding: 1.5rem;
-    border-bottom: 1px solid rgb(0 0 0 / 0.06);
+    padding: 1rem;
 }
 
 .phoxtail-drawer__title-row {
@@ -168,7 +167,7 @@
 
 .phoxtail-drawer__body {
     flex: 1;
-    padding: 1.5rem;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -176,8 +175,7 @@
 
 .phoxtail-drawer__footer {
     flex-shrink: 0;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid rgb(0 0 0 / 0.06);
+    padding: 1rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -194,22 +192,20 @@
     height: 1.75rem;
     min-width: 1.75rem;
     border-radius: 50%;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: rgb(var(--color-surface-400, 161 161 170));
+    border: none;
+    background-color: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
+    color: rgb(var(--color-surface-600, 82 82 91));
     cursor: pointer;
     padding: 0;
     font-family: inherit;
     line-height: 1;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, color 150ms ease, box-shadow 200ms ease;
 }
 
 .phoxtail-close-btn:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
+    background-color: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
 }
 
 .phoxtail-close-btn:focus-visible {
@@ -221,6 +217,12 @@
     width: 0.875rem;
     height: 0.875rem;
     display: block;
+}
+
+/* Thickens the icon's strokes. */
+.phoxtail-close-btn svg path {
+    stroke: currentColor;
+    stroke-width: 16;
 }
 
 /* --phx-field-gap: the space between fields, which fields made of parts (the
@@ -388,7 +390,7 @@
    here, same as every other dark-mode block in this codebase. */
 @media (prefers-color-scheme: dark) {
     .phoxtail-drawer--glass {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
+        background-color: rgb(var(--color-surface-900, 24 24 27));
         border-left-color: rgb(255 255 255 / 0.08);
         box-shadow: -8px 0 48px rgba(0, 0, 0, 0.5), inset 0.5px 0 0 rgb(255 255 255 / 0.06);
     }
@@ -410,28 +412,16 @@
         background-color: rgb(255 255 255 / 0.2);
     }
 
-    .phoxtail-drawer__header {
-        border-bottom-color: rgb(255 255 255 / 0.07);
-    }
-
     .phoxtail-drawer__title {
         color: rgb(var(--color-surface-100));
     }
 
-    .phoxtail-drawer__footer {
-        border-top-color: rgb(255 255 255 / 0.07);
-    }
-
     .phoxtail-close-btn {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.7);
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
+        color: rgb(var(--color-surface-300, 212 212 216));
     }
 
     .phoxtail-close-btn:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        border-color: rgb(255 255 255 / 0.2);
-        color: white;
+        color: rgb(var(--color-surface-200, 228 228 231));
     }
 
     .phoxtail-danger-section {

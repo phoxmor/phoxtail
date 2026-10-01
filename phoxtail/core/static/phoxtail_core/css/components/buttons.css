@@ -1,0 +1,87 @@
+/* ── Button ──
+
+   One button; its look says how much it asks for attention: --primary
+   finishes the task (one per drawer or form), --secondary is every other
+   action, --danger removes something. No border: the fill separates it from
+   the ground. A transparent 1px edge keeps the box the size it had with one.
+   The brand colour means "the one thing to do" or "on": a button marked
+   aria-current (the page you are on) wears it too. */
+.phx-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 150ms ease, color 150ms ease,
+                box-shadow 200ms ease, transform 100ms ease;
+}
+
+.phx-button:active {
+    transform: scale(0.98);
+}
+
+.phx-button--primary,
+.phx-button[aria-current]:not([aria-current="false"]) {
+    background: rgb(var(--color-primary-700));
+    color: #fff;
+}
+
+.phx-button--primary:hover,
+.phx-button[aria-current]:not([aria-current="false"]):hover {
+    background: rgb(var(--color-primary-800));
+}
+
+/* What the box it sits in hands its controls (main.css). */
+.phx-button--secondary {
+    background: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
+    color: rgb(var(--color-surface-600));
+}
+
+.phx-button--secondary:hover {
+    background: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
+}
+
+.phx-button--danger {
+    background: rgb(var(--color-destructive-600) / 0.08);
+    color: rgb(var(--color-destructive-600));
+}
+
+.phx-button--danger:hover {
+    background: rgb(var(--color-destructive-600));
+    color: #fff;
+}
+
+/* Disabled: faded, and deaf to hover and press. */
+.phx-button:disabled,
+.phx-button[aria-disabled="true"] {
+    opacity: 0.38;
+    pointer-events: none;
+}
+
+.phx-button--full {
+    width: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-button--secondary {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .phx-button--secondary:hover {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .phx-button--danger {
+        background: rgb(var(--color-destructive-600) / 0.15);
+        color: rgb(var(--color-destructive-300));
+    }
+}

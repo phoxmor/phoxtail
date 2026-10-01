@@ -1,0 +1,133 @@
+/* ── Surfaces ──
+
+   The ground (a page, a drawer), what rises on it (a card, a popover) and the
+   values each hands to the controls it holds (main.css). Use these; never
+   paint a background yourself. Loaded after modal.css, so a drawer marked as
+   ground takes the ground's colour. */
+
+/* ── Ground ──
+
+   An admin page opts in with {% block bodyclass %}phx-ground{% endblock %};
+   Wagtail paints its .content over the body, so that is painted too. */
+.phx-ground,
+body.phx-ground .content,
+html:has(> body.phx-ground) {
+    background-color: rgb(var(--color-surface-50));
+}
+
+/* A drawer on the ground has no edge: its shadow parts it from the page. */
+.phoxtail-drawer--glass.phx-ground,
+[data-animation-type="slide-left"] .phoxtail-drawer--glass.phx-ground {
+    border-left: none;
+    border-right: none;
+    box-shadow: -8px 0 48px rgb(0 0 0 / 0.1);
+}
+
+[data-animation-type="slide-left"] .phoxtail-drawer--glass.phx-ground {
+    box-shadow: 8px 0 48px rgb(0 0 0 / 0.1);
+}
+
+/* ── Card ──
+
+   A risen box: an item in a list, or a group of fields under a title.
+   --clickable opens something (the card is a link, or holds the button that
+   opens it): a ring on hover and on keyboard focus, in place of the outline. */
+.phx-card {
+    background: var(--phx-raised-background);
+    box-shadow: var(--phx-raised-shadow);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    transition: box-shadow 200ms ease;
+}
+
+@media (min-width: 640px) {
+    .phx-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Cards stacked in a form sit as far apart as they sit from a drawer's edge. */
+.phoxtail-form-stack:has(> .phx-card) {
+    --phx-field-gap: 1rem;
+}
+
+.phx-card--clickable {
+    cursor: pointer;
+    outline: none;
+}
+
+.phx-card--clickable:hover,
+.phx-card--clickable:focus-visible,
+.phx-card--clickable:has(:focus-visible) {
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-500)),
+                var(--phx-raised-shadow-hover);
+}
+
+.phx-card__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-900));
+}
+
+.phx-card__title svg {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* A line or two under the title. */
+.phx-card__text {
+    margin: -0.5rem 0 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: rgb(var(--color-surface-600));
+}
+
+/* ── Popover ──
+
+   Floats above everything (a dropdown, a menu, a message): the highest
+   risen thing, with the deepest shadow. */
+.phx-popover {
+    background: var(--phx-raised-background);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-ground,
+    body.phx-ground .content,
+    html:has(> body.phx-ground) {
+        background-color: rgb(var(--color-surface-950));
+    }
+
+    .phoxtail-drawer--glass.phx-ground {
+        box-shadow: -8px 0 48px rgb(0 0 0 / 0.5);
+    }
+
+    [data-animation-type="slide-left"] .phoxtail-drawer--glass.phx-ground {
+        box-shadow: 8px 0 48px rgb(0 0 0 / 0.5);
+    }
+
+    .phx-card--clickable:hover,
+    .phx-card--clickable:focus-visible,
+    .phx-card--clickable:has(:focus-visible) {
+        box-shadow: 0 0 0 2px rgb(var(--color-primary-400)),
+                    0 0 16px rgb(var(--color-primary-400) / 0.3),
+                    var(--phx-raised-shadow-hover);
+    }
+
+    .phx-card__title {
+        color: rgb(var(--color-surface-100));
+    }
+
+    .phx-card__text {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .phx-popover {
+        box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+    }
+}
