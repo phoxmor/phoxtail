@@ -50,14 +50,14 @@
     box-shadow: var(--phx-control-shadow-hover);
 }
 
+/* Filled like --primary: the one step of its drawer or form, in red. */
 .phx-button--danger {
-    background: rgb(var(--color-destructive-600) / 0.08);
-    color: rgb(var(--color-destructive-600));
+    background: rgb(var(--color-destructive-700));
+    color: #fff;
 }
 
 .phx-button--danger:hover {
-    background: rgb(var(--color-destructive-600));
-    color: #fff;
+    background: rgb(var(--color-destructive-800));
 }
 
 /* Disabled: faded, and deaf to hover and press. */
@@ -90,10 +90,5 @@
 
     .phx-button--secondary:hover {
         color: rgb(var(--color-surface-200));
-    }
-
-    .phx-button--danger {
-        background: rgb(var(--color-destructive-600) / 0.15);
-        color: rgb(var(--color-destructive-300));
     }
 }

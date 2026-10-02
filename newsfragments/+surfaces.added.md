@@ -6,5 +6,6 @@ a card whose parts reach its edges), and what floats above everything is a
 `phx-popover`. Each box hands the controls it holds their fill and shadow
 (`--phx-control-background`, `--phx-control-shadow` and their `-hover`), so a
 button is white and lifted on the page and a quiet tint inside a card. An admin
-view opts in with `{% block bodyclass %}phx-ground{% endblock %}`; a page that
-does not keeps Wagtail's white. Use these boxes; never paint a background.
+view opts in with `{% block bodyclass %}phx-ground{% endblock %}`; one that
+does not keeps Wagtail's white. The dashboard's content area is ground already.
+Use these boxes; never paint a background.
