@@ -21,116 +21,116 @@ _BLOCK_IDENTIFIER = "hatchling"
 _HTML = """\
 {% load wagtailcore_tags wagtailimages_tags static phoxtail_design_tags %}
 
-<div id="phxt-hatch-{{ block.id }}" class="phxt-page">
-    <header class="phxt-top-bar">
-        <div class="phxt-top-bar-inner">
-            <div class="phxt-logo">
-                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-light.svg' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-light" />
-                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-dark.svg' %}" alt="Phoxtail" class="phxt-logo-img phxt-logo-dark" />
+<div id="phoenix-hatchling-{{ block.id }}" class="phoenix-hatchling phx-ground">
+    <header class="phoenix-hatchling__top-bar">
+        <div class="phoenix-hatchling__top-bar-inner">
+            <div class="phoenix-hatchling__logo">
+                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-light.svg' %}" alt="Phoxtail" class="phoenix-hatchling__logo-image phoenix-hatchling__logo-image--light" />
+                <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-dark.svg' %}" alt="Phoxtail" class="phoenix-hatchling__logo-image phoenix-hatchling__logo-image--dark" />
             </div>
-            <div class="phxt-badge-tonal">
-                v{% phoxtail_version %}
-            </div>
+            <a href="https://releases.phoxtail.com" target="_blank" rel="noopener" class="phx-button phx-button--secondary phx-button--small phoenix-hatchling__version">
+                {% icon "deployed_code" class="phoenix-hatchling__accent-icon" %}<span class="phx-sr-only">Version </span>{% phoxtail_version %}<span class="phx-sr-only">, release notes (opens in a new tab)</span>
+            </a>
         </div>
     </header>
 
-    <div class="phxt-embers" data-phxt-embers></div>
+    <div class="phoenix-hatchling__embers" data-phoenix-hatchling-embers></div>
 
-    <main class="phxt-main-content">
-        <div class="phxt-hero">
-            <div class="phxt-phoenix-wrap" data-phxt-phoenix>
-                <svg class="phxt-phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <main class="phoenix-hatchling__main">
+        <div class="phoenix-hatchling__hero">
+            <div class="phoenix-hatchling__phoenix-wrap" data-phoenix-hatchling-phoenix>
+                <svg class="phoenix-hatchling__phoenix" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                     <defs>
                         <!-- One light, from the upper left, shapes every rounded part;
                              the body's tones are set in the stylesheet -->
-                        <radialGradient id="phxt-body-g-{{ block.id }}" cx="38%" cy="30%" r="75%">
-                            <stop class="phxt-body-light" offset="0%"/>
-                            <stop class="phxt-body-mid" offset="50%"/>
-                            <stop class="phxt-body-shade" offset="100%"/>
+                        <radialGradient id="phoenix-hatchling-body-gradient-{{ block.id }}" cx="38%" cy="30%" r="75%">
+                            <stop class="phoenix-hatchling__body-light" offset="0%"/>
+                            <stop class="phoenix-hatchling__body-mid" offset="50%"/>
+                            <stop class="phoenix-hatchling__body-shade" offset="100%"/>
                         </radialGradient>
-                        <linearGradient id="phxt-wing-g-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop class="phxt-body-mid" offset="0%"/>
-                            <stop class="phxt-body-shade" offset="100%"/>
+                        <linearGradient id="phoenix-hatchling-wing-gradient-{{ block.id }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop class="phoenix-hatchling__body-mid" offset="0%"/>
+                            <stop class="phoenix-hatchling__body-shade" offset="100%"/>
                         </linearGradient>
-                        <radialGradient id="phxt-shell-g-{{ block.id }}" cx="35%" cy="30%" r="85%">
+                        <radialGradient id="phoenix-hatchling-shell-gradient-{{ block.id }}" cx="35%" cy="30%" r="85%">
                             <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
                             <stop offset="65%" stop-color="rgb(var(--color-surface-100))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-300))"/>
                         </radialGradient>
-                        <radialGradient id="phxt-eye-g-{{ block.id }}" cx="50%" cy="60%" r="60%">
+                        <radialGradient id="phoenix-hatchling-eye-gradient-{{ block.id }}" cx="50%" cy="60%" r="60%">
                             <stop offset="0%" stop-color="rgb(var(--color-surface-50))"/>
                             <stop offset="75%" stop-color="rgb(var(--color-surface-100))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-300))"/>
                         </radialGradient>
                         <!-- The crest is lit like the rest: each feather deepens toward its root -->
-                        <linearGradient id="phxt-flame-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                        <linearGradient id="phoenix-hatchling-flame-gradient-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
                             <stop offset="0%" stop-color="rgb(var(--color-primary-600))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-primary-300))"/>
                         </linearGradient>
-                        <linearGradient id="phxt-flame-core-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                        <linearGradient id="phoenix-hatchling-flame-core-gradient-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
                             <stop offset="0%" stop-color="rgb(var(--color-primary-500))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-secondary-200))"/>
                         </linearGradient>
-                        <linearGradient id="phxt-feather-g-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
+                        <linearGradient id="phoenix-hatchling-feather-gradient-{{ block.id }}" x1="0%" y1="100%" x2="0%" y2="0%">
                             <stop offset="0%" stop-color="rgb(var(--color-surface-600))"/>
                             <stop offset="100%" stop-color="rgb(var(--color-surface-400))"/>
                         </linearGradient>
                         <!-- The halo's colour is set per theme in the stylesheet -->
-                        <radialGradient id="phxt-glow-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
-                            <stop class="phxt-halo-core" offset="0%"/>
-                            <stop class="phxt-halo-mid" offset="50%"/>
-                            <stop class="phxt-halo-edge" offset="100%"/>
+                        <radialGradient id="phoenix-hatchling-glow-gradient-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                            <stop class="phoenix-hatchling__halo-core" offset="0%"/>
+                            <stop class="phoenix-hatchling__halo-mid" offset="50%"/>
+                            <stop class="phoenix-hatchling__halo-edge" offset="100%"/>
                         </radialGradient>
-                        <radialGradient id="phxt-cheek-g-{{ block.id }}" cx="50%" cy="50%" r="50%">
+                        <radialGradient id="phoenix-hatchling-cheek-gradient-{{ block.id }}" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" stop-color="rgb(var(--color-primary-400))" stop-opacity="0.4"/>
                             <stop offset="100%" stop-color="rgb(var(--color-primary-400))" stop-opacity="0"/>
                         </radialGradient>
-                        <filter id="phxt-soft-{{ block.id }}" x="-50%" y="-100%" width="200%" height="300%">
+                        <filter id="phoenix-hatchling-soft-blur-{{ block.id }}" x="-50%" y="-100%" width="200%" height="300%">
                             <feGaussianBlur stdDeviation="3"/>
                         </filter>
                         <!-- Pupils stay inside the eye, however far they look -->
-                        <clipPath id="phxt-eye-l-{{ block.id }}"><circle cx="78" cy="88" r="14"/></clipPath>
-                        <clipPath id="phxt-eye-r-{{ block.id }}"><circle cx="122" cy="88" r="14"/></clipPath>
+                        <clipPath id="phoenix-hatchling-eye-left-clip-{{ block.id }}"><circle cx="78" cy="88" r="14"/></clipPath>
+                        <clipPath id="phoenix-hatchling-eye-right-clip-{{ block.id }}"><circle cx="122" cy="88" r="14"/></clipPath>
                     </defs>
 
-                    <circle cx="100" cy="120" r="90" fill="url(#phxt-glow-g-{{ block.id }})"/>
-                    <ellipse class="phxt-ground" cx="100" cy="190" rx="36" ry="4.5" fill="rgb(var(--color-surface-900))" opacity="0.07" filter="url(#phxt-soft-{{ block.id }})"/>
+                    <circle cx="100" cy="120" r="90" fill="url(#phoenix-hatchling-glow-gradient-{{ block.id }})"/>
+                    <ellipse class="phoenix-hatchling__shadow" cx="100" cy="190" rx="36" ry="4.5" fill="rgb(var(--color-surface-900))" opacity="0.07" filter="url(#phoenix-hatchling-soft-blur-{{ block.id }})"/>
 
-                    <g class="phxt-bird">
+                    <g class="phoenix-hatchling__bird">
                         <!-- The wings grow from behind the body, so its curve is their joint -->
-                        <path class="phxt-wing phxt-wing-l" d="M74,136 C58,132 46,146 52,152 C58,158 68,158 74,156 Z" fill="url(#phxt-wing-g-{{ block.id }})"/>
-                        <path class="phxt-wing phxt-wing-r" d="M126,136 C142,132 154,146 148,152 C142,158 132,158 126,156 Z" fill="url(#phxt-wing-g-{{ block.id }})"/>
+                        <path class="phoenix-hatchling__wing phoenix-hatchling__wing--left" d="M74,136 C58,132 46,146 52,152 C58,158 68,158 74,156 Z" fill="url(#phoenix-hatchling-wing-gradient-{{ block.id }})"/>
+                        <path class="phoenix-hatchling__wing phoenix-hatchling__wing--right" d="M126,136 C142,132 154,146 148,152 C142,158 132,158 126,156 Z" fill="url(#phoenix-hatchling-wing-gradient-{{ block.id }})"/>
 
-                        <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#phxt-body-g-{{ block.id }})"/>
+                        <ellipse cx="100" cy="135" rx="42" ry="46" fill="url(#phoenix-hatchling-body-gradient-{{ block.id }})"/>
 
-                        <ellipse cx="100" cy="131" rx="30" ry="6" fill="rgb(var(--color-surface-900))" opacity="0.15" filter="url(#phxt-soft-{{ block.id }})"/>
+                        <ellipse cx="100" cy="131" rx="30" ry="6" fill="rgb(var(--color-surface-900))" opacity="0.15" filter="url(#phoenix-hatchling-soft-blur-{{ block.id }})"/>
                         <!-- The crest grows from behind the crown, so the head hides every root -->
-                        <g class="phxt-crest">
-                            <path d="M98,47 C105,16 118,5 118,5 C113,20 104.5,36 101.3,48 Z" fill="url(#phxt-feather-g-{{ block.id }})"/>
-                            <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="url(#phxt-flame-g-{{ block.id }})"/>
-                            <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="url(#phxt-flame-core-g-{{ block.id }})"/>
+                        <g class="phoenix-hatchling__crest">
+                            <path d="M98,47 C105,16 118,5 118,5 C113,20 104.5,36 101.3,48 Z" fill="url(#phoenix-hatchling-feather-gradient-{{ block.id }})"/>
+                            <path d="M100,46 C95,20 80,10 80,10 C85,25 90,35 96,48 Z" fill="url(#phoenix-hatchling-flame-gradient-{{ block.id }})"/>
+                            <path d="M100,44 C100,10 105,0 105,0 C95,15 95,30 100,48 Z" fill="url(#phoenix-hatchling-flame-core-gradient-{{ block.id }})"/>
                         </g>
 
-                        <circle cx="100" cy="88" r="44" fill="url(#phxt-body-g-{{ block.id }})"/>
+                        <circle cx="100" cy="88" r="44" fill="url(#phoenix-hatchling-body-gradient-{{ block.id }})"/>
 
-                        <circle cx="71" cy="104" r="10" fill="url(#phxt-cheek-g-{{ block.id }})"/>
-                        <circle cx="129" cy="104" r="10" fill="url(#phxt-cheek-g-{{ block.id }})"/>
+                        <circle cx="71" cy="104" r="10" fill="url(#phoenix-hatchling-cheek-gradient-{{ block.id }})"/>
+                        <circle cx="129" cy="104" r="10" fill="url(#phoenix-hatchling-cheek-gradient-{{ block.id }})"/>
 
-                        <g class="phxt-eyes-wrap" data-phxt-eyes-wrap>
-                            <g class="phxt-eye phxt-eye-l" data-phxt-eye="left">
-                                <g clip-path="url(#phxt-eye-l-{{ block.id }})">
-                                    <circle cx="78" cy="88" r="14" fill="url(#phxt-eye-g-{{ block.id }})"/>
-                                    <g class="phxt-pupil-group" data-phxt-pupil>
+                        <g class="phoenix-hatchling__eyes" data-phoenix-hatchling-eyes>
+                            <g class="phoenix-hatchling__eye phoenix-hatchling__eye--left" data-phoenix-hatchling-eye="left">
+                                <g clip-path="url(#phoenix-hatchling-eye-left-clip-{{ block.id }})">
+                                    <circle cx="78" cy="88" r="14" fill="url(#phoenix-hatchling-eye-gradient-{{ block.id }})"/>
+                                    <g class="phoenix-hatchling__pupil" data-phoenix-hatchling-pupil>
                                         <circle cx="81" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
                                         <circle cx="83" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
                                         <circle cx="77" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
                                     </g>
                                 </g>
                             </g>
-                            <g class="phxt-eye phxt-eye-r" data-phxt-eye="right">
-                                <g clip-path="url(#phxt-eye-r-{{ block.id }})">
-                                    <circle cx="122" cy="88" r="14" fill="url(#phxt-eye-g-{{ block.id }})"/>
-                                    <g class="phxt-pupil-group" data-phxt-pupil>
+                            <g class="phoenix-hatchling__eye phoenix-hatchling__eye--right" data-phoenix-hatchling-eye="right">
+                                <g clip-path="url(#phoenix-hatchling-eye-right-clip-{{ block.id }})">
+                                    <circle cx="122" cy="88" r="14" fill="url(#phoenix-hatchling-eye-gradient-{{ block.id }})"/>
+                                    <g class="phoenix-hatchling__pupil" data-phoenix-hatchling-pupil>
                                         <circle cx="119" cy="88" r="9" fill="rgb(var(--color-surface-900))"/>
                                         <circle cx="117" cy="84" r="3.5" fill="rgb(var(--color-surface-50))"/>
                                         <circle cx="123" cy="91" r="1.5" fill="rgb(var(--color-surface-50))" opacity="0.8"/>
@@ -140,19 +140,19 @@ _HTML = """\
                         </g>
 
                         <path d="M93,98 Q100,108 107,98 Q100,112 93,98 Z" fill="rgb(var(--color-surface-700))"/>
-                        <path class="phxt-egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#phxt-shell-g-{{ block.id }})"/>
+                        <path class="phoenix-hatchling__egg" d="M58,135 L68,150 L78,132 L90,155 L100,138 L110,155 L122,132 L132,150 L142,135 A 42 46 0 0 1 58 135 Z" fill="url(#phoenix-hatchling-shell-gradient-{{ block.id }})"/>
                     </g>
                 </svg>
             </div>
 
-            <h1 class="phxt-display-title">
+            <h1 class="phoenix-hatchling__title">
                 {% if block.value.title %}
                     {{ block.value.title }}
                 {% else %}
                     Your phoenix has hatched
                 {% endif %}
             </h1>
-            <p class="phxt-body-subtitle">
+            <p class="phoenix-hatchling__subtitle">
                 {% if block.value.subtitle %}
                     {{ block.value.subtitle }}
                 {% else %}
@@ -160,9 +160,9 @@ _HTML = """\
                 {% endif %}
             </p>
 
-            <a href="/admin/" class="phxt-btn-filled">
-                {% icon "dashboard" class="phxt-btn-icon" %}
-                <span class="phxt-btn-label">
+            <a href="/admin/" class="phx-button phx-button--secondary phx-button--large">
+                {% icon "dashboard" class="phoenix-hatchling__accent-icon" %}
+                <span>
                     {% if block.value.cta_text %}
                         {{ block.value.cta_text }}
                     {% else %}
@@ -173,69 +173,40 @@ _HTML = """\
         </div>
     </main>
 
-    <footer class="phxt-cards-section">
-        <div class="phxt-cards-container">
-            <a href="https://docs.phoxtail.com/" target="_blank" rel="noopener" class="phxt-card-filled">
-                <div class="phxt-card-icon-wrap">
-                    {% icon "docs" class="phxt-card-icon" %}
-                </div>
-                <div class="phxt-card-text">
-                    <h2 class="phxt-card-title">Documentation</h2>
-                    <p class="phxt-card-desc">Everything you need to start building with phoxtail.</p>
-                </div>
+    <footer class="phoenix-hatchling__footer">
+        <div class="phoenix-hatchling__cards">
+            <a href="https://docs.phoxtail.com/" target="_blank" rel="noopener" class="phx-card phx-card--clickable phoenix-hatchling__card">
+                <h2 class="phx-card__title">{% icon "docs" class="phoenix-hatchling__accent-icon" %}Documentation<span class="phx-sr-only"> (opens in a new tab)</span>{% icon "open_in_new" class="phoenix-hatchling__external-icon" %}</h2>
+                <p class="phx-card__text">Learn how to build with phoxtail.</p>
             </a>
 
-            <a href="https://github.com/phoxmor/phoxtail" target="_blank" rel="noopener" class="phxt-card-filled">
-                <div class="phxt-card-icon-wrap">
-                    {% icon "code" class="phxt-card-icon" %}
-                </div>
-                <div class="phxt-card-text">
-                    <h2 class="phxt-card-title">Source code</h2>
-                    <p class="phxt-card-desc">Explore how phoxtail works under the hood.</p>
-                </div>
+            <a href="https://source.phoxtail.com" target="_blank" rel="noopener" class="phx-card phx-card--clickable phoenix-hatchling__card">
+                <h2 class="phx-card__title">{% icon "code" class="phoenix-hatchling__accent-icon" %}Source code<span class="phx-sr-only"> (opens in a new tab)</span>{% icon "open_in_new" class="phoenix-hatchling__external-icon" %}</h2>
+                <p class="phx-card__text">See how phoxtail works under the hood.</p>
             </a>
 
-            <a href="https://community.phoxtail.com" target="_blank" rel="noopener" class="phxt-card-filled">
-                <div class="phxt-card-icon-wrap">
-                    {% icon "groups" class="phxt-card-icon" %}
-                </div>
-                <div class="phxt-card-text">
-                    <h2 class="phxt-card-title">Join the community</h2>
-                    <p class="phxt-card-desc">Ask questions, share ideas, and connect with the phoxtail community.</p>
-                </div>
+            <a href="https://community.phoxtail.com" target="_blank" rel="noopener" class="phx-card phx-card--clickable phoenix-hatchling__card">
+                <h2 class="phx-card__title">{% icon "groups" class="phoenix-hatchling__accent-icon" %}Community<span class="phx-sr-only"> (opens in a new tab)</span>{% icon "open_in_new" class="phoenix-hatchling__external-icon" %}</h2>
+                <p class="phx-card__text">Connect with others who use phoxtail.</p>
             </a>
         </div>
     </footer>
 </div>"""
 
 _CSS = """\
-/* ── Variables & Scoping ── */
-#phxt-hatch-{{ block.id }} {
-    /* Base Colors */
-    --sys-color-surface: var(--color-surface-50);
-    --sys-color-on-surface: var(--color-surface-900);
-    --sys-color-on-surface-variant: var(--color-surface-600);
-
+/* ── Page ── */
+#phoenix-hatchling-{{ block.id }} {
     position: relative;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     width: 100%;
-    background-color: rgb(var(--sys-color-surface));
-    color: rgb(var(--sys-color-on-surface));
     font-family: var(--font-body, system-ui, sans-serif);
     overflow: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-#phxt-hatch-{{ block.id }} *,
-#phxt-hatch-{{ block.id }} *::before,
-#phxt-hatch-{{ block.id }} *::after {
-    box-sizing: border-box;
 }
 
 /* ── Top Bar ── */
-#phxt-hatch-{{ block.id }} .phxt-top-bar {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__top-bar {
     width: 100%;
     height: 64px;
     padding: 0 1rem;
@@ -248,7 +219,7 @@ _CSS = """\
     background: transparent;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-top-bar-inner {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__top-bar-inner {
     max-width: 1024px; /* Lines up with the cards below */
     margin: 0 auto;
     width: 100%;
@@ -257,42 +228,29 @@ _CSS = """\
     align-items: center;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-logo-img {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image {
     height: 1.5rem;
     width: auto;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-logo-dark {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image--dark {
     display: none;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-badge-tonal {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 8px;
-    font-family: var(--font-ui, system-ui, sans-serif);
-    font-weight: var(--font-ui-weight-medium, 500);
-    font-size: 0.875rem;
-    /* The cards' glass and shadow, so the badge reads as one of them */
-    background-color: rgb(var(--color-surface-50) / 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow:
-        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
-        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
-    color: rgb(var(--sys-color-on-surface));
+/* Core's secondary button, to the release notes */
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__version {
+    font-variant-numeric: tabular-nums;
 }
 
 /* ── Embers Particle System ── */
-#phxt-hatch-{{ block.id }} .phxt-embers {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__embers {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 10;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-ember {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__ember {
     position: absolute;
     top: 0;
     left: 0;
@@ -301,7 +259,7 @@ _CSS = """\
 }
 
 /* ── Main Content / Hero ── */
-#phxt-hatch-{{ block.id }} .phxt-main-content {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__main {
     flex-grow: 1;
     position: relative;
     z-index: 15;
@@ -313,7 +271,7 @@ _CSS = """\
     text-align: center;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-hero {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__hero {
     max-width: 65ch; /* Prose width for readability */
     display: flex;
     flex-direction: column;
@@ -322,185 +280,159 @@ _CSS = """\
 }
 
 /* ── Phoenix SVG Styles & Animations ── */
-#phxt-hatch-{{ block.id }} .phxt-phoenix-wrap {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__phoenix-wrap {
     width: 220px;
     height: 240px;
     margin-bottom: 2rem;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-phoenix {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__phoenix {
     width: 100%;
     height: 100%;
     overflow: visible;
 }
 
 /* The chick floats; its shadow stays on the ground, shrinking as it rises */
-#phxt-hatch-{{ block.id }} .phxt-bird {
-    animation: phxt-breathe-{{ block.id }} 4s ease-in-out infinite;
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__bird {
+    animation: phoenix-hatchling-breathe-{{ block.id }} 4s ease-in-out infinite;
 }
 
-@keyframes phxt-breathe-{{ block.id }} {
+@keyframes phoenix-hatchling-breathe-{{ block.id }} {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-11px); }
 }
 
-#phxt-hatch-{{ block.id }} .phxt-ground {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__shadow {
     transform-origin: 100px 190px;
-    animation: phxt-ground-{{ block.id }} 4s ease-in-out infinite;
+    animation: phoenix-hatchling-shadow-{{ block.id }} 4s ease-in-out infinite;
 }
 
-@keyframes phxt-ground-{{ block.id }} {
+@keyframes phoenix-hatchling-shadow-{{ block.id }} {
     0%, 100% { transform: scaleX(1); opacity: 0.07; }
     50% { transform: scaleX(0.8); opacity: 0.04; }
 }
 
-#phxt-hatch-{{ block.id }} .phxt-body-light {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__body-light {
     stop-color: rgb(var(--color-surface-200));
 }
 
-#phxt-hatch-{{ block.id }} .phxt-body-mid {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__body-mid {
     stop-color: rgb(var(--color-surface-400));
 }
 
-#phxt-hatch-{{ block.id }} .phxt-body-shade {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__body-shade {
     stop-color: rgb(var(--color-surface-600));
 }
 
 /* A neutral halo, as the rest of the page: colour stays in the small accents */
-#phxt-hatch-{{ block.id }} .phxt-halo-core {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-core {
     stop-color: rgb(var(--color-surface-300));
     stop-opacity: 0.3;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-halo-mid {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-mid {
     stop-color: rgb(var(--color-surface-300));
     stop-opacity: 0.12;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-halo-edge {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-edge {
     stop-color: rgb(var(--color-surface-300));
     stop-opacity: 0;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-crest {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__crest {
     transform-origin: 100px 46px;
-    animation: phxt-crest-flicker-{{ block.id }} 2.5s ease-in-out infinite;
+    animation: phoenix-hatchling-crest-flicker-{{ block.id }} 2.5s ease-in-out infinite;
 }
 
-@keyframes phxt-crest-flicker-{{ block.id }} {
+@keyframes phoenix-hatchling-crest-flicker-{{ block.id }} {
     0%, 100% { transform: rotate(0deg) scaleY(1); }
     50% { transform: rotate(2deg) scaleY(1.05); }
 }
 
-#phxt-hatch-{{ block.id }} .phxt-wing-l {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__wing--left {
     transform-origin: 72px 146px;
-    animation: phxt-flutter-l-{{ block.id }} 4s ease-in-out infinite;
+    animation: phoenix-hatchling-flutter-left-{{ block.id }} 4s ease-in-out infinite;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-wing-r {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__wing--right {
     transform-origin: 128px 146px;
-    animation: phxt-flutter-r-{{ block.id }} 4s ease-in-out infinite;
+    animation: phoenix-hatchling-flutter-right-{{ block.id }} 4s ease-in-out infinite;
 }
 
-@keyframes phxt-flutter-l-{{ block.id }} {
+@keyframes phoenix-hatchling-flutter-left-{{ block.id }} {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(-6deg); }
 }
 
-@keyframes phxt-flutter-r-{{ block.id }} {
+@keyframes phoenix-hatchling-flutter-right-{{ block.id }} {
     0%, 100% { transform: rotate(0deg); }
     50% { transform: rotate(6deg); }
 }
 
 /* Each eye closes about its own centre, not the drawing's */
-#phxt-hatch-{{ block.id }} .phxt-eye {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__eye {
     transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#phxt-hatch-{{ block.id }} .phxt-eye-l {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__eye--left {
     transform-origin: 78px 88px;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-eye-r {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__eye--right {
     transform-origin: 122px 88px;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-eyes-wrap.is-blinking .phxt-eye {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__eyes--blinking .phoenix-hatchling__eye {
     transform: scaleY(0.1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    #phxt-hatch-{{ block.id }} .phxt-bird,
-    #phxt-hatch-{{ block.id }} .phxt-ground,
-    #phxt-hatch-{{ block.id }} .phxt-crest,
-    #phxt-hatch-{{ block.id }} .phxt-wing {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__bird,
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__shadow,
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__crest,
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__wing {
         animation: none;
     }
 }
 
 /* ── Typography ── */
-#phxt-hatch-{{ block.id }} .phxt-display-title {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__title {
     font-family: var(--font-heading, inherit);
     font-weight: var(--font-heading-weight-bold, 700);
     font-size: clamp(2rem, 5vw, 3rem);
     line-height: 1.2;
-    color: rgb(var(--sys-color-on-surface));
+    color: rgb(var(--color-surface-900));
     margin: 0 0 1rem;
     letter-spacing: -0.02em;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-body-subtitle {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__subtitle {
     font-family: var(--font-body, inherit);
     font-weight: var(--font-body-weight-regular, 400);
     font-size: clamp(1rem, 3vw, 1.25rem);
     line-height: 1.5;
-    color: rgb(var(--sys-color-on-surface-variant));
+    color: rgb(var(--color-surface-600));
     margin: 0 0 2.5rem;
     max-width: 48ch;
 }
 
-/* ── Primary Action Button ── */
-#phxt-hatch-{{ block.id }} .phxt-btn-filled {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    height: 48px;
-    padding: 0 1.5rem 0 1rem;
-    /* The cards' glass; as on their tiles, the colour lives in the icon */
-    background-color: rgb(var(--color-surface-50) / 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: rgb(var(--sys-color-on-surface));
-    border-radius: 9999px; /* Pill shape */
-    text-decoration: none;
-    font-family: var(--font-ui, inherit);
-    font-weight: var(--font-ui-weight-medium, 500);
-    font-size: 0.875rem;
-    letter-spacing: 0.01em;
-    position: relative;
-    isolation: isolate;
-    box-shadow:
-        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
-        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
-}
-
-#phxt-hatch-{{ block.id }} .phxt-btn-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: currentColor;
+/* ── Accent Icon ── */
+/* The buttons are core's secondary ones and the cards' titles core's own; the
+   colour lives in their icons */
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__accent-icon {
     color: rgb(var(--color-primary-600));
 }
 
 /* ── Bottom Cards Section ── */
-#phxt-hatch-{{ block.id }} .phxt-cards-section {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__footer {
     width: 100%;
     padding: 2rem 1rem 3rem;
     position: relative;
     z-index: 15;
 }
 
-#phxt-hatch-{{ block.id }} .phxt-cards-container {
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__cards {
     max-width: 1024px; /* Narrow container */
     margin: 0 auto;
     display: grid;
@@ -509,166 +441,84 @@ _CSS = """\
 }
 
 @media (min-width: 768px) {
-    #phxt-hatch-{{ block.id }} .phxt-cards-container {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__cards {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
 }
 
 /* ── Card ── */
-/* Borderless glass: the embers stay visible through it, and the shadow is
-   tinted by the surface so it lifts the card rather than smudging the page.
-   The faint halo reaches every side, so the top edge still reads where the
-   card and page share a colour. */
-#phxt-hatch-{{ block.id }} .phxt-card-filled {
+/* Core's card: its surface, shape and hover ring; only the layout is ours */
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__card {
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
-    background-color: rgb(var(--color-surface-50) / 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 1.5rem;
-    box-shadow:
-        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
-        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
     text-decoration: none;
-    position: relative;
-    isolation: isolate;
 }
 
-/* The hover state lives on its own layer and only fades in, so the blurred
-   glass itself never changes.
-   The page is surface-50 too, so the card brightens past it and its shadow
-   deepens, as if lifted toward you. Shared by the cards and the button. */
-#phxt-hatch-{{ block.id }} .phxt-card-filled::before,
-#phxt-hatch-{{ block.id }} .phxt-btn-filled::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background-color: rgb(255 255 255 / 0.85);
-    /* Adds to the resting shadow, which stays: a touch deeper, never darker */
-    box-shadow:
-        0 0 24px -6px rgb(var(--color-surface-900) / 0.02),
-        0 22px 42px -16px rgb(var(--color-surface-900) / 0.04);
-    opacity: 0;
-    pointer-events: none;
-    /* Just long enough to soften the switch; an even curve, since the change
-       is only a few shades and an ease-out would leave the last step alone */
-    transition: opacity 0.1s ease-in-out;
-}
-
-#phxt-hatch-{{ block.id }} .phxt-card-filled:hover::before,
-#phxt-hatch-{{ block.id }} .phxt-btn-filled:hover::before {
-    opacity: 1;
-}
-
-#phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 12px;
-    /* A quiet surface tile, as on the dashboard widgets: the colour lives in
-       the icon alone */
-    background: rgb(var(--color-surface-100) / 0.7);
-    color: rgb(var(--color-primary-600));
-    margin-bottom: 1.25rem;
-}
-
-#phxt-hatch-{{ block.id }} .phxt-card-icon {
-    width: 1.5rem;
-    height: 1.5rem;
-}
-
-#phxt-hatch-{{ block.id }} .phxt-card-title {
-    font-family: var(--font-heading, inherit);
-    font-size: 1.125rem;
-    font-weight: var(--font-heading-weight-medium, 500);
-    color: rgb(var(--sys-color-on-surface));
-    margin: 0 0 0.5rem;
-    line-height: 1.4;
-}
-
-#phxt-hatch-{{ block.id }} .phxt-card-desc {
-    font-family: var(--font-body, inherit);
+/* Read as a sentence, a step below the title; it ends the card, so the
+   card's padding is its only margin */
+#phoenix-hatchling-{{ block.id }} .phoenix-hatchling__card .phx-card__text {
+    margin-bottom: 0;
     font-size: 0.875rem;
-    line-height: 1.5;
-    color: rgb(var(--sys-color-on-surface-variant));
-    margin: 0;
+}
+
+/* Opens in a new tab: a quiet arrow at the title's far end */
+#phoenix-hatchling-{{ block.id }} .phx-card__title .phoenix-hatchling__external-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-left: auto;
+    color: rgb(var(--color-surface-400));
 }
 
 /* ── Dark Mode ── */
 @media (prefers-color-scheme: dark) {
-    #phxt-hatch-{{ block.id }} {
-        --sys-color-surface: var(--color-surface-950);
-        --sys-color-on-surface: var(--color-surface-100);
-        --sys-color-on-surface-variant: var(--color-surface-300);
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__title {
+        color: rgb(var(--color-surface-100));
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-logo-light {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__subtitle {
+        color: rgb(var(--color-surface-400));
+    }
+
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image--light {
         display: none;
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-logo-dark {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image--dark {
         display: inline;
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-halo-core,
-    #phxt-hatch-{{ block.id }} .phxt-halo-mid,
-    #phxt-hatch-{{ block.id }} .phxt-halo-edge {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-core,
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-mid,
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-edge {
         stop-color: rgb(var(--color-surface-200));
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-halo-core {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-core {
         stop-opacity: 0.06;
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-halo-mid {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-mid {
         stop-opacity: 0.025;
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-btn-filled {
-        background-color: rgb(var(--color-surface-50) / 0.05);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    #phxt-hatch-{{ block.id }} .phxt-btn-icon {
+    #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__accent-icon {
         color: rgb(var(--color-primary-400));
     }
 
-    #phxt-hatch-{{ block.id }} .phxt-card-filled {
-        background-color: rgb(var(--color-surface-50) / 0.05);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    #phxt-hatch-{{ block.id }} .phxt-card-filled::before,
-    #phxt-hatch-{{ block.id }} .phxt-btn-filled::before {
-        background-color: rgb(var(--color-surface-50) / 0.04);
-        box-shadow: none;
-    }
-
-    #phxt-hatch-{{ block.id }} .phxt-badge-tonal {
-        background-color: rgb(var(--color-surface-50) / 0.05);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    #phxt-hatch-{{ block.id }} .phxt-card-icon-wrap {
-        background: rgb(var(--color-surface-50) / 0.06);
-        color: rgb(var(--color-primary-400));
+    #phoenix-hatchling-{{ block.id }} .phx-card__title .phoenix-hatchling__external-icon {
+        color: rgb(var(--color-surface-500));
     }
 }"""
 
 _JS = """\
 (function () {
-    var root = document.getElementById("phxt-hatch-{{ block.id }}");
+    var root = document.getElementById("phoenix-hatchling-{{ block.id }}");
     if (!root) return;
 
     /* ── Advanced Eye Tracking (Bounded) ── */
-    var phoenixWrap = root.querySelector("[data-phxt-phoenix]");
-    var pupils = root.querySelectorAll("[data-phxt-pupil]");
+    var phoenixWrap = root.querySelector("[data-phoenix-hatchling-phoenix]");
+    var pupils = root.querySelectorAll("[data-phoenix-hatchling-pupil]");
 
     if (phoenixWrap && pupils.length) {
         var MAX_OFFSET = 3.5;
@@ -714,12 +564,12 @@ _JS = """\
     }
 
     /* ── Hardware Accelerated Blinking ── */
-    var eyesWrap = root.querySelector("[data-phxt-eyes-wrap]");
+    var eyesWrap = root.querySelector("[data-phoenix-hatchling-eyes]");
     if (eyesWrap) {
         function triggerBlink() {
-            eyesWrap.classList.add("is-blinking");
+            eyesWrap.classList.add("phoenix-hatchling__eyes--blinking");
             setTimeout(function () {
-                eyesWrap.classList.remove("is-blinking");
+                eyesWrap.classList.remove("phoenix-hatchling__eyes--blinking");
             }, 150);
             setTimeout(triggerBlink, 2500 + Math.random() * 4000);
         }
@@ -730,7 +580,7 @@ _JS = """\
        Every distance is measured in hundredths of the viewport's shorter side
        and every speed per second, so a phone sees the same scene as a desktop,
        only smaller, at any refresh rate. */
-    var embersEl = root.querySelector("[data-phxt-embers]");
+    var embersEl = root.querySelector("[data-phoenix-hatchling-embers]");
     if (embersEl && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         var DENSITY = 45 / (1440 * 900); // embers per square pixel of a laptop screen
         var RISE = [2, 5]; // upward speed
@@ -778,7 +628,7 @@ _JS = """\
 
         function createParticle() {
             var el = document.createElement("span");
-            el.className = "phxt-ember";
+            el.className = "phoenix-hatchling__ember";
             var size = 2 + Math.random() * 5;
             el.style.width = size + "px";
             el.style.height = size + "px";
