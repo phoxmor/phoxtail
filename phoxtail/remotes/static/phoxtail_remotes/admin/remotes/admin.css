@@ -297,12 +297,6 @@
     color: rgb(var(--color-surface-500));
 }
 
-.rga-empty__icon svg {
-    width: 2.5rem;
-    height: 2.5rem;
-    color: rgb(var(--color-surface-400));
-}
-
 .rga-empty__title {
     font-size: 1rem;
     font-weight: 600;
@@ -676,7 +670,6 @@
 .rga-cards-section {
     width: 100%;
 }
-
 
 .rga-cards-wrap {
     width: 100%;
@@ -1054,12 +1047,6 @@
         border-color: rgb(var(--color-surface-700));
     }
 
-    /* ── Empty state ── */
-
-    .rga-empty__icon svg {
-        color: rgb(var(--color-surface-500));
-    }
-
     .rga-empty__title {
         color: rgb(var(--color-surface-200));
     }
@@ -1129,7 +1116,6 @@
     .rga-card__preview--empty {
         color: rgb(var(--color-surface-500));
     }
-
 
     .rga-card__body {
         background: transparent;

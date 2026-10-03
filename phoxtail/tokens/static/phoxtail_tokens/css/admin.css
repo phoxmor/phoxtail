@@ -760,19 +760,6 @@
     padding: 2rem 0;
 }
 
-.tka-empty-state__icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 0.5rem;
-}
-
-.tka-empty-state__icon svg {
-    width: 2.5rem;
-    height: 2.5rem;
-    color: rgb(var(--color-primary-500));
-}
-
 .tka-empty-state__title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -1389,10 +1376,6 @@
 
     .tka-empty-state__text {
         color: rgb(var(--color-surface-400));
-    }
-
-    .tka-empty-state__icon svg {
-        color: rgb(var(--color-primary-400));
     }
 
     .tka-drawer {
