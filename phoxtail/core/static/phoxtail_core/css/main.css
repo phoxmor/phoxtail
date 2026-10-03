@@ -226,6 +226,17 @@ body {
     --phx-section-fill: rgb(0 0 0 / 0.025);
 }
 
+/* Drawers: how one slides in and out and the dimmed page behind it (every
+   drawer, whatever opens it), and the shadow at the edge of a drawer on the
+   ground (surfaces.css). */
+:root {
+    --phx-drawer-duration: 0.5s;
+    --phx-drawer-easing: cubic-bezier(0.45, 0, 0.2, 1);
+    --phx-drawer-shadow-color: rgb(0 0 0 / 0.1);
+    --phx-scrim-background: rgb(0 0 0 / 0.5);
+    --phx-scrim-duration: 0.3s;
+}
+
 :root,
 .phx-card,
 .phx-popover {
@@ -249,6 +260,7 @@ body {
         --phx-raised-shadow: none;
         --phx-raised-shadow-hover: 0 4px 12px rgb(0 0 0 / 0.3);
         --phx-section-fill: rgb(255 255 255 / 0.03);
+        --phx-drawer-shadow-color: rgb(0 0 0 / 0.5);
     }
 
     :root,

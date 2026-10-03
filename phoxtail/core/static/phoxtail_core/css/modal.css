@@ -28,19 +28,19 @@
 .modal-overlay {
     position: absolute;
     inset: 0;
-    background: rgb(0 0 0 / 0.5);
+    background: var(--phx-scrim-background);
     /* Fades on its own rather than relying on the #base-modal shell fade
        below: edge drawers zero out that shell animation (see
        #base-modal:has(.phoxtail-modal-drawer)) so backdrop-filter on the
        drawer itself isn't flattened by an ancestor opacity animation. The
        scrim has no backdrop-filter, so it can safely keep fading on its
        own regardless of which content is in the placeholder. */
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn var(--phx-scrim-duration) ease-out;
 }
 
 #base-modal.closing .modal-overlay,
 #base-modal-level-1.closing .modal-overlay {
-    animation: fadeOut 0.3s ease-out forwards;
+    animation: fadeOut var(--phx-scrim-duration) ease-out forwards;
 }
 
 .modal-overlay-transparent {
@@ -447,7 +447,7 @@
    OPAQUE slide, no fade. The shell must not fade either — the placeholder
    lives inside it, so a shell fade would stack on the drawer. On close the
    shell runs a visually inert "hold" animation purely so animationend fires
-   at the drawer's 0.5s mark (removal is keyed to the shell's own animation
+   when the drawer's slide ends (removal is keyed to the shell's own animation
    ending). Keyed off .phoxtail-modal-drawer itself (not the animation-type
    value) so it covers both edges uniformly. */
 #base-modal:has(.phoxtail-modal-drawer),
@@ -457,7 +457,7 @@
 
 #base-modal.closing:has(.phoxtail-modal-drawer),
 #base-modal-level-1.closing:has(.phoxtail-modal-drawer) {
-    animation: modalHold 0.5s linear forwards;
+    animation: modalHold var(--phx-drawer-duration) linear forwards;
 }
 
 /* Content animation types */
@@ -514,21 +514,21 @@
    timeline and only enter/exit view in a sliver of it, same as the chatbot
    drawer, whose transform lives on its own 27.5rem element. */
 [data-animation-type="slide-left"] .phoxtail-modal-drawer {
-    animation: drawerSlideLeftIn 0.5s cubic-bezier(0.45, 0, 0.2, 1);
+    animation: drawerSlideLeftIn var(--phx-drawer-duration) var(--phx-drawer-easing);
 }
 
 #base-modal.closing [data-animation-type="slide-left"] .phoxtail-modal-drawer,
 #base-modal-level-1.closing [data-animation-type="slide-left"] .phoxtail-modal-drawer {
-    animation: drawerSlideLeftOut 0.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+    animation: drawerSlideLeftOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
 }
 
 [data-animation-type="slide-right"] .phoxtail-modal-drawer {
-    animation: drawerSlideRightIn 0.5s cubic-bezier(0.45, 0, 0.2, 1);
+    animation: drawerSlideRightIn var(--phx-drawer-duration) var(--phx-drawer-easing);
 }
 
 #base-modal.closing [data-animation-type="slide-right"] .phoxtail-modal-drawer,
 #base-modal-level-1.closing [data-animation-type="slide-right"] .phoxtail-modal-drawer {
-    animation: drawerSlideRightOut 0.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+    animation: drawerSlideRightOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
 }
 
 #core-modal-placeholder[data-animation-type="none"],
@@ -640,7 +640,7 @@
    which cuts off the drawer's backdrop-filter from sampling real page
    content behind it — the glassmorphism blur goes flat for the whole close
    slide. background-color is inert here (the shell has no visible fill)
-   but still fires animationend at the same 0.5s mark. */
+   but still fires animationend when the slide ends. */
 @keyframes modalHold {
     from { background-color: transparent; }
     to { background-color: transparent; }
