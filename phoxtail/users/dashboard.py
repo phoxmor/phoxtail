@@ -8,7 +8,7 @@ module = DashboardModule(app_name="users", verbose_name=_("Account"))
 
 module.add_widget(
     name="admin",
-    title=_("Admin Dashboard"),
+    title=_("Admin dashboard"),
     description=_("Go to admin dashboard."),
     icon="settings",
     url_name="wagtailadmin_home",
@@ -20,7 +20,7 @@ module.add_widget(
 
 module.add_widget(
     name="profile",
-    title=_("Your Profile"),
+    title=_("Your profile"),
     description=_("Review and manage your information."),
     icon="person",
     url_name="users:profile",
@@ -29,7 +29,7 @@ module.add_widget(
 
 module.add_widget(
     name="password",
-    title=_("Change Password"),
+    title=_("Change password"),
     description=_("Choose a new password for your account."),
     icon="lock",
     url_name="account_change_password",
@@ -38,7 +38,7 @@ module.add_widget(
 
 module.add_widget(
     name="email",
-    title=_("Manage Email"),
+    title=_("Manage email"),
     description=_("Add, remove and verify your email addresses."),
     icon="email",
     url_name="account_email",

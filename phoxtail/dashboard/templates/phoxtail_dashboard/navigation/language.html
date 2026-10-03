@@ -10,7 +10,7 @@
             {% get_current_language as current_language %}
             <span class="dash-lang__code">{{ current_language }}</span>
         </button>
-        <div class="dash-lang__menu">
+        <div class="dash-lang__menu phx-popover">
             {% for language in languages %}
                 {# Posted, not followed: set_language stores the choice, then redirects to `next`. #}
                 <form method="post" action="{% url 'set_language' %}">

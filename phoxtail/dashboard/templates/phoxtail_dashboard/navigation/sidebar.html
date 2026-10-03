@@ -1,7 +1,7 @@
 {% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
 <div class="dash-sidebar-wrapper">
     <div class="dash-sidebar-spacer" id="dash-sidebar-spacer">
-        <div class="dash-sidebar" id="dash-sidebar">
+        <div class="dash-sidebar phx-card phx-card--flush" id="dash-sidebar">
             <!-- Logo -->
             <div class="dash-sidebar__logo">
                 {% get_settings %}
@@ -47,6 +47,7 @@
                             <span class="dash-nav-label">{{ item.label }}</span>
                         </a>
                     {% endfor %}
+                    {% include 'phoxtail_dashboard/navigation/website_flyout.html' %}
                 </nav>
             </div>
             <!-- Footer Controls -->
@@ -56,8 +57,9 @@
                         id="sidebar-collapse-btn"
                         aria-label="Toggle sidebar">
                     <span class="dash-nav-icon dash-sidebar__collapse-icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
-                    <span class="dash-nav-label" id="sidebar-collapse-label">Collapse Menu</span>
+                    <span class="dash-nav-label" id="sidebar-collapse-label">Collapse menu</span>
                 </button>
+                {% include 'phoxtail_dashboard/navigation/language_flyout.html' %}
                 {% url 'users:profile' as profile_path %}
                 <a href="{{profile_path}}"
                    class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
@@ -76,7 +78,7 @@
                     {% csrf_token %}
                     <button type="submit" class="dash-nav-item dash-nav-signout">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
-                        <span class="dash-nav-label">Sign Out</span>
+                        <span class="dash-nav-label">Sign out</span>
                     </button>
                 </form>
             </div>
@@ -113,7 +115,7 @@
             spacer.classList.toggle('dash-sidebar-spacer--collapsed', collapsed);
 
             if (label) {
-                label.textContent = collapsed ? 'Expand Menu' : 'Collapse Menu';
+                label.textContent = collapsed ? 'Expand menu' : 'Collapse menu';
             }
 
             if (!animate) {
@@ -137,6 +139,59 @@
                 sidebar.addEventListener('transitionend', centeringListener, { once: true });
             }
         };
+
+    // A flyout opens beside the sidebar card, level with its row, and stays
+    // inside the window. A click opens it and keeps it open; with a mouse,
+    // hovering opens it too, and it closes a moment after the pointer has
+    // left both the row and the card (long enough to cross the gap).
+        const canHover = window.matchMedia('(hover: hover)').matches;
+        sidebar.querySelectorAll('.dash-flyout').forEach((flyout) => {
+            const row = sidebar.querySelector(`[popovertarget="${flyout.id}"]`);
+            let closeTimer = null;
+            let openedByHover = false;
+
+            const place = () => {
+                const top = row.getBoundingClientRect().top;
+                const limit = window.innerHeight - flyout.offsetHeight - 12;
+                flyout.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
+                flyout.style.top = `${Math.max(12, Math.min(top, limit))}px`;
+            };
+            // Placed once before it shows (its height is not known yet) and
+            // again before its first paint, once it is.
+            flyout.addEventListener('beforetoggle', (e) => {
+                if (e.newState !== 'open') return;
+                place();
+                requestAnimationFrame(place);
+            });
+            flyout.addEventListener('toggle', (e) => {
+                if (e.newState !== 'open') openedByHover = false;
+            });
+
+            // A click on a row the pointer has just opened keeps it open.
+            row.addEventListener('click', (e) => {
+                if (openedByHover && flyout.matches(':popover-open')) e.preventDefault();
+                openedByHover = false;
+            });
+
+            if (!canHover) return;
+            const stay = () => clearTimeout(closeTimer);
+            const leave = () => {
+                stay();
+                closeTimer = setTimeout(() => {
+                    if (openedByHover) flyout.hidePopover();
+                }, 250);
+            };
+            row.addEventListener('mouseenter', () => {
+                stay();
+                if (!flyout.matches(':popover-open')) {
+                    flyout.showPopover();
+                    openedByHover = true;
+                }
+            });
+            row.addEventListener('mouseleave', leave);
+            flyout.addEventListener('mouseenter', stay);
+            flyout.addEventListener('mouseleave', leave);
+        });
 
     // Apply state immediately from localStorage
         const isCollapsed = localStorage.getItem(KEY) === '1';

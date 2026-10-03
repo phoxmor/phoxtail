@@ -7,12 +7,9 @@
     <link rel="stylesheet" href="{% static 'users/css/profile.css' %}">
 {% endblock extra_css %}
 {% block content %}
-    <div class="usr-section">
-        <div class="usr-container">
-            <header class="usr-page-header">
-                <h1 class="usr-page-header__title">Profile</h1>
-                <p class="usr-page-header__subtitle">Manage your personal information and account settings</p>
-            </header>
+    <div class="dash-page">
+        <div class="dash-page-inner">
+            {% include "phoxtail_dashboard/page_title.html" with page_title="Profile" page_icon="person" %}
             <div class="usr-panel">
                 <div id="profile-content" class="usr-columns">
                     {% include "users/profile/partials/user_info.html" %}

@@ -1,0 +1,20 @@
+{% load phoxtail_dashboard_tags phoxtail_design_tags %}
+{% comment %}
+A dashboard page's title: its nav entry's icon and label, so the page is
+named as the menu names it. A page under an entry (a project under Projects)
+passes its own page_title; a page with no entry (Profile) passes page_icon
+too.
+{% endcomment %}
+{% dashboard_page_entry as entry %}
+<h1 class="dash-page__title">
+    {% if page_icon %}
+        <span class="dash-page__title-icon">{% icon page_icon %}</span>
+    {% elif entry %}
+        <span class="dash-page__title-icon">{% icon entry.icon %}</span>
+    {% endif %}
+    {% if page_title %}
+        {{ page_title }}
+    {% else %}
+        {{ entry.label }}
+    {% endif %}
+</h1>

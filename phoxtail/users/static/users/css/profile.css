@@ -21,43 +21,6 @@
 }
 
 /* ========================================
-   LAYOUT
-   ======================================== */
-.usr-section {
-    padding: 1.5rem 0;
-}
-
-.usr-container {
-    max-width: 80rem;
-    margin: 0 auto;
-}
-
-.usr-mt-4 { margin-top: 1rem; }
-
-/* ========================================
-   PAGE HEADER
-   No panel around it and no icon beside the subtitle: the heading sits on the
-   page ground and is nothing but its two lines of type.
-   ======================================== */
-.usr-page-header {
-    margin: 1rem 0 1.5rem;
-}
-
-.usr-page-header__title {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin: 0 0 0.25rem;
-    color: rgb(var(--color-surface-700));
-}
-
-.usr-page-header__subtitle {
-    margin: 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(var(--color-surface-600));
-}
-
-/* ========================================
    PANEL AND COLUMNS
    The two columns were told apart by a divider line. Nothing replaces it:
    they share the panel's fill in both schemes and are told apart by the space
@@ -476,11 +439,6 @@
         background: rgb(var(--color-surface-900));
     }
 
-    .usr-page-header__title {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .usr-page-header__subtitle,
     .usr-action-item__desc,
     .usr-info-item__label {
         color: rgb(var(--color-surface-200));

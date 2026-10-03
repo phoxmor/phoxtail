@@ -1,6 +1,6 @@
 {% load phoxtail_dashboard_tags %}
 <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
-<div id="dock-sheet" class="dash-dock-sheet">
+<div id="dock-sheet" class="dash-dock-sheet phx-ground">
     {% for item in dashboard_dock.overflow %}
         {% url item.url_name as item_path %}
         {% dashboard_icon_path item.icon as svg_path %}
@@ -29,11 +29,11 @@
         {% csrf_token %}
         <button type="submit" class="dash-nav-item dash-nav-signout">
             <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
-            <span class="dash-nav-label">Sign Out</span>
+            <span class="dash-nav-label">Sign out</span>
         </button>
     </form>
 </div>
-<nav class="dash-dock" data-phoxtail-bar-floor>
+<nav class="dash-dock phx-ground" data-phoxtail-bar-floor>
     <div class="dash-dock__side dash-dock__side--left">
         {% for item in dashboard_dock.left %}
             {% url item.url_name as item_path %}
@@ -78,6 +78,20 @@
         const sheet = document.getElementById('dock-sheet');
         const backdrop = document.getElementById('dock-sheet-backdrop');
         const dock = document.querySelector('.dash-dock');
+        const content = document.querySelector('.dash-content');
+
+        // A faint edge on the dock while content runs on under it.
+        function updateDockEdge() {
+            var below = content.scrollHeight - content.scrollTop - content.clientHeight;
+            dock.classList.toggle('dash-dock--over-content', below > 1);
+        }
+
+        if (dock && content) {
+            content.addEventListener('scroll', updateDockEdge, { passive: true });
+            new ResizeObserver(updateDockEdge).observe(content);
+            // A swap can change the page's height without a scroll.
+            document.addEventListener('htmx:afterSettle', updateDockEdge);
+        }
 
         // The sheet and its backdrop stop exactly at the dock's top edge.
         // Measured rather than hardcoded so they stay flush if the dock's

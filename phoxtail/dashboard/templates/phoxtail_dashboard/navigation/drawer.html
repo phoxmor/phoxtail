@@ -1,7 +1,7 @@
-{% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
+{% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags phoxtail_design_tags %}
 {% get_settings %}
 <!-- Top Bar -->
-<nav class="dash-topbar">
+<nav class="dash-topbar phx-ground">
     <div class="dash-topbar__inner">
         <div class="dash-topbar__row">
             <div class="dash-topbar__logo">
@@ -31,16 +31,12 @@
                 {% endif %}
             </div>
             <div class="dash-topbar__slot">
-                {% if dashboard_menu.items %}
-                    {% include 'phoxtail_dashboard/navigation/menu.html' %}
-                    <div class="dash-topbar__divider"></div>
-                {% endif %}
                 {% include 'phoxtail_dashboard/navigation/language.html' %}
             </div>
             <div class="dash-topbar__actions">
                 <button id="menu-btn"
                         class="dash-icon-btn"
-                        aria-label="Open Menu"
+                        aria-label="Open menu"
                         type="button">
                     <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
                 </button>
@@ -50,42 +46,44 @@
 </nav>
 <!-- Mobile Off-Canvas Drawer -->
 <div id="drawer-backdrop" class="dash-mobile-backdrop"></div>
-<div id="drawer" class="dash-mobile-sidebar">
-    <div class="dash-mobile-sidebar__header">
-        <div class="dash-mobile-sidebar__logo-row">
-            <div class="dash-mobile-sidebar__logo">
-                {% if settings.phoxtail_cms.SiteSetting.logo %}
-                    {% image settings.phoxtail_cms.SiteSetting.logo height-256 as drawer_logo %}
-                    <a href="/" class="dash-mobile-sidebar__logo-link">
-                        <picture>
-                            {% if settings.phoxtail_cms.SiteSetting.logo_dark %}
-                                {% image settings.phoxtail_cms.SiteSetting.logo_dark height-256 as drawer_logo_dark %}
-                                <source srcset="{{ drawer_logo_dark.url }}"
-                                        media="(prefers-color-scheme: dark)">
-                            {% endif %}
-                            <img src="{{ drawer_logo.url }}"
-                                 alt="{{ settings.phoxtail_cms.SiteSetting.logo.title }}"
-                                 class="dash-mobile-sidebar__logo-img" />
-                        </picture>
-                    </a>
-                {% else %}
-                    <a href="/" class="dash-mobile-sidebar__logo-link">
-                        <picture>
-                            <source srcset="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-dark.svg' %}" media="(prefers-color-scheme: dark)">
-                            <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-light.svg' %}"
-                                 alt="Phoxtail"
-                                 class="dash-mobile-sidebar__logo-img" />
-                        </picture>
-                    </a>
-                {% endif %}
-            </div>
+<div id="drawer"
+     class="dash-mobile-sidebar phx-ground"
+     role="dialog"
+     aria-modal="true"
+     aria-label="Menu">
+    <div class="phoxtail-drawer__header">
+        <div class="phoxtail-drawer__title-row">
+            {% if settings.phoxtail_cms.SiteSetting.logo %}
+                {% image settings.phoxtail_cms.SiteSetting.logo height-256 as drawer_logo %}
+                <a href="/" class="dash-mobile-sidebar__logo-link">
+                    <picture>
+                        {% if settings.phoxtail_cms.SiteSetting.logo_dark %}
+                            {% image settings.phoxtail_cms.SiteSetting.logo_dark height-256 as drawer_logo_dark %}
+                            <source srcset="{{ drawer_logo_dark.url }}"
+                                    media="(prefers-color-scheme: dark)">
+                        {% endif %}
+                        <img src="{{ drawer_logo.url }}"
+                             alt="{{ settings.phoxtail_cms.SiteSetting.logo.title }}"
+                             class="dash-mobile-sidebar__logo-img" />
+                    </picture>
+                </a>
+            {% else %}
+                <a href="/" class="dash-mobile-sidebar__logo-link">
+                    <picture>
+                        <source srcset="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-dark.svg' %}" media="(prefers-color-scheme: dark)">
+                        <img src="{% static 'phoxtail_core/phoxtail/logo/wordmark-on-light.svg' %}"
+                             alt="Phoxtail"
+                             class="dash-mobile-sidebar__logo-img" />
+                    </picture>
+                </a>
+            {% endif %}
+            <button id="close-drawer"
+                    class="phoxtail-close-btn"
+                    aria-label="Close menu"
+                    type="button">
+                {% icon "close" %}
+            </button>
         </div>
-        <button id="close-drawer"
-                class="dash-icon-btn dash-icon-btn--close"
-                aria-label="Close Menu"
-                type="button">
-            <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/close.html' %}</span>
-        </button>
     </div>
     <nav class="dash-mobile-sidebar__nav">
         {% if user.is_authenticated %}
@@ -126,7 +124,7 @@
                     {% csrf_token %}
                     <button type="submit" class="dash-nav-item dash-nav-signout">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
-                        <span class="dash-nav-label">Sign Out</span>
+                        <span class="dash-nav-label">Sign out</span>
                     </button>
                 </form>
             </div>
@@ -134,14 +132,14 @@
         {% if not user.is_authenticated %}
             <div class="dash-mobile-sidebar__auth">
                 <a href="{% url 'account_login' %}"
-                   class="dash-auth-btn dash-auth-btn--outline">
-                    <span class="dash-auth-btn__icon">{% include 'phoxtail_core/svgs/signin.html' %}</span>
-                    Log In
+                   class="phx-button phx-button--secondary">
+                    {% include 'phoxtail_core/svgs/signin.html' %}
+                    Log in
                 </a>
                 <a href="{% url 'account_signup' %}"
-                   class="dash-auth-btn dash-auth-btn--primary">
-                    <span class="dash-auth-btn__icon">{% include 'phoxtail_core/svgs/person_add.html' %}</span>
-                    Sign Up
+                   class="phx-button phx-button--primary">
+                    {% include 'phoxtail_core/svgs/person_add.html' %}
+                    Sign up
                 </a>
             </div>
         {% endif %}
@@ -171,6 +169,7 @@
                 topbar.classList.remove('dash-topbar--hidden');
             }
 
+            topbar.classList.toggle('dash-topbar--over-content', currentScrollY > 0);
             lastScrollY = currentScrollY;
             ticking = false;
         }
@@ -187,18 +186,12 @@
     /* Sidebar open/close */
         function openSidebar() {
             if (backdrop) backdrop.classList.add('nb-open');
-            setTimeout(function () {
-                sidebar.classList.add('nb-open');
-            }, 50);
-            document.body.style.overflow = 'hidden';
+            sidebar.classList.add('nb-open');
         }
 
         function closeSidebar() {
+            if (backdrop) backdrop.classList.remove('nb-open');
             sidebar.classList.remove('nb-open');
-            setTimeout(function () {
-                if (backdrop) backdrop.classList.remove('nb-open');
-            }, 300);
-            document.body.style.overflow = '';
         }
 
     /* Platform menu accordions */

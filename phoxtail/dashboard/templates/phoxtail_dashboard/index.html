@@ -15,9 +15,10 @@
             {% include 'phoxtail_dashboard/navigation/drawer.html' %}
             <div class="dash-content phx-ground">
                 {% block content %}
-                    {% if dashboard_widget_groups %}
-                        <div class="dash-page">
-                            <div class="dash-page-inner">
+                    <div class="dash-page">
+                        <div class="dash-page-inner">
+                            {% include "phoxtail_dashboard/page_title.html" %}
+                            {% if dashboard_widget_groups %}
                                 <div class="dash-widget-groups">
                                     {% for group in dashboard_widget_groups %}
                                         <section class="dash-widget-group">
@@ -30,15 +31,16 @@
                                         </section>
                                     {% endfor %}
                                 </div>
-                            </div>
+                            {% else %}
+                                <div class="phx-card">
+                                    <div class="dash-empty-state">
+                                        <h2 class="dash-empty-heading">No widgets available yet</h2>
+                                        <p class="dash-empty-text">Register widgets from your apps to bring this page to life.</p>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <div class="dash-empty-state dash-empty-state--centered">
-                            <div class="dash-empty-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</div>
-                            <h2 class="dash-empty-heading">No widgets available yet</h2>
-                            <p class="dash-empty-text">Register widgets from your apps to bring this page to life.</p>
-                        </div>
-                    {% endif %}
+                    </div>
                 {% endblock content %}
             </div>
             {% include 'phoxtail_dashboard/navigation/dock.html' %}

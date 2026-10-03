@@ -2,6 +2,9 @@
 
 from django.conf.urls.i18n import i18n_patterns
 from django.http import HttpResponse
-from django.urls import path
+from django.urls import include, path
 
-urlpatterns = i18n_patterns(path("dashboard/", lambda request: HttpResponse(), name="index"))
+urlpatterns = [
+    path("i18n/", include("django.conf.urls.i18n")),
+    *i18n_patterns(path("dashboard/", lambda request: HttpResponse(), name="index")),
+]

@@ -126,7 +126,7 @@ class TestMenuTemplates:
     """
 
     TEMPLATES = [
-        "phoxtail_dashboard/navigation/menu.html",
+        "phoxtail_dashboard/navigation/website_flyout.html",
         "phoxtail_dashboard/navigation/menu_drawer.html",
     ]
 

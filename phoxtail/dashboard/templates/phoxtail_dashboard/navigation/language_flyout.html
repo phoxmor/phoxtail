@@ -1,0 +1,37 @@
+{% load i18n phoxtail_dashboard_tags phoxtail_design_tags %}
+{% comment %}
+The language switcher in the sidebar: its row opens a card beside the
+sidebar, the current language marked.
+{% endcomment %}
+{% dashboard_languages as languages %}
+{% if languages %}
+    <button type="button"
+            class="dash-nav-item dash-flyout-trigger"
+            popovertarget="dash-language-flyout">
+        <span class="dash-nav-icon">{% icon "translate" %}</span>
+        <span class="dash-nav-label">
+            {% for language in languages %}
+                {% if language.active %}{{ language.name_local }}{% endif %}
+            {% endfor %}
+        </span>
+        <span class="dash-flyout-trigger__chevron">{% icon "chevron_right" %}</span>
+    </button>
+    <div id="dash-language-flyout"
+         class="dash-flyout phx-popover"
+         popover
+         aria-label="{% translate 'Language' %}">
+        {% for language in languages %}
+            {# Posted, not followed: set_language stores the choice, then redirects to `next`. #}
+            <form method="post" action="{% url 'set_language' %}">
+                {% csrf_token %}
+                <input type="hidden" name="language" value="{{ language.code }}">
+                <input type="hidden" name="next" value="{{ language.url }}">
+                <button type="submit"
+                        class="dash-lang__option{% if language.active %} dash-lang__option--active{% endif %}">
+                    <span>{{ language.name_local }}</span>
+                    <span class="dash-lang__option-code">{{ language.code }}</span>
+                </button>
+            </form>
+        {% endfor %}
+    </div>
+{% endif %}

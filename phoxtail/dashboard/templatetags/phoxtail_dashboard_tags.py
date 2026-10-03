@@ -10,6 +10,32 @@ def dashboard_icon_path(icon_name):
     return f"phoxtail_core/svgs/{icon_name}.html"
 
 
+@register.simple_tag(takes_context=True)
+def dashboard_page_entry(context):
+    """The nav entry the page being read belongs to, or None.
+
+    The entry whose address is the longest start of the path, so a page under
+    an entry (a project under Projects) belongs to it, and Dashboard, which
+    starts every path, only to itself.
+    """
+    from django.urls import NoReverseMatch, reverse
+
+    from phoxtail.dashboard.context_processors import DASHBOARD_NAV_ITEM
+
+    request = context.get("request")
+    if request is None:
+        return None
+    found, found_length = None, -1
+    for item in [DASHBOARD_NAV_ITEM, *context.get("dashboard_nav_items", [])]:
+        try:
+            url = reverse(item.url_name)
+        except NoReverseMatch:
+            continue
+        if request.path.startswith(url) and len(url) > found_length:
+            found, found_length = item, len(url)
+    return found
+
+
 def _same_path(one, other):
     """Whether two paths point at the same place.
 
