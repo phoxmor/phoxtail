@@ -553,14 +553,14 @@
     border-inline-start: 1px solid rgb(0 0 0 / 0.08);
 }
 
+/* As the icons in the buttons beside it. */
 .phx-date-stepper__step svg {
-    width: 1.125rem;
-    height: 1.125rem;
+    width: 14px;
+    height: 14px;
 }
 
 .phx-date-stepper__date {
     flex: 1;
-    gap: 0.5rem;
 }
 
 /* Sheds Wagtail's input[type=date] styling (!important: Wagtail's admin
@@ -591,62 +591,6 @@
     z-index: 1;
     outline: 3px solid var(--w-color-focus, currentColor);
     outline-offset: 2px;
-}
-
-/* With text, the box lies over it, unseen, to take the click and anchor the
-   picker; it shows while it has the focus. The text and its icon sit
-   centred. */
-.phx-date-stepper__date--text {
-    position: relative;
-    justify-content: center;
-    padding-inline: 1rem;
-}
-
-/* A week's text changes width as it steps ("Feb 2 – 8, 2026", "28. Dez.
-   2026 – 3. Jan. 2027"), which would move the arrows under the pointer; its
-   pill keeps room for the longest. A day's text keeps one width. */
-.phx-date-stepper--week .phx-date-stepper__date {
-    min-width: 15rem;
-}
-
-.phx-date-stepper__date--text .phx-date-stepper__input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-}
-
-/* :focus-within, as the text it replaces: a click on Chrome's calendar icon
-   focuses the icon inside the box, which leaves the box itself unmatched by
-   :focus. */
-.phx-date-stepper__date--text:focus-within .phx-date-stepper__input {
-    opacity: 1;
-}
-
-.phx-date-stepper__date--text:focus-within :is(.phx-date-stepper__text, .phx-date-stepper__icon) {
-    visibility: hidden;
-}
-
-/* Text as the buttons beside it; trimmed to its letters, which a font's box
-   otherwise sets high (it leaves room below for descenders). */
-.phx-date-stepper__text {
-    font-size: 0.875rem;
-    font-weight: 600;
-    white-space: nowrap;
-    text-box: trim-both cap alphabetic;
-}
-
-/* As the icons in the buttons beside it. It stands for the browser's own,
-   which shows with the box. */
-.phx-date-stepper__icon {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-}
-
-.phx-date-stepper__icon svg {
-    display: block;
-    width: 100%;
-    height: 100%;
 }
 
 /* iOS zooms the page into a focused box whose text is under 16px. */

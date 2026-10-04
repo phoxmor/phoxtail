@@ -87,9 +87,8 @@ document.addEventListener('click', function (event) {
             input.dataset.typed = '';
         } else {
             // A pick lets go of the focus before it sends, or htmx gives it
-            // back to the redrawn box, which shows the date over the text.
-            // Digits typed before the pick go with it, not in a request of
-            // their own as the box is left.
+            // back to the redrawn box. Digits typed before the pick go with
+            // it, not in a request of their own as the box is left.
             delete input.dataset.typed;
             input.blur();
             step(input);

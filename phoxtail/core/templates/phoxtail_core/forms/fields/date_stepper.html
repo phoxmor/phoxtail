@@ -1,10 +1,8 @@
 {% comment %}
 Date stepper for a page that shows one day or week at a time: one pill holding
 the date between two arrows that step it back and forward (previous and next:
-the neighbouring values). text, when given, is shown in place of the date,
-e.g. the week it falls in; the date shows while the box has the focus.
-period is what one step moves, "day" (the default) or "week": a week's text
-changes width as it steps, so its pill keeps room for the longest.
+the neighbouring values). The date is the browser's own, in the format of the
+visitor's device; a page that wants the day in words writes it elsewhere.
 Looks: filled + small (a pill, for toolbars); no other look exists yet.
 Django's own widget draws the box, always a date box, and takes the click
 itself: the browser opens its own picker (a tap on a phone, the calendar icon
@@ -19,8 +17,7 @@ carry ids from the field's, so a redraw gives the focus back to the one that
 had it.
 {% endcomment %}
 {% load i18n phoxtail_core_tags phoxtail_design_tags %}
-{% with period=period|default:"day" %}
-<div class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small phx-date-stepper--{{ period }}">
+<div class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small">
     <button type="button"
             class="phx-date-stepper__step"
             {% if field.auto_id %}id="{{ field.auto_id }}_previous"{% endif %}
@@ -28,15 +25,11 @@ had it.
             data-date-step="{{ previous }}">
         {% icon "chevron_left" %}
     </button>
-    <div class="phx-date-stepper__date{% if text %} phx-date-stepper__date--text{% endif %}">
+    <div class="phx-date-stepper__date">
         {% if htmx.hx_trigger %}
             {% widget field input_type="date" class="phx-date-stepper__input" aria_label=field.label hx_trigger=htmx.hx_trigger|add:", step" htmx=htmx %}
         {% else %}
             {% widget field input_type="date" class="phx-date-stepper__input" aria_label=field.label hx_trigger="step" htmx=htmx %}
-        {% endif %}
-        {% if text %}
-            <span class="phx-date-stepper__text">{{ text }}</span>
-            <span class="phx-date-stepper__icon" aria-hidden="true">{% icon "calendar_today" %}</span>
         {% endif %}
     </div>
     <button type="button"
@@ -47,4 +40,3 @@ had it.
         {% icon "chevron_right" %}
     </button>
 </div>
-{% endwith %}

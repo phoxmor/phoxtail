@@ -65,7 +65,7 @@ FIELD_OPTIONS = {
         False,
     ),
     "search": ({"placeholder", "count"}, True),
-    "date_stepper": ({"previous", "next", "previous_label", "next_label", "text", "period"}, True),
+    "date_stepper": ({"previous", "next", "previous_label", "next_label"}, True),
 }
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
