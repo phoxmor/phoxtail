@@ -46,7 +46,7 @@ request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
         {% endif %}
         {% if trailing == "calendar" and not field.field.disabled %}
             <button type="button" class="phx-field__trailing-button" tabindex="-1" aria-hidden="true" data-picker-open>
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+                {% icon "calendar_today" %}
             </button>
         {% endif %}
         {% if trailing == "clock" and not field.field.disabled %}

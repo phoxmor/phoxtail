@@ -36,7 +36,7 @@ had it.
         {% endif %}
         {% if text %}
             <span class="phx-date-stepper__text">{{ text }}</span>
-            <svg class="phx-date-stepper__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+            <span class="phx-date-stepper__icon" aria-hidden="true">{% icon "calendar_today" %}</span>
         {% endif %}
     </div>
     <button type="button"
