@@ -91,21 +91,9 @@
         const spacer = document.getElementById('dash-sidebar-spacer');
         const btn = document.getElementById('sidebar-collapse-btn');
         const label = document.getElementById('sidebar-collapse-label');
-        const logo = sidebar.querySelector('.dash-sidebar__logo');
         const KEY = 'dash-sidebar-collapsed';
-        let centeringListener = null;
-
-        const setLogoCentered = (centered) => {
-            logo.classList.toggle('dash-sidebar__logo--centered', centered);
-        };
 
         const setCollapsed = (collapsed, animate = true) => {
-        // When expanding, remove centering immediately so the logo stays left
-        // throughout the expand transition rather than snapping right.
-            if (!collapsed) {
-                setLogoCentered(false);
-            }
-
             if (!animate) {
                 sidebar.style.transition = 'none';
                 spacer.style.transition = 'none';
@@ -123,20 +111,6 @@
                 sidebar.offsetHeight;
                 sidebar.style.transition = '';
                 spacer.style.transition = '';
-            // Apply centering immediately with no animation
-                if (collapsed) setLogoCentered(true);
-            } else if (collapsed) {
-            // Apply centering only after the width transition ends
-                if (centeringListener) {
-                    sidebar.removeEventListener('transitionend', centeringListener);
-                }
-                centeringListener = (e) => {
-                    if (e.propertyName === 'width') {
-                        setLogoCentered(true);
-                        centeringListener = null;
-                    }
-                };
-                sidebar.addEventListener('transitionend', centeringListener, { once: true });
             }
         };
 
