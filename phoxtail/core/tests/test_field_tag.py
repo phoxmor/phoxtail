@@ -622,6 +622,14 @@ def test_the_date_stepper_shows_its_text_in_place_of_the_date():
     assert '<span class="phx-date-stepper__text">Sep 28 – Oct 4, 2026</span>' in html
 
 
+@pytest.mark.parametrize("text", [None, "Sep 28 – Oct 4, 2026"])
+def test_the_date_stepper_leaves_the_click_to_the_browser(text):
+    """iOS opens no picker from script, so only the box's own click opens it there."""
+    html = render_field("date_stepper", DayForm()["date"], text=text)
+
+    assert "data-picker-open" not in html
+
+
 def test_without_text_the_date_stepper_shows_the_box_alone():
     html = render_field("date_stepper", DayForm()["date"])
 

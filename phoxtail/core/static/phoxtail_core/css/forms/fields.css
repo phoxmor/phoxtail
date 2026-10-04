@@ -561,21 +561,18 @@
 .phx-date-stepper__date {
     flex: 1;
     gap: 0.5rem;
-    padding-inline-end: 1rem;
 }
 
 /* Sheds Wagtail's input[type=date] styling (!important: Wagtail's admin
-   styles every input) and lets clicks through to the date, which opens the
-   picker from anywhere on it rather than editing day, month and year one by
-   one. The box spans the date from its start edge, where the picker anchors,
-   and pads its text back in. */
+   styles every input). The box takes every click and tap itself, so the
+   browser opens its own picker: iOS opens none from script. It spans the date
+   from its start edge, where the picker anchors, and pads its text back in. */
 .phx-date-stepper__input {
-    pointer-events: none;
     appearance: none;
     align-self: stretch;
     width: 100% !important;
     min-height: 0 !important;
-    padding: 0 0 0 1rem !important;
+    padding: 0 1rem !important;
     border: none !important;
     border-radius: 0 !important;
     background: none !important;
@@ -584,7 +581,7 @@
     font-weight: 600 !important;
     color-scheme: light dark;
     /* Outranks Wagtail's global :focus-visible ring: the ring moves to the
-       whole date, where Firefox's clip (below) cannot cut it. */
+       whole date. */
     outline: none !important;
     box-shadow: none !important;
 }
@@ -596,13 +593,13 @@
     outline-offset: 2px;
 }
 
-/* With text, the box stays in place, unseen, for the picker to anchor to; it
-   shows, over the text, while the keyboard is in it. The text and its icon
-   sit centred. */
+/* With text, the box lies over it, unseen, to take the click and anchor the
+   picker; it shows while it has the focus. The text and its icon sit
+   centred. */
 .phx-date-stepper__date--text {
     position: relative;
     justify-content: center;
-    padding-inline-start: 1rem;
+    padding-inline: 1rem;
 }
 
 /* A week's text changes width as it steps ("Feb 2 – 8, 2026", "28. Dez.
@@ -618,11 +615,14 @@
     opacity: 0;
 }
 
-.phx-date-stepper__date--text .phx-date-stepper__input:focus {
+/* :focus-within, as the text it replaces: a click on Chrome's calendar icon
+   focuses the icon inside the box, which leaves the box itself unmatched by
+   :focus. */
+.phx-date-stepper__date--text:focus-within .phx-date-stepper__input {
     opacity: 1;
 }
 
-.phx-date-stepper__date--text:focus-within .phx-date-stepper__text {
+.phx-date-stepper__date--text:focus-within :is(.phx-date-stepper__text, .phx-date-stepper__icon) {
     visibility: hidden;
 }
 
@@ -635,23 +635,18 @@
     text-box: trim-both cap alphabetic;
 }
 
-/* As the icons in the buttons beside it. */
+/* As the icons in the buttons beside it. It stands for the browser's own,
+   which shows with the box. */
 .phx-date-stepper__icon {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
 }
 
-.phx-date-stepper__input::-webkit-calendar-picker-indicator {
-    display: none;
-}
-
-/* Firefox has no pseudo-element for its icon: clip the strip it paints and
-   pull the glyph over it. */
-@supports (-moz-appearance: none) {
+/* iOS zooms the page into a focused box whose text is under 16px. */
+@media (any-pointer: coarse) {
     .phx-date-stepper__input {
-        clip-path: inset(0 1.5rem 0 0);
-        margin-inline-end: -1.5rem;
+        font-size: 1rem !important;
     }
 }
 

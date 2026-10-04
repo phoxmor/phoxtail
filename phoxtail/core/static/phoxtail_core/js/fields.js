@@ -25,15 +25,12 @@ document.addEventListener('click', function (event) {
     if (!button) {
         return;
     }
-    var input = button.closest('.phx-field__box, .phx-date-stepper')
-        .querySelector('.phx-field__control, .phx-date-stepper__input');
+    var input = button.closest('.phx-field__box').querySelector('.phx-field__control');
     try {
         input.showPicker();
     } catch (error) {
         // Browsers without showPicker(), or a picker the user has not
-        // activated yet: focusing still lets them type or use the keyboard,
-        // and the stepper's box takes the next click itself.
-        input.style.pointerEvents = 'auto';
+        // activated yet: focusing still lets them type or use the keyboard.
         input.focus();
     }
 }, true);
@@ -89,6 +86,12 @@ document.addEventListener('click', function (event) {
         if (input.dataset.keyDown !== undefined) {
             input.dataset.typed = '';
         } else {
+            // A pick lets go of the focus before it sends, or htmx gives it
+            // back to the redrawn box, which shows the date over the text.
+            // Digits typed before the pick go with it, not in a request of
+            // their own as the box is left.
+            delete input.dataset.typed;
+            input.blur();
             step(input);
         }
     }, true);
