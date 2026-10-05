@@ -12,7 +12,7 @@
 .phx-ground,
 body.phx-ground .content,
 html:has(> body.phx-ground) {
-    background-color: rgb(var(--color-surface-100));
+    background-color: var(--phx-ground-background);
 }
 
 /* A drawer on the ground has no edge: its shadow parts it from the page. */
@@ -104,12 +104,6 @@ html:has(> body.phx-ground) {
 }
 
 @media (prefers-color-scheme: dark) {
-    .phx-ground,
-    body.phx-ground .content,
-    html:has(> body.phx-ground) {
-        background-color: rgb(var(--color-surface-950));
-    }
-
     .phx-card--clickable:hover,
     .phx-card--clickable:focus-visible,
     .phx-card--clickable:has(:focus-visible) {

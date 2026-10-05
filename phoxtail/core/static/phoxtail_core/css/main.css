@@ -217,8 +217,12 @@ body {
    control inside something risen is cut in. --phx-raised-* is what rises;
    --phx-control-* is what a control takes from the box it sits in, set again
    by every core box (surfaces.css) for what it holds. Here: cut in, the
-   default for a page that is no ground yet. */
+   default for a page that is no ground yet. --phx-ground-background is the
+   ground's colour, a mix of two palette steps (the share is the darker
+   one's): as grey as a control cut into a card, and lighter than one under
+   the pointer, so everything below white is one grey. */
 :root {
+    --phx-ground-background: color-mix(in oklab, rgb(var(--color-surface-50)), rgb(var(--color-surface-200)) 40%);
     --phx-raised-background: rgb(255 255 255);
     --phx-raised-background-hover: rgb(255 255 255);
     --phx-raised-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
@@ -264,6 +268,7 @@ body {
 
 @media (prefers-color-scheme: dark) {
     :root {
+        --phx-ground-background: rgb(var(--color-surface-950));
         --phx-raised-background: rgb(var(--color-surface-900));
         --phx-raised-background-hover: rgb(var(--color-surface-800));
         --phx-raised-shadow: none;

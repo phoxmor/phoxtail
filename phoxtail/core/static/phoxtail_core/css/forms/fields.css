@@ -642,13 +642,13 @@
 .phx-week-stepper {
     /* A day's circle, which a day never shrinks below, the gap between the
        circles and the track (which the thumb's place counts from), the
-       card's padding, the track's fill (the ground's, surfaces.css), the
+       card's padding, the track's fill (the ground's, main.css), the
        faint fill of a control's circle under the pointer, and the faint line
        between the calendar and Today. */
     --phx-week-stepper-circle: calc(4rem - 6px);
     --phx-week-stepper-inset: 3px;
     --phx-week-stepper-padding: 0.375rem;
-    --phx-week-stepper-well: rgb(var(--color-surface-100));
+    --phx-week-stepper-well: var(--phx-ground-background);
     --phx-week-stepper-fill: rgb(0 0 0 / 0.05);
     --phx-week-stepper-line: rgb(0 0 0 / 0.12);
     display: flex;
@@ -951,9 +951,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    /* The ground's fill, and a line light enough to show on it. */
+    /* A fill and a line light enough to show on the ground. */
     .phx-week-stepper {
-        --phx-week-stepper-well: rgb(var(--color-surface-950));
         --phx-week-stepper-fill: rgb(255 255 255 / 0.08);
         --phx-week-stepper-line: rgb(255 255 255 / 0.16);
     }
