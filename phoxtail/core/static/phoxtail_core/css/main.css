@@ -226,6 +226,15 @@ body {
     --phx-section-fill: rgb(0 0 0 / 0.025);
 }
 
+/* The small size's height: every pill that sits beside a title or a list —
+   buttons in a toolbar, the search, the date stepper, the segmented control.
+   44px, the least a touch target should be, on every screen; its icons
+   18px. */
+:root {
+    --phx-size-small: 2.75rem;
+    --phx-size-small-icon: 18px;
+}
+
 /* Drawers: how one slides in and out and the dimmed page behind it (every
    drawer, whatever opens it), and the shadow at the edge of a drawer on the
    ground (surfaces.css). */

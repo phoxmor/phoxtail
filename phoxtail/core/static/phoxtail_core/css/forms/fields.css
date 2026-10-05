@@ -358,7 +358,7 @@
 /* ── Search ──
    filled + small: one pill for a list's toolbar — the magnifier (or the
    clear button once there is text), the box and the result count sit inside
-   it. 2.25rem, as the buttons beside it. */
+   it. The small size, as the buttons beside it. */
 
 .phx-search {
     position: relative;
@@ -370,7 +370,7 @@
 }
 
 .phx-search--small {
-    height: 2.25rem;
+    height: var(--phx-size-small);
     padding: 0 1rem;
 }
 
@@ -442,8 +442,8 @@
 
 .phx-search__icon svg,
 .phx-search__clear svg {
-    width: 16px;
-    height: 16px;
+    width: var(--phx-size-small-icon);
+    height: var(--phx-size-small-icon);
     display: block;
     color: rgb(var(--color-surface-600));
 }
@@ -494,23 +494,23 @@
 }
 
 .phx-date-stepper--small > * {
-    height: 2.25rem;
+    height: var(--phx-size-small);
 }
 
 .phx-date-stepper > :first-child {
-    border-start-start-radius: 1.125rem;
-    border-end-start-radius: 1.125rem;
+    border-start-start-radius: calc(var(--phx-size-small) / 2);
+    border-end-start-radius: calc(var(--phx-size-small) / 2);
 }
 
 .phx-date-stepper > :last-child {
-    border-start-end-radius: 1.125rem;
-    border-end-end-radius: 1.125rem;
+    border-start-end-radius: calc(var(--phx-size-small) / 2);
+    border-end-end-radius: calc(var(--phx-size-small) / 2);
 }
 
 /* What the box it sits in hands its controls (main.css): the shadow on the
    whole pill, the fill on each segment. */
 .phx-date-stepper--filled {
-    border-radius: 1.125rem;
+    border-radius: calc(var(--phx-size-small) / 2);
     box-shadow: var(--phx-control-shadow);
     transition: box-shadow 200ms ease;
 }
@@ -538,7 +538,7 @@
 
 .phx-date-stepper__step {
     justify-content: center;
-    width: 2.25rem;
+    width: var(--phx-size-small);
     padding: 0;
     border: none;
 }
@@ -555,8 +555,16 @@
 
 /* As the icons in the buttons beside it. */
 .phx-date-stepper__step svg {
-    width: 14px;
-    height: 14px;
+    width: var(--phx-size-small-icon);
+    height: var(--phx-size-small-icon);
+}
+
+/* The browser's calendar icon, as the icons beside it (Chrome and Safari;
+   Firefox draws its own at its own size). */
+.phx-date-stepper__input::-webkit-calendar-picker-indicator {
+    width: var(--phx-size-small-icon);
+    height: var(--phx-size-small-icon);
+    padding: 0;
 }
 
 .phx-date-stepper__date {
@@ -966,7 +974,7 @@
 }
 
 .phx-segmented-control--small {
-    height: 2.25rem !important;
+    height: var(--phx-size-small) !important;
 }
 
 .phx-segmented-control--filled .phx-segmented-control__slider {

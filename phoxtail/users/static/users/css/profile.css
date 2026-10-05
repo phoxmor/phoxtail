@@ -276,7 +276,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.375rem;
-    height: 2.25rem;
+    height: var(--phx-size-small);
     box-sizing: border-box;
     padding: 0 1.25rem;
     font-family: inherit;
@@ -302,8 +302,8 @@
 }
 
 .usr-btn svg {
-    width: 14px;
-    height: 14px;
+    width: var(--phx-size-small-icon);
+    height: var(--phx-size-small-icon);
     flex-shrink: 0;
 }
 
@@ -342,7 +342,7 @@
 }
 
 .usr-file-input::-webkit-file-upload-button {
-    height: 2.25rem;
+    height: var(--phx-size-small);
     box-sizing: border-box;
     padding: 0 1.25rem;
     border: none;
