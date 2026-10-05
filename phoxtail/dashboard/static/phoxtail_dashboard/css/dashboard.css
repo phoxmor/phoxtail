@@ -792,12 +792,6 @@
     border-top: 1px solid rgb(var(--color-surface-200) / 0.6);
 }
 
-.dash-mobile-sidebar__auth .phx-button svg {
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
-}
-
 /* ========================================
    MOBILE BOTTOM DOCK
    ======================================== */
