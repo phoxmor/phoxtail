@@ -17,6 +17,9 @@ from phoxtail.core.fields import FIELD_OPTIONS, render_field
 # Values render_field sets itself, and the options it reads in Python.
 SET_BY_RENDER = {"field", "supporting", "htmx", "trailing", "control_type"}
 READ_BY_RENDER = {"help_text", "show_help_text"}
+# Values a field's FIELD_CONTEXT works out, and the options it reads to do so.
+SET_BY_CONTEXT = {"week_stepper": {"days", "chosen_day", "week_label", "previous", "next", "box_id", "today_step"}}
+READ_BY_CONTEXT = {"week_stepper": {"week", "today"}}
 # Values a search view passes when it redraws the field's parts; never options.
 SET_BY_VIEW = {"single_select_search": {"search_value"}}
 LITERALS = {"True", "False", "None"}
@@ -91,7 +94,8 @@ def test_a_fields_options_are_what_its_template_reads(name):
 
     # render_field reads the help options for the line under a field.
     by_render = READ_BY_RENDER if "supporting" in reads else set()
-    assert reads - SET_BY_RENDER - SET_BY_VIEW.get(name, set()) | by_render == options
+    set_by = SET_BY_RENDER | SET_BY_VIEW.get(name, set()) | SET_BY_CONTEXT.get(name, set())
+    assert reads - set_by | by_render | READ_BY_CONTEXT.get(name, set()) == options
     assert ("htmx" in reads) == htmx
 
 

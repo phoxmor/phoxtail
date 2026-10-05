@@ -637,6 +637,114 @@ def test_the_arrows_are_named_by_the_caller():
     assert re.findall(r'phx-date-stepper__step"[^>]*?aria-label="([^"]*)"', html) == ["Previous day", "Next day"]
 
 
+def test_the_week_stepper_draws_its_seven_days_the_chosen_one_current():
+    html = render_field(
+        "week_stepper", DayForm(data={"date": "2026-10-07"})["date"], week="2026-10-05", today="2026-10-06"
+    )
+
+    days = re.findall(r'<button[^>]*phx-week-stepper__day[ "][^>]*>', html)
+    assert len(days) == 7
+    assert [index for index, day in enumerate(days) if 'aria-current="date"' in day] == [2]
+    assert [index for index, day in enumerate(days) if "phx-week-stepper__day--today" in day] == [1]
+    assert "--phx-week-stepper-chosen: 2" in html
+
+
+def test_the_week_stepper_marks_its_first_day_as_any_other():
+    html = render_field("week_stepper", DayForm(data={"date": "2026-10-05"})["date"], week="2026-10-05")
+
+    assert "--phx-week-stepper-chosen: 0" in html
+    assert "phx-week-stepper__thumb" in html
+
+
+def test_the_week_stepper_marks_no_day_for_a_date_outside_its_week():
+    html = render_field("week_stepper", DayForm(data={"date": "2026-11-20"})["date"], week="2026-10-05")
+
+    assert 'aria-current="date"' not in html
+    assert "phx-week-stepper__thumb" not in html
+    assert "--phx-week-stepper-chosen" not in html
+
+
+def test_the_week_stepper_reads_a_date_and_time_as_its_date():
+    """A field can start with a date and time; the stepper shows its date."""
+    html = render_field(
+        "week_stepper",
+        DayForm(initial={"date": datetime.datetime(2026, 10, 7, 9, 30)})["date"],
+        week=datetime.datetime(2026, 10, 5, 8),
+        today=datetime.datetime(2026, 10, 6, 23),
+    )
+
+    days = re.findall(r'<button[^>]*phx-week-stepper__day[ "][^>]*>', html)
+    assert [index for index, day in enumerate(days) if 'aria-current="date"' in day] == [2]
+    assert [index for index, day in enumerate(days) if "phx-week-stepper__day--today" in day] == [1]
+    assert 'data-date-step="2026-10-06"' in html
+
+
+def test_the_week_steppers_arrows_go_to_the_first_day_of_the_weeks_either_side():
+    html = render_field("week_stepper", DayForm(data={"date": "2026-10-07"})["date"], week=datetime.date(2026, 10, 5))
+
+    steps = re.findall(r'phx-week-stepper__step"[^>]*?aria-label="([^"]*)"\s*data-date-step="([^"]*)"', html)
+    assert steps == [("Previous week", "2026-09-28"), ("Next week", "2026-10-12")]
+
+
+def test_the_week_stepper_writes_its_week_and_days_in_the_pages_language():
+    with translation.override("el"):
+        html = render_field("week_stepper", DayForm(data={"date": "2026-10-07"})["date"], week="2026-10-05")
+
+    assert re.findall(r'__label-month">([^<]*)<', html) == ["Οκτ"]
+    assert re.search(r'__label-day" aria-hidden="true">5–11<', html)
+    assert '<span class="phx-week-stepper__weekday">Δευ</span>' in html
+    # The box, unseen over the calendar, still holds the date as a date box
+    # reads it, and opens the browser's own picker.
+    assert re.search(r'<input type="date" name="date" value="2026-10-07"[^>]*phx-week-stepper__box', html)
+
+
+def test_the_week_stepper_writes_both_months_over_the_days_of_a_week_into_the_next():
+    html = render_field("week_stepper", DayForm()["date"], week="2026-10-26")
+
+    assert re.findall(r'__label-month">([^<]*)<', html) == ["Oct", "Nov"]
+    assert re.search(r'__label-day" aria-hidden="true">26\u2009–\u20091<', html)
+    # A reader that cannot see the two lines hears the range.
+    assert '<span class="phx-sr-only">Oct 26\u2009–\u2009Nov 1</span>' in html
+
+
+def test_the_week_stepper_writes_both_months_over_a_week_into_the_next_year():
+    html = render_field("week_stepper", DayForm()["date"], week="2026-12-28")
+
+    assert re.findall(r'__label-month">([^<]*)<', html) == ["Dec", "Jan"]
+    assert re.search(r'__label-day" aria-hidden="true">28\u2009–\u20093<', html)
+
+
+def test_the_week_steppers_box_takes_its_own_id_and_sends_on_step():
+    html = render_field("week_stepper", DayForm()["date"], week="2026-10-05", hx_get="/day/")
+
+    assert 'id="id_date_week"' in html
+    assert 'id="id_date"' not in html
+    assert 'hx-trigger="step"' in html
+
+
+def test_the_week_steppers_box_has_no_id_when_its_form_gives_none():
+    html = render_field("week_stepper", DayForm(auto_id=False)["date"], week="2026-10-05")
+
+    assert " id=" not in re.search(r"<input[^>]*>", html).group()
+    assert 'id="_' not in html
+
+
+def test_the_week_steppers_today_button_goes_to_today():
+    html = render_field(
+        "week_stepper", DayForm(data={"date": "2026-11-20"})["date"], week="2026-11-16", today="2026-10-05"
+    )
+    unknown = render_field("week_stepper", DayForm()["date"], week="2026-10-05")
+
+    today = re.compile(r'<button[^>]*phx-week-stepper__today"[^>]*>')
+    assert 'data-date-step="2026-10-05"' in today.search(html).group()
+    assert not today.search(unknown)
+
+
+def test_the_week_stepper_needs_its_week():
+    with pytest.raises(TypeError, match="needs week="):
+        render_field("week_stepper", DayForm()["date"])
+
+
 def test_the_date_stepper_refuses_a_text_box():
     with pytest.raises(TypeError, match="'date_stepper' field draws a DateInput widget"):
         render_field("date_stepper", DayForm()["note"])

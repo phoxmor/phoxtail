@@ -1,0 +1,85 @@
+{% comment %}
+Week stepper for a page that shows one day at a time: the seven days of its
+week, each a button that picks its day, and two arrows that go to the first
+day of the week before and after (previous and next, worked out from
+week: the week's first day, which the caller picks, so which day starts a
+week is the caller's). The day on show is marked aria-current and sits on a
+circle that slides to the next one: the days keep their id across a redraw,
+so htmx swaps them in with the old place and settles the new one after, and
+the CSS transition runs. Today (today: the caller's, which only it knows)
+carries a faint circle, and a Today button, plain text, goes to it. The
+calendar before it opens the browser's own date picker: its date box lies
+unseen over the icon and takes the tap itself, since iOS opens no picker
+from script (js/fields.js opens it for a mouse). Three groups share one
+card: the calendar and Today, the arrows around the week's dates (two
+lines in the page's language, in a day's circle: the month over its days,
+"Oct" over "11–17", or both months over the days for a week into the
+next, "Oct Nov" over "26–1"; a reader that cannot see the two lines hears
+the range, "Oct 26 – Nov 1"), and the days; each takes a row of its own where it does not fit
+beside the others (js/fields.js lays them out). The circles never shrink:
+where the seven do not fit even on a row of their own they break into rows.
+A picked day, an arrow or the picker puts its day in the box and sends its
+"step" event (js/fields.js), so any hx_* option reaches it, a caller's
+trigger followed by "step". The box takes its own id, so a form elsewhere
+on the page can show the same field.
+The arrows and days carry ids from the field's, so a redraw gives the focus
+back to the one that had it.
+{% endcomment %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
+<div class="phx-week-stepper" data-date-steps>
+    <div class="phx-week-stepper__jump">
+        <span class="phx-week-stepper__calendar">
+            {% icon "calendar_today" %}
+            {% if htmx.hx_trigger %}
+                {% widget field input_type="date" class="phx-week-stepper__box" aria_label=field.label id=box_id hx_trigger=htmx.hx_trigger|add:", step" htmx=htmx %}
+            {% else %}
+                {% widget field input_type="date" class="phx-week-stepper__box" aria_label=field.label id=box_id hx_trigger="step" htmx=htmx %}
+            {% endif %}
+        </span>
+        {% if today_step %}
+            <button type="button"
+                    class="phx-week-stepper__today"
+                    {% if field.auto_id %}id="{{ field.auto_id }}_today"{% endif %}
+                    data-date-step="{{ today_step }}">
+                {% translate "Today" %}
+            </button>
+        {% endif %}
+    </div>
+    <div class="phx-week-stepper__nav">
+        <button type="button"
+                class="phx-week-stepper__step"
+                {% if field.auto_id %}id="{{ field.auto_id }}_previous"{% endif %}
+                aria-label="{% translate "Previous week" %}"
+                data-date-step="{{ previous|date:"Y-m-d" }}">
+            {% icon "chevron_left" %}
+        </button>
+        <span class="phx-week-stepper__label">
+            <span class="phx-sr-only">{{ week_label.text }}</span>
+            <span class="phx-week-stepper__label-months" aria-hidden="true">{% for month in week_label.months %}<span class="phx-week-stepper__label-month">{{ month }}</span>{% endfor %}</span>
+            <span class="phx-week-stepper__label-day" aria-hidden="true">{{ week_label.days }}</span>
+        </span>
+        <button type="button"
+                class="phx-week-stepper__step"
+                {% if field.auto_id %}id="{{ field.auto_id }}_next"{% endif %}
+                aria-label="{% translate "Next week" %}"
+                data-date-step="{{ next|date:"Y-m-d" }}">
+            {% icon "chevron_right" %}
+        </button>
+    </div>
+    <div class="phx-week-stepper__days"
+         {% if field.auto_id %}id="{{ field.auto_id }}_days"{% endif %}
+         {% if chosen_day is not None %}style="--phx-week-stepper-chosen: {{ chosen_day }}"{% endif %}>
+        {% if chosen_day is not None %}<span class="phx-week-stepper__thumb"></span>{% endif %}
+        {% for day in days %}
+            <button type="button"
+                    class="phx-week-stepper__day{% if day.is_today %} phx-week-stepper__day--today{% endif %}"
+                    {% if field.auto_id %}id="{{ field.auto_id }}_day_{{ forloop.counter0 }}"{% endif %}
+                    {% if day.is_selected %}aria-current="date"{% endif %}
+                    data-date-step="{{ day.value }}">
+                <span class="phx-week-stepper__weekday">{{ day.weekday }}</span>
+                <span class="phx-week-stepper__number">{{ day.day }}</span>
+                <span class="phx-week-stepper__month">{{ day.month }}</span>
+            </button>
+        {% endfor %}
+    </div>
+</div>

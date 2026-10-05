@@ -1,5 +1,6 @@
 import copy
 import re
+from datetime import date, timedelta
 from functools import cached_property
 
 from django.core.exceptions import ValidationError
@@ -23,6 +24,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
+from phoxtail.core.dates import iso_date, week_days, week_range
+
 FIELD_TEMPLATES = "phoxtail_core/forms/fields"
 FIELD_NAME = re.compile(r"[a-z_]+")
 HTMX_DEFAULTS = {"hx_swap": "innerHTML", "hx_trigger": "change"}
@@ -45,6 +48,7 @@ FRAME_WIDGETS = {
     "single_select_search": (HiddenInput, ()),
     "search": (TextInput, ()),
     "date_stepper": (DateInput, ()),
+    "week_stepper": (DateInput, ()),
 }
 # The options each field reads, and whether it passes any hx_* option on to
 # its control. render_field refuses others, so a misspelled option fails
@@ -66,7 +70,39 @@ FIELD_OPTIONS = {
     ),
     "search": ({"placeholder", "count"}, True),
     "date_stepper": ({"previous", "next", "previous_label", "next_label"}, True),
+    "week_stepper": ({"week", "today"}, True),
 }
+
+
+def week_stepper_context(bound_field, options):
+    """A week stepper's week: its days, the chosen one's place, its dates, the weeks either side, today, its box's id.
+
+    ``week`` is the week's first day (a date, or "2026-10-05"): the caller
+    decides which day starts a week. The arrows go to the first day of the
+    week before and after.
+    """
+    first = iso_date(options.get("week"))
+    if not first:
+        raise TypeError("the 'week_stepper' field needs week=, the first day of the week it shows")
+    first = date.fromisoformat(first)
+    days = week_days(first, bound_field.value(), options.get("today"))
+    return {
+        "days": days,
+        "chosen_day": next((index for index, day in enumerate(days) if day["is_selected"]), None),
+        "week_label": week_range(first),
+        "previous": first - timedelta(days=7),
+        "next": first + timedelta(days=7),
+        # The Today button's day.
+        "today_step": iso_date(options.get("today")),
+        # Its own, so a form elsewhere on the page can show the same field.
+        "box_id": f"{bound_field.auto_id}_week" if bound_field.auto_id else "",
+    }
+
+
+# What a field's template needs worked out in Python from its value and options.
+FIELD_CONTEXT = {"week_stepper": week_stepper_context}
+
+
 # The button at the end of the box follows the box's type.
 TRAILING = {"date": "calendar", "datetime-local": "calendar", "time": "clock", "password": "eye"}
 
@@ -159,6 +195,8 @@ def render_field(name, bound_field, /, **options):
         "trailing": TRAILING.get(control_type(bound_field, options.get("input_type")), ""),
         "control_type": control_type(bound_field, options.get("input_type")),
     }
+    if name in FIELD_CONTEXT:
+        values.update(FIELD_CONTEXT[name](bound_field, options))
     return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
 
 

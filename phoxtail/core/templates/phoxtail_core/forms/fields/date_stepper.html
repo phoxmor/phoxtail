@@ -17,7 +17,7 @@ carry ids from the field's, so a redraw gives the focus back to the one that
 had it.
 {% endcomment %}
 {% load i18n phoxtail_core_tags phoxtail_design_tags %}
-<div class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small">
+<div class="phx-date-stepper phx-date-stepper--filled phx-date-stepper--small" data-date-steps>
     <button type="button"
             class="phx-date-stepper__step"
             {% if field.auto_id %}id="{{ field.auto_id }}_previous"{% endif %}
