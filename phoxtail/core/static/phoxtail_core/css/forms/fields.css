@@ -621,9 +621,10 @@
 
 /* ── Week Stepper ──
    The segmented control's filled look (below), without its outline: a grey
-   track, the day on show on a raised circle that slides to the next one,
-   today on a faint one. Each day stacks weekday, number and month, the two
-   small words muted capitals so the number reads first. Each day is a square
+   track, the day on show on a secondary button's circle that slides to the
+   next one, today's number in the brand colour. Each day stacks weekday,
+   number and month, the two small words muted capitals so the number reads
+   first. Each day is a square
    as large as its circle, so the track is as tall as the circles plus its
    padding: 58px circles, never squeezed. One card, a control's fill and
    shadow, holds three groups: the calendar, which opens the browser's own
@@ -858,6 +859,11 @@
     border-radius: 2rem;
     background: var(--phx-week-stepper-well);
     box-sizing: border-box;
+    /* The track is the ground's colour, so what sits on it rises. */
+    --phx-control-background: var(--phx-raised-background);
+    --phx-control-background-hover: var(--phx-raised-background-hover);
+    --phx-control-shadow: var(--phx-raised-shadow);
+    --phx-control-shadow-hover: var(--phx-raised-shadow-hover);
 }
 
 /* What the track asks for, whatever its columns: seven circles side by side,
@@ -872,7 +878,9 @@
     height: 0;
 }
 
-/* Centred on the chosen day, it slides by its left and top edges. */
+/* Centred on the chosen day, it slides by its left and top edges. Filled as
+   a secondary button (buttons.css): what the box it sits in hands its
+   controls (main.css). */
 .phx-week-stepper__thumb {
     --phx-week-stepper-cell: calc((100% - 2 * var(--phx-week-stepper-inset)) / var(--phx-week-stepper-columns, 7));
     position: absolute;
@@ -881,13 +889,17 @@
     width: min(var(--phx-week-stepper-cell), var(--phx-week-stepper-circle));
     aspect-ratio: 1;
     border-radius: 50%;
-    background: rgb(var(--color-surface-50));
-    /* As a card's: what rises takes the raised shadow (main.css). */
-    box-shadow: var(--phx-raised-shadow);
+    background: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
     transform: translate(-50%, -50%);
-    transition-property: top, left;
+    transition-property: top, left, background-color, box-shadow;
     transition-duration: max(0s, 0.2s * (2 - var(--phx-week-stepper-rows)));
     transition-timing-function: var(--md-sys-motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.phx-week-stepper__days:has(.phx-week-stepper__day[aria-current]:hover) .phx-week-stepper__thumb {
+    background: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
 }
 
 .phx-week-stepper__day {
@@ -905,8 +917,7 @@
     border: none;
     border-radius: 50%;
     background: transparent;
-    color: rgb(var(--color-surface-500));
-    isolation: isolate;
+    color: rgb(var(--color-surface-600));
     font: inherit;
     line-height: 1;
     cursor: pointer;
@@ -918,19 +929,10 @@
     color: rgb(var(--color-surface-900));
 }
 
-/* Today, when not chosen: the thumb's circle, faint. */
-.phx-week-stepper__day--today:not([aria-current])::before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: -1;
-    width: min(100%, var(--phx-week-stepper-circle));
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 0.35);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
-    transform: translate(-50%, -50%);
+/* Today's number in the brand colour, chosen, hovered or not: a colour, not
+   a circle, so it never reads as the chosen day. */
+.phx-week-stepper__day--today .phx-week-stepper__number {
+    color: rgb(var(--color-primary-700));
 }
 
 .phx-week-stepper__weekday,
@@ -939,7 +941,7 @@
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    opacity: 0.75;
+    opacity: 0.85;
 }
 
 .phx-week-stepper__number {
@@ -956,15 +958,8 @@
         --phx-week-stepper-line: rgb(255 255 255 / 0.16);
     }
 
-    /* As the dashboard's chosen menu item: a white tint of the track, what a
-       control takes inside a card (main.css). */
-    .phx-week-stepper__thumb {
-        background: rgb(255 255 255 / 0.1);
-    }
-
-    .phx-week-stepper__day--today:not([aria-current])::before {
-        background: rgb(255 255 255 / 0.04);
-        box-shadow: none;
+    .phx-week-stepper__day--today .phx-week-stepper__number {
+        color: rgb(var(--color-primary-400));
     }
 
     .phx-week-stepper__today,

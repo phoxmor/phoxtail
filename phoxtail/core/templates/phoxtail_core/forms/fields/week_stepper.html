@@ -7,8 +7,8 @@ week is the caller's). The day on show is marked aria-current and sits on a
 circle that slides to the next one: the days keep their id across a redraw,
 so htmx swaps them in with the old place and settles the new one after, and
 the CSS transition runs. Today (today: the caller's, which only it knows)
-carries a faint circle, and a Today button, plain text, goes to it. The
-calendar before it opens the browser's own date picker: its date box lies
+has its number in the brand colour, and a Today button, plain text, goes to
+it. The calendar before it opens the browser's own date picker: its date box lies
 unseen over the icon and takes the tap itself, since iOS opens no picker
 from script (js/fields.js opens it for a mouse). Three groups share one
 card: the calendar and Today, the arrows around the week's dates (two
