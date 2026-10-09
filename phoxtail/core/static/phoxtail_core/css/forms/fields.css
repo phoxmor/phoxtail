@@ -666,11 +666,21 @@
     box-sizing: border-box;
 }
 
-/* All three on one row (js/fields.js): the track between the others. */
+/* All three on one row (js/fields.js): the track between the others, as
+   wide as its seven circles and in the middle; on a wider card the room
+   left over goes to its sides, the calendar and Today at the start, the
+   arrows at the end. Short of room, the track gives way first: the sides
+   never go below their own width (minmax(max-content, 1fr)), the track can
+   (minmax(0, auto)), so the script sees it no longer fits and the three
+   leave the one row; nothing overlaps. */
 .phx-week-stepper--wide {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
     grid-template-areas: "jump days nav";
+}
+
+.phx-week-stepper--wide .phx-week-stepper__nav {
+    justify-self: end;
 }
 
 .phx-week-stepper__jump {

@@ -5,8 +5,12 @@ calendar that opens the browser's own date picker, and a Today button beside
 it (given `today`). The chosen day sits on a circle that slides to the
 next, and today's number is in the brand colour. The three groups share one
 card and a row where they fit, and take rows of their own where they do
-not; the circles never shrink, and where seven do not fit side by side the
-days break into rows. Its date box takes its own id,
+not, the room they have deciding it, never the screen's width; the circles
+never shrink, and where seven do not fit side by side the days break into
+rows. On one row the days keep their own width in the middle, and a card
+made wider than it needs (a page may stretch it across a row) gives the
+room to their sides, the calendar and Today at its start and the arrows at
+its end. Its date box takes its own id,
 so a filter form on the same page can offer the same date for any day. Any
 date field given `hx_trigger="step"` now sends a picked day at once and a
 typed one on Enter or when the field is left, as the steppers' boxes do.
