@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from babel import Locale, UnknownLocaleError
-from babel.dates import format_date, format_interval
+from babel.dates import format_date, format_interval, format_skeleton
 from django.conf import settings
 from django.utils import translation
 
@@ -30,6 +30,18 @@ def iso_date(value):
         return date.fromisoformat(str(value or "")).isoformat()
     except ValueError:
         return ""
+
+
+def display_date(value):
+    """A date written for people, in the page's language: its weekday, day,
+    month and year ("Mon, Oct 5, 2026"); ``iso_date`` writes one for machines.
+
+    A date and time counts as its date: turn it to the zone it should be read
+    in first.
+    """
+    if isinstance(value, datetime):
+        value = value.date()
+    return format_skeleton("yMMMEd", value, locale=active_locale())
 
 
 def week_days(first, selected="", today=""):
