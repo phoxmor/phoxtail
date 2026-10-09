@@ -20,10 +20,14 @@ function _closeModalGeneric(modalId) {
 }
 
 /**
- * Close base modal (level 0)
+ * Close a modal. Given an element inside one (a drawer's close button, say),
+ * the modal it is in, at whichever level; given nothing, the base modal
+ * (level 0).
+ * @param {Element} [el] - An element inside the modal to close
  */
-window.closeModal = function() {
-    _closeModalGeneric('base-modal');
+window.closeModal = function(el) {
+    const modal = el instanceof Element ? el.closest('#base-modal, #base-modal-level-1') : null;
+    _closeModalGeneric(modal ? modal.id : 'base-modal');
 };
 
 /**
@@ -56,6 +60,25 @@ function _configureModalAnimation(modalId, placeholderId) {
 }
 
 /**
+ * Name a modal's dialog by its content's title (its first heading), for
+ * assistive technology. A title without an id takes one from its modal's,
+ * so stacked modals never share one.
+ * @param {string} modalId - The ID of the modal container
+ * @param {string} placeholderId - The ID of the content placeholder
+ */
+function _labelModal(modalId, placeholderId) {
+    const modal = document.getElementById(modalId);
+    const content = document.getElementById(placeholderId);
+
+    if (!modal || !content) return;
+
+    const title = content.querySelector('h1, h2, h3');
+    if (!title) return;
+    if (!title.id) title.id = modalId + '-title';
+    modal.setAttribute('aria-labelledby', title.id);
+}
+
+/**
  * Initialize modal system
  * Sets up event listeners for escape key and HTMX events
  */
@@ -81,9 +104,11 @@ function _configureModalAnimation(modalId, placeholderId) {
         if (targetId === 'core-modal-placeholder-wrapper' ||
             targetId === 'core-modal-placeholder') {
             _configureModalAnimation('base-modal', 'core-modal-placeholder');
+            _labelModal('base-modal', 'core-modal-placeholder');
         } else if (targetId === 'core-modal-level-1-placeholder-wrapper' ||
                    targetId === 'core-modal-level-1-placeholder') {
             _configureModalAnimation('base-modal-level-1', 'core-modal-level-1-placeholder');
+            _labelModal('base-modal-level-1', 'core-modal-level-1-placeholder');
         }
     });
 })();
