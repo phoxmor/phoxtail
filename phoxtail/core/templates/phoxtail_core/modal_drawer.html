@@ -1,0 +1,47 @@
+{% comment %}
+A drawer for the core modals, at either level (modal.html, modal_level_1.html:
+blank canvases, each showing whatever its content view returns). A view that
+wants one extends this and fills its blocks: the title (block title) with the
+close button beside it, the body (block body), which scrolls, and the footer:
+Close, then the drawer's own actions (block actions), or a footer of its own
+(block footer). It slides in from the right, 480px wide (block width), standing
+on the ground, so what sits in it rises.
+
+The modal around it is the dialog, named by the drawer's title (modal.js).
+Closing it (the close button, Close, a click outside) closes that modal,
+whichever level it is on.
+{% endcomment %}
+{% load i18n phoxtail_design_tags %}
+<div class="phoxtail-modal-overlay"
+     onclick="closeModal(this)"
+     data-modal-animation="slide-right"
+     data-animation-duration="300ms">
+    <div class="phoxtail-modal-drawer phoxtail-drawer--glass phx-ground"
+         style="--phoxtail-drawer-width: {% block width %}480px{% endblock %};"
+         onclick="event.stopPropagation()">
+        <div class="phoxtail-drawer__scroll">
+            <div class="phoxtail-drawer__header">
+                <div class="phoxtail-drawer__title-row">
+                    <h2 class="phoxtail-drawer__title">{% block title %}{% endblock %}</h2>
+                    <button class="phoxtail-close-btn"
+                            onclick="closeModal(this)"
+                            aria-label="{% translate "Close" %}"
+                            type="button">
+                        {% icon "close" %}
+                    </button>
+                </div>
+            </div>
+            <div class="phoxtail-drawer__body">
+                {% block body %}{% endblock %}
+            </div>
+        </div>
+        <div class="phoxtail-drawer__footer">
+            {% block footer %}
+                <button type="button" class="phx-button phx-button--secondary" onclick="closeModal(this)">
+                    <span>{% translate "Close" %}</span>
+                </button>
+                {% block actions %}{% endblock %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
