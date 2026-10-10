@@ -170,7 +170,7 @@ def ssl(
                 user,
                 ip,
                 f"cd {project_dir} && docker compose run --rm -T --entrypoint sh certbot -c "
-                f"'test -f {cert_path}' && docker compose run --rm -T certbot certificates 2>/dev/null"
+                f"'test -f {cert_path}' && docker compose run --rm -T --no-deps certbot certificates 2>/dev/null"
                 f" | grep -qF 'mcp.{domain}'",
             )
         else:
@@ -276,7 +276,7 @@ def ssl(
         # ------------------------------------------------------------------
         cron_marker = f"phoxtail-ssl-{project_slug}"
         renew_cmd = (
-            f"cd {cron_dir} && docker compose run --rm -T certbot renew -q"
+            f"cd {cron_dir} && docker compose run --rm -T --no-deps certbot renew -q"
             f" && docker compose exec -T nginx nginx -s reload"
         )
         cron_entry = f"0 3 1,15 * * {renew_cmd}  # {cron_marker}"

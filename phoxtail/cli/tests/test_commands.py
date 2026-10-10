@@ -264,3 +264,11 @@ class TestSslRenew:
         second_cmd = mock_call.call_args_list[1][0][0]
         assert "renew" in first_cmd
         assert "reload" in second_cmd[-1]
+
+    @patch("phoxtail.cli.ssl.subprocess.call", return_value=0)
+    def test_renew_skips_dependent_services(self, mock_call):
+        # Starting nginx/web would pull the registry image and fail on an
+        # expired registry token before certbot ever ran.
+        runner.invoke(ssl_app, ["renew"])
+        first_cmd = mock_call.call_args_list[0][0][0]
+        assert "--no-deps" in first_cmd

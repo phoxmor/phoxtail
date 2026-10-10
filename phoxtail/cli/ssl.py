@@ -84,7 +84,7 @@ def renew() -> None:
         phoxtail ssl renew
     """
     env = docker_env()
-    result = subprocess.call(["docker", "compose", "run", "--rm", "certbot", "renew", "-q"], env=env)
+    result = subprocess.call(["docker", "compose", "run", "--rm", "--no-deps", "certbot", "renew", "-q"], env=env)
     if result != 0:
         console.print("[red]Error:[/red] Certificate renewal failed")
         raise typer.Exit(1)
