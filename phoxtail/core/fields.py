@@ -55,7 +55,7 @@ FRAME_WIDGETS = {
 # instead of being ignored; a test keeps each list equal to its template.
 SHARED_OPTIONS = {"label", "show_label", "required", "show_required", "help_text", "show_help_text"}
 FIELD_OPTIONS = {
-    "input": (SHARED_OPTIONS | {"autofocus", "input_type", "placeholder"}, True),
+    "input": (SHARED_OPTIONS | {"autofocus", "copy", "input_type", "placeholder"}, True),
     "textarea": (SHARED_OPTIONS | {"rows"}, True),
     "select": (SHARED_OPTIONS, True),
     "checkbox": (SHARED_OPTIONS - {"show_label"}, True),
@@ -65,7 +65,7 @@ FIELD_OPTIONS = {
     "phone": (SHARED_OPTIONS | {"prefix_label"}, True),
     "single_select_search": (
         SHARED_OPTIONS
-        | {"search_url", "hx_include", "item_template", "is_active", "search_placeholder", "trigger_placeholder"},
+        | {"search_url", "hx_include", "item_template", "search_placeholder", "trigger_placeholder"},
         False,
     ),
     "search": ({"placeholder", "count"}, True),

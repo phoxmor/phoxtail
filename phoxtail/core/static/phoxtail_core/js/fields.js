@@ -20,6 +20,25 @@ document.addEventListener('click', function (event) {
     button.querySelector('.phx-input__password-eye--hide').style.display = isVisible ? 'none' : '';
 }, true);
 
+/* A field's copy button (copy=True): the box's value to the clipboard, a
+   check in place of the icon for a moment to say it is done. */
+document.addEventListener('click', function (event) {
+    var button = event.target.closest('[data-copy]');
+    if (!button) {
+        return;
+    }
+    var input = button.closest('.phx-field__box').querySelector('.phx-field__control');
+    navigator.clipboard.writeText(input.value).then(function () {
+        var icons = button.querySelectorAll('.phx-field__copy-icon');
+        icons[0].style.display = 'none';
+        icons[1].style.display = '';
+        setTimeout(function () {
+            icons[0].style.display = '';
+            icons[1].style.display = 'none';
+        }, 1000);
+    });
+}, true);
+
 document.addEventListener('click', function (event) {
     var button = event.target.closest('[data-picker-open]');
     if (!button) {

@@ -16,7 +16,10 @@ single-space placeholder fallback. A caller-supplied placeholder is kept but
 only becomes visible on focus (CSS hides it while the label rests in its
 place, per MD3). input_type overrides the widget's type. Any hx_* option
 reaches the control; the htmx settings are written only when it makes a
-request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
+request (hx_get, hx_post, hx_put, hx_patch, hx_delete). copy=True adds a
+trailing button that copies the box's value (js/fields.js), for a value to
+read and take, such as a key; on a disabled field (Django's read-only: the
+form keeps its initial value, whatever is posted) the button stays live.
 {% endcomment %}
 {% load i18n phoxtail_core_tags phoxtail_design_tags %}
 <div class="phx-field{% if field.errors %} phx-field--error{% endif %}">
@@ -42,6 +45,15 @@ request (hx_get, hx_post, hx_put, hx_patch, hx_delete).
                 <span class="phx-input__password-eye phx-input__password-eye--hide" style="display:none">
                     {% icon "visibility_lock" %}
                 </span>
+            </button>
+        {% endif %}
+        {% if copy %}
+            <button type="button"
+                    class="phx-field__trailing-button"
+                    aria-label="{% blocktranslate with label=label|default:field.label %}Copy {{ label }}{% endblocktranslate %}"
+                    data-copy>
+                <span class="phx-field__copy-icon">{% icon "content_copy" %}</span>
+                <span class="phx-field__copy-icon phx-field__copy-icon--done" style="display:none">{% icon "check" %}</span>
             </button>
         {% endif %}
         {% if trailing == "calendar" and not field.field.disabled %}

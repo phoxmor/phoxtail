@@ -88,3 +88,29 @@ def test_the_search_field_carries_no_script_of_its_own(active):
     assert "<script" not in html
     assert "data-single-select-search" in html
     assert "data-single-select-search-trigger" in html
+
+
+def test_a_disabled_search_field_is_drawn_inactive(active):
+    form = PickForm()
+    form.fields["user"].disabled = True
+
+    html = render_field("single_select_search", form["user"])
+
+    assert "phx-single-select-search__container--inactive" in html
+    assert 'tabindex="-1"' in html
+
+
+def test_a_disabled_search_field_shows_its_initial_pick_and_offers_no_clear(active, inactive):
+    form = PickForm({"user": str(inactive.pk)}, initial={"user": active.pk})
+    form.fields["user"].disabled = True
+
+    field = form["user"]
+    html = render_field("single_select_search", field)
+
+    assert field.selected_item == active
+    assert "trigger-clear" not in html
+
+
+def test_the_search_field_has_no_is_active_option():
+    with pytest.raises(TypeError, match="has no option is_active"):
+        render_field("single_select_search", PickForm()["user"], is_active=False)

@@ -770,3 +770,35 @@ def test_the_arrows_carry_ids_from_the_fields():
 
     assert 'id="id_date_previous"' in html
     assert 'id="id_date_next"' in html
+
+
+class KeyForm(forms.Form):
+    key = forms.CharField(label="Booking key", initial="4090A8AE", disabled=True)
+    note = forms.CharField(label="Note")
+
+
+def test_copy_adds_a_button_named_after_its_field():
+    html = _render('{% field "input" form.note copy=True %}', form=KeyForm())
+
+    assert re.search(r'<button[^>]*aria-label="Copy Note"[^>]*data-copy', html)
+
+
+def test_without_copy_there_is_no_copy_button():
+    html = _render('{% field "input" form.note %}', form=KeyForm())
+
+    assert "data-copy" not in html
+
+
+def test_a_disabled_field_keeps_its_value_and_its_copy_button():
+    html = _render('{% field "input" form.key copy=True %}', form=KeyForm({"key": "posted"}))
+
+    assert 'value="4090A8AE"' in html
+    assert "disabled" in html
+    assert "data-copy" in html
+
+
+def test_the_copy_button_carries_no_script_of_its_own():
+    html = _render('{% field "input" form.note copy=True %}', form=KeyForm())
+
+    assert "onclick" not in html
+    assert "<script" not in html

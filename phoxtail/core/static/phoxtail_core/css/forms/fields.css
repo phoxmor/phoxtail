@@ -260,11 +260,21 @@
     position: relative;
 }
 
+/* Inactive (is_active=False, or a disabled form field): the filled look of a
+   disabled field (below), and nothing to click. */
 .phx-single-select-search__container--inactive {
-    opacity: 0.38;
     pointer-events: none;
     user-select: none;
-    transition: opacity 300ms;
+}
+
+.phx-field__box:has(> .phx-single-select-search__container--inactive) {
+    isolation: isolate;
+}
+
+.phx-single-select-search__container--inactive ~ .phx-field__outline {
+    z-index: -1;
+    border-color: transparent;
+    background: rgb(var(--md-sys-color-surface-container-highest) / 0.6) !important;
 }
 
 /* ── Toggle (MD3 switch) ──
@@ -1880,19 +1890,36 @@ fieldset.phx-field__outline > legend.phx-field__notch {
     color: rgb(var(--md-sys-color-error));
 }
 
-/* Disabled: MD3 uses on-surface at 38% for content, 12% for the outline. */
+/* Disabled: a value to read, not to type. MD3 fades it (38% content, 12%
+   outline), which reads poorly; here the box fills with a surface shade
+   instead and keeps its text at full contrast. */
 .phx-field__control:disabled {
-    color: rgb(var(--md-sys-color-on-surface) / 0.38);
+    color: rgb(var(--md-sys-color-on-surface));
+    -webkit-text-fill-color: rgb(var(--md-sys-color-on-surface));
+    opacity: 1;
     cursor: default;
 }
 
+/* The fill lies under the text: the outline is drawn after the control, so
+   it goes behind it, inside the box's own stacking context. */
+.phx-field__box:has(> .phx-field__control:disabled) {
+    isolation: isolate;
+}
+
 .phx-field__control:disabled ~ .phx-field__outline {
-    border-color: rgb(var(--md-sys-color-on-surface) / 0.12);
+    z-index: -1;
+    border-color: transparent;
+    background: rgb(var(--md-sys-color-surface-container-highest) / 0.6) !important;
 }
 
 .phx-field__control:disabled ~ .phx-field__label,
 .phx-field__control:disabled ~ .phx-field__trailing {
-    color: rgb(var(--md-sys-color-on-surface) / 0.38);
+    color: rgb(var(--md-sys-color-on-surface-variant));
+}
+
+/* The copied check, in the brand colour. */
+.phx-field__copy-icon--done {
+    color: rgb(var(--md-sys-color-primary));
 }
 
 /* Supporting text replaces the hover help tooltip; also hosts errors. */
