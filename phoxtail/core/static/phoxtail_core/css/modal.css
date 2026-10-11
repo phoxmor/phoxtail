@@ -188,9 +188,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    min-width: 1.75rem;
+    width: var(--phx-size-small);
+    height: var(--phx-size-small);
+    min-width: var(--phx-size-small);
     border-radius: 50%;
     border: none;
     background-color: var(--phx-control-background);
@@ -214,8 +214,8 @@
 }
 
 .phoxtail-close-btn svg {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--phx-size-small-icon);
+    height: var(--phx-size-small-icon);
     display: block;
 }
 
