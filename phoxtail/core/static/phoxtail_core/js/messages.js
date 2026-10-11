@@ -8,7 +8,7 @@
 function dismissMessage(button) {
     var messageElement = button.closest('[id^="message-"]');
     if (messageElement) {
-        messageElement.classList.add('auth-toast--hidden');
+        messageElement.classList.add('phx-toast--hidden');
         setTimeout(function() {
             if (messageElement.parentNode) {
                 messageElement.remove();
@@ -22,12 +22,12 @@ function initializeMessages(container) {
 
     messages.forEach(function(message, index) {
         setTimeout(function() {
-            message.classList.remove('auth-toast--hidden');
+            message.classList.remove('phx-toast--hidden');
         }, index * 150 + 100);
 
         setTimeout(function() {
             if (message && message.parentNode) {
-                message.classList.add('auth-toast--hidden');
+                message.classList.add('phx-toast--hidden');
                 setTimeout(function() {
                     if (message.parentNode) {
                         message.remove();
@@ -71,9 +71,9 @@ document.body.addEventListener('showToast', function(event) {
     if (!template) return;
 
     var clone = template.content.cloneNode(true);
-    var toast = clone.querySelector('.auth-toast');
+    var toast = clone.querySelector('.phx-toast');
     toast.id = 'message-toast-' + Date.now();
-    toast.classList.add('auth-toast--' + type);
+    toast.classList.add('phx-toast--' + type);
 
     var labelKey = 'label' + type.charAt(0).toUpperCase() + type.slice(1);
     clone.querySelector('[data-toast-label]').textContent = template.dataset[labelKey] || type;
@@ -82,9 +82,9 @@ document.body.addEventListener('showToast', function(event) {
     wrapper.innerHTML = '';
     var container = document.createElement('div');
     container.id = 'messages-container';
-    container.className = 'auth-toast-container';
+    container.className = 'phx-toast-container';
     var list = document.createElement('div');
-    list.className = 'auth-toast-list';
+    list.className = 'phx-toast-list';
     list.appendChild(clone);
     container.appendChild(list);
     wrapper.appendChild(container);

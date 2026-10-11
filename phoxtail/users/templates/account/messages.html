@@ -3,13 +3,13 @@
 {# Rendered inside #messages-container-wrapper. Safe to replace via OOB swaps. #}
 {# Requires account/messages_static.html to be included once on the page. #}
 {% if messages %}
-    <div id="messages-container" class="auth-toast-container">
-        <div class="auth-toast-list">
+    <div id="messages-container" class="phx-toast-container">
+        <div class="phx-toast-list">
             {% for message in messages %}
                 <div id="message-{{ forloop.counter }}"
-                     class="auth-toast phx-popover auth-toast--hidden {% if 'error' in message.tags %}auth-toast--error{% elif 'success' in message.tags %}auth-toast--success{% elif 'warning' in message.tags %}auth-toast--warning{% else %}auth-toast--info{% endif %}">
-                    <div class="auth-toast-body">
-                        <span class="auth-toast-label">
+                     class="phx-toast phx-popover phx-toast--hidden {% if 'error' in message.tags %}phx-toast--error{% elif 'success' in message.tags %}phx-toast--success{% elif 'warning' in message.tags %}phx-toast--warning{% else %}phx-toast--info{% endif %}">
+                    <div class="phx-toast__body">
+                        <span class="phx-toast__label">
                             {% if 'error' in message.tags %}
                                 {% trans "Error" %}
                             {% elif 'success' in message.tags %}
@@ -20,7 +20,7 @@
                                 {% trans "Info" %}
                             {% endif %}
                         </span>
-                        <p class="auth-toast-text">{{ message }}</p>
+                        <p class="phx-toast__text">{{ message }}</p>
                     </div>
                     <button type="button" onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall" aria-label="{% trans 'Dismiss' %}">{% icon "close" %}</button>
                 </div>

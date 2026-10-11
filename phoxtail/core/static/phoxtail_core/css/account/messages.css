@@ -4,7 +4,7 @@
    shadow, no border. Its close button is the round one of the modals. This
    sheet only places the messages and slides them in and out. */
 
-.auth-toast-container {
+.phx-toast-container {
     position: fixed;
     display: flex;
     justify-content: flex-end;
@@ -14,14 +14,14 @@
     padding-left: 0.5rem;
 }
 
-.auth-toast-list {
+.phx-toast-list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     max-width: 28rem;
 }
 
-.auth-toast {
+.phx-toast {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -35,18 +35,18 @@
     font-family: var(--font-ui);
 }
 
-.auth-toast--hidden {
+.phx-toast--hidden {
     opacity: 0;
     transform: translateX(calc(100% + 1.5rem));
 }
 
-.auth-toast-body {
+.phx-toast__body {
     flex: 1;
     min-width: 0;
 }
 
 /* The status in a word, in its tone's text colour (indicators.css). */
-.auth-toast-label {
+.phx-toast__label {
     display: block;
     margin-bottom: 0.125rem;
     font-size: 0.6875rem;
@@ -56,12 +56,12 @@
     line-height: 1;
 }
 
-.auth-toast--error .auth-toast-label { color: rgb(var(--color-destructive-700)); }
-.auth-toast--success .auth-toast-label { color: rgb(var(--color-success-700)); }
-.auth-toast--warning .auth-toast-label { color: rgb(var(--color-warning-700)); }
-.auth-toast--info .auth-toast-label { color: rgb(var(--color-info-700)); }
+.phx-toast--error .phx-toast__label { color: rgb(var(--color-destructive-700)); }
+.phx-toast--success .phx-toast__label { color: rgb(var(--color-success-700)); }
+.phx-toast--warning .phx-toast__label { color: rgb(var(--color-warning-700)); }
+.phx-toast--info .phx-toast__label { color: rgb(var(--color-info-700)); }
 
-.auth-toast-text {
+.phx-toast__text {
     margin: 0;
     font-size: 0.8125rem;
     font-weight: 500;
@@ -70,16 +70,16 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .auth-toast {
+    .phx-toast {
         color: rgb(var(--color-surface-100));
     }
 
-    .auth-toast--error .auth-toast-label { color: rgb(var(--color-destructive-300)); }
-    .auth-toast--success .auth-toast-label { color: rgb(var(--color-success-300)); }
-    .auth-toast--warning .auth-toast-label { color: rgb(var(--color-warning-300)); }
-    .auth-toast--info .auth-toast-label { color: rgb(var(--color-info-300)); }
+    .phx-toast--error .phx-toast__label { color: rgb(var(--color-destructive-300)); }
+    .phx-toast--success .phx-toast__label { color: rgb(var(--color-success-300)); }
+    .phx-toast--warning .phx-toast__label { color: rgb(var(--color-warning-300)); }
+    .phx-toast--info .phx-toast__label { color: rgb(var(--color-info-300)); }
 
-    .auth-toast-text {
+    .phx-toast__text {
         color: rgb(var(--color-surface-300));
     }
 }
