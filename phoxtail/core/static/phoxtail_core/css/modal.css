@@ -225,6 +225,29 @@
     stroke-width: 16;
 }
 
+/* --xsmall: beside small text (a message), like phx-button--xsmall. The
+   circle is smaller; what takes the tap stays the small size. */
+.phoxtail-close-btn--xsmall {
+    position: relative;
+    width: 1.75rem;
+    height: 1.75rem;
+    min-width: 1.75rem;
+}
+
+.phoxtail-close-btn--xsmall::before {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: var(--phx-size-small);
+    height: var(--phx-size-small);
+    transform: translate(-50%, -50%);
+}
+
+.phoxtail-close-btn--xsmall svg {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
 /* --phx-field-gap: the space between fields, which fields made of parts (the
    phone number) keep between their parts too. */
 .phoxtail-form-stack {

@@ -7,7 +7,7 @@
         <div class="auth-toast-list">
             {% for message in messages %}
                 <div id="message-{{ forloop.counter }}"
-                     class="auth-toast auth-toast--hidden {% if 'error' in message.tags %}auth-toast--error{% elif 'success' in message.tags %}auth-toast--success{% elif 'warning' in message.tags %}auth-toast--warning{% else %}auth-toast--info{% endif %}">
+                     class="auth-toast phx-popover auth-toast--hidden {% if 'error' in message.tags %}auth-toast--error{% elif 'success' in message.tags %}auth-toast--success{% elif 'warning' in message.tags %}auth-toast--warning{% else %}auth-toast--info{% endif %}">
                     <div class="auth-toast-body">
                         <span class="auth-toast-label">
                             {% if 'error' in message.tags %}
@@ -22,7 +22,7 @@
                         </span>
                         <p class="auth-toast-text">{{ message }}</p>
                     </div>
-                    <button onclick="dismissMessage(this)" class="auth-toast-dismiss">{% icon "close" %}</button>
+                    <button onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall">{% icon "close" %}</button>
                 </div>
             {% endfor %}
         </div>
