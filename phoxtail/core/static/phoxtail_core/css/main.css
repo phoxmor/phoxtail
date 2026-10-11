@@ -252,6 +252,7 @@ body {
 
 :root,
 .phx-card,
+.phx-raised,
 .phx-popover {
     --phx-control-background: rgb(0 0 0 / 0.05);
     --phx-control-background-hover: rgb(0 0 0 / 0.1);
@@ -279,6 +280,7 @@ body {
 
     :root,
     .phx-card,
+    .phx-raised,
     .phx-popover {
         --phx-control-background: rgb(255 255 255 / 0.08);
         --phx-control-background-hover: rgb(255 255 255 / 0.12);

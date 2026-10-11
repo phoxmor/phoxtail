@@ -929,7 +929,7 @@
     bottom: var(--dash-dock-height, 3.5rem);
     left: 0px;
     right: 0px;
-    /* A ground like the ☰ menu (phx-ground), with a drawer's edge shadow. */
+    /* Raised like the dock it slides out of, with a drawer's edge shadow. */
     border-radius: 1rem 1rem 0 0;
     box-shadow: 0 -8px 48px var(--phx-drawer-shadow-color);
     z-index: 9941;

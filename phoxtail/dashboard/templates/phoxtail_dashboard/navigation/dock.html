@@ -1,6 +1,6 @@
 {% load phoxtail_dashboard_tags %}
 <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
-<div id="dock-sheet" class="dash-dock-sheet phx-ground">
+<div id="dock-sheet" class="dash-dock-sheet phx-raised">
     {% for item in dashboard_dock.overflow %}
         {% url item.url_name as item_path %}
         {% dashboard_icon_path item.icon as svg_path %}
@@ -33,7 +33,7 @@
         </button>
     </form>
 </div>
-<nav class="dash-dock phx-ground" data-phoxtail-bar-floor>
+<nav class="dash-dock phx-raised" data-phoxtail-bar-floor>
     <div class="dash-dock__side dash-dock__side--left">
         {% for item in dashboard_dock.left %}
             {% url item.url_name as item_path %}

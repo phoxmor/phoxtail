@@ -94,6 +94,15 @@ html:has(> body.phx-ground) {
     color: rgb(var(--color-surface-600));
 }
 
+/* ── Raised ──
+
+   A risen surface that is no box: a bar along the screen's edge, a sheet
+   sliding out of it. A card's colour, and what a card hands its controls,
+   without its padding, corners or shadow. */
+.phx-raised {
+    background: var(--phx-raised-background);
+}
+
 /* ── Popover ──
 
    Floats above everything (a dropdown, a menu, a message): the highest
