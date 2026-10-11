@@ -78,20 +78,6 @@
         const sheet = document.getElementById('dock-sheet');
         const backdrop = document.getElementById('dock-sheet-backdrop');
         const dock = document.querySelector('.dash-dock');
-        const content = document.querySelector('.dash-content');
-
-        // A faint edge on the dock while content runs on under it.
-        function updateDockEdge() {
-            var below = content.scrollHeight - content.scrollTop - content.clientHeight;
-            dock.classList.toggle('dash-dock--over-content', below > 1);
-        }
-
-        if (dock && content) {
-            content.addEventListener('scroll', updateDockEdge, { passive: true });
-            new ResizeObserver(updateDockEdge).observe(content);
-            // A swap can change the page's height without a scroll.
-            document.addEventListener('htmx:afterSettle', updateDockEdge);
-        }
 
         // The sheet and its backdrop stop exactly at the dock's top edge.
         // Measured rather than hardcoded so they stay flush if the dock's

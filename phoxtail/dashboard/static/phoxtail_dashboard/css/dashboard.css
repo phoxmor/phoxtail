@@ -85,7 +85,8 @@
 
 .dash-content {
     flex: 1;
-    padding: 3.5rem 1rem 0;
+    /* Clears the top bar and its gap. */
+    padding: calc(4rem + var(--dash-topbar-gap)) 1rem 0;
     /* This pane is the scroller, not the document, so the phoxtail bar's
        body-level reservation can never reach it — claim it here instead.
        Collapses to 0 when the bar isn't on the page. */
@@ -97,12 +98,6 @@
        the former disables the latter, so only the former is used here. */
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--color-surface-300)) transparent;
-}
-
-@media (min-width: 1024px) and (max-width: 1279px) {
-    .dash-content {
-        padding-top: 4rem;
-    }
 }
 
 @media (max-width: 1279px) {
@@ -310,23 +305,25 @@
 /* ========================================
    MOBILE TOP BAR
    ======================================== */
-.dash-topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 0 1rem;
-    z-index: 100;
-    transition: transform 0.3s ease-in-out, box-shadow 0.2s ease;
+/* A pill floating a small gap in from the screen's edges. The round buttons
+   sit as far from its right end as from its top and bottom. */
+:root {
+    --dash-topbar-gap: 0.5rem;
 }
 
-/* Content scrolls under the bar: a faint edge says there is more. */
-.dash-topbar--over-content {
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+.dash-topbar {
+    position: fixed;
+    top: var(--dash-topbar-gap);
+    left: var(--dash-topbar-gap);
+    right: var(--dash-topbar-gap);
+    padding: 0 calc((4rem - var(--phx-size-small)) / 2) 0 1rem;
+    border-radius: 999px;
+    z-index: 100;
+    transition: transform 0.3s ease-in-out;
 }
 
 .dash-topbar--hidden {
-    transform: translateY(-100%);
+    transform: translateY(calc(-100% - var(--dash-topbar-gap)));
 }
 
 /* From xl up the sidebar holds the site's links and the language, so the
@@ -342,18 +339,13 @@
     margin: 0 auto;
 }
 
+/* As tall as the dock, on every screen. */
 .dash-topbar__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 3.5rem;
+    height: 4rem;
     gap: 0.5rem;
-}
-
-@media (min-width: 1024px) {
-    .dash-topbar__row {
-        height: 4rem;
-    }
 }
 
 /* ========================================
@@ -382,16 +374,10 @@
    their room. */
 .dash-topbar__logo-img {
     display: block;
-    height: 2.75rem;
+    height: 3.25rem;
     width: auto;
     max-width: min(12rem, 50vw);
     object-fit: contain;
-}
-
-@media (min-width: 1024px) {
-    .dash-topbar__logo-img {
-        height: 3.25rem;
-    }
 }
 
 /* ========================================
@@ -657,9 +643,10 @@
     align-items: center;
 }
 
+/* As tall as the top bar's. */
 .dash-mobile-sidebar__logo-img {
     display: block;
-    height: 2.75rem;
+    height: 3.25rem;
     width: auto;
     max-width: 12rem;
     object-fit: contain;
@@ -814,7 +801,9 @@
        the gaps are even and the center item sits on the midpoint. */
     display: flex;
     align-items: center;
-    transition: box-shadow 0.2s ease;
+    /* A card's corners where it meets the page. */
+    border-radius: 1rem 1rem 0 0;
+    transition: border-radius 0.25s ease;
     /* Bottom-chrome stack: backdrop 9940 < sheet 9941 < dock 9942. The dock
        tops its own cluster so the sheet reads as sliding out from behind it,
        and the cluster as a whole sits above the phoxtail bar (9900) but below
@@ -824,9 +813,10 @@
     padding: 0.5rem 0;
 }
 
-/* Content scrolls under the dock: a faint edge says there is more. */
-.dash-dock--over-content {
-    box-shadow: 0 -1px 3px rgb(0 0 0 / 0.08);
+/* With the More sheet open the dock meets the sheet, not the page: square,
+   so the two read as one surface. */
+.dash-dock-sheet--open ~ .dash-dock {
+    border-radius: 0;
 }
 
 .dash-dock__side {
@@ -1463,15 +1453,6 @@
 
     .dash-flyout-trigger:has(+ .dash-flyout:popover-open) {
         color: rgb(var(--color-surface-100));
-    }
-
-    /* Mobile dock */
-    .dash-topbar--over-content {
-        box-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
-    }
-
-    .dash-dock--over-content {
-        box-shadow: 0 -1px 3px rgb(0 0 0 / 0.5);
     }
 
     .dash-dock__item {
