@@ -22,7 +22,7 @@
                         </span>
                         <p class="auth-toast-text">{{ message }}</p>
                     </div>
-                    <button onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall">{% icon "close" %}</button>
+                    <button type="button" onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall" aria-label="{% trans 'Dismiss' %}">{% icon "close" %}</button>
                 </div>
             {% endfor %}
         </div>

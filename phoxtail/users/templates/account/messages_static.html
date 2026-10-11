@@ -13,6 +13,6 @@
             <span class="auth-toast-label" data-toast-label></span>
             <p class="auth-toast-text" data-toast-text></p>
         </div>
-        <button onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall">{% icon "close" %}</button>
+        <button type="button" onclick="dismissMessage(this)" class="phoxtail-close-btn phoxtail-close-btn--xsmall" aria-label="{% trans 'Dismiss' %}">{% icon "close" %}</button>
     </div>
 </template>
