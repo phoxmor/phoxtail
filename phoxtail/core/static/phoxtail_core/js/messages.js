@@ -64,8 +64,6 @@ document.body.addEventListener('showToast', function(event) {
     var message = detail.message || '';
     var type = detail.type || 'error';
 
-    if (typeof closeModal === 'function') closeModal();
-
     var wrapper = document.getElementById('messages-container-wrapper');
     if (!wrapper) return;
 

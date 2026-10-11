@@ -95,6 +95,15 @@ function _labelModal(modalId, placeholderId) {
         }
     });
 
+    // The closeModal client event (an HX-Trigger from the server) closes the
+    // modal holding the element that sent the request, at whichever level;
+    // sent from outside any modal, the base one. A toast (showToast,
+    // messages.js) closes nothing: an action that should close its modal
+    // sends this event beside it.
+    document.addEventListener('closeModal', function(event) {
+        window.closeModal(event.target);
+    });
+
     // Listen for HTMX content loaded event to configure animations.
     // The modal shell + content arrive in a single swap into the
     // wrapper element, so we listen on both wrapper and placeholder IDs.

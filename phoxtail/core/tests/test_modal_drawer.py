@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.template import engines
 
 
@@ -46,3 +48,20 @@ def test_modal_drawer_width_defaults_to_480px_and_can_be_set():
     assert "--phoxtail-drawer-width: 640px;" in render(
         '{% extends "phoxtail_core/modal_drawer.html" %}{% block width %}640px{% endblock %}'
     )
+
+
+def _script(name):
+    from django.contrib.staticfiles import finders
+
+    return Path(finders.find(f"phoxtail_core/js/{name}")).read_text()
+
+
+def test_a_toast_closes_no_modal():
+    """Closing is the modal's: an action sends closeModal beside showToast."""
+    assert "closeModal" not in _script("messages.js")
+
+
+def test_the_close_event_closes_the_modal_of_the_element_that_sent_it():
+    script = _script("modal.js")
+
+    assert "addEventListener('closeModal', function(event) {\n        window.closeModal(event.target);" in script

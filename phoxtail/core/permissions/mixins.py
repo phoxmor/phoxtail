@@ -31,8 +31,8 @@ class PermissionMixin:
             for perm in self.required_permissions:
                 if not self.permission_policy.user_has_permission(request.user, perm):
                     # HTMX requests: return 204 with a client event
-                    # that triggers an error toast and closes any open
-                    # modal. Raising PermissionDenied would let Wagtail's
+                    # that triggers an error toast; an open modal stays
+                    # open. Raising PermissionDenied would let Wagtail's
                     # middleware convert it to a 302 redirect, which HTMX
                     # follows transparently — breaking the page layout.
                     if getattr(request, "htmx", None):
