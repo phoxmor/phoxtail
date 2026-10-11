@@ -417,13 +417,16 @@
     color: rgb(var(--color-surface-400));
 }
 
-/* A link in the Website card */
+/* A link in the Website card: a row as the language menus' (a touch target,
+   as tall as the small size). */
 .dash-flyout__link {
-    display: block;
+    display: flex;
+    align-items: center;
+    min-height: var(--phx-size-small);
     padding: 0.5rem 0.75rem;
     border-radius: 0.625rem;
     color: rgb(var(--color-surface-600));
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
     text-decoration: none;
     transition: color 150ms ease, background-color 150ms ease;
@@ -504,7 +507,7 @@
     overflow-y: auto;
     scrollbar-width: none;
     padding: 0.375rem;
-    border-radius: 0.75rem;
+    border-radius: 1rem;
     z-index: 200;
 }
 
@@ -512,29 +515,36 @@
     display: flex;
 }
 
+/* A row as the Website card's links: a touch target, as tall as the small
+   size; under the pointer and for the language in use it takes the
+   popover's control fill. */
 .dash-lang__option {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
     width: 100%;
-    padding: 0.5rem 0.625rem;
+    min-height: var(--phx-size-small);
+    padding: 0.5rem 0.75rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 0.625rem;
     background: none;
-    color: rgb(var(--color-surface-700));
+    color: rgb(var(--color-surface-600));
     font-family: inherit;
     font-size: 0.875rem;
+    font-weight: 500;
     text-align: left;
     cursor: pointer;
+    transition: color 150ms ease, background-color 150ms ease;
 }
 
-.dash-lang__option:hover {
-    background-color: rgb(var(--color-surface-100));
+.dash-lang__option:hover,
+.dash-lang__option--active {
+    background-color: var(--phx-control-background);
+    color: rgb(var(--color-surface-900));
 }
 
 .dash-lang__option--active {
-    color: rgb(var(--color-primary-600));
     font-weight: 600;
 }
 
@@ -1176,12 +1186,23 @@
     margin-left: 1.5rem;
 }
 
-/* A dropdown's label over its links */
+/* A dropdown's label over its links, with a line after it to the card's
+   edge. */
 .dash-flyout__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     padding: 0.5rem 0.75rem 0.25rem;
     color: rgb(var(--color-surface-500));
     font-size: 0.75rem;
     font-weight: 600;
+}
+
+.dash-flyout__heading::after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background-color: rgb(var(--color-surface-300));
 }
 
 /* ========================================
@@ -1410,7 +1431,8 @@
     }
 
     .dash-menu__separator-label::before,
-    .dash-menu__separator-label::after {
+    .dash-menu__separator-label::after,
+    .dash-flyout__heading::after {
         background-color: rgb(255 255 255 / 0.12);
     }
 
@@ -1419,12 +1441,9 @@
         color: rgb(var(--color-surface-300));
     }
 
-    .dash-lang__option:hover {
-        background-color: rgb(255 255 255 / 0.08);
-    }
-
+    .dash-lang__option:hover,
     .dash-lang__option--active {
-        color: rgb(var(--color-primary-400));
+        color: rgb(var(--color-surface-50));
     }
 
     .dash-lang__option-code {
