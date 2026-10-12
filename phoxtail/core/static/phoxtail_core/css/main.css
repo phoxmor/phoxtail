@@ -228,6 +228,13 @@ body {
     --phx-raised-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
     --phx-raised-shadow-hover: 0 4px 12px rgb(0 0 0 / 0.1);
     --phx-section-fill: rgb(0 0 0 / 0.025);
+    /* What floats over the page as it scrolls: a bar at the top casts down,
+       one at the bottom casts up. The negative spread keeps the shadow under
+       the shape, so it never smudges past rounded ends. */
+    --phx-floating-shadow: 0 1px 2px rgb(0 0 0 / 0.04),
+                           0 6px 16px -4px rgb(0 0 0 / 0.08);
+    --phx-floating-shadow-up: 0 -1px 2px rgb(0 0 0 / 0.04),
+                              0 -6px 16px -4px rgb(0 0 0 / 0.08);
 }
 
 /* The small size's height: every pill that sits beside a title or a list —
@@ -275,6 +282,12 @@ body {
         --phx-raised-shadow: none;
         --phx-raised-shadow-hover: 0 4px 12px rgb(0 0 0 / 0.3);
         --phx-section-fill: rgb(255 255 255 / 0.03);
+        /* A shadow barely shows on a dark ground; a faint light top edge
+           does the lifting. */
+        --phx-floating-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06),
+                               0 6px 16px -4px rgb(0 0 0 / 0.4);
+        --phx-floating-shadow-up: inset 0 1px 0 rgb(255 255 255 / 0.06),
+                                  0 -6px 16px -4px rgb(0 0 0 / 0.4);
         --phx-drawer-shadow-color: rgb(0 0 0 / 0.5);
     }
 

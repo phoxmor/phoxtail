@@ -318,6 +318,7 @@
     right: var(--dash-topbar-gap);
     padding: 0 calc((4rem - var(--phx-size-small)) / 2) 0 1rem;
     border-radius: 999px;
+    box-shadow: var(--phx-floating-shadow);
     z-index: 100;
     transition: transform 0.3s ease-in-out;
 }
@@ -804,6 +805,7 @@
     /* A card's corners where it meets the page. */
     border-radius: 1rem 1rem 0 0;
     transition: border-radius 0.25s ease;
+    box-shadow: var(--phx-floating-shadow-up);
     /* Bottom-chrome stack: backdrop 9940 < sheet 9941 < dock 9942. The dock
        tops its own cluster so the sheet reads as sliding out from behind it,
        and the cluster as a whole sits above the phoxtail bar (9900) but below
@@ -817,6 +819,7 @@
    so the two read as one surface. */
 .dash-dock-sheet--open ~ .dash-dock {
     border-radius: 0;
+    box-shadow: none;
 }
 
 .dash-dock__side {
