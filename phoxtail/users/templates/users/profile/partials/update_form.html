@@ -1,140 +1,111 @@
-{% load phoxtail_core_tags thumbnail phoxtail_design_tags %}
-<div class="phoxtail-modal-overlay"
-     onclick="closeModal()"
-     data-modal-animation="slide-right"
-     data-animation-duration="300ms">
-    <div class="phoxtail-modal-drawer phoxtail-drawer--glass"
-         style="--phoxtail-drawer-width: 480px;"
-         onclick="event.stopPropagation()">
-        <div class="phoxtail-drawer__scroll">
-            <!-- Header -->
-            <div class="phoxtail-drawer__header">
-                <div class="phoxtail-drawer__title-row">
-                    <h2 class="phoxtail-drawer__title">Edit Profile</h2>
-                    <button class="phoxtail-close-btn"
-                            onclick="closeModal()"
-                            aria-label="Close modal"
-                            type="button">
-                        {% icon "close" %}
-                    </button>
-                </div>
+{% extends "phoxtail_core/modal_drawer.html" %}
+{% load i18n thumbnail %}
+{% comment %}
+The member's profile (level 0): their avatar and fields, saved by the
+footer's Save. An error redraws the form in place (#profile-update-form-body).
+{% endcomment %}
+{% block title %}{% translate "Edit profile" %}{% endblock %}
+{% block body %}
+    <div class="phoxtail-form-stack">
+        <div class="usr-avatar-section">
+            <div id="avatar-preview-initials"
+                 class="usr-avatar-initials{% if user.avatar %} usr-hidden{% endif %}">
+                {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
             </div>
-            <!-- Body -->
-            <div class="phoxtail-drawer__body">
-                <div class="phoxtail-form-stack">
-                    <!-- Avatar Preview -->
-                    <div class="usr-avatar-section">
-                        <div id="avatar-preview-initials"
-                             class="usr-avatar-initials{% if user.avatar %} usr-hidden{% endif %}">
-                            {{ user.first_name|default:""|slice:":1" }}{{ user.last_name|default:""|slice:":1" }}
-                        </div>
-                        {% if user.avatar %}
-                            {% thumbnail user.avatar "256x256" crop="center" as avatar %}
-                                <img id="avatar-preview-image"
-                                     class="usr-avatar"
-                                     src="{{ avatar.url }}"
-                                     alt="{{ user.get_full_name }}">
-                            {% endthumbnail %}
-                        {% else %}
-                            <img id="avatar-preview-image"
-                                 class="usr-avatar usr-hidden"
-                                 src=""
-                                 alt="{{ user.get_full_name }}">
-                        {% endif %}
-                        <h2 class="usr-profile-name">{{ user.get_full_name }}</h2>
-                        <span class="usr-profile-handle">@{{ user.username }}</span>
-                    </div>
-                    <div id="profile-update-form-body">
-                        {% include "users/profile/partials/update_form_body.html" %}
-                    </div>
-                </div>
-            </div>
+            {% if user.avatar %}
+                {% thumbnail user.avatar "256x256" crop="center" as avatar %}
+                    <img id="avatar-preview-image"
+                         class="usr-avatar"
+                         src="{{ avatar.url }}"
+                         alt="{{ user.get_full_name }}">
+                {% endthumbnail %}
+            {% else %}
+                <img id="avatar-preview-image"
+                     class="usr-avatar usr-hidden"
+                     src=""
+                     alt="{{ user.get_full_name }}">
+            {% endif %}
+            <h3 class="usr-profile-name">{{ user.get_full_name }}</h3>
+            <span class="phx-tag">@{{ user.username }}</span>
         </div>
-        <!-- Footer -->
-        <div class="phoxtail-drawer__footer">
-            <button class="phoxtail-btn phoxtail-btn--secondary"
-                    onclick="closeModal()"
-                    type="button">
-                <span>Cancel</span>
-            </button>
-            <button class="phoxtail-btn phoxtail-btn--primary"
-                    type="submit"
-                    form="profile-update-form">
-                <span>Save</span>
-            </button>
-        </div>
+        <div id="profile-update-form-body">{% include "users/profile/partials/update_form_body.html" %}</div>
     </div>
-</div>
-<script>
-    (function() {
-        const previewImage = document.getElementById('avatar-preview-image');
-        const originalAvatarSrc = previewImage?.getAttribute('src') || '';
-        const hasOriginalAvatar = !!originalAvatarSrc;
+    <script>
+        (function() {
+            const previewImage = document.getElementById('avatar-preview-image');
+            const originalAvatarSrc = previewImage?.getAttribute('src') || '';
+            const hasOriginalAvatar = !!originalAvatarSrc;
 
-        window.previewAvatar = function(event) {
-            const file = event.target.files[0];
-            const previewInitials = document.getElementById('avatar-preview-initials');
-            const clearCheckbox = document.getElementById('avatar-clear-checkbox');
+            window.previewAvatar = function(event) {
+                const file = event.target.files[0];
+                const previewInitials = document.getElementById('avatar-preview-initials');
+                const clearCheckbox = document.getElementById('avatar-clear-checkbox');
 
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                const img = new Image();
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    const img = new Image();
 
-                reader.onload = function(e) {
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const maxSize = 512;
+                    reader.onload = function(e) {
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const maxSize = 512;
 
-                        let width = img.width;
-                        let height = img.height;
+                            let width = img.width;
+                            let height = img.height;
 
-                        if (width > height) {
-                            if (width > maxSize) {
-                                height *= maxSize / width;
-                                width = maxSize;
+                            if (width > height) {
+                                if (width > maxSize) {
+                                    height *= maxSize / width;
+                                    width = maxSize;
+                                }
+                            } else {
+                                if (height > maxSize) {
+                                    width *= maxSize / height;
+                                    height = maxSize;
+                                }
                             }
-                        } else {
-                            if (height > maxSize) {
-                                width *= maxSize / height;
-                                height = maxSize;
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
+                            previewImage.classList.remove('usr-hidden');
+                            if (previewInitials) {
+                                previewInitials.classList.add('usr-hidden');
                             }
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        previewImage.src = canvas.toDataURL('image/jpeg', 0.95);
-                        previewImage.classList.remove('usr-hidden');
-                        if (previewInitials) {
-                            previewInitials.classList.add('usr-hidden');
-                        }
-                        if (clearCheckbox) {
-                            clearCheckbox.checked = false;
-                        }
+                            if (clearCheckbox) {
+                                clearCheckbox.checked = false;
+                            }
+                        };
+                        img.src = e.target.result;
                     };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        window.handleClearAvatar = function(event) {
-            const previewInitials = document.getElementById('avatar-preview-initials');
-            const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
-
-            if (event.target.checked) {
-                previewImage.classList.add('usr-hidden');
-                previewInitials.classList.remove('usr-hidden');
-                fileInput.value = '';
-            } else {
-                if (hasOriginalAvatar) {
-                    previewImage.src = originalAvatarSrc;
-                    previewImage.classList.remove('usr-hidden');
-                    previewInitials.classList.add('usr-hidden');
+                    reader.readAsDataURL(file);
                 }
-            }
-        };
-    })();
-</script>
+            };
+
+            window.handleClearAvatar = function(event) {
+                const previewInitials = document.getElementById('avatar-preview-initials');
+                const fileInput = document.getElementById('{{ form.avatar.id_for_label }}');
+
+                if (event.target.checked) {
+                    previewImage.classList.add('usr-hidden');
+                    previewInitials.classList.remove('usr-hidden');
+                    fileInput.value = '';
+                } else {
+                    if (hasOriginalAvatar) {
+                        previewImage.src = originalAvatarSrc;
+                        previewImage.classList.remove('usr-hidden');
+                        previewInitials.classList.add('usr-hidden');
+                    }
+                }
+            };
+        })();
+    </script>
+{% endblock %}
+{% block actions %}
+    <button class="phx-button phx-button--primary" type="submit" form="profile-update-form">
+        <span>Save</span>
+    </button>
+{% endblock %}

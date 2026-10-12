@@ -1,11 +1,11 @@
+{# A refused save redraws the form in place; one that went through redraws the page's cards, and the view closes the drawer (closeModal). #}
 {% if messages %}
     <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
 {% endif %}
-{% if form.errors %}
+{% if saved %}
+    <div hx-swap-oob="innerHTML:#profile-content">{% include "users/profile/partials/user_info.html" %}</div>
+{% else %}
     <div hx-swap-oob="innerHTML:#profile-update-form-body">
         {% include "users/profile/partials/update_form_body.html" %}
     </div>
-{% else %}
-    <div hx-swap-oob="innerHTML:#core-modal-placeholder-wrapper"></div>
-    <div hx-swap-oob="innerHTML:#profile-content">{% include "users/profile/partials/user_info.html" %}</div>
 {% endif %}
