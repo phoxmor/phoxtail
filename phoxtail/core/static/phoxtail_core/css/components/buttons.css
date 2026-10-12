@@ -17,6 +17,8 @@
     padding: 0.5rem 1.25rem;
     border-radius: 999px;
     border: 1px solid transparent;
+    /* A <button> takes the browser's font, a link the page's: both the page's. */
+    font-family: inherit;
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
