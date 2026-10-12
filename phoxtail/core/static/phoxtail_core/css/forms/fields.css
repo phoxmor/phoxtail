@@ -216,6 +216,12 @@
     }
 }
 
+/* One option per row whatever the width: options whose names are long or
+   whose number grows (a member's groups), which side by side get cut off. */
+.phx-choices--1col {
+    grid-template-columns: 1fr;
+}
+
 /* ── Password ──
    The password box is the shared phx-field outlined field (input.html); its
    show/hide button is a .phx-field__trailing-button driven by js/fields.js. */

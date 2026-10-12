@@ -6,7 +6,8 @@ draws radios, CheckboxSelectMultiple checkboxes. Django draws each option
 through its own widget, pointed at choices/options.html and
 choices/option.html, so values, ticks, ids, groups, disabled and every
 hx_* option reach each input. grid_modifier adds grid classes, e.g.
-phx-choices--7col (the weekday picker, whose form gives short names).
+phx-choices--7col (the weekday picker, whose form gives short names) or
+phx-choices--1col (one option per row, for long or many names).
 Help text and errors render as MD3 supporting text.
 {% endcomment %}
 {% load phoxtail_core_tags %}
