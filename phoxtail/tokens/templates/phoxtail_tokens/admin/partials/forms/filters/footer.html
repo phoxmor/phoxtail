@@ -1,0 +1,22 @@
+{% load i18n phoxtail_design_tags %}
+{% if filter_count > 0 %}
+    <button type="button"
+            class="phx-button phx-button--secondary phx-button--full"
+            hx-get="{% url 'access_tokens_management:admin_tokens_filters' %}"
+            hx-target="this"
+            hx-swap="none"
+            hx-params="none">
+        {% icon "filter_alt_off" class="icon-sm" %}
+        <span>{% translate "Clear all" %}</span>
+    </button>
+{% endif %}
+{# Closes the drawer; with nothing to show it turns grey and says so. #}
+<button type="button"
+        class="phx-button {% if result_count %}phx-button--primary{% else %}phx-button--secondary{% endif %} phx-button--full"
+        onclick="closeModal(this)">
+    {% if result_count %}
+        {% blocktranslate count counter=result_count %}Show {{ counter }} token{% plural %}Show {{ counter }} tokens{% endblocktranslate %}
+    {% else %}
+        {% translate "No tokens match" %}
+    {% endif %}
+</button>

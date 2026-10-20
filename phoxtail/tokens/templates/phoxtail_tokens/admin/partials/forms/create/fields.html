@@ -1,0 +1,25 @@
+{% load phoxtail_core_tags phoxtail_design_tags %}
+{# A new token's fields, in the Create drawer and redrawn with their errors. #}
+<div class="phoxtail-form-stack">
+    <div class="phx-card">
+        <h3 class="phx-card__title">
+            {% icon "vpn_key" %}
+            Details
+        </h3>
+        <div class="phx-card__fields">
+            {% field "input" form.name show_label=True show_help_text=True %}
+            {% field "textarea" form.description show_label=True show_help_text=True %}
+        </div>
+    </div>
+    <div class="phx-card">
+        <h3 class="phx-card__title">
+            {% icon "lock" %}
+            Access
+        </h3>
+        <div class="phx-card__fields">
+            {% field "input" form.scopes show_label=True show_help_text=True %}
+            {% field "input" form.expires_at show_label=True show_help_text=True %}
+            {% field "checkbox" form.unrestricted show_help_text=True %}
+        </div>
+    </div>
+</div>

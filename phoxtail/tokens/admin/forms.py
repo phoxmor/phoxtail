@@ -63,3 +63,16 @@ class AccessTokenCreateForm(forms.Form):
     def clean_scopes(self) -> list[str]:
         raw = self.cleaned_data.get("scopes", "") or ""
         return [s.strip() for s in raw.split(",") if s.strip()]
+
+
+class AccessTokenRevealForm(forms.Form):
+    """The raw token, read-only, shown once in the dialog that follows a
+    create: hidden like a password until its eye shows it, copied whether
+    shown or not."""
+
+    token = forms.CharField(
+        label=_("Token"),
+        required=False,
+        disabled=True,
+        widget=forms.PasswordInput(render_value=True, attrs={"autocomplete": "off"}),
+    )

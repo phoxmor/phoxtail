@@ -1,9 +1,11 @@
 """HTMX views for the access-tokens admin.
 
-Follows the booking admin pattern: FBVs decorated with a policy-aware
-``permission_required`` helper, partials rendered for HTMX modal swaps,
-OOB swaps for the list + messages, and dedicated ``form_response``
-templates so the same view works on both success and validation failure.
+FBVs decorated with a policy-aware ``permission_required`` helper, each
+drawer a core modal drawer. An action that went through answers with events
+(:func:`phoxtail.core.htmx.changed`): the list listens for a change to
+:class:`AccessToken` and redraws itself. A refused create redraws its
+fields out of band; a create answers with the token, once, in place of the
+drawer.
 
 Security-relevant details, inlined where they matter:
 
@@ -22,6 +24,9 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django_htmx.http import trigger_client_event
+
+from phoxtail.core.htmx import change_event, changed, replace_modal
 
 from ..models import AccessToken
 from ..permissions import (
@@ -29,7 +34,7 @@ from ..permissions import (
     access_tokens_permission_required,
 )
 from ..services import AccessTokenService
-from .forms import AccessTokenCreateForm
+from .forms import AccessTokenCreateForm, AccessTokenRevealForm
 from .utils import AccessTokensContextBuilder, can_user_revoke
 
 _TEMPLATE_ROOT = "phoxtail_tokens/admin"
@@ -103,19 +108,14 @@ def admin_token_create_form_view(request):
 def admin_token_create_view(request):
     """Handle the create-token submission.
 
-    On success: swap the drawer out for a one-shot **reveal** drawer that
-    displays the raw token, and refresh the list OOB. On failure: swap
-    the drawer back to the form with errors.
+    On success: the drawer becomes the one that shows the raw token, once,
+    and the list redraws itself. On failure: the fields are redrawn with
+    their errors.
     """
     if request.method != "POST":
         return HttpResponse("Method not allowed", status=405)
 
     form = AccessTokenCreateForm(request.POST)
-    list_context = AccessTokensContextBuilder.get_full_context(request)
-    created = False
-    raw_token = None
-    token = None
-
     if form.is_valid():
         try:
             token, raw_token = AccessTokenService().admin.create(
@@ -126,38 +126,42 @@ def admin_token_create_view(request):
                 unrestricted=form.cleaned_data["unrestricted"],
                 expires_at=form.cleaned_data["expires_at"],
             )
-            created = True
-            messages.success(request, f"Token '{token.name}' created.")
-            list_context = AccessTokensContextBuilder.get_full_context(request)
         except ValidationError as exc:
             for msg in exc.messages:
                 messages.error(request, msg)
+        else:
+            return _revealed(request, token, raw_token)
     else:
         for errs in form.errors.values():
             for err in errs:
                 messages.error(request, err)
 
-    context = {
-        **list_context,
-        "form": form,
-        "created": created,
-        "raw_token": raw_token,
-        "token": token,
-    }
-
-    response = render(
+    return render(
         request,
         f"{_TEMPLATE_ROOT}/partials/forms/create/form_response.html",
-        context,
+        {"form": form},
     )
-    if created:
-        # The response body contains the *only* copy of the raw token
-        # that will ever leave the server. Block every caching surface we
-        # can name — intermediate proxies, browser back/forward cache,
-        # search indexers — so that copy does not outlive the page view.
-        response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
-        response["Pragma"] = "no-cache"
-        response["X-Robots-Tag"] = "noindex, nofollow"
+
+
+def _revealed(request, token, raw_token):
+    """The dialog that shows a token just created, in place of the Create drawer."""
+    response = render(
+        request,
+        f"{_TEMPLATE_ROOT}/partials/forms/create/revealed.html",
+        {
+            "token": token,
+            "form": AccessTokenRevealForm(initial={"token": raw_token}),
+        },
+    )
+    replace_modal(response)
+    trigger_client_event(response, change_event(AccessToken))
+    # The response body contains the *only* copy of the raw token that will
+    # ever leave the server. Block every caching surface we can name —
+    # intermediate proxies, browser back/forward cache, search indexers — so
+    # that copy does not outlive the page view.
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
+    response["Pragma"] = "no-cache"
+    response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
@@ -183,20 +187,6 @@ def admin_token_detail_form_view(request, token_id):
 # Revoke
 # ─────────────────────────────────────────────────────────────────
 @access_tokens_permission_required("access_tokens_management", "revoke_access_tokens")
-def admin_token_revoke_form_view(request, token_id):
-    """Return the revoke-confirmation modal (GET only)."""
-    token = get_object_or_404(AccessToken, uuid=token_id)
-    if not can_user_revoke(request, token):
-        return HttpResponse("Forbidden", status=403)
-
-    return render(
-        request,
-        f"{_TEMPLATE_ROOT}/partials/forms/revoke/form.html",
-        {"token": token},
-    )
-
-
-@access_tokens_permission_required("access_tokens_management", "revoke_access_tokens")
 def admin_token_revoke_view(request, token_id):
     """Revoke the given token. POST only. Idempotent."""
     if request.method != "POST":
@@ -207,11 +197,4 @@ def admin_token_revoke_view(request, token_id):
         return HttpResponse("Forbidden", status=403)
 
     AccessTokenService(token=token).admin.revoke()
-    messages.success(request, f"Token '{token.name}' revoked.")
-
-    context = AccessTokensContextBuilder.get_full_context(request)
-    return render(
-        request,
-        f"{_TEMPLATE_ROOT}/partials/forms/revoke/form_response.html",
-        context,
-    )
+    return changed(AccessToken, f"Token '{token.name}' revoked.")

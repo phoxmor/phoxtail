@@ -1,138 +1,114 @@
-<!-- Tokens Header -->
-<div class="tka-page-header">
-    <div class="tka-page-header__inner">
-        <!-- Title Section -->
-        <div class="tka-page-header__title-section">
-            <h1 class="tka-page-header__title">API Tokens</h1>
-            <div class="tka-page-header__meta">
-                <div class="tka-page-header__count">
-                    {% include 'phoxtail_core/svgs/vpn_key.html' %}
-                    <span class="tka-page-header__count-text">{{ tokens.paginator.count }} Token{{ tokens.paginator.count|pluralize }}</span>
-                </div>
-                {% if can_manage_all %}
-                    <span class="tka-scope-pill">All users</span>
-                {% else %}
-                    <span class="tka-scope-pill">Your tokens</span>
-                {% endif %}
-            </div>
-        </div>
-        <div class="tka-page-header__controls">
-            <!-- Search Input -->
-            {% include 'phoxtail_tokens/admin/partials/searchbar.html' %}
-            <!-- Filters Button -->
-            {% url 'access_tokens_management:admin_tokens_filters_form' as filters_url %}
-            <button type="button"
-                    class="tka-header-btn"
-                    hx-get="{% url 'phoxtail_core:modal' %}"
-                    hx-vals='{"content_url": "{{ filters_url }}"}'
-                    hx-include="#tokens-filters-form-placeholder"
-                    hx-target="#core-modal-placeholder-wrapper"
-                    hx-swap="innerHTML">
-                {% include 'phoxtail_core/svgs/filter_alt.html' %}
-                <span>Filters</span>
-                {% if filter_count > 0 %}<span class="tka-header-btn__badge">{{ filter_count }}</span>{% endif %}
-            </button>
-            {% if can_create %}
-                {% url 'access_tokens_management:admin_token_create_form' as create_url %}
-                <button type="button"
-                        class="tka-header-btn"
-                        hx-get="{% url 'phoxtail_core:modal' %}"
-                        hx-vals='{"content_url": "{{ create_url }}"}'
-                        hx-target="#core-modal-placeholder-wrapper"
-                        hx-swap="innerHTML">
-                    {% include 'phoxtail_core/svgs/plus.html' %}
-                    <span>Create</span>
-                </button>
-            {% endif %}
-        </div>
-    </div>
-</div>
+{% load phoxtail_core_tags phoxtail_design_tags %}
 <!-- Hidden forms so HTMX requests carry filter/search state -->
-<div id="tokens-filters-form-placeholder" style="display: none;">{{ filterset.form }}</div>
+<div id="tokens-filters-form-placeholder" style="display: none;">{% for field in filterset.form %}{% if field.name != "search" %}{{ field }}{% endif %}{% endfor %}</div>
 <div id="tokens-filters-without-search-form-placeholder"
      style="display: none">{% include 'phoxtail_tokens/admin/partials/forms/filters/form_content.html' %}</div>
-<!-- Token Cards -->
-<div class="tka-cards-section">
-    <div class="tka-cards-wrap">
-        <div class="tka-cards-inner">
-            {% if tokens %}
-                <div class="tka-grid">
-                    {% for t in tokens %}
-                        {% url 'access_tokens_management:admin_token_detail_form' t.uuid as detail_url %}
-                        <div class="tka-card {% if not t.is_active %}tka-card--inactive{% endif %}">
-                            <div class="tka-card__inner">
-                                <div class="tka-card__body">
-                                    <div class="tka-card__content">
-                                        <h4 class="tka-card__title">{{ t.name }}</h4>
-                                        <div class="tka-card__meta">
-                                            <div class="tka-card__meta-row">
-                                                {% include 'phoxtail_core/svgs/key.html' %}
-                                                <span class="tka-card__meta-value">{{ t.prefix }}…{{ t.suffix }}</span>
-                                            </div>
-                                            {% if can_manage_all %}
-                                                <div class="tka-card__meta-row">
-                                                    {% include 'phoxtail_core/svgs/person.html' %}
-                                                    <span class="tka-card__meta-value tka-card__meta-value--truncate">{{ t.user.get_full_name|default:t.user.email }}</span>
-                                                </div>
-                                            {% endif %}
-                                            <div class="tka-card__meta-row">
-                                                {% include 'phoxtail_core/svgs/calendar_month.html' %}
-                                                <span class="tka-card__meta-value">Created {{ t.created_at|date:"M j, Y" }}</span>
-                                            </div>
-                                            <div class="tka-card__meta-row">
-                                                {% include 'phoxtail_core/svgs/schedule.html' %}
-                                                <span class="tka-card__meta-value">
-                                                    {% if t.last_used_at %}
-                                                        Last used {{ t.last_used_at|date:"M j, Y H:i" }}
-                                                    {% else %}
-                                                        Never used
-                                                    {% endif %}
-                                                </span>
-                                            </div>
-                                            {% if t.expires_at %}
-                                                <div class="tka-card__meta-row">
-                                                    {% include 'phoxtail_core/svgs/calendar_lock.html' %}
-                                                    <span class="tka-card__meta-value">Expires {{ t.expires_at|date:"M j, Y" }}</span>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% if t.revoked_at %}
-                                <div class="tka-card__badge-area">
-                                    <span class="tka-tag tka-tag--revoked">Revoked</span>
-                                </div>
-                            {% endif %}
-                            <button class="tka-card__button"
-                                    type="button"
-                                    hx-get="{% url 'phoxtail_core:modal' %}"
-                                    hx-vals='{"content_url": "{{ detail_url }}"}'
-                                    hx-target="#core-modal-placeholder-wrapper"
-                                    hx-swap="innerHTML"
-                                    aria-label="View details for token {{ t.name }}">
-                            </button>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="tka-empty-state">
-                    <h3 class="tka-empty-state__title">No tokens found</h3>
-                    <p class="tka-empty-state__text">
-                        {% if filter_count > 0 or filterset.form.search.value %}
-                            Try clearing your search or filters.
-                        {% elif can_create %}
-                            Click <strong>Create</strong> to mint your first API token.
-                        {% else %}
-                            You don't have permission to create tokens.
-                        {% endif %}
-                    </p>
-                </div>
-            {% endif %}
-        </div>
+<!-- Toolbar: title on the left, search and actions on the right -->
+<div class="phx-toolbar">
+    <h1 class="phx-toolbar__title">API Tokens</h1>
+    <div class="phx-toolbar__controls">
+        {% include 'phoxtail_tokens/admin/partials/searchbar.html' %}
+        <!-- Filters Button -->
+        {% url 'access_tokens_management:admin_tokens_filters_form' as filters_url %}
+        <button type="button"
+                class="phx-button phx-button--secondary"
+                hx-get="{% url 'phoxtail_core:modal' %}"
+                hx-vals='{"content_url": "{{ filters_url }}"}'
+                hx-include="#tokens-filters-form-placeholder, #tokens-search-form"
+                hx-target="#core-modal-placeholder-wrapper"
+                hx-swap="innerHTML">
+            {% icon "filter_alt" %}
+            <span>Filters</span>
+            {% if filter_count > 0 %}<span class="phx-badge">{{ filter_count }}</span>{% endif %}
+        </button>
+        {% if can_create %}
+            <!-- Create Button -->
+            {% url 'access_tokens_management:admin_token_create_form' as create_url %}
+            <button type="button"
+                    class="phx-button phx-button--secondary"
+                    hx-get="{% url 'phoxtail_core:modal' %}"
+                    hx-vals='{"content_url": "{{ create_url }}"}'
+                    hx-target="#core-modal-placeholder-wrapper"
+                    hx-swap="innerHTML">
+                {% icon "plus" %}
+                <span>Create</span>
+            </button>
+        {% endif %}
     </div>
 </div>
+<!-- Token Cards -->
+{% if tokens %}
+    <div class="phx-grid">
+        {% for t in tokens %}
+            <div class="phx-card phx-card--clickable">
+                <h4 class="phx-card__title">{{ t.name }}</h4>
+                <div class="phx-card__meta">
+                    <div class="phx-card__meta-row">
+                        {% icon "key" %}
+                        <span class="phx-card__meta-value">{{ t.token_fingerprint }}</span>
+                    </div>
+                    {% if can_manage_all %}
+                        <div class="phx-card__meta-row">
+                            {% icon "person" %}
+                            <span class="phx-card__meta-value phx-card__meta-value--truncate">{{ t.user.get_full_name|default:t.user.email }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="phx-card__meta-row">
+                        {% icon "calendar_month" %}
+                        <span class="phx-card__meta-value">Created {{ t.created_at|date:"M j, Y" }}</span>
+                    </div>
+                    <div class="phx-card__meta-row">
+                        {% icon "schedule" %}
+                        <span class="phx-card__meta-value">
+                            {% if t.last_used_at %}
+                                Last used {{ t.last_used_at|date:"M j, Y H:i" }}
+                            {% else %}
+                                Never used
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if t.expires_at %}
+                        <div class="phx-card__meta-row">
+                            {% icon "calendar_lock" %}
+                            <span class="phx-card__meta-value">Expires {{ t.expires_at|date:"M j, Y" }}</span>
+                        </div>
+                    {% endif %}
+                    {% if t.revoked_at %}
+                        <div class="phx-card__meta-row">
+                            <span class="phx-tag phx-tag--destructive">Revoked</span>
+                        </div>
+                    {% elif not t.is_active %}
+                        <div class="phx-card__meta-row">
+                            <span class="phx-tag phx-tag--warning">Expired</span>
+                        </div>
+                    {% endif %}
+                </div>
+                {% url 'access_tokens_management:admin_token_detail_form' t.uuid as detail_url %}
+                <button class="phx-card__button"
+                        type="button"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ detail_url }}"}'
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML"
+                        aria-label="View token {{ t.name }}">
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="phx-empty phx-card">
+        <h3 class="phx-empty__title">No tokens found</h3>
+        <p class="phx-empty__text">
+            {% if filter_count > 0 or filterset.form.search.value %}
+                Try clearing your search or filters.
+            {% elif can_create %}
+                Click <strong>Create</strong> to mint your first API token.
+            {% else %}
+                You don't have permission to create tokens.
+            {% endif %}
+        </p>
+    </div>
+{% endif %}
 <!-- Pagination -->
-<div class="tka-pagination">
-    {% include 'phoxtail_tokens/admin/partials/forms/navigate/paginator.html' with paginator=tokens %}
-</div>
+{% url 'access_tokens_management:admin_tokens_filters' as filters_url %}
+{% paginator tokens url=filters_url include="#tokens-filters-form-placeholder, #tokens-search-form" param="filter-page" %}

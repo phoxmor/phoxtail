@@ -72,11 +72,12 @@ class AccessTokensContextBuilder:
 
     # ── Public builders ──
     def build_filters_context(self):
-        """Lightweight context for the filters modal only."""
-        self._prepare_base_context(base_queryset=AccessToken.objects.none())
+        """Context for the filters drawer only: the matches are counted, not listed."""
+        self._prepare_base_context(base_queryset=self._build_token_queryset())
         return {
             "filterset": self.filterset,
             "filter_count": self.filter_count,
+            "result_count": self.filterset.qs.count(),
             "can_manage_all": self._can_manage_all(),
         }
 
@@ -92,6 +93,7 @@ class AccessTokensContextBuilder:
 
         return {
             "tokens": paginator.get_page(page_number),
+            "result_count": paginator.count,
             "filterset": self.filterset,
             "total_tokens": base_queryset.count(),
             "filter_count": self.filter_count,

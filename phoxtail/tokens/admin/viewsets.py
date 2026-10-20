@@ -6,7 +6,6 @@ from .views import (
     admin_token_create_form_view,
     admin_token_create_view,
     admin_token_detail_form_view,
-    admin_token_revoke_form_view,
     admin_token_revoke_view,
     admin_tokens_filters_form_view,
     admin_tokens_filters_view,
@@ -40,11 +39,6 @@ class AccessTokensManagementViewSet(AccessTokensViewSet):
                 "<uuid:token_id>/detail-form/",
                 admin_token_detail_form_view,
                 name="admin_token_detail_form",
-            ),
-            path(
-                "<uuid:token_id>/revoke-form/",
-                admin_token_revoke_form_view,
-                name="admin_token_revoke_form",
             ),
             path(
                 "<uuid:token_id>/revoke/",
