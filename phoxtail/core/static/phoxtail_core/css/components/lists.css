@@ -27,11 +27,23 @@
 }
 
 .phx-toolbar__title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
     margin: 0;
     font-size: 2.25rem;
     font-weight: 800;
     text-align: center;
     color: rgb(var(--color-surface-700));
+}
+
+/* The page's icon, before its name, in the brand colour. */
+.phx-toolbar__title svg {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    color: rgb(var(--color-primary-600));
 }
 
 .phx-toolbar__controls {
@@ -57,6 +69,7 @@
     }
 
     .phx-toolbar__title {
+        justify-content: flex-start;
         text-align: left;
     }
 
@@ -261,6 +274,10 @@
 @media (prefers-color-scheme: dark) {
     .phx-toolbar__title {
         color: rgb(var(--color-surface-300));
+    }
+
+    .phx-toolbar__title svg {
+        color: rgb(var(--color-primary-400));
     }
 
     .phx-card__meta-row,
