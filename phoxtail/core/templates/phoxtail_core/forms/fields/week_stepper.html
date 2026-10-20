@@ -17,7 +17,9 @@ lines in the page's language, in a day's circle: the month over its days,
 next, "Oct Nov" over "26–1"; a reader that cannot see the two lines hears
 the range, "Oct 26 – Nov 1"), and the days; each takes a row of its own where it does not fit
 beside the others (js/fields.js lays them out). The circles never shrink:
-where the seven do not fit even on a row of their own they break into rows.
+where the seven do not fit even on a row of their own they scroll sideways,
+faded at a side with more days beyond it, the chosen one in the middle
+when first shown, the row kept where it was after that.
 A picked day, an arrow or the picker puts its day in the box and sends its
 "step" event (js/fields.js), so any hx_* option reaches it, a caller's
 trigger followed by "step". The box takes its own id, so a form elsewhere

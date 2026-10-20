@@ -143,10 +143,13 @@ document.addEventListener('click', function (event) {
    days) on one row where all seven circles fit there whole; else the two
    others above the days, side by side where they fit, one under the other
    where not. Each layout is tried afresh, since the stepper's width follows
-   its layout. The days take as many columns as fit without shrinking a
-   circle, the rows as even as they can be (4 and 3 rather than 6 and 1).
-   Layout and count go on the stepper, not its days: htmx gives the days their
-   new attributes on a redraw, which would drop them. A resize is watched per
+   its layout. Where the days scroll (CSS), a redraw keeps the scroll they
+   had (remembered by their id, since a redraw brings new ones), and the
+   row moves only to bring the chosen day out from under a fade, by as
+   little as it can; a stepper seen for the first time has its chosen day
+   in the middle. Each side with more days beyond it is marked, for its
+   fade. The layout goes on the stepper, not its days: htmx gives the days
+   their new attributes on a redraw, which would drop it. A resize is watched per
    stepper. Each one is met wherever it comes from (the page, an htmx swap,
    an out-of-band one, any script): the browser reports every node added to
    the page, before it paints them, so a new week never shows unlaid. htmx's
@@ -156,6 +159,8 @@ document.addEventListener('click', function (event) {
    browser's picker for a mouse; a tap opens it by itself. */
 (function () {
     var DAYS = '.phx-week-stepper__days';
+    // Each scrolling track's scroll, by its id.
+    var scrolls = {};
 
     function room(days) {
         var style = getComputedStyle(days);
@@ -179,12 +184,50 @@ document.addEventListener('click', function (event) {
         if (room(days) < 7 * circle(days)) {
             classes.remove('phx-week-stepper--wide');
             var jump = stepper.querySelector('.phx-week-stepper__jump').getBoundingClientRect();
-            if (stepper.querySelector('.phx-week-stepper__nav').getBoundingClientRect().top >= jump.bottom) {
+            // The arrows wrapped below the calendar and Today.
+            if (stepper.querySelector('.phx-week-stepper__nav').getBoundingClientRect().top > jump.top + 1) {
                 classes.add('phx-week-stepper--stacked');
             }
         }
-        var fit = Math.max(1, Math.min(7, Math.floor(room(days) / circle(days))));
-        stepper.style.setProperty('--phx-week-stepper-columns', Math.ceil(7 / Math.ceil(7 / fit)));
+        reveal(days, stepper);
+        fade(days);
+    }
+
+    function reveal(days, stepper) {
+        var chosen = days.querySelector('.phx-week-stepper__day[aria-current]');
+        if (!chosen || days.scrollWidth <= days.clientWidth) {
+            return;
+        }
+        var kept = days.id ? scrolls[days.id] : undefined;
+        if (kept === undefined) {
+            days.scrollLeft = chosen.offsetLeft - (days.clientWidth - chosen.offsetWidth) / 2;
+        } else {
+            days.scrollLeft = kept;
+            var clear = parseFloat(getComputedStyle(stepper).getPropertyValue('--phx-week-stepper-fade')) || 0;
+            var start = chosen.offsetLeft - clear;
+            var end = chosen.offsetLeft + chosen.offsetWidth + clear - days.clientWidth;
+            if (days.scrollLeft > start) {
+                days.scrollLeft = start;
+            } else if (days.scrollLeft < end) {
+                days.scrollLeft = end;
+            }
+        }
+        remember(days);
+    }
+
+    function remember(days) {
+        if (days.id) {
+            scrolls[days.id] = days.scrollLeft;
+        }
+    }
+
+    // A pixel spare at each end, for a scroll that rounding leaves a hair
+    // short of it.
+    function fade(days) {
+        var classes = days.closest('.phx-week-stepper').classList;
+        var beyond = days.scrollWidth - days.clientWidth - days.scrollLeft;
+        classes.toggle('phx-week-stepper--fade-start', days.scrollLeft > 1);
+        classes.toggle('phx-week-stepper--fade-end', beyond > 1);
     }
 
     document.addEventListener('click', function (event) {
@@ -194,6 +237,14 @@ document.addEventListener('click', function (event) {
             } catch (error) {
                 // Already open from the tap itself, or no showPicker().
             }
+        }
+    }, true);
+
+    // A scroll does not bubble, so it is caught on its way down.
+    document.addEventListener('scroll', function (event) {
+        if (event.target.matches && event.target.matches(DAYS)) {
+            remember(event.target);
+            fade(event.target);
         }
     }, true);
 

@@ -637,13 +637,14 @@
 }
 
 /* ── Week Stepper ──
-   The segmented control's filled look (below), without its outline: a grey
-   track, the day on show on a secondary button's circle that slides to the
-   next one, today's number in the brand colour. Each day stacks weekday,
+   The days sit on the card itself, the day on show on a circle in the
+   brand colour that slides to the next one, today's number in the brand
+   colour too. Each day stacks weekday,
    number and month, the two small words muted capitals so the number reads
    first. Each day is a square
    as large as its circle, so the track is as tall as the circles plus its
-   padding: 58px circles, never squeezed. One card, a control's fill and
+   padding: 58px circles, never squeezed. The calendar and the arrows
+   line up with the days below them. One card, a control's fill and
    shadow, holds three groups: the calendar, which opens the browser's own
    date picker, and Today (plain text); the arrows around the week's dates;
    and the track. The controls are plain icons and text, each as large to
@@ -651,28 +652,27 @@
    shows only under the pointer, as a faint fill. They share a row where they fit, and each takes a row of its own
    where it does not (js/fields.js lays them out: all three on one row, the
    track between; or the two others above the track, side by side or one
-   under the other). Where the seven circles do not fit even on a row of their own the
-   days break into rows, as even as they can be (4 and 3, 3 3 and 1). The
-   circle slides along one row; across rows it moves at once, since a slide
-   there would cut across the other days. */
+   under the other). The days always keep one row: where the seven circles
+   do not fit, the track scrolls sideways. */
 
 .phx-week-stepper {
     /* A day's circle, which a day never shrinks below, the gap between the
        circles and the track (which the thumb's place counts from), the
-       card's padding, the track's fill (the ground's, main.css), the
-       faint fill of a control's circle under the pointer, and the faint line
-       between the calendar and Today. */
+       card's padding, the
+       faint fill of a control's circle under the pointer, the faint line
+       between the calendar and Today, and the width of a fade where the
+       days scroll. */
     --phx-week-stepper-circle: calc(4rem - 6px);
     --phx-week-stepper-inset: 3px;
-    --phx-week-stepper-padding: 0.375rem;
-    --phx-week-stepper-well: var(--phx-ground-background);
+    --phx-week-stepper-padding: 0.25rem;
     --phx-week-stepper-fill: rgb(0 0 0 / 0.05);
     --phx-week-stepper-line: rgb(0 0 0 / 0.12);
+    --phx-week-stepper-fade: 2.5rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--phx-week-stepper-padding);
+    gap: 0 var(--phx-week-stepper-padding);
     min-width: 0;
     max-width: 100%;
     padding: var(--phx-week-stepper-padding);
@@ -700,16 +700,29 @@
     justify-self: end;
 }
 
+/* The calendar and the arrows sit as far in as the days' circles (the
+   track's inset), so a control above a day lines up with it. */
 .phx-week-stepper__jump {
     display: flex;
     grid-area: jump;
     align-items: center;
+    padding-inline: var(--phx-week-stepper-inset);
 }
 
-/* Alone on its row (--stacked), the calendar and Today sit at its middle. */
+/* Alone on its row (--stacked), the calendar and Today go to its ends, over
+   the first day and the last, the faint line between them at its middle. */
 .phx-week-stepper--stacked .phx-week-stepper__jump {
+    position: relative;
     flex: 1 1 100%;
-    justify-content: center;
+    justify-content: space-between;
+}
+
+.phx-week-stepper--stacked .phx-week-stepper__calendar + .phx-week-stepper__today {
+    position: static;
+}
+
+.phx-week-stepper--stacked .phx-week-stepper__calendar + .phx-week-stepper__today::before {
+    inset-inline-start: calc(50% - 0.5px);
 }
 
 /* Beside the calendar and Today, the arrows sit at the card's end; alone on
@@ -721,20 +734,11 @@
     min-width: 0;
     grid-area: nav;
     justify-content: space-between;
+    padding-inline: var(--phx-week-stepper-inset);
 }
 
 .phx-week-stepper--stacked .phx-week-stepper__nav {
     flex: 1 1 100%;
-}
-
-/* A phone's layout before js/fields.js has laid it out (the scripts come
-   last on a page): seven circles fit on no phone, so the days start in four
-   columns, as the script will count them, and the page does not jump. Its
-   own count, once it has one, overrides this. */
-@media (max-width: 28.5rem) {
-    .phx-week-stepper {
-        --phx-week-stepper-columns: 4;
-    }
 }
 
 .phx-week-stepper__today,
@@ -871,30 +875,74 @@
     gap: 0.5rem;
 }
 
-/* The track: a row of its own (flex-basis 100%), or the middle of one. Its
-   columns are the ones js/fields.js counts (seven until it has), and each
-   can be narrower than a circle (minmax(0, 1fr)), so the days never push the
-   box they sit in wider; the count keeps them wide enough. */
+/* The track: a row of its own (flex-basis 100%), or the middle of one.
+   Seven columns, never narrower than a circle; short of that room the
+   track scrolls sideways, and never pushes the box it sits in wider. */
 .phx-week-stepper__days {
-    --phx-week-stepper-rows: round(up, 7 / var(--phx-week-stepper-columns, 7));
     position: relative;
     display: grid;
     flex: 1 1 100%;
     grid-area: days;
-    grid-template-columns: repeat(var(--phx-week-stepper-columns, 7), minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(var(--phx-week-stepper-circle), 1fr));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
     padding: var(--phx-week-stepper-inset);
     border-radius: 2rem;
-    background: var(--phx-week-stepper-well);
     box-sizing: border-box;
-    /* The track is the ground's colour, so what sits on it rises. */
-    --phx-control-background: var(--phx-raised-background);
-    --phx-control-background-hover: var(--phx-raised-background-hover);
-    --phx-control-shadow: var(--phx-raised-shadow);
-    --phx-control-shadow-hover: var(--phx-raised-shadow-hover);
 }
 
-/* What the track asks for, whatever its columns: seven circles side by side,
-   so it takes a row of its own before it breaks the week. */
+/* Where the track scrolls, the days fade out at a side with more beyond it
+   (js/fields.js marks which), and the fade eases in and out as the scroll
+   reaches an end. The fades are lengths registered as such, so they can
+   ease, and so is the width of a full one, which js/fields.js reads in
+   pixels to keep the chosen day clear of it. */
+@property --phx-week-stepper-fade {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 0px;
+}
+
+@property --phx-week-stepper-fade-start {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+@property --phx-week-stepper-fade-end {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+
+.phx-week-stepper--fade-start .phx-week-stepper__days {
+    --phx-week-stepper-fade-start: var(--phx-week-stepper-fade);
+}
+
+.phx-week-stepper--fade-end .phx-week-stepper__days {
+    --phx-week-stepper-fade-end: var(--phx-week-stepper-fade);
+}
+
+.phx-week-stepper--fade-start .phx-week-stepper__days,
+.phx-week-stepper--fade-end .phx-week-stepper__days {
+    mask-image: linear-gradient(to right, transparent, #000 var(--phx-week-stepper-fade-start), #000 calc(100% - var(--phx-week-stepper-fade-end)), transparent);
+}
+
+.phx-week-stepper__days {
+    transition: --phx-week-stepper-fade-start 0.2s ease, --phx-week-stepper-fade-end 0.2s ease;
+}
+
+/* On a row of its own the track asks for no width at all (width 0), yet
+   fills its row (min-width 100%), so its days can never make a box it sits
+   in wider (a wrapping box sizes its rows by what they ask): it takes the
+   row it is given and scrolls inside it. */
+.phx-week-stepper:not(.phx-week-stepper--wide) .phx-week-stepper__days {
+    width: 0;
+    min-width: 100%;
+}
+
+/* What the track asks for: seven circles side by side, so it takes a row
+   of its own before it scrolls. */
 .phx-week-stepper__days::after {
     content: "";
     grid-row: 1;
@@ -905,28 +953,31 @@
     height: 0;
 }
 
-/* Centred on the chosen day, it slides by its left and top edges. Filled as
-   a secondary button (buttons.css): what the box it sits in hands its
-   controls (main.css). */
+/* Centred on the chosen day, it slides by its left edge. A column is a
+   seventh of the track, or a circle where the track scrolls. A circle in
+   the brand colour, a shade deeper under the pointer. */
 .phx-week-stepper__thumb {
-    --phx-week-stepper-cell: calc((100% - 2 * var(--phx-week-stepper-inset)) / var(--phx-week-stepper-columns, 7));
+    --phx-week-stepper-cell: max(var(--phx-week-stepper-circle), (100% - 2 * var(--phx-week-stepper-inset)) / 7);
     position: absolute;
-    top: calc(var(--phx-week-stepper-inset) + (100% - 2 * var(--phx-week-stepper-inset)) / var(--phx-week-stepper-rows) * (round(down, var(--phx-week-stepper-chosen, 0) / var(--phx-week-stepper-columns, 7)) + 0.5));
-    left: calc(var(--phx-week-stepper-inset) + var(--phx-week-stepper-cell) * (mod(var(--phx-week-stepper-chosen, 0), var(--phx-week-stepper-columns, 7)) + 0.5));
+    top: 50%;
+    left: calc(var(--phx-week-stepper-inset) + var(--phx-week-stepper-cell) * (var(--phx-week-stepper-chosen, 0) + 0.5));
     width: min(var(--phx-week-stepper-cell), var(--phx-week-stepper-circle));
     aspect-ratio: 1;
     border-radius: 50%;
-    background: var(--phx-control-background);
-    box-shadow: var(--phx-control-shadow);
+    background: rgb(var(--color-primary-700));
+    box-shadow: 0 1px 2px rgb(var(--color-primary-700) / 0.2);
     transform: translate(-50%, -50%);
-    transition-property: top, left, background-color, box-shadow;
-    transition-duration: max(0s, 0.2s * (2 - var(--phx-week-stepper-rows)));
+    transition-property: left, background-color;
+    transition-duration: 0.2s;
     transition-timing-function: var(--md-sys-motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
+.phx-week-stepper__days::-webkit-scrollbar {
+    display: none;
+}
+
 .phx-week-stepper__days:has(.phx-week-stepper__day[aria-current]:hover) .phx-week-stepper__thumb {
-    background: var(--phx-control-background-hover);
-    box-shadow: var(--phx-control-shadow-hover);
+    background: color-mix(in srgb, rgb(var(--color-primary-700)), black 12%);
 }
 
 .phx-week-stepper__day {
@@ -951,13 +1002,18 @@
     transition: color 0.15s ease;
 }
 
-.phx-week-stepper__day:hover,
-.phx-week-stepper__day[aria-current] {
+.phx-week-stepper__day:hover {
     color: rgb(var(--color-surface-900));
 }
 
-/* Today's number in the brand colour, chosen, hovered or not: a colour, not
-   a circle, so it never reads as the chosen day. */
+/* The chosen day in white on its circle, today's number too. */
+.phx-week-stepper__day[aria-current],
+.phx-week-stepper__day--today[aria-current] .phx-week-stepper__number {
+    color: #fff;
+}
+
+/* Today's number in the brand colour, hovered or not (white once chosen):
+   a colour, not a circle, so it never reads as the chosen day. */
 .phx-week-stepper__day--today .phx-week-stepper__number {
     color: rgb(var(--color-primary-700));
 }
@@ -1002,8 +1058,7 @@
     .phx-week-stepper__today:hover,
     .phx-week-stepper__calendar:hover,
     .phx-week-stepper__step:hover,
-    .phx-week-stepper__day:hover,
-    .phx-week-stepper__day[aria-current] {
+    .phx-week-stepper__day:hover {
         color: rgb(var(--color-surface-50));
     }
 }
