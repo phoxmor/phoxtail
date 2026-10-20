@@ -68,6 +68,27 @@ def get_proper_page_range(paginator, current_page, show_adjacent=1):
     return page_range
 
 
+@register.inclusion_tag("phoxtail_core/paginator.html")
+def paginator(page, url, include, param):
+    """Draw a list's paginator: Previous, the page numbers and Next.
+
+    Usage:
+        {% paginator tokens url=filters_url include="#tokens-filters-form-placeholder" param="filter-page" %}
+
+    page: the Page; url: the view that answers a page (its answer redraws the
+    list, so the buttons swap nothing); include: what the request carries
+    besides the page (the list's filters and search); param: the page's query
+    name. The template sees only these, never the page around it.
+    """
+    return {
+        "page": page,
+        "page_range": get_proper_page_range(page.paginator, page.number),
+        "url": url,
+        "include": include,
+        "param": param,
+    }
+
+
 @register.simple_tag
 def app_installed(dotted_name):
     """Return True if the given app is in INSTALLED_APPS.

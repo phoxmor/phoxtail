@@ -1,0 +1,61 @@
+{% comment %}
+A list's paginator, drawn by {% paginator %} (phoxtail_core_tags): Previous,
+the page numbers and Next, under the list; on a phone "Page X of Y" in place
+of the numbers. Draws nothing for a single page.
+{% endcomment %}
+{% if page.paginator.num_pages > 1 %}
+    {% load i18n phoxtail_design_tags %}
+    <nav class="phx-paginator" aria-label="{% translate "Pagination" %}">
+        {% if page.has_previous %}
+            <button type="button"
+                    class="phx-button phx-button--secondary"
+                    hx-get="{{ url }}"
+                    hx-vals='{"{{ param }}": "{{ page.previous_page_number }}"}'
+                    hx-include="{{ include }}"
+                    hx-swap="none">
+                {% icon "chevron_left" %}
+                {% translate "Previous" %}
+            </button>
+        {% else %}
+            <div class="phx-button phx-button--secondary" aria-disabled="true" aria-hidden="true">
+                {% icon "chevron_left" %}
+                {% translate "Previous" %}
+            </div>
+        {% endif %}
+        <div class="phx-paginator__pages">
+            {% for page_num in page_range %}
+                {% if page_num == '...' %}
+                    <span class="phx-paginator__ellipsis" aria-hidden="true">{% icon "more_horiz" %}</span>
+                {% elif page.number == page_num %}
+                    <span class="phx-button phx-button--secondary phx-paginator__page" aria-current="page">{{ page_num }}</span>
+                {% else %}
+                    <button type="button"
+                            class="phx-button phx-button--secondary phx-paginator__page"
+                            hx-get="{{ url }}"
+                            hx-vals='{"{{ param }}": "{{ page_num }}"}'
+                            hx-include="{{ include }}"
+                            hx-swap="none">{{ page_num }}</button>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="phx-paginator__summary">
+            {% blocktranslate with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktranslate %}
+        </div>
+        {% if page.has_next %}
+            <button type="button"
+                    class="phx-button phx-button--secondary"
+                    hx-get="{{ url }}"
+                    hx-vals='{"{{ param }}": "{{ page.next_page_number }}"}'
+                    hx-include="{{ include }}"
+                    hx-swap="none">
+                {% translate "Next" %}
+                {% icon "chevron_right" %}
+            </button>
+        {% else %}
+            <div class="phx-button phx-button--secondary" aria-disabled="true" aria-hidden="true">
+                {% translate "Next" %}
+                {% icon "chevron_right" %}
+            </div>
+        {% endif %}
+    </nav>
+{% endif %}

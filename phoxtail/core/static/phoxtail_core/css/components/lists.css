@@ -1,0 +1,284 @@
+/* ── Lists ──
+
+   A list page on the ground: the toolbar (title, search, buttons), a grid of
+   cards, the empty state and the paginator; and the parts a list's drawers
+   share (a filter's label, a form card's fields). */
+
+/* ── Page ──
+
+   The list's column, centred on wide screens. */
+.phx-list {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding: 3rem 1rem 1rem;
+}
+
+/* ── Toolbar ──
+
+   Title on the left, search and buttons on the right; on a phone the title,
+   then the search on a row of its own, then the buttons sharing the next. */
+.phx-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+}
+
+.phx-toolbar__title {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 800;
+    text-align: center;
+    color: rgb(var(--color-surface-700));
+}
+
+.phx-toolbar__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.phx-toolbar__search {
+    flex-basis: 100%;
+}
+
+.phx-toolbar__controls > .phx-button {
+    flex: 1 1 auto;
+}
+
+@media (min-width: 640px) {
+    .phx-toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .phx-toolbar__title {
+        text-align: left;
+    }
+
+    .phx-toolbar__controls {
+        align-items: center;
+    }
+
+    /* Not 100%: as a wrapping flex child that basis takes the whole line. */
+    .phx-toolbar__search {
+        flex-basis: auto;
+        min-width: 260px;
+    }
+
+    .phx-toolbar__controls > .phx-button {
+        flex: none;
+    }
+}
+
+/* ── Grid ──
+
+   minmax(0, 1fr), not 1fr: a grid item's min-width is auto, so 1fr cells
+   refuse to shrink below their content and truncation fails. */
+.phx-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+    margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+    .phx-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .phx-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    .phx-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* ── A card in a list ── */
+
+.phx-grid > .phx-card {
+    position: relative;
+}
+
+.phx-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.phx-card__meta-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-500));
+}
+
+.phx-card__meta-row svg {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: rgb(var(--color-surface-400));
+}
+
+.phx-card__meta-value {
+    font-weight: 500;
+}
+
+.phx-card__meta-value--truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The whole card is one button: it lies over the card and carries the
+   request; its keyboard focus rings the card (.phx-card--clickable). */
+.phx-card__button {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+}
+
+/* ── A form card's fields ── */
+
+.phx-card__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* ── Empty state ── */
+
+.phx-empty {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.phx-empty__title {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgb(var(--color-surface-800));
+}
+
+.phx-empty__text {
+    margin: 0;
+    color: rgb(var(--color-surface-600));
+}
+
+/* ── Paginator ──
+
+   Previous, the page numbers and Next, centred under the list; where the
+   numbers no longer fit, "Page X of Y" in their place. */
+.phx-paginator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-top: 1rem;
+}
+
+.phx-paginator__pages {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.phx-paginator__page {
+    min-width: var(--phx-size-small);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.phx-paginator__ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: var(--phx-size-small);
+    padding: 0 0.25rem;
+}
+
+.phx-paginator__ellipsis svg {
+    width: 16px;
+    height: 16px;
+    color: rgb(var(--color-surface-600));
+}
+
+.phx-paginator__summary {
+    display: none;
+    font-size: 0.8125rem;
+    color: rgb(var(--color-surface-600));
+}
+
+@media (max-width: 560px) {
+    .phx-paginator__pages {
+        display: none;
+    }
+
+    .phx-paginator__summary {
+        display: block;
+    }
+}
+
+/* ── A filter's label ── */
+
+.phx-filter__label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgb(var(--color-surface-600));
+}
+
+.phx-filter__label svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-toolbar__title {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .phx-card__meta-row,
+    .phx-empty__text,
+    .phx-filter__label {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .phx-card__meta-row svg {
+        color: rgb(var(--color-surface-500));
+    }
+
+    .phx-empty__title {
+        color: rgb(var(--color-surface-200));
+    }
+
+    .phx-paginator__ellipsis svg,
+    .phx-paginator__summary {
+        color: rgb(var(--color-surface-300));
+    }
+}
