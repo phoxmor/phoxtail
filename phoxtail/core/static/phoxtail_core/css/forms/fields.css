@@ -1567,6 +1567,16 @@ input.phx-field__control[type="number"]::-webkit-inner-spin-button {
     padding-right: 3rem !important;
 }
 
+/* Two trailing buttons (a secret's show/hide beside its copy): the eye moves
+   one button inwards, and the box keeps room for both. */
+.phx-field__box:has([data-copy]) [data-password-toggle] {
+    right: 2.75rem;
+}
+
+.phx-field__box:has([data-copy]):has([data-password-toggle]) .phx-field__control {
+    padding-right: 5.5rem !important;
+}
+
 /* A caller-supplied placeholder must not fight the resting label for the
    same spot: per MD3 it only shows once the label has floated (focus). The
    single-space float-driver placeholder is unaffected — it has no glyphs. */
@@ -1703,6 +1713,10 @@ textarea.phx-field__control {
     .phx-field__box:has(.phx-field__trailing-button) input.phx-field__control {
         padding-right: 0.5rem !important;
         clip-path: inset(0 2.75rem 0 0);
+    }
+
+    .phx-field__box:has([data-copy]):has([data-password-toggle]) input.phx-field__control {
+        clip-path: inset(0 5.25rem 0 0);
     }
 }
 

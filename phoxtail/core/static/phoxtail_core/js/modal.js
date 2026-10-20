@@ -31,6 +31,19 @@ window.closeModal = function(el) {
 };
 
 /**
+ * Dismiss a modal the way a click outside it or Escape does: close it,
+ * unless its content asks to be closed only by its own buttons
+ * (data-modal-dismiss="button", modal_drawer.html's dismiss block).
+ * @param {Element} [el] - An element inside the modal to dismiss
+ */
+window.dismissModal = function(el) {
+    const modal = el instanceof Element ? el.closest('#base-modal, #base-modal-level-1') : null;
+    const target = modal || document.getElementById('base-modal');
+    if (!target || target.querySelector('[data-modal-dismiss="button"]')) return;
+    _closeModalGeneric(target.id);
+};
+
+/**
  * Close level 1 modal
  */
 function closeModalLevel1() {
@@ -49,8 +62,12 @@ function _configureModalAnimation(modalId, placeholderId) {
     if (!modal || !content) return;
 
     const firstChild = content.firstElementChild;
+    // A drawer states its side (modal_drawer.html); the side decides how it
+    // moves. Other content may still name its animation.
+    const sideAnimation = {right: 'slide-right', left: 'slide-left', center: 'fade'};
     const animationType = firstChild
-        ? firstChild.getAttribute('data-modal-animation') || 'fade'
+        ? sideAnimation[firstChild.getAttribute('data-modal-side')] ||
+          firstChild.getAttribute('data-modal-animation') || 'fade'
         : 'fade';
 
     // Set the animation type — since the placeholder starts with no
@@ -83,15 +100,12 @@ function _labelModal(modalId, placeholderId) {
  * Sets up event listeners for escape key and HTMX events
  */
 (function() {
-    // Handle escape key to close modals (closes topmost modal first)
+    // Escape dismisses the topmost modal (dismissModal: not one that is
+    // closed only by its own buttons).
     document.addEventListener('keyup', function(e) {
         if (e.key === 'Escape') {
-            // Try to close level 1 first, then base modal
-            if (document.getElementById('base-modal-level-1')) {
-                closeModalLevel1();
-            } else if (document.getElementById('base-modal')) {
-                window.closeModal();
-            }
+            const top = document.getElementById('base-modal-level-1') || document.getElementById('base-modal');
+            if (top) window.dismissModal(top);
         }
     });
 

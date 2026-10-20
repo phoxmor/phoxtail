@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.template import engines
 from django.test import override_settings
 
-from phoxtail.core.htmx import change_event, changed
+from phoxtail.core.htmx import MODAL_EXIT, change_event, changed, replace_modal
 
 
 def test_a_change_is_named_after_its_models_label():
@@ -51,3 +51,39 @@ def test_changed_carries_the_events_on_a_response_of_its_own():
     assert response.status_code == 200
     assert response.content == b"<p>below</p>"
     assert json.loads(response["HX-Trigger"])["showToast"] == {"message": "Gone.", "type": "error"}
+
+
+def _static(path):
+    from pathlib import Path
+
+    from django.contrib.staticfiles import finders
+
+    return Path(finders.find(f"phoxtail_core/{path}")).read_text()
+
+
+def test_replace_modal_answers_in_the_modal_the_request_came_from_after_its_exit():
+    response = replace_modal(HttpResponse("<p>next</p>"))
+
+    assert response["HX-Retarget"] == "closest [data-modal-content]"
+    assert response["HX-Reswap"] == f"innerHTML swap:{MODAL_EXIT}"
+
+
+def test_the_exit_lasts_as_long_as_the_drawers_motion():
+    import re
+
+    seconds = re.search(r"--phx-drawer-duration:\s*([\d.]+)s;", _static("css/main.css")).group(1)
+    assert MODAL_EXIT == f"{round(float(seconds) * 1000)}ms"
+
+
+def test_each_side_leaves_with_its_own_motion_while_the_swap_is_held():
+    css = _static("css/modal.css")
+    for side, motion in (("right", "drawerSlideRightOut"), ("left", "drawerSlideLeftOut"), ("center", "fadeOut")):
+        selector = f'[data-modal-content].htmx-swapping [data-modal-side="{side}"] .phoxtail-modal-drawer'
+        assert f"{selector} {{\n    animation: {motion}" in css
+
+
+def test_both_levels_mark_their_content():
+    from django.template.loader import render_to_string
+
+    for shell in ("phoxtail_core/modal.html", "phoxtail_core/modal_level_1.html"):
+        assert "data-modal-content" in render_to_string(shell)

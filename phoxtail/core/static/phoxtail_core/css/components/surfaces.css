@@ -27,6 +27,11 @@ html:has(> body.phx-ground) {
     box-shadow: 8px 0 48px var(--phx-drawer-shadow-color);
 }
 
+/* In the center it floats free, its shadow all round. */
+[data-modal-side="center"] .phoxtail-drawer--glass.phx-ground {
+    box-shadow: 0 24px 64px var(--phx-drawer-shadow-color);
+}
+
 /* ── Card ──
 
    A risen box: an item in a list, or a group of fields under a title.
@@ -74,6 +79,10 @@ html:has(> body.phx-ground) {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    /* The text is the flex box's item: anywhere, not break-word, lets a long
+       word shrink it, so the card never overflows. */
+    min-width: 0;
+    overflow-wrap: anywhere;
     margin: 0 0 1rem;
     font-size: 1.125rem;
     font-weight: 600;

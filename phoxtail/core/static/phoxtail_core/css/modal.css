@@ -86,6 +86,18 @@
 [data-animation-type="slide-left"] .phoxtail-modal-drawer { left: 0; }
 [data-animation-type="slide-right"] .phoxtail-modal-drawer { right: 0; }
 
+/* A drawer set to the center (modal_drawer.html's side block) is a dialog:
+   in the middle of the screen, as tall as its content up to most of it,
+   fading in (modal.js). Its body scrolls past that height, as a drawer's. */
+[data-modal-side="center"] .phoxtail-modal-drawer {
+    inset: 0;
+    width: min(var(--phoxtail-drawer-width, 27.5rem), calc(100vw - 2rem));
+    height: fit-content;
+    max-height: calc(100dvh - 4rem);
+    margin: auto;
+    border-radius: 1rem;
+}
+
 /* Glass drawer skin: an opt-in surface + chrome layer for .phoxtail-modal-drawer,
    pulled out of the various hand-rolled per-app copies (rga-*, evta-*, tka-*, ...)
    that were all reproducing the phoxtail-chatbot-drawer glassmorphism look. Add
@@ -157,12 +169,20 @@
     gap: 1rem;
 }
 
+/* A title wraps, a long unbroken word too (a URL), beside a close button
+   that keeps its size: the drawer never scrolls sideways. */
 .phoxtail-drawer__title {
+    min-width: 0;
     margin: 0;
     font-size: 1.125rem;
     font-weight: 700;
     color: rgb(var(--color-surface-900));
     line-height: 1.3;
+    overflow-wrap: break-word;
+}
+
+.phoxtail-drawer__title-row > .phoxtail-close-btn {
+    flex-shrink: 0;
 }
 
 .phoxtail-drawer__body {
@@ -518,13 +538,13 @@
     animation: slideRightOut 0.32s ease-in;
 }
 
-#core-modal-placeholder[data-animation-type="fade"],
-#core-modal-level-1-placeholder[data-animation-type="fade"] {
+#core-modal-placeholder[data-animation-type="fade"]:not(:has(.phoxtail-modal-drawer)),
+#core-modal-level-1-placeholder[data-animation-type="fade"]:not(:has(.phoxtail-modal-drawer)) {
     animation: fadeIn 0.3s ease-out;
 }
 
-#base-modal.closing #core-modal-placeholder[data-animation-type="fade"],
-#base-modal-level-1.closing #core-modal-level-1-placeholder[data-animation-type="fade"] {
+#base-modal.closing #core-modal-placeholder[data-animation-type="fade"]:not(:has(.phoxtail-modal-drawer)),
+#base-modal-level-1.closing #core-modal-level-1-placeholder[data-animation-type="fade"]:not(:has(.phoxtail-modal-drawer)) {
     animation: fadeOut 0.3s ease-out;
 }
 
@@ -552,6 +572,33 @@
 #base-modal.closing [data-animation-type="slide-right"] .phoxtail-modal-drawer,
 #base-modal-level-1.closing [data-animation-type="slide-right"] .phoxtail-modal-drawer {
     animation: drawerSlideRightOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
+}
+
+/* A drawer in the center (a dialog) fades on its own box, on the drawers'
+   timing, and stays faded until the modal is removed: the shell's hold
+   above ends with it. */
+[data-modal-side="center"] .phoxtail-modal-drawer {
+    animation: fadeIn var(--phx-drawer-duration) var(--phx-drawer-easing);
+}
+
+#base-modal.closing [data-modal-side="center"] .phoxtail-modal-drawer,
+#base-modal-level-1.closing [data-modal-side="center"] .phoxtail-modal-drawer {
+    animation: fadeOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
+}
+
+/* Modal content replaced in place (phoxtail.core.htmx.replace_modal): while
+   htmx holds the swap, what is there leaves with its side's exit; what comes
+   in then enters with its own. */
+[data-modal-content].htmx-swapping [data-modal-side="right"] .phoxtail-modal-drawer {
+    animation: drawerSlideRightOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
+}
+
+[data-modal-content].htmx-swapping [data-modal-side="left"] .phoxtail-modal-drawer {
+    animation: drawerSlideLeftOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
+}
+
+[data-modal-content].htmx-swapping [data-modal-side="center"] .phoxtail-modal-drawer {
+    animation: fadeOut var(--phx-drawer-duration) var(--phx-drawer-easing) forwards;
 }
 
 #core-modal-placeholder[data-animation-type="none"],

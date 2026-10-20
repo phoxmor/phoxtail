@@ -1,35 +1,43 @@
 {% comment %}
 A drawer for the core modals, at either level (modal.html, modal_level_1.html:
 blank canvases, each showing whatever its content view returns). A view that
-wants one extends this and fills its blocks: the title (block title) with the
-close button beside it, the body (block body), which scrolls, and the footer:
-Close, then the drawer's own actions (block actions), or a footer of its own
-(block footer). It slides in from the right, 480px wide (block width), standing
-on the ground, so what sits in it rises.
+wants one extends this and fills its blocks: the header (block header: the
+title, block title, with the close button beside it), the body (block body),
+which scrolls, and the footer: Close, then the drawer's own actions (block
+actions), or a footer of its own (block footer). It stands on the ground, so
+what sits in it rises, 480px wide (block width).
+
+Where it sits (block side): right (the default) or left, sliding in from that
+edge, or center, fading in; core decides the motion from the side (modal.js),
+never the caller. How it closes (block dismiss): by a click outside it,
+Escape, its close button and Close; "button" leaves only its own buttons, for
+what must not be lost to a stray click (a secret shown once).
 
 The modal around it is the dialog, named by the drawer's title (modal.js).
-Closing it (the close button, Close, a click outside) closes that modal,
-whichever level it is on.
+Closing it closes that modal, whichever level it is on.
 {% endcomment %}
 {% load i18n phoxtail_design_tags %}
 <div class="phoxtail-modal-overlay"
-     onclick="closeModal(this)"
-     data-modal-animation="slide-right"
+     onclick="dismissModal(this)"
+     data-modal-side="{% block side %}right{% endblock %}"
+     data-modal-dismiss="{% block dismiss %}{% endblock %}"
      data-animation-duration="300ms">
     <div class="phoxtail-modal-drawer phoxtail-drawer--glass phx-ground"
          style="--phoxtail-drawer-width: {% block width %}480px{% endblock %};"
          onclick="event.stopPropagation()">
         <div class="phoxtail-drawer__scroll">
             <div class="phoxtail-drawer__header">
-                <div class="phoxtail-drawer__title-row">
-                    <h2 class="phoxtail-drawer__title">{% block title %}{% endblock %}</h2>
-                    <button class="phoxtail-close-btn"
-                            onclick="closeModal(this)"
-                            aria-label="{% translate "Close" %}"
-                            type="button">
-                        {% icon "close" %}
-                    </button>
-                </div>
+                {% block header %}
+                    <div class="phoxtail-drawer__title-row">
+                        <h2 class="phoxtail-drawer__title">{% block title %}{% endblock %}</h2>
+                        <button class="phoxtail-close-btn"
+                                onclick="closeModal(this)"
+                                aria-label="{% translate "Close" %}"
+                                type="button">
+                            {% icon "close" %}
+                        </button>
+                    </div>
+                {% endblock %}
             </div>
             <div class="phoxtail-drawer__body">
                 {% block body %}{% endblock %}

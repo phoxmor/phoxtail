@@ -5,8 +5,9 @@ the anatomy notes). A date or date-time box never matches :placeholder-shown,
 so its label is permanently floated; the browser's picker indicator is
 hidden in CSS and the trailing calendar (or, for a time box, clock) button
 opens the picker instead. A
-password box gets the show/hide button (js/fields.js); like Django, it never
-writes the typed value back. Django's own
+password box gets the show/hide button (js/fields.js), named after its field;
+like Django, it never writes the typed value back, unless the form's widget
+says render_value (a secret shown once, read-only, beside copy=True). Django's own
 widget draws the control, so it carries what the form declares: the value
 formatted for the active language, type, required, disabled, maxlength,
 autocomplete, and the aria-describedby link to the line under it (Django's
@@ -38,7 +39,7 @@ form keeps its initial value, whatever is posted) the button stays live.
         {% if trailing == "eye" %}
             <button type="button"
                     class="phx-field__trailing-button"
-                    aria-label="{% translate "Show password" %}"
+                    aria-label="{% blocktranslate with label=label|default:field.label %}Show {{ label }}{% endblocktranslate %}"
                     aria-pressed="false"
                     data-password-toggle>
                 <span class="phx-input__password-eye phx-input__password-eye--show">{% icon "visibility" %}</span>

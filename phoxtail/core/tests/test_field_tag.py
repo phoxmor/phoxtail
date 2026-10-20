@@ -239,11 +239,28 @@ def test_the_shared_scripts_load_the_field_behaviour():
 
 
 def test_the_password_toggle_is_a_labelled_toggle_button():
-    """One constant label; aria-pressed tells a screen reader whether the password is shown."""
-    html = render_field("input", SecretForm()["secret"])
+    """One constant label, named after the field; aria-pressed tells a screen
+    reader whether the value is shown."""
+    form = SecretForm()
+    html = render_field("input", form["secret"])
 
-    assert 'aria-label="Show password"' in html
+    assert f'aria-label="Show {form["secret"].label}"' in html
     assert 'aria-pressed="false"' in html
+
+
+class ShownOnceForm(forms.Form):
+    secret = forms.CharField(label="Key", disabled=True, widget=forms.PasswordInput(render_value=True))
+
+
+def test_a_secret_shown_once_is_hidden_with_its_eye_and_its_copy_button():
+    """A read-only secret the form writes back (render_value): hidden, shown
+    by its eye, copied by its copy button, both named after the field."""
+    html = _render('{% field "input" form.secret copy=True %}', form=ShownOnceForm(initial={"secret": "s3cr3t"}))
+
+    assert 'type="password"' in html
+    assert 'value="s3cr3t"' in html
+    assert 'aria-label="Show Key"' in html
+    assert 'aria-label="Copy Key"' in html
 
 
 def test_quotes_in_a_template_written_option_do_not_break_the_attribute():

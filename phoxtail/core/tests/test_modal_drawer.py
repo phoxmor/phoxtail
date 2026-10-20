@@ -31,8 +31,33 @@ def test_modal_drawer_leaves_the_dialog_to_its_modal():
 
 def test_modal_drawer_closes_the_modal_it_is_in_at_either_level():
     html = render('{% extends "phoxtail_core/modal_drawer.html" %}')
-    assert html.count('onclick="closeModal(this)"') == 3  # click outside, close button, Close
+    assert html.count('onclick="closeModal(this)"') == 2  # close button, Close
+    assert html.count('onclick="dismissModal(this)"') == 1  # click outside
     assert "closeModal()" not in html
+
+
+def test_modal_drawer_sits_on_the_right_and_closes_any_way_by_default():
+    html = render('{% extends "phoxtail_core/modal_drawer.html" %}')
+    assert 'data-modal-side="right"' in html
+    assert 'data-modal-dismiss=""' in html
+    assert "data-modal-animation" not in html  # core decides the motion from the side
+
+
+def test_modal_drawer_side_and_dismiss_are_the_callers():
+    html = render(
+        '{% extends "phoxtail_core/modal_drawer.html" %}'
+        "{% block side %}center{% endblock %}{% block dismiss %}button{% endblock %}"
+    )
+    assert 'data-modal-side="center"' in html
+    assert 'data-modal-dismiss="button"' in html
+
+
+def test_modal_drawer_header_can_be_replaced_whole():
+    html = render(
+        '{% extends "phoxtail_core/modal_drawer.html" %}{% block header %}<span id="own">Mine</span>{% endblock %}'
+    )
+    assert 'id="own"' in html
+    assert "phoxtail-drawer__title-row" not in html
 
 
 def test_modal_drawer_footer_can_be_replaced_whole():
@@ -65,3 +90,19 @@ def test_the_close_event_closes_the_modal_of_the_element_that_sent_it():
     script = _script("modal.js")
 
     assert "addEventListener('closeModal', function(event) {\n        window.closeModal(event.target);" in script
+
+
+def test_a_click_outside_or_escape_spares_a_modal_closed_only_by_its_buttons():
+    """All three ways a modal is dismissed go through dismissModal, which
+    leaves one whose content says data-modal-dismiss="button"."""
+    from django.template.loader import render_to_string
+
+    script = _script("modal.js")
+    assert "querySelector('[data-modal-dismiss=\"button\"]')" in script
+    assert "window.dismissModal(top)" in script  # Escape
+    for shell in ("phoxtail_core/modal.html", "phoxtail_core/modal_level_1.html"):
+        assert 'onclick="dismissModal(this)"' in render_to_string(shell)  # the backdrop
+
+
+def test_the_side_decides_the_motion():
+    assert "{right: 'slide-right', left: 'slide-left', center: 'fade'}" in _script("modal.js")
