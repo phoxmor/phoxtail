@@ -5,6 +5,17 @@ from django.utils.translation import gettext_lazy as _
 from phoxtail.remotes.models import Remote
 
 
+class RemoteSearchForm(forms.Form):
+    """The list's search and page, prefixed so neither meets the Wagtail admin's own names."""
+
+    search = forms.CharField(label=_("Search"), required=False)
+    page = forms.IntegerField(required=False, widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("prefix", "filter")
+        super().__init__(*args, **kwargs)
+
+
 class RemoteAddForm(forms.ModelForm):
     token = forms.CharField(
         label=_("Token"),
@@ -15,6 +26,7 @@ class RemoteAddForm(forms.ModelForm):
     class Meta:
         model = Remote
         fields = ["name", "base_url", "token"]
+        labels = {"base_url": _("Base URL")}
 
     def clean_base_url(self):
         return self.cleaned_data["base_url"].rstrip("/")
@@ -50,15 +62,21 @@ class RemoteAddForm(forms.ModelForm):
 
 class RemoteEditForm(forms.ModelForm):
     token = forms.CharField(
-        label=_("New Token"),
+        label=_("New token"),
         required=False,
         widget=forms.PasswordInput(render_value=False),
-        help_text=_("Leave blank to keep the current token."),
     )
 
     class Meta:
         model = Remote
         fields = ["name", "base_url", "token"]
+        labels = {"base_url": _("Base URL")}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["token"].help_text = _("Leave blank to keep %(token)s.") % {
+            "token": self.instance.token_fingerprint
+        }
 
     def clean_base_url(self):
         return self.cleaned_data["base_url"].rstrip("/")

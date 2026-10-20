@@ -1,0 +1,78 @@
+{% load phoxtail_core_tags phoxtail_design_tags %}
+<!-- Toolbar: title on the left, search and actions on the right -->
+<div class="phx-toolbar">
+    <h1 class="phx-toolbar__title">
+        {% icon "graph_5" %}
+        Remotes
+    </h1>
+    <div class="phx-toolbar__controls">
+        {% url 'remotes:search' as search_url %}
+        <form id="remotes-search-form" class="phx-toolbar__search">
+            {% field "search" search_form.search count=remotes.paginator.count placeholder="Search remotes" hx_get=search_url %}
+            {{ search_form.page }}
+        </form>
+        <!-- Connect Button -->
+        {% url 'remotes:add_form' as add_form_url %}
+        <button type="button"
+                class="phx-button phx-button--secondary"
+                hx-get="{% url 'phoxtail_core:modal' %}"
+                hx-vals='{"content_url": "{{ add_form_url }}"}'
+                hx-target="#core-modal-placeholder-wrapper"
+                hx-swap="innerHTML">
+            {% icon "plus" %}
+            <span>Connect</span>
+        </button>
+    </div>
+</div>
+<!-- Remote Cards -->
+{% if remotes %}
+    <div class="phx-grid">
+        {% for r in remotes %}
+            <div class="phx-card phx-card--clickable">
+                <h4 class="phx-card__title">{{ r.name }}</h4>
+                <div class="phx-card__meta">
+                    <div class="phx-card__meta-row">
+                        {% icon "globe" %}
+                        <span class="phx-card__meta-value phx-card__meta-value--truncate">{{ r.base_url }}</span>
+                    </div>
+                    <div class="phx-card__meta-row">
+                        {% icon "calendar_month" %}
+                        <span class="phx-card__meta-value">Connected {{ r.created_at|date:"M j, Y" }}</span>
+                    </div>
+                    <div class="phx-card__meta-row">
+                        {% icon "key" %}
+                        <span class="phx-card__meta-value">{{ r.token_fingerprint }}</span>
+                    </div>
+                </div>
+                {% url 'remotes:edit_form' r.pk as edit_url %}
+                <button class="phx-card__button"
+                        type="button"
+                        hx-get="{% url 'phoxtail_core:modal' %}"
+                        hx-vals='{"content_url": "{{ edit_url }}"}'
+                        hx-target="#core-modal-placeholder-wrapper"
+                        hx-swap="innerHTML"
+                        aria-label="Edit {{ r.name }}">
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="phx-empty phx-card">
+        <h3 class="phx-empty__title">
+            {% if q %}
+                No remotes match "{{ q }}"
+            {% else %}
+                No remotes connected
+            {% endif %}
+        </h3>
+        <p class="phx-empty__text">
+            {% if q %}
+                Try a different search term.
+            {% else %}
+                Click <strong>Connect</strong> to add a remote Phoxtail project.
+            {% endif %}
+        </p>
+    </div>
+{% endif %}
+<!-- Pagination -->
+{% paginator remotes url=search_url include="#remotes-search-form" param="filter-page" %}
