@@ -2,6 +2,7 @@ from django import template
 from django.conf import settings
 
 from phoxtail.core.fields import render_control, render_field
+from phoxtail.core.htmx import change_event
 
 register = template.Library()
 
@@ -66,6 +67,18 @@ def get_proper_page_range(paginator, current_page, show_adjacent=1):
         page_range.append(total_pages)
 
     return page_range
+
+
+@register.simple_tag
+def changed_event(model):
+    """The client event a change to *model* is announced under, for a page part
+    that redraws itself on it (phoxtail.core.htmx.change_event).
+
+    Usage:
+        hx-trigger="{% changed_event 'phoxtail_tokens.AccessToken' %} from:body"
+        hx-trigger="{% changed_event 'AUTH_USER_MODEL' %} from:body"
+    """
+    return change_event(model)
 
 
 @register.inclusion_tag("phoxtail_core/paginator.html")
