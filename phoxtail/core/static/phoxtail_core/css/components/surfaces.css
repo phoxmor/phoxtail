@@ -95,12 +95,24 @@ html:has(> body.phx-ground) {
     height: 1.25rem;
 }
 
-/* A line or two under the title. */
+/* The icon before a card's title, in the brand colour: what the card opens
+   (a dashboard widget, a settings section), as the menu shows it. */
+.phx-card__icon {
+    display: flex;
+    color: rgb(var(--color-primary-600));
+}
+
+/* A line or two under the title; ending the card, the card's padding is its
+   only margin. */
 .phx-card__text {
     margin: -0.5rem 0 1rem;
     font-size: 0.8125rem;
     line-height: 1.5;
     color: rgb(var(--color-surface-600));
+}
+
+.phx-card__text:last-child {
+    margin-bottom: 0;
 }
 
 /* ── Raised ──
@@ -136,6 +148,10 @@ html:has(> body.phx-ground) {
 
     .phx-card__text {
         color: rgb(var(--color-surface-400));
+    }
+
+    .phx-card__icon {
+        color: rgb(var(--color-primary-400));
     }
 
     .phx-popover {
