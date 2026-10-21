@@ -26,45 +26,6 @@
 .dash-page-inner {
     max-width: 80rem;
     margin: 0 auto;
-    /* A size container, so the title centres on a narrow page */
-    container-type: inline-size;
-}
-
-/* A dashboard page's title (page_title.html): its menu entry's icon, in the
-   brand colour, and its label. */
-.dash-page__title {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    margin: 0;
-    font-size: 2.25rem;
-    font-weight: 800;
-    line-height: 1.1;
-    color: rgb(var(--color-surface-700));
-}
-
-.dash-page__title-icon {
-    display: flex;
-    flex-shrink: 0;
-    color: rgb(var(--color-primary-600));
-}
-
-.dash-page__title-icon svg {
-    width: 2rem;
-    height: 2rem;
-}
-
-/* On a page of its own (not in a toolbar), the content starts a step below */
-.dash-page-inner > .dash-page__title {
-    margin-bottom: 1rem;
-}
-
-/* Phones: centred, as every dashboard page's title */
-@container (max-width: 30rem) {
-    .dash-page__title {
-        justify-content: center;
-        text-align: center;
-    }
 }
 
 /* ========================================
@@ -1423,14 +1384,6 @@
 
     .dash-dock__more-btn[aria-expanded="true"] {
         color: rgb(var(--color-surface-100));
-    }
-
-    .dash-page__title {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .dash-page__title-icon {
-        color: rgb(var(--color-primary-400));
     }
 
     /* Widgets */
