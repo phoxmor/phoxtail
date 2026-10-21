@@ -1,8 +1,10 @@
+from django.utils.translation import gettext_lazy as _
+
 from .registry import DashboardNavItem, registry
 
 MAX_DOCK_SIDE_ITEMS = 3
 
-DASHBOARD_NAV_ITEM = DashboardNavItem(label="Dashboard", url_name="dashboard:index", icon="dashboard", center=True)
+DASHBOARD_NAV_ITEM = DashboardNavItem(label=_("Dashboard"), url_name="dashboard:index", icon="dashboard", center=True)
 
 
 def _dock_layout(mobile_items):

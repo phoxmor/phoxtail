@@ -305,8 +305,8 @@
 /* ========================================
    MOBILE TOP BAR
    ======================================== */
-/* A pill floating a small gap in from the screen's edges. The round buttons
-   sit as far from its right end as from its top and bottom. */
+/* A bar floating a small gap in from the screen's edges, with large rounded
+   corners. */
 :root {
     --dash-topbar-gap: 0.5rem;
 }
@@ -317,7 +317,7 @@
     left: var(--dash-topbar-gap);
     right: var(--dash-topbar-gap);
     padding: 0 calc((4rem - var(--phx-size-small)) / 2) 0 1rem;
-    border-radius: 999px;
+    border-radius: 1rem;
     box-shadow: var(--phx-floating-shadow);
     z-index: 100;
     transition: transform 0.3s ease-in-out;
@@ -352,32 +352,36 @@
 /* ========================================
    TOP BAR – Logo
    ======================================== */
+/* The logo gives way on a narrow phone, so the buttons beside it keep
+   their room. */
 .dash-topbar__logo {
     display: flex;
     align-items: center;
     height: 100%;
-    flex-shrink: 0;
+    min-width: 0;
 }
 
 .dash-topbar__logo-link {
     height: 100%;
     display: flex;
     align-items: center;
+    min-width: 0;
+    max-width: 9rem;
 }
 
 .dash-topbar__logo-link picture {
     height: 100%;
     display: flex;
     align-items: center;
+    min-width: 0;
 }
 
-/* A wide logo gives way on a narrow phone, so the buttons beside it keep
-   their room. */
 .dash-topbar__logo-img {
     display: block;
+    min-width: 0;
     height: 3.25rem;
     width: auto;
-    max-width: min(12rem, 50vw);
+    max-width: 100%;
     object-fit: contain;
 }
 
@@ -392,7 +396,6 @@
     justify-content: flex-end;
     gap: 0.25rem;
     flex: 1;
-    min-width: 0;
     height: 100%;
 }
 
@@ -475,11 +478,9 @@
     position: relative;
 }
 
-.dash-lang__btn {
+/* The current language's code, as the label. */
+.dash-lang__code {
     text-transform: uppercase;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
 }
 
 .dash-lang__menu {
@@ -552,49 +553,6 @@
 }
 
 /* ========================================
-   ICON BUTTON (menu open / close)
-   ======================================== */
-.dash-icon-btn {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: var(--phx-size-small);
-    height: var(--phx-size-small);
-    border: none;
-    border-radius: 50%;
-    /* A control: it rises on the ground, is cut in elsewhere (main.css) */
-    background: var(--phx-control-background);
-    box-shadow: var(--phx-control-shadow);
-    color: rgb(var(--color-surface-600));
-    cursor: pointer;
-    transition: background-color 150ms ease, box-shadow 200ms ease, color 150ms ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.dash-icon-btn:hover {
-    background: var(--phx-control-background-hover);
-    box-shadow: var(--phx-control-shadow-hover);
-}
-
-.dash-icon-btn:focus-visible {
-    outline: 2px solid rgb(var(--color-surface-400) / 0.5);
-    outline-offset: 2px;
-}
-
-.dash-icon-btn__icon {
-    width: var(--phx-size-small-icon);
-    height: var(--phx-size-small-icon);
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-}
-
-.dash-icon-btn__icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* ========================================
    MOBILE DRAWER (off-canvas)
    ======================================== */
 .dash-mobile-backdrop {
@@ -644,12 +602,12 @@
     align-items: center;
 }
 
-/* As tall as the top bar's. */
+/* As tall and as wide as the top bar's. */
 .dash-mobile-sidebar__logo-img {
     display: block;
     height: 3.25rem;
     width: auto;
-    max-width: 12rem;
+    max-width: 9rem;
     object-fit: contain;
 }
 
@@ -799,9 +757,10 @@
     left: 0;
     right: 0;
     /* Every item gets the same width (the sides' items join this row), so
-       the gaps are even and the center item sits on the midpoint. */
+       the gaps are even and the center item sits on the midpoint. Items line
+       up at the top, so a label on two lines keeps its icon in the row. */
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     /* A card's corners where it meets the page. */
     border-radius: 1rem 1rem 0 0;
     transition: border-radius 0.25s ease;
@@ -836,12 +795,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    /* Equal shares; a label wider than its share (Dashboard, 320px) keeps
-       its width and the others give way. */
+    justify-content: flex-start;
+    /* Equal shares, whatever the labels: a long one wraps within its own. */
     flex: 1 1 0;
+    min-width: 0;
     gap: 0.25rem;
-    padding: 0;
+    padding: 0 0.125rem;
     text-decoration: none;
     color: rgb(var(--color-surface-500));
     transition: color 0.2s ease;
@@ -879,12 +838,18 @@
     height: 1.25rem;
 }
 
+/* Centred on as many lines as it needs; a word too long for its share
+   breaks rather than spill into the next item's. */
 .dash-dock__label {
     display: block;
+    max-width: 100%;
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.025em;
-    line-height: 1;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
+    hyphens: auto;
 }
 
 .dash-dock__item--active .dash-dock__label {
@@ -1368,12 +1333,6 @@
 
     .dash-nav-signout:hover .dash-nav-icon {
         color: rgb(var(--color-destructive-400));
-    }
-
-    /* Top bar */
-    /* Icon button */
-    .dash-icon-btn {
-        color: rgb(var(--color-surface-300));
     }
 
     .dash-menu-drawer,

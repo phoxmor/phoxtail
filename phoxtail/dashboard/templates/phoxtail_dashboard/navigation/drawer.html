@@ -1,4 +1,4 @@
-{% load static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags phoxtail_design_tags %}
+{% load i18n static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags phoxtail_design_tags %}
 {% get_settings %}
 <!-- Top Bar -->
 <nav class="dash-topbar phx-raised">
@@ -35,10 +35,11 @@
             </div>
             <div class="dash-topbar__actions">
                 <button id="menu-btn"
-                        class="dash-icon-btn"
-                        aria-label="Open menu"
+                        class="dash-dock__item dash-dock__more-btn"
+                        aria-label="{% translate 'Open menu' %}"
                         type="button">
-                    <span class="dash-icon-btn__icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                    <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                    <span class="dash-dock__label">{% translate 'Menu' %}</span>
                 </button>
             </div>
         </div>
@@ -50,7 +51,7 @@
      class="dash-mobile-sidebar phx-ground"
      role="dialog"
      aria-modal="true"
-     aria-label="Menu">
+     aria-label="{% translate 'Menu' %}">
     <div class="phoxtail-drawer__header">
         <div class="phoxtail-drawer__title-row">
             {% if settings.phoxtail_cms.SiteSetting.logo %}
@@ -79,7 +80,7 @@
             {% endif %}
             <button id="close-drawer"
                     class="phoxtail-close-btn"
-                    aria-label="Close menu"
+                    aria-label="{% translate 'Close menu' %}"
                     type="button">
                 {% icon "close" %}
             </button>
@@ -92,7 +93,7 @@
                 <a href="{{ dashboard_path }}"
                    class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
                     <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
-                    <span class="dash-nav-label">Dashboard</span>
+                    <span class="dash-nav-label">{% translate 'Dashboard' %}</span>
                 </a>
                 {% for item in dashboard_nav_items %}
                     {% url item.url_name as item_path %}
@@ -110,21 +111,21 @@
                 <a href="{{ profile_path }}"
                    class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
                     <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
-                    <span class="dash-nav-label">Profile</span>
+                    <span class="dash-nav-label">{% translate 'Profile' %}</span>
                 </a>
                 {% url 'wagtailadmin_home' as admin_path %}
                 {% if perms.wagtailadmin.access_admin %}
                     <a href="{{ admin_path }}"
                        class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
-                        <span class="dash-nav-label">Admin</span>
+                        <span class="dash-nav-label">{% translate 'Admin' %}</span>
                     </a>
                 {% endif %}
                 <form method="post" action="{% url 'account_logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="dash-nav-item dash-nav-signout">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
-                        <span class="dash-nav-label">Sign out</span>
+                        <span class="dash-nav-label">{% translate 'Sign out' %}</span>
                     </button>
                 </form>
             </div>
@@ -134,12 +135,12 @@
                 <a href="{% url 'account_login' %}"
                    class="phx-button phx-button--secondary">
                     {% include 'phoxtail_core/svgs/signin.html' %}
-                    Log in
+                    {% translate 'Log in' %}
                 </a>
                 <a href="{% url 'account_signup' %}"
                    class="phx-button phx-button--primary">
                     {% include 'phoxtail_core/svgs/person_add.html' %}
-                    Sign up
+                    {% translate 'Sign up' %}
                 </a>
             </div>
         {% endif %}

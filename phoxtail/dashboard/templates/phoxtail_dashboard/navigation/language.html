@@ -1,14 +1,15 @@
-{% load i18n phoxtail_dashboard_tags %}
+{% load i18n phoxtail_dashboard_tags phoxtail_design_tags %}
 {% dashboard_languages as languages %}
 {% if languages %}
     <div class="dash-lang" data-dash-lang>
         <button type="button"
-                class="dash-icon-btn dash-lang__btn"
+                class="dash-dock__item dash-dock__more-btn dash-lang__btn"
                 aria-label="{% translate 'Language' %}"
                 aria-expanded="false"
                 aria-haspopup="true">
             {% get_current_language as current_language %}
-            <span class="dash-lang__code">{{ current_language }}</span>
+            <span class="dash-dock__icon">{% icon "language" %}</span>
+            <span class="dash-dock__label dash-lang__code">{{ current_language }}</span>
         </button>
         <div class="dash-lang__menu phx-popover">
             {% for language in languages %}

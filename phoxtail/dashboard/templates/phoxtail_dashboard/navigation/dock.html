@@ -1,4 +1,4 @@
-{% load phoxtail_dashboard_tags %}
+{% load i18n phoxtail_dashboard_tags %}
 <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
 <div id="dock-sheet" class="dash-dock-sheet phx-raised">
     {% for item in dashboard_dock.overflow %}
@@ -15,21 +15,21 @@
     <a href="{{ profile_path }}"
        class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
-        <span class="dash-nav-label">Profile</span>
+        <span class="dash-nav-label">{% translate 'Profile' %}</span>
     </a>
     {% url 'wagtailadmin_home' as admin_path %}
     {% if perms.wagtailadmin.access_admin %}
         <a href="{{ admin_path }}"
            class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
             <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
-            <span class="dash-nav-label">Admin</span>
+            <span class="dash-nav-label">{% translate 'Admin' %}</span>
         </a>
     {% endif %}
     <form method="post" action="{% url 'account_logout' %}">
         {% csrf_token %}
         <button type="submit" class="dash-nav-item dash-nav-signout">
             <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
-            <span class="dash-nav-label">Sign out</span>
+            <span class="dash-nav-label">{% translate 'Sign out' %}</span>
         </button>
     </form>
 </div>
@@ -65,10 +65,10 @@
         <button id="dock-more-btn"
                 type="button"
                 class="dash-dock__item dash-dock__more-btn"
-                aria-label="More navigation items"
+                aria-label="{% translate 'More navigation items' %}"
                 aria-expanded="false">
             <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/more_horiz.html' %}</span>
-            <span class="dash-dock__label">More</span>
+            <span class="dash-dock__label">{% translate 'More' %}</span>
         </button>
     </div>
 </nav>
