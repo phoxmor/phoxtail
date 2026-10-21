@@ -24,9 +24,13 @@ Optional context:
     - search_value: Current search query value
     - trigger_placeholder: Optional hint shown in the trigger while the panel
       is open and nothing is selected (the resting label covers the closed state)
+    - variant/size: outlined + large (default, for forms) or variant="filled"
+      size="small" (a pill, for toolbars, as the search field's): no outline,
+      the label kept for assistive technology only, trigger_placeholder shown
+      whenever nothing is picked
 {% endcomment %}
 {% with widget_id=field.html_name selected_item=field.selected_item available_items=field.available_items %}
-    <div id="{{ widget_id }}-widget" data-single-select-search class="phx-single-select-search phx-field{% if field.errors %} phx-field--error{% endif %}">
+    <div id="{{ widget_id }}-widget" data-single-select-search class="phx-single-select-search phx-single-select-search--{{ variant|default:"outlined" }} phx-single-select-search--{{ size|default:"large" }} phx-field{% if field.errors %} phx-field--error{% endif %}">
         <div class="phx-field__box phx-single-select-search__box">
             {# HTMX swap target — trigger, hidden value, and panel only #}
             <div id="{{ widget_id }}-container"

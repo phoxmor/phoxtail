@@ -64,7 +64,8 @@ FIELD_OPTIONS = {
     "segmented_control": (SHARED_OPTIONS | {"variant", "size"}, True),
     "phone": (SHARED_OPTIONS | {"prefix_label"}, True),
     "single_select_search": (
-        SHARED_OPTIONS | {"search_url", "hx_include", "item_template", "search_placeholder", "trigger_placeholder"},
+        SHARED_OPTIONS
+        | {"search_url", "hx_include", "item_template", "search_placeholder", "trigger_placeholder", "variant", "size"},
         False,
     ),
     "search": ({"placeholder", "count"}, True),

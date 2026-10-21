@@ -1809,6 +1809,65 @@ textarea.phx-field__control {
     color: rgb(var(--md-sys-color-error));
 }
 
+/* filled + small: a pill for a toolbar, as the search field's. No outline;
+   the label stays for assistive technology, the placeholder names the field. */
+.phx-single-select-search--small .phx-single-select-search__box {
+    height: var(--phx-size-small);
+}
+
+.phx-single-select-search--filled .phx-single-select-search__box {
+    background: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
+    border-radius: 999px;
+    transition: background-color 150ms ease, box-shadow 200ms ease;
+}
+
+.phx-single-select-search--filled .phx-single-select-search__box:hover {
+    background: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
+}
+
+.phx-single-select-search--filled .phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]),
+.phx-single-select-search--filled .phx-single-select-search__box:has(.phx-single-select-search__trigger:focus-visible) {
+    outline: 2px solid rgb(var(--color-primary-600));
+    outline-offset: 2px;
+}
+
+.phx-single-select-search--filled .phx-field__outline {
+    display: none !important;
+}
+
+.phx-single-select-search--filled .phx-field__label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+}
+
+.phx-single-select-search--filled .phx-single-select-search__trigger.phx-field__control {
+    border-radius: 999px !important;
+    font-size: 0.875rem !important;
+}
+
+.phx-single-select-search--filled .phx-single-select-search__placeholder {
+    opacity: 1;
+    color: rgb(var(--color-surface-600));
+    font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-single-select-search--filled .phx-single-select-search__box:has(.phx-single-select-search__trigger[aria-expanded="true"]),
+    .phx-single-select-search--filled .phx-single-select-search__box:has(.phx-single-select-search__trigger:focus-visible) {
+        outline-color: rgb(var(--color-primary-400));
+    }
+
+    .phx-single-select-search--filled .phx-single-select-search__placeholder {
+        color: rgb(var(--color-surface-300));
+    }
+}
+
 .phx-field__control option {
     background-color: rgb(var(--color-surface-50));
     color: rgb(var(--color-surface-900));
