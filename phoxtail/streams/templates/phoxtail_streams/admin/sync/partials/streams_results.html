@@ -1,55 +1,56 @@
+{% load phoxtail_core_tags phoxtail_design_tags %}
 {% url 'streams-sync:variant_detail' as variant_detail_url %}
-{% if remote_warning %}<div class="ss-remote-warning">{{ remote_warning }}</div>{% endif %}
+{% url 'streams-sync:streams' as streams_url %}
+{% if remote_warning %}
+    <div class="phx-notice phx-notice--warning sync-notice">
+        {% icon "warning" %}
+        <p>{{ remote_warning }}</p>
+    </div>
+{% endif %}
 {% if error %}
-    <div class="ss-error-banner">{{ error }}</div>
-{% elif not items %}
-    <div class="ss-empty ss-empty--compact">
-        <h3 class="ss-empty__title">No variants found</h3>
-        <p class="ss-empty__text">{% if q %}Try a different search term.{% else %}Nothing to display here yet.{% endif %}</p>
+    <div class="phx-notice phx-notice--destructive sync-notice">
+        {% icon "warning" %}
+        <p>{{ error }}</p>
+    </div>
+{% elif not page %}
+    <div class="phx-empty phx-card">
+        <h3 class="phx-empty__title">No variants found</h3>
+        <p class="phx-empty__text">
+            {% if q %}
+                Try a different search term.
+            {% else %}
+                Nothing to display here yet.
+            {% endif %}
+        </p>
     </div>
 {% else %}
-    <div class="ss-card-grid">
-        {% for item in items %}
-            <div class="ss-card">
-                <div class="ss-card__preview">
-                    {% if item.sync_state == 'differs' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--unsynced">Unsynced</span>
-                    {% elif item.sync_state == 'not_local' or item.sync_state == 'not_remote' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--new">New</span>
-                    {% elif item.sync_state == 'in_sync' %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge ss-card__synced-badge--synced">Synced</span>
-                    {% else %}<span id="sync-badge-{{ item.id }}" class="ss-card__synced-badge"></span>{% endif %}
+    <div class="phx-grid">
+        {% for item in page %}
+            <div class="phx-card phx-card--clickable sync-card">
+                <div class="sync-card__media">
+                    {% if item.sync_state == 'differs' %}
+                        <span class="phx-tag phx-tag--warning phx-tag--overlay">Unsynced</span>
+                    {% elif item.sync_state == 'not_local' or item.sync_state == 'not_remote' %}
+                        <span class="phx-tag phx-tag--info phx-tag--overlay">New</span>
+                    {% elif item.sync_state == 'in_sync' %}
+                        <span class="phx-tag phx-tag--success phx-tag--overlay">Synced</span>
+                    {% endif %}
                     {% if item.preview_desktop_light_url or item.preview_desktop_dark_url %}
                         <picture>
                             {% if item.preview_desktop_dark_url %}
                                 <source srcset="{{ item.preview_desktop_dark_url }}" media="(prefers-color-scheme: dark)">
                             {% endif %}
-                            {% if item.preview_desktop_light_url %}
-                                <img src="{{ item.preview_desktop_light_url }}"
-                                     class="ss-card__img"
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
-                            {% else %}
-                                <img src="{{ item.preview_desktop_dark_url }}"
-                                     class="ss-card__img"
-                                     alt="{{ item.title }}"
-                                     loading="lazy">
-                            {% endif %}
+                            <img src="{{ item.preview_desktop_light_url|default:item.preview_desktop_dark_url }}"
+                                 alt="{{ item.title }}"
+                                 loading="lazy">
                         </picture>
                     {% else %}
-                        <div class="ss-card__preview--empty">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" class="ss-placeholder-icon" aria-hidden="true">
-                                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/>
-                            </svg>
-                        </div>
+                        {% icon "image" %}
                     {% endif %}
                 </div>
-                <div class="ss-card__body">
-                    <div class="ss-card__body-text">
-                        {% if item.block_name %}
-                            <span class="ss-card__block">{{ item.block_name }}</span>
-                        {% endif %}
-                        <h3 id="sync-card-title-{{ item.id }}" class="ss-card__title">{{ item.title }}</h3>
-                    </div>
-                </div>
-                <button class="ss-card__open-btn"
+                <h4 class="phx-card__title">{{ item.title }}</h4>
+                {% if item.block_name %}<p class="phx-card__text">{{ item.block_name }}</p>{% endif %}
+                <button class="phx-card__button"
                         type="button"
                         hx-get="{% url 'phoxtail_core:modal' %}"
                         hx-vals='{"content_url": "{{ variant_detail_url }}", "variant_id": "{{ item.id }}", "remote_id": "{{ remote_id }}", "mode": "{{ mode }}"}'
@@ -60,66 +61,5 @@
             </div>
         {% endfor %}
     </div>
-    {% if paginator_ctx and paginator_ctx.num_pages > 1 %}
-    <nav class="ss-paginator-nav" aria-label="Pagination">
-        {% if paginator_ctx.has_prev %}
-            <button class="ss-page-btn ss-page-prev"
-                    hx-get="{{ paginator_ctx.prev_url }}"
-                    hx-target="{{ paginator_ctx.hx_target }}"
-                    hx-swap="innerHTML">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ss-page-arrow" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-            </button>
-        {% else %}
-            <div class="ss-page-btn ss-page-prev ss-page-btn--disabled" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ss-page-arrow">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                </svg>
-                Previous
-            </div>
-        {% endif %}
-        <div class="ss-page-numbers">
-            {% for entry in paginator_ctx.page_range %}
-                {% if entry.ellipsis %}
-                    <span class="ss-page-ellipsis">{{ entry.num }}</span>
-                {% elif entry.active %}
-                    <span class="ss-page-btn ss-page-btn--active">{{ entry.num }}</span>
-                {% else %}
-                    <button class="ss-page-btn"
-                            hx-get="{{ entry.url }}"
-                            hx-target="{{ paginator_ctx.hx_target }}"
-                            hx-swap="innerHTML">{{ entry.num }}</button>
-                {% endif %}
-            {% endfor %}
-        </div>
-        <div class="ss-page-mobile">Page {{ paginator_ctx.current_page }} of {{ paginator_ctx.num_pages }}</div>
-        {% if paginator_ctx.has_next %}
-            <button class="ss-page-btn ss-page-next"
-                    hx-get="{{ paginator_ctx.next_url }}"
-                    hx-target="{{ paginator_ctx.hx_target }}"
-                    hx-swap="innerHTML">
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ss-page-arrow" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-        {% else %}
-            <div class="ss-page-btn ss-page-next ss-page-btn--disabled" aria-hidden="true">
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ss-page-arrow">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </div>
-        {% endif %}
-    </nav>
-    {% endif %}
-{% endif %}
-{% if request.htmx %}
-<span id="streams-results-count" class="ss-search-results-count" hx-swap-oob="true">
-    {% if total is not None %}
-        {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
-    {% endif %}
-</span>
+    {% paginator page url=streams_url include="#remote-selected-value, #streams-mode-control, #sync-search-form" param="filter-page" %}
 {% endif %}

@@ -1,115 +1,45 @@
 {% load phoxtail_design_tags phoxtail_core_tags %}
 {% url 'streams-sync:remote_select' as remote_select_url %}
 {% url 'streams-sync:streams' as streams_url %}
-
-<!-- Page Header -->
-<div class="ss-page-header">
-    <div class="ss-page-header__inner">
-        <div class="ss-page-header__title-section">
-            <h1 class="ss-page-header__title">
-                {% icon "sync" %}
-                Sync
-            </h1>
-        </div>
-        <div class="ss-page-header__controls">
+<!-- Toolbar: title on the left; search, then the mode beside the remote, on the right -->
+<div class="phx-toolbar">
+    <h1 class="phx-toolbar__title">
+        {% icon "sync" %}
+        Sync
+    </h1>
+    <div class="phx-toolbar__controls">
+        <form id="sync-search-form" class="phx-toolbar__search">
+            {% include "phoxtail_streams/admin/sync/partials/search.html" %}
+        </form>
+        <div class="sync-fields">
             <div id="streams-mode-control">{% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}</div>
-            <div class="ss-search-form">
-                <div class="ss-search-wrap">
-                    <div class="ss-search-icon-wrap">
-                        <div id="streams-search-icon">{% icon "search" %}</div>
-                        <button type="button"
-                                id="streams-clear-search"
-                                class="ss-search-clear ss-search-hidden"
-                                aria-label="Clear search">
-                            {% icon "close" %}
-                        </button>
-                    </div>
-                    <input type="text"
-                           id="streams-search-input"
-                           name="q"
-                           value="{{ q|default:'' }}"
-                           placeholder="Search variants"
-                           class="ss-search-input"
-                           hx-get="{{ streams_url }}"
-                           hx-target="#streams-results"
-                           hx-swap="innerHTML"
-                           hx-include="#remote-selected-value"
-                           hx-vals='js:{mode: document.querySelector("[name={{ mode_field.html_name }}]:checked").value}'
-                           hx-trigger="input changed delay:300ms">
-                    <span id="streams-results-count" class="ss-search-results-count">
-                        {% if total is not None %}
-                            {% if total > 99 %}99+ results{% else %}{{ total }} result{{ total|pluralize }}{% endif %}
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
             {% if remotes %}
-                {% field "single_select_search" remote_select_field search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" %}
+                {% field "single_select_search" remote_select_field search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" variant="filled" size="small" %}
             {% endif %}
-            <script>
-                (function () {
-                    var input = document.getElementById('streams-search-input');
-                    var clearBtn = document.getElementById('streams-clear-search');
-                    var icon = document.getElementById('streams-search-icon');
-                    if (!input) return;
-                    if (input.value.trim().length > 0) {
-                        icon.classList.add('ss-search-hidden');
-                        clearBtn.classList.remove('ss-search-hidden');
-                    }
-                    clearBtn.addEventListener('click', function () {
-                        input.value = '';
-                        icon.classList.remove('ss-search-hidden');
-                        clearBtn.classList.add('ss-search-hidden');
-                        htmx.trigger(input, 'input');
-                    });
-                    input.addEventListener('input', function () {
-                        if (this.value.trim().length > 0) {
-                            icon.classList.add('ss-search-hidden');
-                            clearBtn.classList.remove('ss-search-hidden');
-                        } else {
-                            icon.classList.remove('ss-search-hidden');
-                            clearBtn.classList.add('ss-search-hidden');
-                        }
-                    });
-                })();
-            </script>
         </div>
     </div>
 </div>
-
+<div id="streams-notice">{% include "phoxtail_streams/admin/sync/partials/notice.html" %}</div>
 <template id="streams-skeleton-tpl">{% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}</template>
 <script>
     (function () {
+        // A request for the list from outside it shows the skeleton while it loads;
+        // the list's own parts (the paginator, a loader) keep what they show.
+        var streamsUrl = '{{ streams_url }}';
         document.body.addEventListener('htmx:beforeRequest', function (e) {
-            var target = e.detail && e.detail.target;
-            if (target && target.id === 'streams-results') {
-                var tpl = document.getElementById('streams-skeleton-tpl');
-                if (tpl) target.innerHTML = tpl.innerHTML;
-            }
+            var path = (e.detail.requestConfig || {}).path || '';
+            var results = document.getElementById('streams-results');
+            var tpl = document.getElementById('streams-skeleton-tpl');
+            if (path.indexOf(streamsUrl) !== 0 || !results || !tpl) return;
+            if (e.detail.elt !== results && results.contains(e.detail.elt)) return;
+            results.innerHTML = tpl.innerHTML;
         });
     })();
 </script>
-
-<!-- Streams panel -->
-<div class="ss-streams-panel">
-    <div id="streams-notice">
-    {% if no_remotes %}
-    {% url 'remotes:index' as remotes_settings_url %}
-    <p class="ss-local-only-notice">Viewing local assets only. <a href="{{ remotes_settings_url }}">Connect a remote</a> to compare and sync.</p>
-    {% elif locked_local %}
-    <p class="ss-local-only-notice">Viewing local assets only. Select a remote to compare and sync.</p>
-    {% endif %}
-    </div>
-    <div id="streams-results"
-         {% if remote_select_field.selected_item %}
-         hx-get="{{ streams_url }}?remote={{ remote_select_field.selected_item.pk }}"
-         hx-trigger="load"
-         hx-swap="innerHTML"
-         {% else %}
-         hx-get="{{ streams_url }}?mode=local"
-         hx-trigger="load"
-         hx-swap="innerHTML"
-         {% endif %}>
-        {% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}
-    </div>
-</div>
+<!-- Variants: drawn on load, and again whenever a variant changes, keeping the remote, mode, search and page -->
+<div id="streams-results"
+     hx-get="{{ streams_url }}"
+     hx-trigger="load, {% changed_event 'phoxtail_streams.BlockVariant' %} from:body"
+     hx-include="#remote-selected-value, #streams-mode-control, #sync-search-form"
+     hx-swap="none"
+     hx-disinherit="*">{% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}</div>

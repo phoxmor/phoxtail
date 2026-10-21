@@ -1,0 +1,304 @@
+/* ── Streams sync ──
+
+   What the sync page draws that core has no look for: the mode beside the
+   remote, a variant's card with its picture, the cards standing in while the
+   list loads, a variant's details line by line, its preview screen and its
+   picture opened large.
+   Everything else is core's. */
+
+/* A notice above the list sits where the list would start. */
+.sync-notice {
+    margin-top: 1rem;
+}
+
+/* ── Toolbar ── */
+
+/* The mode and the remote it reads share a row under the search, on a phone
+   too, until it is too narrow for both. */
+.sync-fields {
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.sync-fields > * {
+    flex: 1 1 auto;
+}
+
+@media (max-width: 639.98px) {
+    /* !important: the switch's own width is armoured against the admin's CSS. */
+    .sync-fields .phx-segmented-control {
+        width: 100% !important;
+    }
+}
+
+@media (min-width: 640px) {
+    .sync-fields {
+        flex-basis: auto;
+    }
+}
+
+/* ── A variant's card ── */
+
+/* Its picture across the top, edge to edge (an icon on the card when it has
+   none), the state tag in its corner; its name on one line, its block close
+   under it. */
+.sync-card {
+    padding: 0.875rem 1rem 1rem;
+}
+
+.sync-card__media {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 16 / 9;
+    margin: -0.875rem -1rem 0.75rem;
+    overflow: hidden;
+    border-radius: 1rem 1rem 0 0;
+}
+
+.sync-card__media > picture {
+    width: 100%;
+    height: 100%;
+}
+
+.sync-card__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.sync-card__media > svg {
+    width: 3rem;
+    height: 3rem;
+    color: rgb(var(--color-surface-400));
+}
+
+.sync-card__media > .phx-tag {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.sync-card .phx-card__title,
+.sync-card .phx-card__text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sync-card .phx-card__title {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
+.sync-card .phx-card__text {
+    margin: 0.125rem 0 0;
+}
+
+/* ── Loading ── */
+
+@keyframes sync-shimmer {
+    from { background-position: -800px 0; }
+    to { background-position: 800px 0; }
+}
+
+@keyframes sync-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Shown only when the wait is long enough to notice. */
+.sync-skeleton {
+    pointer-events: none;
+    animation: sync-appear 0.6s ease-out 400ms both;
+}
+
+.sync-skeleton .sync-card__media,
+.sync-skeleton__line {
+    background: linear-gradient(
+        90deg,
+        var(--phx-control-background) 25%,
+        var(--phx-control-background-hover) 50%,
+        var(--phx-control-background) 75%
+    );
+    background-size: 1600px 100%;
+    animation: sync-shimmer 1.6s ease-in-out infinite;
+}
+
+.sync-skeleton__line {
+    height: 0.75rem;
+    border-radius: 999px;
+}
+
+.sync-skeleton__line + .sync-skeleton__line {
+    margin-top: 0.625rem;
+}
+
+/* ── A variant's details ── */
+
+/* Line by line: an icon, what it is, and its value under it. */
+.sync-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.sync-details__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.sync-details__row > div {
+    min-width: 0;
+}
+
+.sync-details__icon {
+    display: flex;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    color: rgb(var(--color-surface-500));
+}
+
+.sync-details__icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.sync-details__label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-900));
+}
+
+.sync-details__value {
+    margin-top: 0.0625rem;
+    font-size: 0.875rem;
+    color: rgb(var(--color-surface-600));
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.sync-details__value--code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8125rem;
+}
+
+/* ── A variant's previews ── */
+
+.sync-previews {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sync-previews__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.sync-previews__controls > .phx-field {
+    flex: none;
+}
+
+/* The picture is a button: a tap opens it large. */
+.sync-previews__screen {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: var(--phx-control-background);
+    cursor: zoom-in;
+}
+
+.sync-previews__screen img {
+    display: block;
+    width: 100%;
+    max-height: 24rem;
+    object-fit: contain;
+}
+
+/* Over the drawer, the page dimmed behind it; its own ground. */
+.sync-lightbox {
+    width: min(72rem, calc(100vw - 2rem));
+    height: min(48rem, calc(100dvh - 2rem));
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 8px 48px rgb(0 0 0 / 0.2);
+}
+
+.sync-lightbox[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.sync-lightbox::backdrop {
+    background: var(--phx-scrim-background);
+}
+
+.sync-lightbox__header,
+.sync-lightbox__footer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+}
+
+.sync-lightbox__header {
+    justify-content: space-between;
+}
+
+.sync-lightbox__footer {
+    justify-content: center;
+}
+
+.sync-lightbox__title {
+    font-weight: 700;
+}
+
+.sync-lightbox__image {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem;
+}
+
+.sync-lightbox__image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 0.5rem;
+}
+
+/* Pull and Push are forms for their fields; their buttons sit in the footer's row. */
+.sync-action {
+    display: contents;
+}
+
+@media (prefers-color-scheme: dark) {
+    .sync-details__label {
+        color: rgb(var(--color-surface-100));
+    }
+
+    .sync-details__value {
+        color: rgb(var(--color-surface-400));
+    }
+
+    .sync-lightbox {
+        box-shadow: 0 8px 48px rgb(0 0 0 / 0.5);
+    }
+}

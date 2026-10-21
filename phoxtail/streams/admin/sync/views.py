@@ -6,22 +6,22 @@ Uses phoxtail.remotes.Remote for the connection; all writes go to phoxtail.strea
 
 from __future__ import annotations
 
-import math
-
 import httpx
 from django.apps import apps as django_apps
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
+from phoxtail.core.htmx import changed
 from phoxtail.core.paging import ListChanged, NotAPagedList, every_item
-from phoxtail.core.utils import page_range_entries
 from phoxtail.core.views import SingleSelectSearchView
 from phoxtail.remotes.models import Remote
 from phoxtail.remotes.permissions import RemotesPermissionMixin, remotes_permission_required
 from phoxtail.streams.api.v1._helpers import (
+    build_variant_envelope,
     canonical_content_parts,
     schema_fingerprint,
     variant_content_hash,
@@ -30,10 +30,21 @@ from phoxtail.streams.models import BlockVariant
 from phoxtail.streams.services.sync import StreamsSyncService
 from phoxtail.streams.utils import _image_url
 
-from .forms import RemoteSelectForm, SyncModeForm
+from .forms import DEVICES, PreviewForm, RemoteSelectForm, SyncModeForm, SyncSearchForm
 
 _T = "phoxtail_streams/admin/sync"
 _DEFAULT_LIMIT = 12
+# How a variant stands against the remote, in the words of the list's cards.
+_STATES = {
+    "not_local": _("New"),
+    "not_remote": _("New"),
+    "in_sync": _("Synced"),
+    "differs": _("Unsynced"),
+    "unknown": _("Unreachable"),
+}
+_PREVIEWS = tuple(
+    f"preview_image_{device}{suffix}" for device in ("desktop", "tablet", "mobile") for suffix in ("", "_dark")
+)
 
 
 def _remote_variants(remote: Remote, **filters) -> list[dict]:
@@ -69,32 +80,6 @@ def _unreadable(exc: Exception) -> str:
     return f"Could not reach remote: {exc}"
 
 
-def _build_streams_paginator_ctx(offset, limit, total, remote_id, q, mode="remote"):
-    """Build paginator context for the offset-based streams list."""
-    if limit <= 0 or total <= limit:
-        return None
-    num_pages = math.ceil(total / limit)
-    current_page = offset // limit + 1
-    streams_url = reverse("streams-sync:streams")
-
-    def page_url(p):
-        url = f"{streams_url}?remote={remote_id}&limit={limit}&offset={(p - 1) * limit}&mode={mode}"
-        if q:
-            url += f"&q={q}"
-        return url
-
-    return {
-        "has_prev": offset > 0,
-        "prev_url": page_url(current_page - 1) if offset > 0 else None,
-        "has_next": offset + limit < total,
-        "next_url": page_url(current_page + 1) if offset + limit < total else None,
-        "page_range": page_range_entries(current_page, num_pages, page_url),
-        "current_page": current_page,
-        "num_pages": num_pages,
-        "hx_target": "#streams-results",
-    }
-
-
 def _remote_select_field(remotes_qs=None):
     if remotes_qs is None:
         remotes_qs = Remote.objects.all()
@@ -110,6 +95,50 @@ def _mode_field(mode: str, locked: bool):
     form = SyncModeForm(initial={"mode": mode})
     form.fields["mode"].disabled = locked
     return form["mode"]
+
+
+def _previews(variant: dict) -> tuple[list[dict], PreviewForm | None]:
+    """A variant's preview pictures, device by device, and the form that picks one; none, None."""
+    images = [
+        {"device": device, "theme": theme, "url": variant[f"preview_{device}_{theme}_url"]}
+        for device in DEVICES
+        for theme in ("light", "dark")
+        if variant.get(f"preview_{device}_{theme}_url")
+    ]
+    if not images:
+        return [], None
+    devices = list(dict.fromkeys(image["device"] for image in images))
+    return images, PreviewForm(devices, images[0]["theme"])
+
+
+def _local_variant(pk) -> BlockVariant:
+    """A local variant with what its install envelope reads."""
+    return get_object_or_404(
+        BlockVariant.objects.select_related("block", "collection", *_PREVIEWS).prefetch_related("block__page_types"),
+        pk=pk,
+    )
+
+
+def _render_detail(request, install: dict, remote=None, sync_state=None, **context):
+    """The variant drawer: the variant, its block, how it stands, its previews, Pull and Push."""
+    variant = install.get("variant") or {}
+    context["preview_list"], context["preview_form"] = _previews(variant)
+    context |= {
+        "variant": variant,
+        # Not "block": the {% block %} tag puts its own name there.
+        "variant_block": install.get("block") or {},
+        "collection": install.get("collection") or {},
+        "remote": remote,
+        "remote_id": remote.pk if remote else "",
+        "sync_state": sync_state,
+        "state": _STATES.get(sync_state, ""),
+    }
+    return render(request, f"{_T}/partials/variant_detail.html", context)
+
+
+def _detail_error(request, error: str):
+    """The variant drawer when the remote could not answer for it."""
+    return render(request, f"{_T}/partials/variant_detail.html", {"error": error})
 
 
 def _variant_differs(local_v, remote_variant_data: dict, remote_block_data: dict) -> bool:
@@ -161,6 +190,7 @@ def admin_sync_index(request):
         "no_remotes": no_remotes,
         "locked_local": locked_local,
         "has_selected_remote": has_selected_remote,
+        "search_form": SyncSearchForm(),
         "skeleton_range": range(_DEFAULT_LIMIT),
     }
     if getattr(request, "htmx", None):
@@ -202,10 +232,17 @@ def admin_sync_streams(request):
     from wagtail.search.backends import get_search_backend
 
     remote_id = request.GET.get("remote")
-    q = request.GET.get("q", "")
     mode = request.GET.get("mode", "remote")
-    limit = min(int(request.GET.get("limit", _DEFAULT_LIMIT)), 100)
-    offset = max(int(request.GET.get("offset", 0)), 0)
+    search_form = SyncSearchForm(request.GET)
+    search_form.is_valid()
+    q = search_form.cleaned_data.get("search", "").strip()
+    page_number = search_form.cleaned_data.get("page")
+
+    def answer(items=(), **context):
+        """The list redrawn out of band, its search box (with the count) too."""
+        page = Paginator(list(items), _DEFAULT_LIMIT).get_page(page_number)
+        context |= {"page": page, "search_form": search_form, "remote_id": remote_id or "", "q": q, "mode": mode}
+        return render(request, f"{_T}/partials/streams_response.html", context)
 
     if not remote_id or mode == "local":
         # Browse local variants.
@@ -262,23 +299,8 @@ def admin_sync_streams(request):
                 }
             )
 
-        total = len(all_items)
-        items = all_items[offset : offset + limit]
-        return render(
-            request,
-            f"{_T}/partials/streams_results.html",
-            {
-                "items": items,
-                "total": total,
-                "limit": limit,
-                "offset": offset,
-                "remote_id": remote_id or "",
-                "q": q,
-                "mode": "local",
-                "remote_warning": remote_error,
-                "paginator_ctx": _build_streams_paginator_ctx(offset, limit, total, remote_id or "", q, mode="local"),
-            },
-        )
+        mode = "local"
+        return answer(all_items, remote_warning=remote_error)
 
     # mode == "remote" — browse remote variants.
     remote = get_object_or_404(Remote, pk=remote_id)
@@ -287,11 +309,7 @@ def admin_sync_streams(request):
     try:
         remote_variants = _remote_variants(remote, search=q or None)
     except Exception as exc:
-        return render(
-            request,
-            f"{_T}/partials/streams_results.html",
-            {"items": [], "error": _unreadable(exc), "remote_id": remote_id, "q": q, "mode": "remote"},
-        )
+        return answer(error=_unreadable(exc))
 
     local_app_labels = {ac.label for ac in django_apps.get_app_configs()}
     local_hash_map = {
@@ -332,23 +350,7 @@ def admin_sync_streams(request):
             }
         )
 
-    total = len(all_items)
-    items = all_items[offset : offset + limit]
-    return render(
-        request,
-        f"{_T}/partials/streams_results.html",
-        {
-            "items": items,
-            "total": total,
-            "limit": limit,
-            "offset": offset,
-            "remote_id": remote_id,
-            "q": q,
-            "mode": "remote",
-            "error": None,
-            "paginator_ctx": _build_streams_paginator_ctx(offset, limit, total, remote_id, q, mode="remote"),
-        },
-    )
+    return answer(all_items)
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -360,42 +362,14 @@ def admin_sync_streams(request):
 def admin_sync_pull(request):
     if request.method != "POST":
         return HttpResponse(status=405)
-
-    remote_id = request.POST.get("remote_id")
-    variant_id = request.POST.get("variant_id")
-    local_variant_id = request.POST.get("local_variant_id")
-    mode = request.POST.get("mode", "remote")
-
-    remote = get_object_or_404(Remote, pk=remote_id)
-    success = False
-    variant_name = ""
-
+    remote = get_object_or_404(Remote, pk=request.POST.get("remote_id"))
     try:
-        result = StreamsSyncService(remote).pull(variant_id=int(variant_id))
-        variant_name = result.variant.name
-        messages.success(request, f"Pulled '{variant_name}'.")
-        success = True
+        result = StreamsSyncService(remote).pull(variant_id=int(request.POST.get("variant_id")))
     except ValidationError as exc:
-        for message in exc.messages:
-            messages.error(request, message)
+        return _refused(request, exc.messages)
     except Exception as exc:
-        messages.error(request, f"Pull failed: {exc}")
-
-    # In local mode the card is keyed by the local PK; in remote mode by the remote PK.
-    card_variant_id = local_variant_id if (mode == "local" and local_variant_id) else variant_id
-
-    return render(
-        request,
-        f"{_T}/partials/sync_response.html",
-        {
-            "remote_id": remote_id,
-            "variant_id": variant_id,
-            "card_variant_id": card_variant_id,
-            "variant_name": variant_name,
-            "mode": mode,
-            "success": success,
-        },
-    )
+        return _refused(request, [f"Pull failed: {exc}"])
+    return changed(BlockVariant, f"Pulled '{result.variant.name}'.")
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -407,42 +381,21 @@ def admin_sync_pull(request):
 def admin_sync_push(request):
     if request.method != "POST":
         return HttpResponse(status=405)
-
-    remote_id = request.POST.get("remote_id")
-    variant_id = request.POST.get("variant_id")
-    remote_variant_id = request.POST.get("remote_variant_id")
-    mode = request.POST.get("mode", "remote")
-
-    remote = get_object_or_404(Remote, pk=remote_id)
-    success = False
-    variant_name = ""
-
+    remote = get_object_or_404(Remote, pk=request.POST.get("remote_id"))
     try:
-        result = StreamsSyncService(remote).push(variant_id=int(variant_id))
-        variant_name = result.variant_name
-        messages.success(request, f"Pushed '{variant_name}' to remote.")
-        success = True
+        result = StreamsSyncService(remote).push(variant_id=int(request.POST.get("variant_id")))
     except ValidationError as exc:
-        for message in exc.messages:
-            messages.error(request, message)
+        return _refused(request, exc.messages)
     except Exception as exc:
-        messages.error(request, f"Push failed: {exc}")
+        return _refused(request, [f"Push failed: {exc}"])
+    return changed(BlockVariant, f"Pushed '{result.variant_name}' to remote.")
 
-    # In remote mode the card is keyed by the remote PK; in local mode by the local PK.
-    card_variant_id = remote_variant_id if (mode == "remote" and remote_variant_id) else variant_id
 
-    return render(
-        request,
-        f"{_T}/partials/push_response.html",
-        {
-            "remote_id": remote_id,
-            "variant_id": variant_id,
-            "card_variant_id": card_variant_id,
-            "variant_name": variant_name,
-            "mode": mode,
-            "success": success,
-        },
-    )
+def _refused(request, reasons):
+    """A pull or push that did not go through: the drawer stays open and says why."""
+    for reason in reasons:
+        messages.error(request, reason)
+    return render(request, f"{_T}/partials/action_refused.html")
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -460,42 +413,8 @@ def admin_sync_variant_detail(request):
         return HttpResponseBadRequest("Missing variant_id")
 
     if mode == "local" and not remote_id:
-        v = get_object_or_404(
-            BlockVariant.objects.select_related(
-                "block",
-                "collection",
-                "preview_image_desktop",
-                "preview_image_desktop_dark",
-                "preview_image_tablet",
-                "preview_image_tablet_dark",
-                "preview_image_mobile",
-                "preview_image_mobile_dark",
-            ),
-            pk=variant_id,
-        )
-        return render(
-            request,
-            f"{_T}/partials/variant_detail.html",
-            {
-                "item": {"title": v.name, "description": v.description},
-                "block": {"name": v.block.name, "identifier": v.block.identifier},
-                "collection": {"name": v.collection.name} if v.collection_id else None,
-                "variant_id": variant_id,
-                "remote_id": "",
-                "sync_state": None,
-                "remote_variant_id": None,
-                "local_variant_id": v.pk,
-                "mode": mode,
-                "preview_images": {
-                    "desktop_light": _image_url(v.preview_image_desktop),
-                    "desktop_dark": _image_url(v.preview_image_desktop_dark),
-                    "tablet_light": _image_url(v.preview_image_tablet),
-                    "tablet_dark": _image_url(v.preview_image_tablet_dark),
-                    "mobile_light": _image_url(v.preview_image_mobile),
-                    "mobile_dark": _image_url(v.preview_image_mobile_dark),
-                },
-            },
-        )
+        v = _local_variant(variant_id)
+        return _render_detail(request, build_variant_envelope(v), local_variant_id=v.pk)
 
     if not remote_id:
         return HttpResponseBadRequest("Missing remote_id")
@@ -504,20 +423,7 @@ def admin_sync_variant_detail(request):
 
     if mode == "local":
         # variant_id is a local BlockVariant PK.
-        v = get_object_or_404(
-            BlockVariant.objects.select_related(
-                "block",
-                "collection",
-                "preview_image_desktop",
-                "preview_image_desktop_dark",
-                "preview_image_tablet",
-                "preview_image_tablet_dark",
-                "preview_image_mobile",
-                "preview_image_mobile_dark",
-            ),
-            pk=variant_id,
-        )
-        local_variant_id = v.pk
+        v = _local_variant(variant_id)
         remote_variant_id = None
         sync_state = "not_remote"
 
@@ -530,7 +436,7 @@ def admin_sync_variant_detail(request):
                     remote_variant_id = rv["id"]
                     break
 
-            if remote_variant_id is not None and sync_state != "unknown":
+            if remote_variant_id is not None:
                 pull_resp = httpx.get(
                     f"{remote.base_url}/api/streams/v1/variants/{remote_variant_id}/pull/",
                     headers={"Authorization": f"Bearer {remote.token}"},
@@ -548,28 +454,13 @@ def admin_sync_variant_detail(request):
             sync_state = "unknown"
             remote_variant_id = None
 
-        return render(
+        return _render_detail(
             request,
-            f"{_T}/partials/variant_detail.html",
-            {
-                "item": {"title": v.name, "description": v.description},
-                "block": {"name": v.block.name, "identifier": v.block.identifier},
-                "collection": {"name": v.collection.name} if v.collection_id else None,
-                "variant_id": variant_id,
-                "remote_id": remote_id,
-                "sync_state": sync_state,
-                "remote_variant_id": remote_variant_id,
-                "local_variant_id": local_variant_id,
-                "mode": mode,
-                "preview_images": {
-                    "desktop_light": _image_url(v.preview_image_desktop),
-                    "desktop_dark": _image_url(v.preview_image_desktop_dark),
-                    "tablet_light": _image_url(v.preview_image_tablet),
-                    "tablet_dark": _image_url(v.preview_image_tablet_dark),
-                    "mobile_light": _image_url(v.preview_image_mobile),
-                    "mobile_dark": _image_url(v.preview_image_mobile_dark),
-                },
-            },
+            build_variant_envelope(v),
+            remote,
+            sync_state,
+            remote_variant_id=remote_variant_id,
+            local_variant_id=v.pk,
         )
 
     # mode == "remote" — variant_id is the remote's numeric PK.
@@ -581,13 +472,12 @@ def admin_sync_variant_detail(request):
             follow_redirects=True,
         )
     except Exception as exc:
-        return render(request, f"{_T}/partials/variant_detail.html", {"error": f"Could not reach remote: {exc}"})
+        return _detail_error(request, f"Could not reach remote: {exc}")
 
     if not resp.is_success:
-        return render(request, f"{_T}/partials/variant_detail.html", {"error": f"Remote returned {resp.status_code}."})
+        return _detail_error(request, f"Remote returned {resp.status_code}.")
 
-    data = resp.json()
-    install = data.get("install") or {}
+    install = resp.json().get("install") or {}
     block_data = install.get("block") or {}
     variant_data = install.get("variant") or {}
     collection_data = install.get("collection") or {}
@@ -619,26 +509,11 @@ def admin_sync_variant_detail(request):
         local_variant_id = local_v.pk
         sync_state = "differs" if _variant_differs(local_v, variant_data, block_data) else "in_sync"
 
-    return render(
+    return _render_detail(
         request,
-        f"{_T}/partials/variant_detail.html",
-        {
-            "item": data,
-            "block": block_data,
-            "collection": collection_data,
-            "variant_id": variant_id,
-            "remote_id": remote_id,
-            "sync_state": sync_state,
-            "remote_variant_id": int(variant_id),
-            "local_variant_id": local_variant_id,
-            "mode": mode,
-            "preview_images": {
-                "desktop_light": variant_data.get("preview_desktop_light_url") or None,
-                "desktop_dark": variant_data.get("preview_desktop_dark_url") or None,
-                "tablet_light": variant_data.get("preview_tablet_light_url") or None,
-                "tablet_dark": variant_data.get("preview_tablet_dark_url") or None,
-                "mobile_light": variant_data.get("preview_mobile_light_url") or None,
-                "mobile_dark": variant_data.get("preview_mobile_dark_url") or None,
-            },
-        },
+        install,
+        remote,
+        sync_state,
+        remote_variant_id=int(variant_id),
+        local_variant_id=local_variant_id,
     )

@@ -1,10 +1,11 @@
 {% extends "wagtailadmin/base.html" %}
 {% load static %}
 {% block titletag %}Sync{% endblock %}
+{% block bodyclass %}phx-ground{% endblock %}
 {% block extra_css %}
     <!-- Phoxtail core styles -->
     {% include "phoxtail_core/stylesheets.html" %}
-    <link rel="stylesheet" href="{% static 'phoxtail_streams/admin/sync/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'phoxtail_streams/admin/sync/sync.css' %}">
 {% endblock %}
 {% block extra_js %}
     <!-- Phoxtail core scripts -->
@@ -13,14 +14,8 @@
 {% block content %}
     {% include "account/messages_static.html" %}
     <div id="messages-container-wrapper">{% include "account/messages.html" %}</div>
+    <!-- Modal Placeholders -->
     <div id="core-modal-placeholder-wrapper"></div>
-    <div class="ss-page">
-        <div class="ss-loading htmx-indicator">
-            <div class="ss-loading__spinner"></div>
-            <span class="ss-loading__text">Loading...</span>
-        </div>
-        <div id="sync-container" class="ss-container">
-            {% include "phoxtail_streams/admin/sync/partials/page.html" %}
-        </div>
-    </div>
+    <div id="core-modal-level-1-placeholder-wrapper"></div>
+    <div id="sync-container" class="phx-list">{% include "phoxtail_streams/admin/sync/partials/page.html" %}</div>
 {% endblock %}

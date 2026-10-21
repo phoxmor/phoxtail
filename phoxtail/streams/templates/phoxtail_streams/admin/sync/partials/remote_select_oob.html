@@ -1,31 +1,13 @@
 {% url 'streams-sync:streams' as streams_url %}
 {% include 'phoxtail_core/forms/fields/single_select_search/input.html' %}
-{% if selected_remote %}
-    <div hx-swap-oob="innerHTML:#streams-results">
-        <div hx-get="{{ streams_url }}?remote={{ selected_remote.pk }}"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#streams-search-input">
-            {% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}
-        </div>
+{# A remote picked or cleared: the mode and notice follow it, and the list loads again for it. #}
+<div hx-swap-oob="innerHTML:#streams-mode-control">{% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}</div>
+<div hx-swap-oob="innerHTML:#streams-notice">{% include "phoxtail_streams/admin/sync/partials/notice.html" %}</div>
+<div hx-swap-oob="innerHTML:#streams-results">
+    <div hx-get="{{ streams_url }}"
+         hx-trigger="load"
+         hx-swap="none"
+         hx-include="#remote-selected-value, #streams-mode-control, #sync-search-form [name=filter-search]">
+        {% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}
     </div>
-    <div hx-swap-oob="innerHTML:#streams-notice"></div>
-    <div hx-swap-oob="innerHTML:#streams-mode-control">
-        {% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}
-    </div>
-{% else %}
-    <div hx-swap-oob="innerHTML:#streams-results">
-        <div hx-get="{{ streams_url }}?mode=local"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#streams-search-input">
-            {% include "phoxtail_streams/admin/sync/partials/skeleton_grid.html" %}
-        </div>
-    </div>
-    <div hx-swap-oob="innerHTML:#streams-notice">
-        <p class="ss-local-only-notice">Viewing local assets only. Select a remote to compare and sync.</p>
-    </div>
-    <div hx-swap-oob="innerHTML:#streams-mode-control">
-        {% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}
-    </div>
-{% endif %}
+</div>

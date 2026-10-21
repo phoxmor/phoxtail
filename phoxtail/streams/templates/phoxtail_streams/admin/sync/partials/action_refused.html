@@ -1,0 +1,4 @@
+{# A pull or push refused: the drawer stays open, the reason in a message. #}
+{% if messages %}
+    <div hx-swap-oob="innerHTML:#messages-container-wrapper">{% include "account/messages.html" %}</div>
+{% endif %}

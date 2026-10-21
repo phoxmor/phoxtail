@@ -1,0 +1,9 @@
+{% load phoxtail_design_tags %}
+{# One line of a variant's drawer: its icon, what it is, and its value (a dash, in the text's own font, when it has none). #}
+<div class="sync-details__row">
+    <span class="sync-details__icon">{% icon icon %}</span>
+    <div>
+        <div class="sync-details__label">{{ label }}</div>
+        <div class="sync-details__value{% if code and value %} sync-details__value--code{% endif %}">{{ value|default:"—" }}</div>
+    </div>
+</div>

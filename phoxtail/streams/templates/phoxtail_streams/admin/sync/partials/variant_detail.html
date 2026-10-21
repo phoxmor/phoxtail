@@ -1,500 +1,220 @@
-{% load phoxtail_design_tags %}
-<div class="ss-modal-overlay"
-     onclick="closeModal()"
-     data-modal-animation="slide-right"
-     data-animation-duration="300ms">
-    <div class="ss-drawer ss-drawer--wide" onclick="event.stopPropagation()">
-        {% if error %}
-            <div class="ss-drawer__scroll">
-                <div class="ss-drawer__header">
-                    <div class="ss-drawer__title-row">
-                        <h2 class="ss-drawer__title">Error</h2>
-                        <button class="ss-close-btn" onclick="closeModal()" aria-label="Close" type="button">
-                            {% icon "close" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="ss-drawer__body">
-                    <div class="ss-error-banner">{{ error }}</div>
-                </div>
-            </div>
-            <div class="ss-drawer__footer">
-                <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
-            </div>
-        {% else %}
-            <div class="ss-drawer__scroll">
-                <div class="ss-drawer__header">
-                    <div class="ss-drawer__title-row">
-                        <div class="ss-drawer__title-group">
-                            <h2 class="ss-drawer__title">Sync Variant</h2>
-                        </div>
-                        <button class="ss-close-btn" onclick="closeModal()" aria-label="Close" type="button">
-                            {% icon "close" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="ss-drawer__body">
-                    <div class="ss-form-stack">
-                        {% if block.name %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Block</span>
-                                <p class="ss-variant-detail__value">{{ block.name }}</p>
-                            </div>
-                        {% endif %}
-
-                        {% if item.title %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Variant</span>
-                                <p class="ss-variant-detail__value">{{ item.title }}</p>
-                            </div>
-                        {% endif %}
-
-                        {% if item.description %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Description</span>
-                                <p class="ss-variant-detail__value">{{ item.description }}</p>
-                            </div>
-                        {% endif %}
-
-                        {% if collection.name %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Collection</span>
-                                <p class="ss-variant-detail__value">{{ collection.name }}</p>
-                            </div>
-                        {% endif %}
-
-                        {% if sync_state %}
-                            <div class="ss-variant-detail__field">
-                                <span class="ss-variant-detail__label">Sync Status</span>
-                                <p class="ss-variant-detail__value">
-                                    {% if sync_state == "not_local" %}Not installed locally
-                                    {% elif sync_state == "not_remote" %}Not on remote
-                                    {% elif sync_state == "in_sync" %}Up to date
-                                    {% elif sync_state == "differs" %}Out of sync
-                                    {% elif sync_state == "unknown" %}Unable to reach remote
-                                    {% endif %}
-                                </p>
-                            </div>
-                        {% endif %}
-
-                        {% if preview_images %}
-                            {% with dl=preview_images.desktop_light dd=preview_images.desktop_dark tl=preview_images.tablet_light td=preview_images.tablet_dark ml=preview_images.mobile_light md=preview_images.mobile_dark %}
-                                {% if dl or dd or tl or td or ml or md %}
-                                    <div class="ss-variant-detail__field ss-variant-detail__field--previews">
-                                        <span class="ss-variant-detail__label">Preview Images</span>
-                                        
-                                        <!-- Screen & Mode Switchers (above the images) -->
-                                        <div class="ss-preview-switcher-column">
-                                            <!-- Device Row -->
-                                            <div class="ss-preview-switcher-group ss-preview-switcher-group--devices">
-                                                {% if dl or dd %}<button type="button" class="ss-preview-switcher-btn" data-device="desktop">Desktop</button>{% endif %}
-                                                {% if tl or td %}<button type="button" class="ss-preview-switcher-btn" data-device="tablet">Tablet</button>{% endif %}
-                                                {% if ml or md %}<button type="button" class="ss-preview-switcher-btn" data-device="mobile">Mobile</button>{% endif %}
-                                            </div>
-                                            <!-- Theme Row -->
-                                            <div class="ss-preview-switcher-group ss-preview-switcher-group--themes">
-                                                <button type="button" class="ss-preview-switcher-btn" data-theme="light">Light</button>
-                                                <button type="button" class="ss-preview-switcher-btn" data-theme="dark">Dark</button>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Interactive Mockup Viewports (No simulation frames) -->
-                                        <div class="ss-preview-simulator-wrap">
-                                            <div class="ss-preview-screen" id="ss-preview-screen">
-                                                <div class="ss-mockup__zoom-overlay">
-                                                    {% icon "zoom_in" %}
-                                                    <span>Click to zoom</span>
-                                                </div>
-                                                <img class="ss-preview-img" id="ss-preview-img-active" src="" alt="Preview">
-                                            </div>
-                                        </div>
-
-                                        <!-- Navigation Toggles (below the images) -->
-                                        <div class="ss-preview-switcher-column" id="ss-preview-nav-column">
-                                            <div class="ss-preview-switcher-group">
-                                                <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-prev" title="Previous Preview">
-                                                    Previous
-                                                </button>
-                                                <span class="ss-preview-switcher-separator"></span>
-                                                <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-next" title="Next Preview">
-                                                    Next
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="ss-drawer__footer" id="variant-sync-footer">
-                <button class="ss-btn ss-btn--secondary" onclick="closeModal()" type="button">Close</button>
-
-                {% if local_variant_id and remote_id %}
-                    <form style="display: contents"
-                          hx-post="{% url 'streams-sync:push' %}"
-                          hx-swap="none"
-                          hx-include="this"
-                          hx-indicator="#streams-push-btn">
-                        {% csrf_token %}
-                        <input type="hidden" name="remote_id" value="{{ remote_id }}">
-                        <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
-                        <input type="hidden" name="remote_variant_id" value="{{ remote_variant_id }}">
-                        <input type="hidden" name="mode" value="{{ mode }}">
-                        <button type="submit"
-                                id="streams-push-btn"
-                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' or sync_state == 'unknown' %} ss-btn--muted{% endif %}"
-                                {% if sync_state == 'in_sync' or sync_state == 'unknown' %}disabled{% endif %}>
-                            <span class="ss-btn__idle">Push</span>
-                            <span class="ss-btn__connecting"><span class="ss-btn-spinner"></span><span>Pushing…</span></span>
-                        </button>
-                    </form>
-                {% else %}
-                    <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Push</button>
-                {% endif %}
-
-                {% if remote_variant_id %}
-                    <form style="display: contents"
-                          hx-post="{% url 'streams-sync:pull' %}"
-                          hx-swap="none"
-                          hx-include="this"
-                          hx-indicator="#streams-pull-btn">
-                        {% csrf_token %}
-                        <input type="hidden" name="remote_id" value="{{ remote_id }}">
-                        <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
-                        <input type="hidden" name="local_variant_id" value="{{ local_variant_id }}">
-                        <input type="hidden" name="mode" value="{{ mode }}">
-                        <button type="submit"
-                                id="streams-pull-btn"
-                                class="ss-btn ss-btn--primary{% if sync_state == 'in_sync' %} ss-btn--muted{% endif %}"
-                                {% if sync_state == 'in_sync' %}disabled{% endif %}>
-                            <span class="ss-btn__idle">Pull</span>
-                            <span class="ss-btn__connecting"><span class="ss-btn-spinner"></span><span>Pulling…</span></span>
-                        </button>
-                    </form>
-                {% else %}
-                    <button type="button" class="ss-btn ss-btn--primary ss-btn--muted" disabled>Pull</button>
-                {% endif %}
-            </div>
-        {% endif %}
-
-        <!-- Lightbox for variant preview images -->
-        <div class="ss-preview-lightbox" id="ss-preview-lightbox" inert>
-            <div class="ss-preview-lightbox__inner">
-                <div class="ss-preview-lightbox__header">
-                    <span class="ss-preview-lightbox__title">Variant Previews</span>
-                    <button type="button" class="ss-preview-lightbox__close-btn" id="ss-preview-lightbox-close" title="Close Preview">
-                        {% icon "close" %}
-                    </button>
-                </div>
-                
-                <!-- Screen and Mode Switchers (on top of images) -->
-                <div class="ss-preview-lightbox__top-switchers">
-                    <div class="ss-preview-switcher-column">
-                        <!-- Device Row -->
-                        <div class="ss-preview-switcher-group" id="ss-lightbox-device-group"></div>
-                        <!-- Theme Row -->
-                        <div class="ss-preview-switcher-group" id="ss-lightbox-theme-group"></div>
-                    </div>
-                </div>
-                
-                <div class="ss-preview-lightbox__content">
-                    <div class="ss-preview-lightbox__image-wrap">
-                        <img class="ss-preview-lightbox__img" id="ss-preview-lightbox-img" src="" alt="Variant Preview Detail">
-                    </div>
-                </div>
-                
-                <div class="ss-preview-lightbox__footer">
-                    <div class="ss-preview-switcher-column">
-                        <!-- Navigation Row -->
-                        <div class="ss-preview-switcher-group">
-                            <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-lightbox-prev" title="Previous Preview">
-                                Previous
-                            </button>
-                            <span class="ss-preview-switcher-separator"></span>
-                            <button type="button" class="ss-preview-switcher-btn ss-preview-switcher-btn--nav" id="ss-preview-lightbox-next" title="Next Preview">
-                                Next
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+{% extends "phoxtail_core/modal_drawer.html" %}
+{% comment %}
+A variant (level 0), titled by its name: its fields and its block's, line
+by line, how it stands against the remote, its previews, and Pull and
+Push. A pull or push closes the drawer, and the list redraws itself; a
+refused one keeps it open and says why. A remote that could not be read
+answers with the reason instead.
+{% endcomment %}
+{% load phoxtail_core_tags phoxtail_design_tags %}
+{% block width %}600px{% endblock %}
+{% block title %}
+    {% if error %}
+        Remote unavailable
+    {% else %}
+        {{ variant.name }}
+    {% endif %}
+{% endblock %}
+{% block body %}
+    {% if error %}
+        <div class="phx-notice phx-notice--destructive">
+            {% icon "warning" %}
+            <p>{{ error }}</p>
         </div>
+    {% else %}
+        <div class="phoxtail-form-stack">
+            <div class="phx-card">
+                <h3 class="phx-card__title">
+                    {% icon "category" %}
+                    Variant
+                </h3>
+                <div class="sync-details">
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label="Name" value=variant.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label="Identifier" value=variant.identifier code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label="Description" value=variant.description %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_6" label="Collection" value=collection.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="check_circle" label="Default variant" value=variant.is_default|yesno:"Yes,No" %}
+                </div>
+            </div>
+            <div class="phx-card">
+                <h3 class="phx-card__title">
+                    {% icon "widgets" %}
+                    Block
+                </h3>
+                <div class="sync-details">
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label="Name" value=variant_block.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label="Identifier" value=variant_block.identifier code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label="Description" value=variant_block.description %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="style" label="Icon" value=variant_block.icon code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="folder" label="Group" value=variant_block.group %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="apps" label="App" value=variant_block.source_app code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="web" label="Page types" value=variant_block.page_types|join:", " %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="interests" label="Shared" value=variant_block.is_shared|yesno:"Yes,No" %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="page_header" label="Site slot" value=variant_block.site_slot %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="numbers" label="Slot order" value=variant_block.slot_order|stringformat:"d" %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="visibility" label="Render in preview" value=variant_block.render_in_preview|yesno:"Yes,No" %}
+                </div>
+            </div>
+            {% if remote %}
+                <div class="phx-card">
+                    <h3 class="phx-card__title">
+                        {% icon "sync" %}
+                        Sync
+                    </h3>
+                    <div class="sync-details">
+                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_5" label="Remote" value=remote.name %}
+                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="info" label="Status" value=state %}
+                    </div>
+                </div>
+            {% endif %}
+            {% if preview_form %}
+                <div class="phx-card">
+                    <h3 class="phx-card__title">
+                        {% icon "image" %}
+                        Previews
+                    </h3>
+                    <div class="sync-previews">
+                        <div class="sync-previews__controls">
+                            {% field "segmented_control" preview_form.device variant="filled" size="small" show_label=False %}
+                            {% field "segmented_control" preview_form.theme variant="filled" size="small" show_label=False %}
+                        </div>
+                        <button type="button" class="sync-previews__screen" id="sync-previews-zoom" aria-label="Zoom in">
+                            <img id="sync-previews-image" alt="Preview of {{ variant.name }}">
+                        </button>
+                    </div>
+                </div>
+                <dialog class="sync-lightbox phx-ground" id="sync-lightbox" aria-label="Previews of {{ variant.name }}">
+                    <div class="sync-lightbox__header">
+                        <span class="sync-lightbox__title" id="sync-lightbox-title"></span>
+                        <button class="phoxtail-close-btn" id="sync-lightbox-close" type="button" aria-label="Close">
+                            {% icon "close" %}
+                        </button>
+                    </div>
+                    <div class="sync-lightbox__image">
+                        <img id="sync-lightbox-image" alt="Preview of {{ variant.name }}">
+                    </div>
+                    <div class="sync-lightbox__footer">
+                        <button type="button" class="phx-button phx-button--secondary" id="sync-lightbox-prev">
+                            {% icon "chevron_left" %}
+                            Previous
+                        </button>
+                        <button type="button" class="phx-button phx-button--secondary" id="sync-lightbox-next">
+                            Next
+                            {% icon "chevron_right" %}
+                        </button>
+                    </div>
+                </dialog>
+                {{ preview_list|json_script:"sync-previews-data" }}
+                <script>
+                    (function () {
+                        // The picture the device and theme pick (a theme the device has no
+                        // picture for cannot be picked); a tap opens it large, where
+                        // Previous and Next walk every picture.
+                        var images = JSON.parse(document.getElementById('sync-previews-data').textContent);
+                        var image = document.getElementById('sync-previews-image');
+                        var lightbox = document.getElementById('sync-lightbox');
+                        var big = document.getElementById('sync-lightbox-image');
+                        var title = document.getElementById('sync-lightbox-title');
+                        var labels = {desktop: 'Desktop', tablet: 'Tablet', mobile: 'Mobile', light: 'Light', dark: 'Dark'};
+                        var shown = 0;
 
-    </div>
-</div>
+                        function radios(name) {
+                            return Array.prototype.slice.call(document.querySelectorAll('input[name="preview-' + name + '"]'));
+                        }
 
-<script>
-(function() {
-    const images = [];
-    {% if preview_images.desktop_light %}images.push({ device: 'desktop', theme: 'light', url: '{{ preview_images.desktop_light }}' });{% endif %}
-    {% if preview_images.desktop_dark %}images.push({ device: 'desktop', theme: 'dark', url: '{{ preview_images.desktop_dark }}' });{% endif %}
-    {% if preview_images.tablet_light %}images.push({ device: 'tablet', theme: 'light', url: '{{ preview_images.tablet_light }}' });{% endif %}
-    {% if preview_images.tablet_dark %}images.push({ device: 'tablet', theme: 'dark', url: '{{ preview_images.tablet_dark }}' });{% endif %}
-    {% if preview_images.mobile_light %}images.push({ device: 'mobile', theme: 'light', url: '{{ preview_images.mobile_light }}' });{% endif %}
-    {% if preview_images.mobile_dark %}images.push({ device: 'mobile', theme: 'dark', url: '{{ preview_images.mobile_dark }}' });{% endif %}
+                        function checked(name) {
+                            var radio = radios(name).find(function (r) { return r.checked; });
+                            return radio && radio.value;
+                        }
 
-    if (images.length === 0) return;
+                        function pick() {
+                            var device = checked('device');
+                            var themes = images.filter(function (i) { return i.device === device; }).map(function (i) { return i.theme; });
+                            radios('theme').forEach(function (r) { r.disabled = themes.indexOf(r.value) === -1; });
+                            if (themes.indexOf(checked('theme')) === -1) {
+                                radios('theme').find(function (r) { return r.value === themes[0]; }).checked = true;
+                            }
+                            var theme = checked('theme');
+                            shown = images.findIndex(function (i) { return i.device === device && i.theme === theme; });
+                            image.src = images[shown].url;
+                        }
 
-    let activeDevice = '';
-    let activeTheme = 'light';
+                        function show(index) {
+                            shown = (index + images.length) % images.length;
+                            big.src = images[shown].url;
+                            title.textContent = labels[images[shown].device] + ' · ' + labels[images[shown].theme];
+                        }
 
-    // Find available devices and themes
-    const availableDevices = [...new Set(images.map(img => img.device))];
-    const availableThemes = [...new Set(images.map(img => img.theme))];
-
-    // Set initial device and theme
-    activeDevice = availableDevices[0];
-    if (!availableThemes.includes(activeTheme) && availableThemes.length > 0) {
-        activeTheme = availableThemes[0];
-    }
-
-    const deviceButtons = document.querySelectorAll('.ss-preview-switcher-group--devices .ss-preview-switcher-btn');
-    const themeButtons = document.querySelectorAll('.ss-preview-switcher-group--themes .ss-preview-switcher-btn');
-    const previewPrevBtn = document.getElementById('ss-preview-prev');
-    const previewNextBtn = document.getElementById('ss-preview-next');
-
-    function updatePreview() {
-        let imgObj = images.find(img => img.device === activeDevice && img.theme === activeTheme);
-        if (!imgObj) {
-            imgObj = images.find(img => img.device === activeDevice);
-        }
-        if (!imgObj) return;
-
-        // Sync active state variables
-        activeDevice = imgObj.device;
-        activeTheme = imgObj.theme;
-
-        // Update Device switcher buttons
-        deviceButtons.forEach(btn => {
-            btn.classList.toggle('ss-preview-switcher-btn--active', btn.dataset.device === activeDevice);
-        });
-
-        // Update Theme switcher buttons
-        themeButtons.forEach(btn => {
-            btn.classList.toggle('ss-preview-switcher-btn--active', btn.dataset.theme === activeTheme);
-        });
-
-        // Update Theme button visibility based on what's available for this device
-        const themesForDevice = images.filter(img => img.device === activeDevice).map(img => img.theme);
-        themeButtons.forEach(btn => {
-            const btnTheme = btn.dataset.theme;
-            if (themesForDevice.includes(btnTheme)) {
-                btn.removeAttribute('disabled');
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
-            } else {
-                btn.setAttribute('disabled', 'true');
-                btn.style.opacity = '0.35';
-                btn.style.pointerEvents = 'none';
-            }
-        });
-
-        // Hide navigation column outside if <= 1 image
-        const outerNavColumn = document.getElementById('ss-preview-nav-column');
-        if (outerNavColumn) {
-            outerNavColumn.style.display = images.length <= 1 ? 'none' : '';
-        }
-
-        // Update Screen aspect ratio and image src
-        const screen = document.getElementById('ss-preview-screen');
-        if (screen) {
-            screen.className = 'ss-preview-screen'; // reset class
-            screen.classList.add(`ss-preview-screen--${activeDevice}`);
-            const img = document.getElementById('ss-preview-img-active');
-            if (img) img.src = imgObj.url;
-        }
-    }
-
-    // Navigation handlers for outside switcher
-    function navigatePrev() {
-        if (images.length <= 1) return;
-        let idx = images.findIndex(img => img.device === activeDevice && img.theme === activeTheme);
-        if (idx === -1) idx = 0;
-        idx = (idx - 1 + images.length) % images.length;
-        activeDevice = images[idx].device;
-        activeTheme = images[idx].theme;
-        updatePreview();
-    }
-
-    function navigateNext() {
-        if (images.length <= 1) return;
-        let idx = images.findIndex(img => img.device === activeDevice && img.theme === activeTheme);
-        if (idx === -1) idx = 0;
-        idx = (idx + 1) % images.length;
-        activeDevice = images[idx].device;
-        activeTheme = images[idx].theme;
-        updatePreview();
-    }
-
-    // Event listeners for outside switchers
-    deviceButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            activeDevice = btn.dataset.device;
-            const deviceImages = images.filter(img => img.device === activeDevice);
-            const themeExists = deviceImages.some(img => img.theme === activeTheme);
-            if (!themeExists && deviceImages.length > 0) {
-                activeTheme = deviceImages[0].theme;
-            }
-            updatePreview();
-        });
-    });
-
-    themeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            activeTheme = btn.dataset.theme;
-            updatePreview();
-        });
-    });
-
-    if (previewPrevBtn) {
-        previewPrevBtn.addEventListener('click', (e) => { e.stopPropagation(); navigatePrev(); });
-    }
-    if (previewNextBtn) {
-        previewNextBtn.addEventListener('click', (e) => { e.stopPropagation(); navigateNext(); });
-    }
-
-    // Initialize View
-    updatePreview();
-
-    // ── LIGHTBOX ──
-    const lightbox = document.getElementById('ss-preview-lightbox');
-    const lbClose = document.getElementById('ss-preview-lightbox-close');
-    const lbPrev = document.getElementById('ss-preview-lightbox-prev');
-    const lbNext = document.getElementById('ss-preview-lightbox-next');
-    const lbImg = document.getElementById('ss-preview-lightbox-img');
-
-    const lbDeviceGroup = document.getElementById('ss-lightbox-device-group');
-    const lbThemeGroup = document.getElementById('ss-lightbox-theme-group');
-    
-    let lbIndex = 0;
-
-    function openLightbox(device, theme) {
-        if (!lightbox) return;
-        
-        let index = images.findIndex(img => img.device === device && img.theme === theme);
-        if (index === -1) {
-            index = images.findIndex(img => img.device === device);
-        }
-        lbIndex = index !== -1 ? index : 0;
-
-        renderLightboxState();
-
-        lightbox.removeAttribute('inert');
-        requestAnimationFrame(() => {
-            lightbox.classList.add('ss-preview-lightbox--open');
-        });
-    }
-
-    function closeLightbox() {
-        if (!lightbox) return;
-        lightbox.classList.remove('ss-preview-lightbox--open');
-        lightbox.setAttribute('inert', '');
-    }
-
-    function renderLightboxState() {
-        const currentImg = images[lbIndex];
-        if (!currentImg) return;
-
-        lbImg.src = currentImg.url;
-
-        // Inside lightbox switcher - devices
-        lbDeviceGroup.innerHTML = '';
-        availableDevices.forEach(d => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `ss-preview-switcher-btn ${d === currentImg.device ? 'ss-preview-switcher-btn--active' : ''}`;
-            btn.textContent = d.charAt(0).toUpperCase() + d.slice(1);
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openLightbox(d, currentImg.theme);
-            });
-            lbDeviceGroup.appendChild(btn);
-        });
-
-        // Inside lightbox switcher - themes
-        lbThemeGroup.innerHTML = '';
-        const deviceThemes = images.filter(img => img.device === currentImg.device).map(img => img.theme);
-        availableThemes.forEach(t => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `ss-preview-switcher-btn ${t === currentImg.theme ? 'ss-preview-switcher-btn--active' : ''}`;
-            btn.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-            
-            if (deviceThemes.includes(t)) {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    openLightbox(currentImg.device, t);
-                });
-            } else {
-                btn.setAttribute('disabled', 'true');
-                btn.style.opacity = '0.3';
-                btn.style.pointerEvents = 'none';
-            }
-            lbThemeGroup.appendChild(btn);
-        });
-
-        // Prev & Next visibility
-        if (images.length <= 1) {
-            lbPrev.style.display = 'none';
-            lbNext.style.display = 'none';
-        } else {
-            lbPrev.style.display = '';
-            lbNext.style.display = '';
-        }
-    }
-
-    function prevImage() {
-        if (images.length <= 1) return;
-        lbIndex = (lbIndex - 1 + images.length) % images.length;
-        renderLightboxState();
-    }
-
-    function nextImage() {
-        if (images.length <= 1) return;
-        lbIndex = (lbIndex + 1) % images.length;
-        renderLightboxState();
-    }
-
-    // Open lightbox when clicking main screen
-    const mainScreen = document.getElementById('ss-preview-screen');
-    if (mainScreen) {
-        mainScreen.addEventListener('click', () => {
-            openLightbox(activeDevice, activeTheme);
-        });
-    }
-
-    if (lbClose) {
-        lbClose.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
-    }
-    if (lbPrev) {
-        lbPrev.addEventListener('click', (e) => { e.stopPropagation(); prevImage(); });
-    }
-    if (lbNext) {
-        lbNext.addEventListener('click', (e) => { e.stopPropagation(); nextImage(); });
-    }
-
-    if (lightbox) {
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox || e.target.classList.contains('ss-preview-lightbox__inner')) {
-                closeLightbox();
-            }
-        });
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (lightbox && lightbox.classList.contains('ss-preview-lightbox--open')) {
-            if (e.key === 'Escape') {
-                closeLightbox();
-            } else if (e.key === 'ArrowLeft') {
-                prevImage();
-            } else if (e.key === 'ArrowRight') {
-                nextImage();
-            }
-        }
-    });
-
-})();
-</script>
+                        radios('device').concat(radios('theme')).forEach(function (r) { r.addEventListener('change', pick); });
+                        document.getElementById('sync-previews-zoom').addEventListener('click', function () {
+                            show(shown);
+                            lightbox.showModal();
+                        });
+                        document.getElementById('sync-lightbox-close').addEventListener('click', function () { lightbox.close(); });
+                        document.getElementById('sync-lightbox-prev').addEventListener('click', function () { show(shown - 1); });
+                        document.getElementById('sync-lightbox-next').addEventListener('click', function () { show(shown + 1); });
+                        var walk = images.length > 1;
+                        document.getElementById('sync-lightbox-prev').hidden = !walk;
+                        document.getElementById('sync-lightbox-next').hidden = !walk;
+                        // Escape closes the picture, not the drawer behind it (modal.js closes
+                        // the drawer on keyup), so the dialog handles it on keyup itself.
+                        lightbox.addEventListener('cancel', function (e) { e.preventDefault(); });
+                        lightbox.addEventListener('keyup', function (e) {
+                            if (e.key === 'Escape') { e.stopPropagation(); lightbox.close(); }
+                            if (e.key === 'ArrowLeft' && walk) show(shown - 1);
+                            if (e.key === 'ArrowRight' && walk) show(shown + 1);
+                        });
+                        lightbox.addEventListener('click', function (e) { if (e.target === lightbox) lightbox.close(); });
+                        pick();
+                    })();
+                </script>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+{% block actions %}
+    {% if not error %}
+        {% if local_variant_id and remote_id %}
+            <form class="sync-action"
+                  hx-post="{% url 'streams-sync:push' %}"
+                  hx-swap="none"
+                  hx-disabled-elt="#base-modal .phoxtail-drawer__footer button">
+                {% csrf_token %}
+                <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                <input type="hidden" name="variant_id" value="{{ local_variant_id }}">
+                <button type="submit"
+                        class="phx-button phx-button--secondary"
+                        {% if sync_state == 'in_sync' or sync_state == 'unknown' %}disabled{% endif %}>
+                    {% icon "cloud_upload" %}
+                    <span>Push</span>
+                </button>
+            </form>
+        {% else %}
+            <button type="button" class="phx-button phx-button--secondary" disabled>
+                {% icon "cloud_upload" %}
+                <span>Push</span>
+            </button>
+        {% endif %}
+        {% if remote_variant_id %}
+            <form class="sync-action"
+                  hx-post="{% url 'streams-sync:pull' %}"
+                  hx-swap="none"
+                  hx-disabled-elt="#base-modal .phoxtail-drawer__footer button">
+                {% csrf_token %}
+                <input type="hidden" name="remote_id" value="{{ remote_id }}">
+                <input type="hidden" name="variant_id" value="{{ remote_variant_id }}">
+                <button type="submit"
+                        class="phx-button phx-button--primary"
+                        {% if sync_state == 'in_sync' %}disabled{% endif %}>
+                    {% icon "download" %}
+                    <span>Pull</span>
+                </button>
+            </form>
+        {% else %}
+            <button type="button" class="phx-button phx-button--primary" disabled>
+                {% icon "download" %}
+                <span>Pull</span>
+            </button>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,15 @@
+{% load phoxtail_design_tags %}
+{% if no_remotes %}
+    {% url 'remotes:index' as remotes_settings_url %}
+    <div class="phx-notice phx-notice--info sync-notice">
+        {% icon "info" %}
+        <p>
+            Viewing local variants only. <a href="{{ remotes_settings_url }}">Connect a remote</a> to compare and sync.
+        </p>
+    </div>
+{% elif locked_local %}
+    <div class="phx-notice phx-notice--info sync-notice">
+        {% icon "info" %}
+        <p>Viewing local variants only. Select a remote to compare and sync.</p>
+    </div>
+{% endif %}

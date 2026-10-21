@@ -40,7 +40,11 @@ def test_a_pick_loads_that_remotes_streams(remotes):
     html = _get(UserFactory(is_superuser=True, is_staff=True), remote_select=str(registry.pk)).content.decode()
 
     assert f'<input type="hidden" name="remote" value="{registry.pk}" id="id_remote">' in html
-    assert f"?remote={registry.pk}" in html
+    # The list loads again, carrying the pick and the mode, now Remote and open.
+    assert 'hx-trigger="load"' in html
+    mode = html.split("innerHTML:#streams-mode-control")[1].split("innerHTML:#streams-notice")[0]
+    assert 'id="id_mode_0" checked' in mode
+    assert "disabled" not in mode
 
 
 def test_a_clear_goes_back_to_local(remotes):
@@ -49,7 +53,10 @@ def test_a_clear_goes_back_to_local(remotes):
     ).content.decode()
 
     assert 'name="remote"' not in html.split('id="remote-selected-value"')[1].split("</div>")[0]
-    assert "?mode=local" in html
+    # Local only: the mode locked, the notice says so, the list loads again.
+    assert "Select a remote to compare and sync." in html
+    assert "disabled" in html.split("innerHTML:#streams-mode-control")[1].split("innerHTML:#streams-notice")[0]
+    assert 'hx-trigger="load"' in html
 
 
 def test_a_user_who_cannot_manage_remotes_is_refused(remotes):
