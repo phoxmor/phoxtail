@@ -1,0 +1,23 @@
+{% comment %}
+A page's header, as a modal's is drawn by modal_drawer.html: a view's own
+header template extends it and fills its blocks.
+
+    icon      the page's icon, before its name ({% icon "vpn_key" %})
+    title     the page's name, its one h1
+    subtitle  a line of information under the name (the week on show);
+              never a strapline
+    controls  the page's search, buttons and pickers, opposite the name
+    below     a row of its own under both (a week stepper)
+
+A block left empty draws nothing (page_header.css hides its box).
+{% endcomment %}
+<header class="phx-page-header">
+    <div class="phx-page-header__inner">
+        <div class="phx-page-header__heading">
+            <h1 class="phx-page-header__title">{% block icon %}{% endblock %}{% block title %}{% endblock %}</h1>
+            <p class="phx-page-header__subtitle">{% block subtitle %}{% endblock %}</p>
+        </div>
+        <div class="phx-page-header__controls">{% block controls %}{% endblock %}</div>
+        <div class="phx-page-header__below">{% block below %}{% endblock %}</div>
+    </div>
+</header>

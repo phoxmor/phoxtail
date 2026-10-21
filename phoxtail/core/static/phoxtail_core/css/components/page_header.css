@@ -1,0 +1,142 @@
+/* ── Page header ──
+
+   A page's header (page_header.html): its name, with its icon and a line of
+   information beside it, on the left; its controls opposite; and a row of
+   its own under both where a page has one. Narrower than 64rem (the header's
+   own width, not the screen's: Wagtail's sidebar takes its share), it
+   stacks, early, before a page's controls would wrap under its name: the name centred, its line under it, and the controls under both,
+   filling their rows: a control that is not a button (a search, a stepper)
+   takes a row of its own, the buttons share the next. It stands a step
+   further off the page's content (2rem) than the content's parts stand off
+   each other (1rem); the two margins collapse into the larger. */
+.phx-page-header {
+    container-type: inline-size;
+    margin-bottom: 2rem;
+}
+
+.phx-page-header__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+}
+
+.phx-page-header__heading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    text-align: center;
+}
+
+.phx-page-header__title {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: rgb(var(--color-surface-700));
+}
+
+/* The page's icon, before its name, in the brand colour. */
+.phx-page-header__title svg {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    color: rgb(var(--color-primary-600));
+}
+
+/* Set as the buttons beside it. */
+.phx-page-header__subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(var(--color-surface-600));
+}
+
+/* Never wider than the header: a wrapping row sizes itself by its widest
+   item, so a stepper would otherwise push it off a phone. */
+.phx-page-header__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 100%;
+}
+
+.phx-page-header__controls > * {
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+.phx-page-header__controls > .phx-button {
+    flex: 1 1 auto;
+}
+
+.phx-page-header__below {
+    display: flex;
+    min-width: 0;
+}
+
+.phx-page-header__below > * {
+    flex: 1 1 auto;
+}
+
+/* An empty block draws nothing; controls or a row below that a condition
+   left out hold only whitespace, so they count as empty when no element is
+   in them. */
+.phx-page-header__subtitle:empty,
+.phx-page-header__controls:not(:has(*)),
+.phx-page-header__below:not(:has(*)) {
+    display: none;
+}
+
+@container (min-width: 64rem) {
+    .phx-page-header__inner {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        column-gap: 1rem;
+    }
+
+    /* The line beside the name, centred on it. */
+    .phx-page-header__heading {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 0.75rem;
+        text-align: left;
+    }
+
+    .phx-page-header__controls > *,
+    .phx-page-header__controls > .phx-button {
+        flex: none;
+    }
+
+    /* A search keeps room for its words. */
+    .phx-page-header__search {
+        min-width: 260px;
+    }
+
+    .phx-page-header__below {
+        flex-basis: 100%;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-page-header__title {
+        color: rgb(var(--color-surface-300));
+    }
+
+    .phx-page-header__title svg {
+        color: rgb(var(--color-primary-400));
+    }
+
+    .phx-page-header__subtitle {
+        color: rgb(var(--color-surface-300));
+    }
+}

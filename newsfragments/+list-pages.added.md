@@ -1,6 +1,5 @@
 Core draws a list page: `components/lists.css` (loaded by
-`phoxtail_core/stylesheets.html`) holds the page column (`phx-list`), the
-toolbar (`phx-toolbar`: title, search and buttons), the card
+`phoxtail_core/stylesheets.html`) holds the page column (`phx-list`), the card
 grid (`phx-grid`) with a card's meta rows and the button that makes the whole
 card open its drawer, the empty state (`phx-empty`), a filter's label and a
 form card's fields.

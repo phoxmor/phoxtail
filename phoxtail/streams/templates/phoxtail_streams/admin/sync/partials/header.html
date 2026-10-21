@@ -1,0 +1,15 @@
+{% extends "phoxtail_core/page_header.html" %}
+{% load phoxtail_core_tags phoxtail_design_tags %}
+{% block icon %}{% icon "sync" %}{% endblock %}
+{% block title %}Sync{% endblock %}
+{% block controls %}
+    <form id="sync-search-form" class="phx-page-header__search">
+        {% include "phoxtail_streams/admin/sync/partials/search.html" %}
+    </form>
+    <div class="sync-fields">
+        <div id="streams-mode-control">{% include "phoxtail_streams/admin/sync/partials/mode_control.html" %}</div>
+        {% if remotes %}
+            {% field "single_select_search" remote_select_field search_url=remote_select_url search_placeholder="Search remotes" trigger_placeholder="Select remote" variant="filled" size="small" %}
+        {% endif %}
+    </div>
+{% endblock %}

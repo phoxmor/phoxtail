@@ -87,8 +87,8 @@ class TestLanguageFlyout:
         assert html.strip() == ""
 
 
-class TestPageTitle:
-    """A page is titled by the nav entry it belongs to."""
+class TestPageHeader:
+    """A page's header is titled by the nav entry it belongs to."""
 
     PATHS = {"dashboard:index": "/dashboard/", "projects": "/dashboard/projects/", "new": "/dashboard/projects/new/"}
 
@@ -113,7 +113,7 @@ class TestPageTitle:
             DashboardNavItem(label="Gone", url_name="gone", icon="close"),
         ]
         return render_to_string(
-            "phoxtail_dashboard/page_title.html",
+            "phoxtail_dashboard/page_header.html",
             {"request": rf.get(path), "dashboard_nav_items": items, **extra},
         )
 

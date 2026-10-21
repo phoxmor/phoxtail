@@ -1,0 +1,11 @@
+{% extends "phoxtail_core/page_header.html" %}
+{% comment %}
+A dashboard page's header: core's (phoxtail_core/page_header.html), its icon
+and name those of the page's nav entry, so the page is named as the menu
+names it. A page under an entry (a project under Projects) passes its own
+page_title; a page with no entry (Profile) passes page_icon too. A page's own
+header extends this one for its controls.
+{% endcomment %}
+{% load phoxtail_dashboard_tags phoxtail_design_tags %}
+{% block icon %}{% dashboard_page_entry as entry %}{% if page_icon %}{% icon page_icon %}{% elif entry %}{% icon entry.icon %}{% endif %}{% endblock %}
+{% block title %}{% dashboard_page_entry as entry %}{% if page_title %}{{ page_title }}{% else %}{{ entry.label }}{% endif %}{% endblock %}

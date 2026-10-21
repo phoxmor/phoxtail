@@ -1,29 +1,5 @@
 {% load phoxtail_core_tags phoxtail_design_tags %}
-<!-- Toolbar: title on the left, search and actions on the right -->
-<div class="phx-toolbar">
-    <h1 class="phx-toolbar__title">
-        {% icon "graph_5" %}
-        Remotes
-    </h1>
-    <div class="phx-toolbar__controls">
-        {% url 'remotes:search' as search_url %}
-        <form id="remotes-search-form" class="phx-toolbar__search">
-            {% field "search" search_form.search count=remotes.paginator.count placeholder="Search remotes" hx_get=search_url %}
-            {{ search_form.page }}
-        </form>
-        <!-- Connect Button -->
-        {% url 'remotes:add_form' as add_form_url %}
-        <button type="button"
-                class="phx-button phx-button--secondary"
-                hx-get="{% url 'phoxtail_core:modal' %}"
-                hx-vals='{"content_url": "{{ add_form_url }}"}'
-                hx-target="#core-modal-placeholder-wrapper"
-                hx-swap="innerHTML">
-            {% icon "plus" %}
-            <span>Connect</span>
-        </button>
-    </div>
-</div>
+{% include 'phoxtail_remotes/admin/remotes/partials/header.html' %}
 <!-- Remote Cards -->
 {% if remotes %}
     <div class="phx-grid">

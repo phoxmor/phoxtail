@@ -10,7 +10,7 @@
     <div class="dash-page">
         <div class="dash-page-inner">
             {% translate "Profile" as page_title %}
-            {% include "phoxtail_dashboard/page_title.html" with page_title=page_title page_icon="person" %}
+            {% include "phoxtail_dashboard/page_header.html" with page_title=page_title page_icon="person" %}
             <!-- The member beside their details and account: one column on a phone. Redrawn after a save. -->
             <div id="profile-content" class="usr-profile">{% include "users/profile/partials/user_info.html" %}</div>
         </div>

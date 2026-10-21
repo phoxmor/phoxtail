@@ -1,9 +1,9 @@
 /* ── Lists ──
 
-   A list page on the ground: the toolbar (title, search, buttons), a grid of
-   cards and the empty state; and the parts a list's drawers share (a filter's
-   label, a form card's fields). Its paginator is a component of its own
-   (paginator.css). */
+   A list page on the ground: a grid of cards and the empty state; and the
+   parts a list's drawers share (a filter's label, a form card's fields). Its
+   header and its paginator are components of their own (page_header.css,
+   paginator.css). */
 
 /* ── Page ──
 
@@ -14,79 +14,6 @@
     max-width: 80rem;
     margin-inline: auto;
     padding: 3rem 1rem 1rem;
-}
-
-/* ── Toolbar ──
-
-   Title on the left, search and buttons on the right; on a phone the title,
-   then the search on a row of its own, then the buttons sharing the next. */
-.phx-toolbar {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-}
-
-.phx-toolbar__title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    margin: 0;
-    font-size: 2.25rem;
-    font-weight: 800;
-    text-align: center;
-    color: rgb(var(--color-surface-700));
-}
-
-/* The page's icon, before its name, in the brand colour. */
-.phx-toolbar__title svg {
-    flex-shrink: 0;
-    width: 2rem;
-    height: 2rem;
-    color: rgb(var(--color-primary-600));
-}
-
-.phx-toolbar__controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.phx-toolbar__search {
-    flex-basis: 100%;
-}
-
-.phx-toolbar__controls > .phx-button {
-    flex: 1 1 auto;
-}
-
-@media (min-width: 640px) {
-    .phx-toolbar {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .phx-toolbar__title {
-        justify-content: flex-start;
-        text-align: left;
-    }
-
-    .phx-toolbar__controls {
-        align-items: center;
-    }
-
-    /* Not 100%: as a wrapping flex child that basis takes the whole line. */
-    .phx-toolbar__search {
-        flex-basis: auto;
-        min-width: 260px;
-    }
-
-    .phx-toolbar__controls > .phx-button {
-        flex: none;
-    }
 }
 
 /* ── Grid ──
@@ -218,14 +145,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    .phx-toolbar__title {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .phx-toolbar__title svg {
-        color: rgb(var(--color-primary-400));
-    }
-
     .phx-card__meta-row,
     .phx-empty__text,
     .phx-filter__label {

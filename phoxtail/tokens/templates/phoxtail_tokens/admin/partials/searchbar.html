@@ -1,5 +1,5 @@
 {% load phoxtail_core_tags %}
 {% url 'access_tokens_management:admin_tokens_search' as search_url %}
-<form id="tokens-search-form" class="phx-toolbar__search">
+<form id="tokens-search-form" class="phx-page-header__search">
     {% field "search" filterset.form.search count=tokens.paginator.count hx_get=search_url hx_include="#tokens-filters-without-search-form-placeholder" %}
 </form>

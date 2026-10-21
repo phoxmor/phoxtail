@@ -3,39 +3,7 @@
 <div id="tokens-filters-form-placeholder" style="display: none;">{% for field in filterset.form %}{% if field.name != "search" %}{{ field }}{% endif %}{% endfor %}</div>
 <div id="tokens-filters-without-search-form-placeholder"
      style="display: none">{% include 'phoxtail_tokens/admin/partials/forms/filters/form_content.html' %}</div>
-<!-- Toolbar: title on the left, search and actions on the right -->
-<div class="phx-toolbar">
-    <h1 class="phx-toolbar__title">API Tokens</h1>
-    <div class="phx-toolbar__controls">
-        {% include 'phoxtail_tokens/admin/partials/searchbar.html' %}
-        <!-- Filters Button -->
-        {% url 'access_tokens_management:admin_tokens_filters_form' as filters_url %}
-        <button type="button"
-                class="phx-button phx-button--secondary"
-                hx-get="{% url 'phoxtail_core:modal' %}"
-                hx-vals='{"content_url": "{{ filters_url }}"}'
-                hx-include="#tokens-filters-form-placeholder, #tokens-search-form"
-                hx-target="#core-modal-placeholder-wrapper"
-                hx-swap="innerHTML">
-            {% icon "filter_alt" %}
-            <span>Filters</span>
-            {% if filter_count > 0 %}<span class="phx-badge">{{ filter_count }}</span>{% endif %}
-        </button>
-        {% if can_create %}
-            <!-- Create Button -->
-            {% url 'access_tokens_management:admin_token_create_form' as create_url %}
-            <button type="button"
-                    class="phx-button phx-button--secondary"
-                    hx-get="{% url 'phoxtail_core:modal' %}"
-                    hx-vals='{"content_url": "{{ create_url }}"}'
-                    hx-target="#core-modal-placeholder-wrapper"
-                    hx-swap="innerHTML">
-                {% icon "plus" %}
-                <span>Create</span>
-            </button>
-        {% endif %}
-    </div>
-</div>
+{% include 'phoxtail_tokens/admin/partials/header.html' %}
 <!-- Token Cards -->
 {% if tokens %}
     <div class="phx-grid">
