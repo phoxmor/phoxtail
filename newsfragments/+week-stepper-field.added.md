@@ -14,7 +14,7 @@ in the middle when first shown, the row kept where it was after that, and
 the page itself never grows wider. On one row the days keep their own width
 in the middle, and a card made wider than it needs (a page may stretch it across a row) gives the
 room to their sides, the calendar and Today at its start and the arrows at
-its end. Its date box takes its own id,
+its end; on two rows or more its corners are softer than a pill's. Its date box takes its own id,
 so a filter form on the same page can offer the same date for any day. Any
 date field given `hx_trigger="step"` now sends a picked day at once and a
 typed one on Enter or when the field is left, as the steppers' boxes do.

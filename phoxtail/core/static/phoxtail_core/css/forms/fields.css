@@ -690,6 +690,16 @@
    never go below their own width (minmax(max-content, 1fr)), the track can
    (minmax(0, auto)), so the script sees it no longer fits and the three
    leave the one row; nothing overlaps. */
+/* On two rows or more, softer corners: a full pill's ends would bulge on a
+   box that tall. */
+.phx-week-stepper:not(.phx-week-stepper--wide) {
+    border-radius: calc(1.25rem + var(--phx-week-stepper-padding));
+}
+
+.phx-week-stepper:not(.phx-week-stepper--wide) .phx-week-stepper__days {
+    border-radius: 1.25rem;
+}
+
 .phx-week-stepper--wide {
     display: grid;
     grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
