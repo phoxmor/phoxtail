@@ -1,5 +1,6 @@
 from django import template
 from django.conf import settings
+from django.utils.translation import gettext
 
 from phoxtail.core.fields import render_control, render_field
 from phoxtail.core.htmx import change_event
@@ -81,9 +82,41 @@ def changed_event(model):
     return change_event(model)
 
 
+def page_window(page, size=5, near=3):
+    """The page numbers a paginator shows: *size* of them around the current
+    page, sliding rather than shrinking at either end, so every page draws as
+    many. Each comes with whether it is among the *near* ones a phone keeps.
+    """
+    total = page.paginator.num_pages
+
+    def window(count):
+        start = min(max(1, page.number - count // 2), max(1, total - count + 1))
+        return range(start, min(total, start + count - 1) + 1)
+
+    kept = window(near)
+    return [(number, number in kept) for number in window(size)]
+
+
+def page_steps(page):
+    """A paginator's ends, as (icon, label, number): First and Previous, then
+    Next and Last. The number is None where there is nowhere to go.
+    """
+    back, forward = page.has_previous(), page.has_next()
+    return (
+        [
+            ("first_page", gettext("First page"), 1 if back else None),
+            ("chevron_left", gettext("Previous"), page.number - 1 if back else None),
+        ],
+        [
+            ("chevron_right", gettext("Next"), page.number + 1 if forward else None),
+            ("last_page", gettext("Last page"), page.paginator.num_pages if forward else None),
+        ],
+    )
+
+
 @register.inclusion_tag("phoxtail_core/paginator.html")
 def paginator(page, url, include, param):
-    """Draw a list's paginator: Previous, the page numbers and Next.
+    """Draw a list's paginator: First, Previous, the page numbers, Next, Last.
 
     Usage:
         {% paginator tokens url=filters_url include="#tokens-filters-form-placeholder" param="filter-page" %}
@@ -93,9 +126,12 @@ def paginator(page, url, include, param):
     besides the page (the list's filters and search); param: the page's query
     name. The template sees only these, never the page around it.
     """
+    before, after = page_steps(page)
     return {
         "page": page,
-        "page_range": get_proper_page_range(page.paginator, page.number),
+        "page_window": page_window(page),
+        "before": before,
+        "after": after,
         "url": url,
         "include": include,
         "param": param,

@@ -1,0 +1,72 @@
+/* ── Paginator ──
+
+   First and Previous, the page numbers, Next and Last, centred under the
+   list, each its own circle; the ends are icons. Five numbers, three on a
+   phone, only the current one on the narrowest: the same buttons on every
+   page, so it never changes width. */
+.phx-paginator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 1rem;
+}
+
+.phx-paginator__pages {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-inline: 0.25rem;
+}
+
+.phx-paginator__page {
+    min-width: var(--phx-size-small);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.phx-paginator__step {
+    flex-shrink: 0;
+    width: var(--phx-size-small);
+    padding: 0;
+}
+
+/* A disabled end keeps its circle; only its icon dims, and a pointer over
+   it says it does nothing. */
+.phx-paginator__step[aria-disabled="true"] {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: not-allowed;
+}
+
+.phx-paginator__step[aria-disabled="true"]:hover,
+.phx-paginator__step[aria-disabled="true"]:active {
+    background: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
+    color: rgb(var(--color-surface-600));
+    transform: none;
+}
+
+.phx-paginator__step[aria-disabled="true"] svg {
+    opacity: 0.38;
+}
+
+/* With the list's gutters, five numbers need 468px, three need 372px. */
+@media (max-width: 467px) {
+    .phx-paginator__page--far {
+        display: none;
+    }
+}
+
+@media (max-width: 371px) {
+    .phx-paginator__page:not([aria-current]) {
+        display: none;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .phx-paginator__step[aria-disabled="true"]:hover,
+    .phx-paginator__step[aria-disabled="true"]:active {
+        color: rgb(var(--color-surface-300));
+    }
+}

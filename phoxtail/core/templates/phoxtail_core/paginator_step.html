@@ -1,0 +1,21 @@
+{% comment %}
+One of a paginator's ends (paginator.html), drawn with only what it is given:
+an icon that asks for page *number*, named *label*; with no number, dimmed and
+inert.
+{% endcomment %}
+{% load phoxtail_design_tags %}
+{% if number %}
+    <button type="button"
+            class="phx-button phx-button--secondary phx-paginator__step"
+            aria-label="{{ label }}"
+            hx-get="{{ url }}"
+            hx-vals='{"{{ param }}": "{{ number }}"}'
+            hx-include="{{ include }}"
+            hx-swap="none">
+        {% icon icon %}
+    </button>
+{% else %}
+    <div class="phx-button phx-button--secondary phx-paginator__step" aria-disabled="true" aria-hidden="true">
+        {% icon icon %}
+    </div>
+{% endif %}
