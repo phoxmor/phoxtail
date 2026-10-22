@@ -1,17 +1,14 @@
-import unicodedata
-
-import babel
 from allauth.account.forms import LoginForm as AllauthLoginForm
 from allauth.account.forms import SignupForm as AllauthSignupForm
 from django import forms
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 from phonenumber_field.formfields import REGION_CODE_TO_COUNTRY_CODE, PrefixChoiceField, SplitPhoneNumberField
 
+from phoxtail.core.dates import active_locale
+from phoxtail.users.countries import alphabetical, in_dictionary_order
 from phoxtail.users.models import Gender
 
 User = get_user_model()
@@ -26,18 +23,13 @@ def prefix_choices():
     blank choice is a single dash: the box's label already says what it asks,
     and Django's long dashes would be cut off.
     """
-    locale = babel.Locale(translation.to_locale(translation.get_language() or settings.LANGUAGE_CODE))
+    locale = active_locale()
     countries = sorted(
-        (_alphabetical(name), name, region, code)
+        (alphabetical(name), name, region, code)
         for region, code in REGION_CODE_TO_COUNTRY_CODE.items()
         if (name := locale.territories.get(region))
     )
     return [("", "—")] + [(region, f"+{code} {name}") for _key, name, region, code in countries]
-
-
-def _alphabetical(name):
-    """A name as a dictionary orders it: accents do not move a letter ("Κάτω" after "Καζ")."""
-    return "".join(c for c in unicodedata.normalize("NFD", name) if not unicodedata.combining(c)).casefold()
 
 
 class CustomPrefixChoiceField(PrefixChoiceField):
@@ -96,6 +88,10 @@ class SignupForm(AllauthSignupForm):
     country = CountryField(blank_label=_("Select your country")).formfield(label=_("Country"), required=False)
     phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["country"].choices = in_dictionary_order(self.fields["country"].choices)
+
     def save(self, request):
         user = super().save(request)
         user.gender = self.cleaned_data["gender"]
@@ -137,3 +133,7 @@ class UserProfileForm(forms.ModelForm):
             "born_at": forms.DateInput(attrs={"type": "date"}),
             "avatar": forms.ClearableFileInput(attrs={"accept": "image/*"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["country"].choices = in_dictionary_order(self.fields["country"].choices)

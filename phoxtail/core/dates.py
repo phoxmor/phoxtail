@@ -7,7 +7,7 @@ from django.utils import translation
 
 
 def active_locale():
-    """The Babel locale of Django's active language, for writing dates in it.
+    """The Babel locale of Django's active language, for writing dates and names in it.
 
     With no request, or a language Babel has no data for, the site's default.
     """
