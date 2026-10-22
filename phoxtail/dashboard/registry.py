@@ -89,12 +89,16 @@ class DashboardModule:
         if len(self._widgets) == before:
             raise KeyError(f"Dashboard module '{self.app_name}' has no widget named '{name}'.")
 
-    def remove_nav_item(self, label):
-        """Drop one of this module's nav items by label."""
+    def remove_nav_item(self, url_name):
+        """Drop one of this module's nav items by its url name.
+
+        Not by label: labels are translated, so the same item reads
+        differently in every language.
+        """
         before = len(self._nav_items)
-        self._nav_items = [item for item in self._nav_items if item.label != label]
+        self._nav_items = [item for item in self._nav_items if item.url_name != url_name]
         if len(self._nav_items) == before:
-            raise KeyError(f"Dashboard module '{self.app_name}' has no nav item labelled '{label}'.")
+            raise KeyError(f"Dashboard module '{self.app_name}' has no nav item for url name '{url_name}'.")
 
 
 class DashboardRegistry:

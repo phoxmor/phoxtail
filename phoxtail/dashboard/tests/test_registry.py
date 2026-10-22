@@ -96,12 +96,24 @@ class TestDashboardModule:
         module.add_nav_item(label="Keep", url_name="a", icon="a")
         module.add_nav_item(label="Drop", url_name="b", icon="b")
 
-        module.remove_nav_item("Drop")
+        module.remove_nav_item("b")
         assert [item.label for item in module._nav_items] == ["Keep"]
+
+    def test_remove_nav_item_ignores_labels(self):
+        # Labels are translated, so two items may read alike and a label
+        # names nothing across languages; only the url name is stable.
+        module = DashboardModule("booking", "booking/")
+        module.add_nav_item(label="Same", url_name="a", icon="a")
+        module.add_nav_item(label="Same", url_name="b", icon="b")
+
+        module.remove_nav_item("b")
+        assert [item.url_name for item in module._nav_items] == ["a"]
+        with pytest.raises(KeyError):
+            module.remove_nav_item("Same")
 
     def test_remove_nav_item_unknown_raises(self):
         module = DashboardModule("booking", "booking/")
-        with pytest.raises(KeyError, match="no nav item labelled"):
+        with pytest.raises(KeyError, match="no nav item for url name"):
             module.remove_nav_item("absent")
 
     def test_add_nav_item(self):
