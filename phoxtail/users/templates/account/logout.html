@@ -19,7 +19,7 @@
                     {% csrf_token %}
                     {{ redirect_field }}
                     <div class="auth-actions">
-                        {% include "allauth/components/submit_button.html" with text_key="Sign Out" button_type="submit" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Sign Out") button_type="submit" %}
                     </div>
                     <div class="auth-pt-2 auth-text-center">
                         <a href="/" class="auth-link auth-text-muted">{% trans "Cancel and Return to Homepage" %}</a>

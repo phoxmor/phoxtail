@@ -14,6 +14,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from phoxtail.core.htmx import changed
 from phoxtail.core.paging import ListChanged, NotAPagedList, every_item
@@ -36,8 +37,8 @@ _T = "phoxtail_streams/admin/sync"
 _DEFAULT_LIMIT = 12
 # How a variant stands against the remote, in the words of the list's cards.
 _STATES = {
-    "not_local": _("New"),
-    "not_remote": _("New"),
+    "not_local": pgettext_lazy("sync state", "New"),
+    "not_remote": pgettext_lazy("sync state", "New"),
     "in_sync": _("Synced"),
     "differs": _("Unsynced"),
     "unknown": _("Unreachable"),
@@ -76,8 +77,8 @@ def _unreadable(exc: Exception) -> str:
     if isinstance(exc, ListChanged):
         return "The remote's variants changed while they were being read; try again."
     if isinstance(exc, httpx.HTTPStatusError):
-        return f"Remote returned {exc.response.status_code}."
-    return f"Could not reach remote: {exc}"
+        return _("Remote returned %(status)s.") % {"status": exc.response.status_code}
+    return _("Could not reach remote: %(error)s") % {"error": exc}
 
 
 def _remote_select_field(remotes_qs=None):
@@ -213,8 +214,8 @@ class RemoteSelectView(RemotesPermissionMixin, SingleSelectSearchView):
     def get_extra_context(self, form):
         selected = form["remote"].selected_item
         return {
-            "search_placeholder": "Search remotes",
-            "trigger_placeholder": "Select remote",
+            "search_placeholder": _("Search…"),
+            "trigger_placeholder": _("Select remote"),
             "selected_remote": selected,
             "mode_field": _mode_field("remote" if selected else "local", not selected),
             "locked_local": not selected,
@@ -268,7 +269,7 @@ def admin_sync_streams(request):
                     rkey = (rb["identifier"], rc.get("identifier"), rv["identifier"])
                     remote_hash_map[rkey] = rv.get("content_hash") or ""
             except (ListChanged, NotAPagedList) as exc:
-                remote_error = f"{_unreadable(exc)} Sync states unavailable."
+                remote_error = _("%(reason)s Sync states unavailable.") % {"reason": _unreadable(exc)}
             except Exception:
                 remote_error = "Could not reach remote — sync states unavailable."
 
@@ -368,8 +369,8 @@ def admin_sync_pull(request):
     except ValidationError as exc:
         return _refused(request, exc.messages)
     except Exception as exc:
-        return _refused(request, [f"Pull failed: {exc}"])
-    return changed(BlockVariant, f"Pulled '{result.variant.name}'.")
+        return _refused(request, [_("Pull failed: %(error)s") % {"error": exc}])
+    return changed(BlockVariant, _("Pulled '%(name)s'.") % {"name": result.variant.name})
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -387,8 +388,8 @@ def admin_sync_push(request):
     except ValidationError as exc:
         return _refused(request, exc.messages)
     except Exception as exc:
-        return _refused(request, [f"Push failed: {exc}"])
-    return changed(BlockVariant, f"Pushed '{result.variant_name}' to remote.")
+        return _refused(request, [_("Push failed: %(error)s") % {"error": exc}])
+    return changed(BlockVariant, _("Pushed '%(name)s' to remote.") % {"name": result.variant_name})
 
 
 def _refused(request, reasons):
@@ -472,10 +473,10 @@ def admin_sync_variant_detail(request):
             follow_redirects=True,
         )
     except Exception as exc:
-        return _detail_error(request, f"Could not reach remote: {exc}")
+        return _detail_error(request, _("Could not reach remote: %(error)s") % {"error": exc})
 
     if not resp.is_success:
-        return _detail_error(request, f"Remote returned {resp.status_code}.")
+        return _detail_error(request, _("Remote returned %(status)s.") % {"status": resp.status_code})
 
     install = resp.json().get("install") or {}
     block_data = install.get("block") or {}

@@ -15,18 +15,18 @@
                 <div class="auth-header">
                     <h1 class="auth-heading">{% trans "Verify Your Email Address" %}</h1>
                     <p class="auth-subtitle">
-                        {% blocktrans %}
+                        {% blocktrans trimmed %}
                             This part of the site requires us to verify that you are who you claim to be. For this purpose, we require that you verify ownership of your email address.
                         {% endblocktrans %}
                     </p>
                 </div>
                 <p class="auth-subtitle">
-                    {% blocktrans %}
+                    {% blocktrans trimmed %}
                         We have sent an email to you for verification. Please click on the link inside that email. If you do not see the verification email in your main inbox, check your spam folder. Otherwise, contact us if you do not receive it within a few minutes.
                     {% endblocktrans %}
                 </p>
                 <p class="auth-subtitle auth-mt-6">
-                    {% blocktrans %}
+                    {% blocktrans trimmed %}
                         <strong>Note:</strong> You can still <a href="{{ email_url }}" class="auth-link">change your email address</a>.
                     {% endblocktrans %}
                 </p>

@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from wagtail.admin.ui.tables import Column, TitleColumn
 from wagtail.snippets.blocks import SnippetChooserBlock
 from wagtail.snippets.views.chooser import (
@@ -37,7 +38,7 @@ class BlockVariantChooseView(ChooseView):
     def title_column(self):
         return TitleColumn(
             "name",
-            label="Variant Name",
+            label=_("Variant Name"),
             accessor="name",
             id_accessor="pk",
             url_name=self.chosen_url_name,
@@ -50,14 +51,14 @@ class BlockVariantChooseView(ChooseView):
         columns.append(
             Column(
                 "collection",
-                label="Collection",
+                label=_("Collection"),
                 accessor=lambda obj: obj.collection.name if obj.collection else "",
             )
         )
         columns.append(
             Column(
                 "preview",
-                label="Preview",
+                label=_("Preview"),
                 accessor=lambda obj: mark_safe(
                     f'<img src="{obj.preview_image_desktop.file.url}" alt="Preview" '
                     f'style="max-width: 150px; height: auto; border-radius: 4px;" />'
@@ -89,7 +90,7 @@ class BlockVariantChooseResultsView(ChooseResultsView):
     def title_column(self):
         return TitleColumn(
             "name",
-            label="Variant Name",
+            label=_("Variant Name"),
             accessor="name",
             id_accessor="pk",
             url_name=self.chosen_url_name,
@@ -102,14 +103,14 @@ class BlockVariantChooseResultsView(ChooseResultsView):
         columns.append(
             Column(
                 "collection",
-                label="Collection",
+                label=_("Collection"),
                 accessor=lambda obj: obj.collection.name if obj.collection else "",
             )
         )
         columns.append(
             Column(
                 "preview",
-                label="Preview",
+                label=_("Preview"),
                 accessor=lambda obj: mark_safe(
                     f'<img src="{obj.preview_image_desktop.file.url}" alt="Preview" '
                     f'style="max-width: 150px; height: auto; border-radius: 4px;" />'

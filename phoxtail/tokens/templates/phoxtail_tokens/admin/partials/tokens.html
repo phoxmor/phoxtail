@@ -1,4 +1,4 @@
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 <!-- Hidden forms so HTMX requests carry filter/search state -->
 <div id="tokens-filters-form-placeholder" style="display: none;">{% for field in filterset.form %}{% if field.name != "search" %}{{ field }}{% endif %}{% endfor %}</div>
 <div id="tokens-filters-without-search-form-placeholder"
@@ -23,31 +23,31 @@
                     {% endif %}
                     <div class="phx-card__meta-row">
                         {% icon "calendar_month" %}
-                        <span class="phx-card__meta-value">Created {{ t.created_at|date:"M j, Y" }}</span>
+                        <span class="phx-card__meta-value">{% blocktranslate with created_at=t.created_at|date:"M j, Y" %}Created {{ created_at }}{% endblocktranslate %}</span>
                     </div>
                     <div class="phx-card__meta-row">
                         {% icon "schedule" %}
                         <span class="phx-card__meta-value">
                             {% if t.last_used_at %}
-                                Last used {{ t.last_used_at|date:"M j, Y H:i" }}
+                                {% blocktranslate with last_used_at=t.last_used_at|date:"M j, Y H:i" %}Last used {{ last_used_at }}{% endblocktranslate %}
                             {% else %}
-                                Never used
+                                {% translate "Never used" %}
                             {% endif %}
                         </span>
                     </div>
                     {% if t.expires_at %}
                         <div class="phx-card__meta-row">
                             {% icon "calendar_lock" %}
-                            <span class="phx-card__meta-value">Expires {{ t.expires_at|date:"M j, Y" }}</span>
+                            <span class="phx-card__meta-value">{% blocktranslate with expires_at=t.expires_at|date:"M j, Y" %}Expires {{ expires_at }}{% endblocktranslate %}</span>
                         </div>
                     {% endif %}
                     {% if t.revoked_at %}
                         <div class="phx-card__meta-row">
-                            <span class="phx-tag phx-tag--destructive">Revoked</span>
+                            <span class="phx-tag phx-tag--destructive">{% translate "Revoked" %}</span>
                         </div>
                     {% elif not t.is_active %}
                         <div class="phx-card__meta-row">
-                            <span class="phx-tag phx-tag--warning">Expired</span>
+                            <span class="phx-tag phx-tag--warning">{% translate "Expired" %}</span>
                         </div>
                     {% endif %}
                 </div>
@@ -58,21 +58,21 @@
                         hx-vals='{"content_url": "{{ detail_url }}"}'
                         hx-target="#core-modal-placeholder-wrapper"
                         hx-swap="innerHTML"
-                        aria-label="View token {{ t.name }}">
+                        aria-label="{% blocktranslate with name=t.name %}View token {{ name }}{% endblocktranslate %}">
                 </button>
             </div>
         {% endfor %}
     </div>
 {% else %}
     <div class="phx-empty phx-card">
-        <h3 class="phx-empty__title">No tokens found</h3>
+        <h3 class="phx-empty__title">{% translate "No tokens found" %}</h3>
         <p class="phx-empty__text">
             {% if filter_count > 0 or filterset.form.search.value %}
-                Try clearing your search or filters.
+                {% translate "Try clearing your search or filters." %}
             {% elif can_create %}
-                Click <strong>Create</strong> to mint your first API token.
+                {% blocktranslate trimmed %}Click <strong>Create</strong> to mint your first API token.{% endblocktranslate %}
             {% else %}
-                You don't have permission to create tokens.
+                {% translate "You don't have permission to create tokens." %}
             {% endif %}
         </p>
     </div>

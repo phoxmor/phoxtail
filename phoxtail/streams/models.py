@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel
@@ -74,14 +75,15 @@ class BlockCategory(UUIDMixin, TimestampMixin, AdminURLMixin, Orderable, index.I
 class Block(index.Indexed, Orderable, ClusterableModel):
     """Defines a StreamField block type that can have multiple template variations"""
 
-    name = models.CharField(max_length=255, unique=True, help_text=_("Display name"))
+    name = models.CharField(max_length=255, unique=True, help_text=_("Display name"), verbose_name=_("name"))
     identifier = models.CharField(
         max_length=100,
         unique=True,
         help_text=_("Unique identifier (e.g., 'header_section', 'simple_hero')"),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
-        help_text=_("Description of this block's purpose and use case"),
+        help_text=_("Description of this block's purpose and use case"), verbose_name=_("description")
     )
     icon = models.CharField(
         max_length=100,
@@ -90,12 +92,14 @@ class Block(index.Indexed, Orderable, ClusterableModel):
         help_text=_(
             "Wagtail icon name for this block (e.g., 'image', 'doc-full', 'media'). Displayed in the block chooser."
         ),
+        verbose_name=_("icon"),
     )
     group = models.CharField(
         max_length=100,
         blank=True,
         default="",
         help_text=_("Group label shown in the block chooser (e.g., 'Blog', 'Media'). Leave empty for no grouping."),
+        verbose_name=_("group"),
     )
     is_shared = models.BooleanField(
         default=False,
@@ -104,6 +108,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "(in Shared Blocks) and shared across pages. "
             "In page editors, only the variant chooser will be shown."
         ),
+        verbose_name=_("shared"),
     )
     site_slot = models.CharField(
         max_length=20,
@@ -116,10 +121,12 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "block itself takes over on that page. Requires 'is_shared'. "
             "Leave empty for normal per-page placement."
         ),
+        verbose_name=_("site slot"),
     )
     slot_order = models.IntegerField(
         default=0,
         help_text=_("Render order among blocks pinned to the same slot (lower renders first)."),
+        verbose_name=_("slot order"),
     )
     render_in_preview = models.BooleanField(
         default=True,
@@ -128,6 +135,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "preview panel and Studio screenshots. Uncheck for analytics and "
             "tracking scripts."
         ),
+        verbose_name=_("render in preview"),
     )
     source_app = models.CharField(
         max_length=100,
@@ -138,6 +146,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "Set automatically by populate_streams. Blank means no app dependency — "
             "the block is available in any project."
         ),
+        verbose_name=_("source app"),
     )
     page_types = models.ManyToManyField(
         "contenttypes.ContentType",
@@ -201,6 +210,7 @@ class Block(index.Indexed, Orderable, ClusterableModel):
             "Define the structure of this block using field schema blocks, nested structures, lists, and streams"
         ),
         collapsed=True,
+        verbose_name=_("schema"),
     )
     search_fields = [
         index.AutocompleteField("name"),
@@ -237,14 +247,16 @@ class VariantCollection(index.Indexed, ClusterableModel):
         max_length=255,
         unique=True,
         help_text=_("Collection name (e.g., 'Material Design', 'Minimalist')"),
+        verbose_name=_("name"),
     )
     identifier = models.CharField(
         max_length=100,
         unique=True,
         help_text=_("Unique identifier (e.g., 'material_design_3')"),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
-        help_text=_("Short description of this collection's purpose"),
+        help_text=_("Short description of this collection's purpose"), verbose_name=_("description")
     )
     search_fields = [
         index.AutocompleteField("name"),
@@ -267,7 +279,7 @@ class VariantCollection(index.Indexed, ClusterableModel):
 class BlockVariant(index.Indexed, models.Model):
     """Variant for a specific Block within a Collection"""
 
-    block = ParentalKey(Block, on_delete=models.CASCADE, related_name="variants")
+    block = ParentalKey(Block, on_delete=models.CASCADE, related_name="variants", verbose_name=_("block"))
     collection = models.ForeignKey(
         VariantCollection,
         on_delete=models.SET_NULL,
@@ -275,37 +287,33 @@ class BlockVariant(index.Indexed, models.Model):
         null=True,
         blank=True,
         help_text=_("Optional design-system label for this variant (e.g. 'Material Design 3')."),
+        verbose_name=_("collection"),
     )
     name = models.CharField(
         max_length=255,
         help_text=_("Variant name for identification (e.g., 'Centered', 'With Background')"),
+        verbose_name=_("name"),
     )
     identifier = models.CharField(
         max_length=100,
         help_text=_("Identifier for this variant (e.g., 'centered_dark', 'split_layout')"),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
         help_text=_("Design rationale and approach. Explain why this variant exists and what makes it different."),
+        verbose_name=_("description"),
     )
     is_default = models.BooleanField(
         default=False,
         help_text=_("Whether this is the default variant for its block. Only one default per block."),
+        verbose_name=_("default"),
     )
 
     # Template fields (split from single 'code' field)
-    html = models.TextField(
-        default="",
-        help_text=_("HTML template with DTL/Jinja2 tags."),
-    )
-    css = models.TextField(
-        blank=True,
-        default="",
-        help_text=_("CSS styles for this variant."),
-    )
+    html = models.TextField(default="", help_text=_("HTML template with DTL/Jinja2 tags."), verbose_name=_("HTML"))
+    css = models.TextField(blank=True, default="", help_text=_("CSS styles for this variant."), verbose_name=_("CSS"))
     javascript = models.TextField(
-        blank=True,
-        default="",
-        help_text=_("JavaScript code for this variant."),
+        blank=True, default="", help_text=_("JavaScript code for this variant."), verbose_name=_("JavaScript")
     )
     preview_image_desktop = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -314,6 +322,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Desktop (light mode) preview screenshot."),
+        verbose_name=_("preview image desktop"),
     )
     preview_image_desktop_dark = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -322,6 +331,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Desktop (dark mode) preview screenshot."),
+        verbose_name=_("preview image desktop dark"),
     )
     preview_image_tablet = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -330,6 +340,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Tablet (light mode) preview screenshot."),
+        verbose_name=_("preview image tablet"),
     )
     preview_image_tablet_dark = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -338,6 +349,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Tablet (dark mode) preview screenshot."),
+        verbose_name=_("preview image tablet dark"),
     )
     preview_image_mobile = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -346,6 +358,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Mobile (light mode) preview screenshot."),
+        verbose_name=_("preview image mobile"),
     )
     preview_image_mobile_dark = models.ForeignKey(
         settings.WAGTAILIMAGES_IMAGE_MODEL,
@@ -354,6 +367,7 @@ class BlockVariant(index.Indexed, models.Model):
         blank=True,
         null=True,
         help_text=_("Mobile (dark mode) preview screenshot."),
+        verbose_name=_("preview image mobile dark"),
     )
 
     search_fields = [
@@ -421,16 +435,16 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
         related_name="shared_blocks",
         limit_choices_to={"is_shared": True},
         help_text=_("The shared block this content belongs to."),
+        verbose_name=_("block"),
     )
     site = models.ForeignKey(
         "wagtailcore.Site",
         on_delete=models.CASCADE,
         related_name="shared_blocks",
+        verbose_name=pgettext_lazy("website", "site"),
     )
     locale = models.ForeignKey(
-        "wagtailcore.Locale",
-        on_delete=models.CASCADE,
-        related_name="shared_blocks",
+        "wagtailcore.Locale", on_delete=models.CASCADE, related_name="shared_blocks", verbose_name=_("locale")
     )
     variant = models.ForeignKey(
         BlockVariant,
@@ -443,6 +457,7 @@ class SharedBlock(index.Indexed, TimestampMixin, models.Model):
             "for per-page placements that don't choose one). Leave empty to "
             "use the block's default variant."
         ),
+        verbose_name=_("variant"),
     )
     content = SharedBlockStreamField
 

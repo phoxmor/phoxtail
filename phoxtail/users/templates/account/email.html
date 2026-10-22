@@ -53,9 +53,9 @@
                             {% endfor %}
                         </div>
                         <div class="auth-actions auth-actions-row">
-                            {% include "allauth/components/submit_button.html" with text_key="Make Primary" button_type="submit" name="action_primary" %}
-                            {% include "allauth/components/submit_button.html" with text_key="Re-send Verification" button_type="submit" name="action_send" variant="secondary" %}
-                            {% include "allauth/components/submit_button.html" with text_key="Remove" button_type="submit" name="action_remove" variant="danger" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Make Primary") button_type="submit" name="action_primary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Re-send Verification") button_type="submit" name="action_send" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Remove") button_type="submit" name="action_remove" variant="danger" %}
                         </div>
                     </form>
                 {% else %}
@@ -69,7 +69,7 @@
                             {% csrf_token %}
                             {% field "input" form.email %}
                             <div class="auth-actions">
-                                {% include "allauth/components/submit_button.html" with text_key="Add Email" button_type="submit" name="action_add" %}
+                                {% include "allauth/components/submit_button.html" with text=_("Add Email") button_type="submit" name="action_add" %}
                             </div>
                         </form>
                     </div>

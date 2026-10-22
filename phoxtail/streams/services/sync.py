@@ -21,6 +21,7 @@ from django.apps import apps as django_apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from phoxtail.streams.models import BlockVariant
@@ -59,7 +60,8 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
     source_app = block_data.get("source_app", "")
     if source_app and source_app not in local_app_labels:
         raise ValidationError(
-            f"Block '{block_name}' requires app '{source_app}' which is not installed in this project."
+            _("Block '%(block)s' requires app '%(app)s' which is not installed in this project."),
+            params={"block": block_name, "app": source_app},
         )
 
     page_type_app_labels = {
@@ -76,7 +78,7 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
     with transaction.atomic():
         collection = None
         if collection_data and collection_data.get("identifier"):
-            collection, _ = VariantCollection.objects.get_or_create(
+            collection, _created = VariantCollection.objects.get_or_create(
                 identifier=collection_data["identifier"],
                 defaults={"name": collection_data.get("name", collection_data["identifier"])},
             )
@@ -114,8 +116,11 @@ def apply_variant_envelope(envelope: dict) -> PullResult:
             and block.variants.filter(is_default=True).exclude(identifier=variant_data["identifier"]).exists()
         ):
             raise ValidationError(
-                f"'{block.name}' already has a default variant. "
-                "Unmark the current default before pulling/pushing this one."
+                _(
+                    "'%(block)s' already has a default variant. "
+                    "Unmark the current default before pulling/pushing this one."
+                ),
+                params={"block": block.name},
             )
 
         variant, created = BlockVariant.objects.update_or_create(
@@ -154,7 +159,10 @@ class StreamsSyncService:
             follow_redirects=True,
         )
         if not response.is_success:
-            raise ValidationError(f"Remote returned {response.status_code} for variant '{variant_id}'.")
+            raise ValidationError(
+                _("Remote returned %(status)s for variant '%(variant)s'."),
+                params={"status": response.status_code, "variant": variant_id},
+            )
 
         envelope = response.json().get("install") or {}
         return apply_variant_envelope(envelope)
@@ -179,7 +187,7 @@ class StreamsSyncService:
                 .get(pk=variant_id)
             )
         except BlockVariant.DoesNotExist:
-            raise ValidationError(f"Variant {variant_id} not found.")
+            raise ValidationError(_("Variant %(variant)s not found."), params={"variant": variant_id})
 
         envelope = build_variant_envelope(v)
         url = f"{self.remote.base_url}/api/streams/v1/variants/push/"

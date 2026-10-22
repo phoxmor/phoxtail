@@ -47,8 +47,8 @@
                         {{ form.errors }}
                         {{ form.non_field_errors }}
                         <div class="auth-actions auth-actions-row">
-                            {% include "allauth/components/submit_button.html" with text_key="Cancel" button_type="submit" variant="secondary" %}
-                            {% include "allauth/components/submit_button.html" with text_key="Allow" button_type="submit" name="allow" extra_attrs='value="yes"' %}
+                            {% include "allauth/components/submit_button.html" with text=_("Cancel") button_type="submit" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Allow") button_type="submit" name="allow" extra_attrs='value="yes"' %}
                         </div>
                     </form>
                 {% else %}

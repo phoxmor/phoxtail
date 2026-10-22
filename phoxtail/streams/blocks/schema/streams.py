@@ -5,6 +5,7 @@ StreamSchemaBlock allows editors to choose from multiple different block types
 and mix them freely in any order (equivalent to Wagtail's StreamBlock).
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import BooleanBlock, IntegerBlock, StreamBlock, TextBlock
 
 from .base import FieldSchemaBlock
@@ -47,46 +48,48 @@ class StreamSchemaBlock(FieldSchemaBlock):
             # Can be added later with lazy loading: ("stream", StreamSchemaBlock())
         ],
         min_num=1,
-        help_text=("Blocks that can be used in this stream. Editors can add any of these in any order."),
+        help_text=_("Blocks that can be used in this stream. Editors can add any of these in any order."),
     )
 
     # Stream constraints
     min_num = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum number of blocks required (optional)",
+        help_text=_("Minimum number of blocks required (optional)"),
     )
     max_num = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum number of blocks allowed (optional)",
+        help_text=_("Maximum number of blocks allowed (optional)"),
     )
 
     block_counts = TextBlock(
         required=False,
         help_text=(
-            "Per-block-type limits in JSON format (optional)\n"
-            "Example:\n"
-            "{\n"
-            '  "image_chooser_field": {"min_num": 1, "max_num": 5},\n'
-            '  "embed_field": {"max_num": 2}\n'
-            "}"
+            _(
+                "Per-block-type limits in JSON format (optional)\n"
+                "Example:\n"
+                "{\n"
+                '  "image_chooser_field": {"min_num": 1, "max_num": 5},\n'
+                '  "embed_field": {"max_num": 2}\n'
+                "}"
+            )
         ),
     )
 
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with all blocks collapsed in the editor",
+        help_text=_("Start with all blocks collapsed in the editor"),
     )
 
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Include this stream content in search indexing",
+        help_text=_("Include this stream content in search indexing"),
     )
 
     class Meta:
         icon = "graph-3"
-        label = "Stream"
-        group = "Structures"
+        label = _("Stream")
+        group = _("Structures")

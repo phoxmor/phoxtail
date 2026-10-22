@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 # Every key phoxtail mints starts with this, and it is how a bearer is
 # routed: a key with the prefix is looked up in phoxtail's own table, any
@@ -29,7 +30,7 @@ class TokenType(models.TextChoices):
     that is a foreign key alongside the type rather than more types.
     """
 
-    PERSONAL = "personal", _("Personal")
+    PERSONAL = "personal", pgettext_lazy("token type", "Personal")
 
     # Minted for one chat turn, held by the chatbot, owned by the person
     # chatting. Short-lived by construction: it exists for the length of a

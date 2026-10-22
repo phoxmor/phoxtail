@@ -15,7 +15,7 @@
                 <div class="auth-header">
                     <h1 class="auth-heading">{% translate "Enter Email Verification Code" %}</h1>
                     <p class="auth-subtitle">
-                        {% blocktranslate %}We’ve sent a code to
+                        {% blocktranslate trimmed %}We’ve sent a code to
                             <a href="mailto:{{ email }}" class="auth-link">{{ email }}</a>.
                             The code expires shortly, so please enter it soon.{% endblocktranslate %}
                     </p>
@@ -28,12 +28,12 @@
                     {% field "input" form.code autofocus=True %}
                     {# no name= on Confirm: the view reads POST["action"] and falls back to "verify" #}
                     <div class="auth-actions auth-actions-row">
-                        {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Confirm") button_type="submit" %}
                         {% if cancel_url %}
-                            {% include "allauth/components/submit_button.html" with text_key="Cancel" button_type="link" url=cancel_url variant="secondary" extra_attrs='tags="link,cancel"' %}
+                            {% include "allauth/components/submit_button.html" with text=_("Cancel") button_type="link" url=cancel_url variant="secondary" extra_attrs='tags="link,cancel"' %}
                         {% else %}
                             {# submitting the out-of-form logout drops the login stage and returns to sign-in #}
-                            {% include "allauth/components/submit_button.html" with text_key="Cancel" button_type="submit" form_id="logout-from-stage" variant="secondary" extra_attrs='tags="link,cancel"' %}
+                            {% include "allauth/components/submit_button.html" with text=_("Cancel") button_type="submit" form_id="logout-from-stage" variant="secondary" extra_attrs='tags="link,cancel"' %}
                         {% endif %}
                     </div>
                 </form>

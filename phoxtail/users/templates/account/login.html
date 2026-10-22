@@ -46,7 +46,8 @@
                     {% endif %}
                     {% field "input" form.login autofocus=True %}
                     {# help_text is allauth's own "Forgot your password?" anchor; the styled link below replaces it #}
-                    {% field "input" form.password show_help_text=False %}
+                    {% translate "Password" context "account" as password_label %}
+                    {% field "input" form.password show_help_text=False label=password_label %}
                     <div class="auth-pt-2 auth-text-center">
                         <a href="{% url 'account_reset_password' %}"
                            class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>
@@ -58,12 +59,12 @@
                     {{ redirect_field }}
                     {# the alternatives belong in Login's stack, not behind a divider #}
                     <div class="auth-actions auth-actions-row">
-                        {% include "allauth/components/submit_button.html" with text_key="Login" button_type="submit" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Login") button_type="submit" %}
                         {% if PASSKEY_LOGIN_ENABLED %}
-                            {% include "allauth/components/submit_button.html" with text_key="Sign in with a passkey" button_type="submit" form_id="mfa_login" button_id="passkey_login" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Sign in with a passkey") button_type="submit" form_id="mfa_login" button_id="passkey_login" variant="secondary" %}
                         {% endif %}
                         {% if LOGIN_BY_CODE_ENABLED %}
-                            {% include "allauth/components/submit_button.html" with text_key="Send me a sign-in code" button_type="link" url=request_login_code_url variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Send me a sign-in code") button_type="link" url=request_login_code_url variant="secondary" %}
                         {% endif %}
                     </div>
                 </form>

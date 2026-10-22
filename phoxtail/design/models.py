@@ -16,30 +16,34 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
     name = models.CharField(
         max_length=100,
         unique=True,
-        help_text="Font family name as it appears in CSS (e.g., 'Inter', 'Roboto')",
+        help_text=_("Font family name as it appears in CSS (e.g., 'Inter', 'Roboto')"),
+        verbose_name=_("name"),
     )
     description = models.TextField(
         blank=True,
         default="",
-        help_text="Optional description of the font and its intended use",
+        help_text=_("Optional description of the font and its intended use"),
+        verbose_name=_("description"),
     )
     category = models.CharField(
         max_length=50,
         choices=[
-            ("serif", "Serif"),
-            ("sans-serif", "Sans Serif"),
-            ("monospace", "Monospace"),
-            ("display", "Display"),
-            ("handwriting", "Handwriting"),
+            ("serif", _("Serif")),
+            ("sans-serif", _("Sans Serif")),
+            ("monospace", _("Monospace")),
+            ("display", _("Display")),
+            ("handwriting", _("Handwriting")),
         ],
         default="sans-serif",
-        help_text="Font category - helps with fallback selection and appropriate usage",
+        help_text=_("Font category - helps with fallback selection and appropriate usage"),
+        verbose_name=_("category"),
     )
     fallback = models.CharField(
         max_length=255,
         blank=True,
         default="system-ui, -apple-system, sans-serif",
-        help_text="CSS fallback fonts (e.g., 'system-ui, -apple-system, sans-serif')",
+        help_text=_("CSS fallback fonts (e.g., 'system-ui, -apple-system, sans-serif')"),
+        verbose_name=_("fallback"),
     )
 
     search_fields = [
@@ -100,27 +104,24 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
 class FontWeight(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model):
     """A specific weight/style variant of a font family"""
 
-    family = ParentalKey(
-        FontFamily,
-        on_delete=models.CASCADE,
-        related_name="weights",
-    )
+    family = ParentalKey(FontFamily, on_delete=models.CASCADE, related_name="weights", verbose_name=_("family"))
     weight = models.PositiveIntegerField(
         default=400,
-        help_text="Font weight value (100=Thin, 400=Regular, 700=Bold, 900=Black)",
+        help_text=_("Font weight value (100=Thin, 400=Regular, 700=Bold, 900=Black)"),
+        verbose_name=_("weight"),
     )
     style = models.CharField(
         max_length=20,
         choices=[
-            ("normal", "Normal"),
-            ("italic", "Italic"),
+            ("normal", _("Normal")),
+            ("italic", _("Italic")),
         ],
         default="normal",
-        help_text="Font style",
+        help_text=_("Font style"),
+        verbose_name=_("style"),
     )
     file = models.FileField(
-        upload_to="fonts/",
-        help_text="WOFF2 font file (convert TTF/OTF to WOFF2 first)",
+        upload_to="fonts/", help_text=_("WOFF2 font file (convert TTF/OTF to WOFF2 first)"), verbose_name=_("file")
     )
 
     class Meta(Orderable.Meta):
@@ -157,15 +158,17 @@ class FontRole(index.Indexed, models.Model):
     name = models.CharField(
         max_length=100,
         unique=True,
-        help_text="Display name (e.g., 'Heading', 'Body', 'Monospace')",
+        help_text=_("Display name (e.g., 'Heading', 'Body', 'Monospace')"),
+        verbose_name=_("name"),
     )
     identifier = models.CharField(
         max_length=50,
         unique=True,
-        help_text=("CSS namespace identifier (e.g., 'heading'). Used as prefix in CSS variables: --font-{identifier}"),
+        help_text=_("CSS namespace identifier (e.g., 'heading'). Used as prefix in CSS variables: --font-{identifier}"),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
-        help_text="Describes the semantic purpose of this font role.",
+        help_text=_("Describes the semantic purpose of this font role."), verbose_name=_("description")
     )
 
     search_fields = [
@@ -188,21 +191,26 @@ class PaletteRole(index.Indexed, models.Model):
     name = models.CharField(
         max_length=100,
         unique=True,
-        help_text="Display name (e.g., 'Surface', 'Primary', 'Accent')",
+        help_text=_("Display name (e.g., 'Surface', 'Primary', 'Accent')"),
+        verbose_name=_("name"),
     )
     identifier = models.CharField(
         max_length=50,
         unique=True,
-        help_text=(
+        help_text=_(
             "CSS namespace identifier (e.g., 'surface'). Used as prefix in CSS variables: --color-{identifier}-{shade}"
         ),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
         help_text=(
-            "Describes the semantic purpose of this role and how its shades "
-            "map to light/dark mode (e.g., shade-50 for light backgrounds, "
-            "shade-950 for dark backgrounds)."
+            _(
+                "Describes the semantic purpose of this role and how its shades "
+                "map to light/dark mode (e.g., shade-50 for light backgrounds, "
+                "shade-950 for dark backgrounds)."
+            )
         ),
+        verbose_name=_("description"),
     )
 
     search_fields = [
@@ -225,17 +233,20 @@ class PaletteSet(index.Indexed, UUIDMixin, TimestampMixin, Orderable, Clusterabl
     name = models.CharField(
         max_length=100,
         unique=True,
-        help_text="Human-readable name (e.g., 'Tailwind', 'Spring')",
+        help_text=_("Human-readable name (e.g., 'Tailwind', 'Spring')"),
+        verbose_name=_("name"),
     )
     identifier = models.CharField(
         max_length=50,
         unique=True,
-        help_text="Slug-style identifier matching the filesystem group directory",
+        help_text=_("Slug-style identifier matching the filesystem group directory"),
+        verbose_name=_("identifier"),
     )
     description = models.TextField(
         blank=True,
         default="",
-        help_text="Optional description of the palette set's purpose or theme",
+        help_text=_("Optional description of the palette set's purpose or theme"),
+        verbose_name=_("description"),
     )
 
     search_fields = [
@@ -256,30 +267,25 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model)
     """A color palette with shades from 50 to 950"""
 
     palette_set = ParentalKey(
-        PaletteSet,
-        on_delete=models.CASCADE,
-        related_name="palettes",
+        PaletteSet, on_delete=models.CASCADE, related_name="palettes", verbose_name=_("palette set")
     )
     title = models.CharField(
-        max_length=100,
-        help_text="Name of the palette (e.g., 'red', 'custom_blue')",
+        max_length=100, help_text=_("Name of the palette (e.g., 'red', 'custom_blue')"), verbose_name=_("title")
     )
     description = models.TextField(
-        blank=True,
-        default="",
-        help_text="Optional description of the palette",
+        blank=True, default="", help_text=_("Optional description of the palette"), verbose_name=_("description")
     )
-    shade_50 = ColorField(help_text="Hex color for shade 50 (lightest)")
-    shade_100 = ColorField(help_text="Hex color for shade 100")
-    shade_200 = ColorField(help_text="Hex color for shade 200")
-    shade_300 = ColorField(help_text="Hex color for shade 300")
-    shade_400 = ColorField(help_text="Hex color for shade 400")
-    shade_500 = ColorField(help_text="Hex color for shade 500 (base)")
-    shade_600 = ColorField(help_text="Hex color for shade 600")
-    shade_700 = ColorField(help_text="Hex color for shade 700")
-    shade_800 = ColorField(help_text="Hex color for shade 800")
-    shade_900 = ColorField(help_text="Hex color for shade 900")
-    shade_950 = ColorField(help_text="Hex color for shade 950 (darkest)")
+    shade_50 = ColorField(help_text=_("Hex color for shade 50 (lightest)"), verbose_name=_("shade 50"))
+    shade_100 = ColorField(help_text=_("Hex color for shade 100"), verbose_name=_("shade 100"))
+    shade_200 = ColorField(help_text=_("Hex color for shade 200"), verbose_name=_("shade 200"))
+    shade_300 = ColorField(help_text=_("Hex color for shade 300"), verbose_name=_("shade 300"))
+    shade_400 = ColorField(help_text=_("Hex color for shade 400"), verbose_name=_("shade 400"))
+    shade_500 = ColorField(help_text=_("Hex color for shade 500 (base)"), verbose_name=_("shade 500"))
+    shade_600 = ColorField(help_text=_("Hex color for shade 600"), verbose_name=_("shade 600"))
+    shade_700 = ColorField(help_text=_("Hex color for shade 700"), verbose_name=_("shade 700"))
+    shade_800 = ColorField(help_text=_("Hex color for shade 800"), verbose_name=_("shade 800"))
+    shade_900 = ColorField(help_text=_("Hex color for shade 900"), verbose_name=_("shade 900"))
+    shade_950 = ColorField(help_text=_("Hex color for shade 950 (darkest)"), verbose_name=_("shade 950"))
 
     search_fields = [
         index.SearchField("title"),

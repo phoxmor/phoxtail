@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from phoxtail.core.fields import SingleSelectSearchField
 from phoxtail.remotes.models import Remote
@@ -9,11 +10,19 @@ class RemoteSelectForm(forms.Form):
     remote = SingleSelectSearchField(
         queryset=Remote.objects.all(),
         required=False,
+        label=_("Remote"),
     )
 
 
 class SyncModeForm(forms.Form):
-    mode = forms.ChoiceField(choices=[("remote", "Remote"), ("local", "Local")], widget=forms.RadioSelect, label="")
+    mode = forms.ChoiceField(
+        choices=[
+            ("remote", pgettext_lazy("sync mode", "Remote")),
+            ("local", pgettext_lazy("sync mode", "Local")),
+        ],
+        widget=forms.RadioSelect,
+        label="",
+    )
 
 
 class SyncSearchForm(forms.Form):

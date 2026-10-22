@@ -2,6 +2,7 @@
 Custom field implementations for dynamic block support.
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import StreamBlock
 from wagtail.fields import StreamField
 
@@ -74,4 +75,5 @@ SharedBlockStreamField = SchemaStreamField(
     null=True,
     blank=True,
     max_num=1,
+    verbose_name=_("content"),
 )

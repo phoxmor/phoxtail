@@ -30,7 +30,8 @@ served by Django's LoginView. The form posts back to its own URL, query string i
                         </p>
                     {% endfor %}
                     {% field "input" form.username input_type="email" autofocus=True %}
-                    {% field "input" form.password %}
+                    {% translate "Password" context "account" as password_label %}
+                    {% field "input" form.password label=password_label %}
                     {# only where allauth's URLs are mounted; this page must not depend on them #}
                     {% url 'account_reset_password' as reset_url %}
                     {% if reset_url %}
@@ -40,7 +41,7 @@ served by Django's LoginView. The form posts back to its own URL, query string i
                     {% endif %}
                     {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
                     <div class="auth-actions auth-actions-row">
-                        {% include "allauth/components/submit_button.html" with text_key="Login" button_type="submit" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Login") button_type="submit" %}
                     </div>
                 </form>
             </div>

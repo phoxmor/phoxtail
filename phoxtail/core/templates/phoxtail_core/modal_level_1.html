@@ -1,7 +1,8 @@
+{% load i18n %}
 <div id="base-modal-level-1" role="dialog" aria-modal="true" tabindex="-1">
     <div class="modal-underlay"
          onclick="dismissModal(this)"
-         aria-label="Close modal">
+         aria-label="{% translate "Close modal" %}">
         <div class="modal-overlay-transparent"></div>
     </div>
     <div id="core-modal-level-1-placeholder" role="document" data-modal-content>{{ content_html|safe }}</div>

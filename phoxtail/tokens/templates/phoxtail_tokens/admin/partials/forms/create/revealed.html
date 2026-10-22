@@ -6,7 +6,7 @@ token, shown this once (the response carries no-store headers; it is never
 kept). Its one button copies the token and closes; a copy that fails leaves
 it open. The close button leaves without copying.
 {% endcomment %}
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {% block side %}center{% endblock %}
 {% block dismiss %}button{% endblock %}
 {% block title %}{{ token.name }}{% endblock %}
@@ -14,9 +14,9 @@ it open. The close button leaves without copying.
     <div class="phx-card">
         <h3 class="phx-card__title">
             {% icon "warning" %}
-            Copy your token
+            {% translate "Copy your token" %}
         </h3>
-        <p class="phx-card__text">You won't be able to see it again.</p>
+        <p class="phx-card__text">{% translate "You won't be able to see it again." %}</p>
         {% field "input" form.token copy=True show_label=True %}
     </div>
 {% endblock %}
@@ -24,6 +24,6 @@ it open. The close button leaves without copying.
     <button type="button"
             class="phx-button phx-button--primary"
             onclick="navigator.clipboard.writeText(document.getElementById('{{ form.token.id_for_label }}').value).then(() => closeModal(this))">
-        <span>Copy and close</span>
+        <span>{% translate "Copy and close" %}</span>
     </button>
 {% endblock %}

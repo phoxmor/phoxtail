@@ -1,11 +1,11 @@
 {% extends "phoxtail_core/page_header.html" %}
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {% block icon %}{% icon "graph_5" %}{% endblock %}
-{% block title %}Remotes{% endblock %}
+{% block title %}{% translate "Remotes" %}{% endblock %}
 {% block controls %}
     {% url 'remotes:search' as search_url %}
     <form id="remotes-search-form" class="phx-page-header__search">
-        {% field "search" search_form.search count=remotes.paginator.count placeholder="Search remotes" hx_get=search_url %}
+        {% field "search" search_form.search count=remotes.paginator.count placeholder=_("Search…") hx_get=search_url %}
         {{ search_form.page }}
     </form>
     <!-- Connect Button -->
@@ -17,6 +17,6 @@
             hx-target="#core-modal-placeholder-wrapper"
             hx-swap="innerHTML">
         {% icon "plus" %}
-        <span>Connect</span>
+        <span>{% translate "Connect" %}</span>
     </button>
 {% endblock %}

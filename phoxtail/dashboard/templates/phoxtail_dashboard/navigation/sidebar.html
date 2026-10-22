@@ -71,7 +71,7 @@
                     <a href="{{ admin_path }}"
                        class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
-                        <span class="dash-nav-label">{% translate 'Admin' %}</span>
+                        <span class="dash-nav-label">{% translate 'Admin' context 'admin area' %}</span>
                     </a>
                 {% endif %}
                 <form method="post" action="{% url 'account_logout' %}">

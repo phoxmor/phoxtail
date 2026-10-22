@@ -1,8 +1,9 @@
+{% load i18n %}
 {% if not is_search %}
 <li class="phoxtail-media-picker-collection-item{% if not collection_id %} phoxtail-media-picker-collection-item--selected{% endif %}"
     data-collection-id=""
     role="option">
-    All collections
+    {% translate "All collections" %}
 </li>
 {% endif %}
 {% for col in collections %}
@@ -15,7 +16,7 @@
 {% empty %}
 {% if is_search %}
 <li class="phoxtail-media-picker-collection-item phoxtail-media-picker-collection-item--empty">
-    No collections match
+    {% translate "No collections match" %}
 </li>
 {% endif %}
 {% endfor %}

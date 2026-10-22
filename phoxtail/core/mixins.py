@@ -2,12 +2,14 @@ import uuid
 
 from django.db import models
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.admin.admin_url_finder import AdminURLFinder
 
 
 class UUIDMixin(models.Model):
     id = models.BigAutoField(primary_key=True)
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, verbose_name=_("UUID"))
 
     def get_short_id(self):
         return str(self.uuid)[:8].upper()
@@ -21,8 +23,12 @@ class UUIDMixin(models.Model):
 
 
 class TimestampMixin(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        verbose_name=pgettext_lazy("timestamp", "created at"),
+    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name=_("updated at"))
 
     class Meta:
         abstract = True

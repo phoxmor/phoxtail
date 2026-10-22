@@ -1,4 +1,4 @@
-{% load phoxtail_design_tags phoxtail_agent_tags %}
+{% load i18n phoxtail_design_tags phoxtail_agent_tags %}
 {% url 'wagtailadmin_home' as admin_home %}
 {% for p in pages %}
     {# on_trail: this node is the active page itself, or one of its ancestors — auto-expanded instead of lazy #}
@@ -42,7 +42,7 @@
             {% endif %}
             <button type="button"
                     class="phoxtail-media-picker-add-btn phoxtail-media-picker-menu-add-btn"
-                    title="Add to chat">
+                    title="{% translate "Add to chat" %}">
                 {% icon "plus" class="phoxtail-bar-btn-icon" %}
             </button>
         </div>
@@ -58,7 +58,7 @@
                         hx-vals='{"parent_id": {{ p.pk }}, "offset": {{ trail.next_offset }}{% if trail.exclude_id %}, "exclude_id": {{ trail.exclude_id }}{% endif %}}'
                         hx-target="this"
                         hx-swap="outerHTML">
-                    Load more
+                    {% translate "Load more" %}
                 </button>
                 {% endif %}
             </div>
@@ -70,6 +70,6 @@
     {% endwith %}
 {% empty %}
 {% if flat %}
-<div class="phoxtail-media-picker-empty">No pages match</div>
+<div class="phoxtail-media-picker-empty">{% translate "No pages match" %}</div>
 {% endif %}
 {% endfor %}

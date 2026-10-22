@@ -5,6 +5,7 @@ This module contains the abstract base class that all schema blocks inherit from
 providing common parameters like name, required, help_text, and icon.
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import BooleanBlock, CharBlock, StructBlock
 
 
@@ -21,18 +22,18 @@ class FieldSchemaBlock(StructBlock):
 
     name = CharBlock(
         max_length=100,
-        help_text=("Field name (e.g., 'title', 'subtitle'). Use lowercase with underscores."),
+        help_text=_("Field name (e.g., 'title', 'subtitle'). Use lowercase with underscores."),
     )
-    required = BooleanBlock(required=False, default=True, help_text="Is this field required?")
+    required = BooleanBlock(required=False, default=True, help_text=_("Is this field required?"))
     help_text = CharBlock(
         required=False,
         max_length=255,
-        help_text="Help text shown to content editors",
+        help_text=_("Help text shown to content editors"),
     )
     icon = CharBlock(
         required=False,
         max_length=100,
-        help_text=(
+        help_text=_(
             "Wagtail icon name (e.g., 'image', 'doc-full', 'media'). Can use default Wagtail icons or custom SVG icons."
         ),
     )

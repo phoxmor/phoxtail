@@ -6,11 +6,11 @@ Push. A pull or push closes the drawer, and the list redraws itself; a
 refused one keeps it open and says why. A remote that could not be read
 answers with the reason instead.
 {% endcomment %}
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {% block width %}600px{% endblock %}
 {% block title %}
     {% if error %}
-        Remote unavailable
+        {% translate "Remote unavailable" %}
     {% else %}
         {{ variant.name }}
     {% endif %}
@@ -26,44 +26,45 @@ answers with the reason instead.
             <div class="phx-card">
                 <h3 class="phx-card__title">
                     {% icon "category" %}
-                    Variant
+                    {% translate "Variant" %}
                 </h3>
                 <div class="sync-details">
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label="Name" value=variant.name %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label="Identifier" value=variant.identifier code=True %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label="Description" value=variant.description %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_6" label="Collection" value=collection.name %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="check_circle" label="Default variant" value=variant.is_default|yesno:"Yes,No" %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label=_("Name") value=variant.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label=_("Identifier") value=variant.identifier code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label=_("Description") value=variant.description %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_6" label=_("Collection") value=collection.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="check_circle" label=_("Default variant") value=variant.is_default|yesno:_("Yes,No") %}
                 </div>
             </div>
             <div class="phx-card">
                 <h3 class="phx-card__title">
                     {% icon "widgets" %}
-                    Block
+                    {% translate "Block" %}
                 </h3>
                 <div class="sync-details">
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label="Name" value=variant_block.name %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label="Identifier" value=variant_block.identifier code=True %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label="Description" value=variant_block.description %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="style" label="Icon" value=variant_block.icon code=True %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="folder" label="Group" value=variant_block.group %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="apps" label="App" value=variant_block.source_app code=True %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="web" label="Page types" value=variant_block.page_types|join:", " %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="interests" label="Shared" value=variant_block.is_shared|yesno:"Yes,No" %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="page_header" label="Site slot" value=variant_block.site_slot %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="numbers" label="Slot order" value=variant_block.slot_order|stringformat:"d" %}
-                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="visibility" label="Render in preview" value=variant_block.render_in_preview|yesno:"Yes,No" %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="text_fields" label=_("Name") value=variant_block.name %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="fingerprint" label=_("Identifier") value=variant_block.identifier code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="subject" label=_("Description") value=variant_block.description %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="style" label=_("Icon") value=variant_block.icon code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="folder" label=_("Group") value=variant_block.group %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="apps" label=_("App") value=variant_block.source_app code=True %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="web" label=_("Page types") value=variant_block.page_types|join:", " %}
+                    {% translate "Shared" context "block" as shared_label %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="interests" label=shared_label value=variant_block.is_shared|yesno:_("Yes,No") %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="page_header" label=_("Site slot") value=variant_block.site_slot %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="numbers" label=_("Slot order") value=variant_block.slot_order|stringformat:"d" %}
+                    {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="visibility" label=_("Render in preview") value=variant_block.render_in_preview|yesno:_("Yes,No") %}
                 </div>
             </div>
             {% if remote %}
                 <div class="phx-card">
                     <h3 class="phx-card__title">
                         {% icon "sync" %}
-                        Sync
+                        {% translate "Sync" %}
                     </h3>
                     <div class="sync-details">
-                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_5" label="Remote" value=remote.name %}
-                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="info" label="Status" value=state %}
+                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="graph_5" label=_("Remote") value=remote.name %}
+                        {% include "phoxtail_streams/admin/sync/partials/detail_row.html" with icon="info" label=_("Status") value=state %}
                     </div>
                 </div>
             {% endif %}
@@ -71,35 +72,35 @@ answers with the reason instead.
                 <div class="phx-card">
                     <h3 class="phx-card__title">
                         {% icon "image" %}
-                        Previews
+                        {% translate "Previews" %}
                     </h3>
                     <div class="sync-previews">
                         <div class="sync-previews__controls">
                             {% field "segmented_control" preview_form.device variant="filled" size="small" show_label=False %}
                             {% field "segmented_control" preview_form.theme variant="filled" size="small" show_label=False %}
                         </div>
-                        <button type="button" class="sync-previews__screen" id="sync-previews-zoom" aria-label="Zoom in">
-                            <img id="sync-previews-image" alt="Preview of {{ variant.name }}">
+                        <button type="button" class="sync-previews__screen" id="sync-previews-zoom" aria-label="{% translate "Zoom in" %}">
+                            <img id="sync-previews-image" alt="{% blocktranslate with name=variant.name %}Preview of {{ name }}{% endblocktranslate %}">
                         </button>
                     </div>
                 </div>
-                <dialog class="sync-lightbox phx-ground" id="sync-lightbox" aria-label="Previews of {{ variant.name }}">
+                <dialog class="sync-lightbox phx-ground" id="sync-lightbox" aria-label="{% blocktranslate with name=variant.name %}Previews of {{ name }}{% endblocktranslate %}">
                     <div class="sync-lightbox__header">
                         <span class="sync-lightbox__title" id="sync-lightbox-title"></span>
-                        <button class="phoxtail-close-btn" id="sync-lightbox-close" type="button" aria-label="Close">
+                        <button class="phoxtail-close-btn" id="sync-lightbox-close" type="button" aria-label="{% translate "Close" %}">
                             {% icon "close" %}
                         </button>
                     </div>
                     <div class="sync-lightbox__image">
-                        <img id="sync-lightbox-image" alt="Preview of {{ variant.name }}">
+                        <img id="sync-lightbox-image" alt="{% blocktranslate with name=variant.name %}Preview of {{ name }}{% endblocktranslate %}">
                     </div>
                     <div class="sync-lightbox__footer">
                         <button type="button" class="phx-button phx-button--secondary" id="sync-lightbox-prev">
                             {% icon "chevron_left" %}
-                            Previous
+                            {% translate "Previous" %}
                         </button>
                         <button type="button" class="phx-button phx-button--secondary" id="sync-lightbox-next">
-                            Next
+                            {% translate "Next" %}
                             {% icon "chevron_right" %}
                         </button>
                     </div>
@@ -186,13 +187,13 @@ answers with the reason instead.
                         class="phx-button phx-button--secondary"
                         {% if sync_state == 'in_sync' or sync_state == 'unknown' %}disabled{% endif %}>
                     {% icon "cloud_upload" %}
-                    <span>Push</span>
+                    <span>{% translate "Push" %}</span>
                 </button>
             </form>
         {% else %}
             <button type="button" class="phx-button phx-button--secondary" disabled>
                 {% icon "cloud_upload" %}
-                <span>Push</span>
+                <span>{% translate "Push" %}</span>
             </button>
         {% endif %}
         {% if remote_variant_id %}
@@ -207,13 +208,13 @@ answers with the reason instead.
                         class="phx-button phx-button--primary"
                         {% if sync_state == 'in_sync' %}disabled{% endif %}>
                     {% icon "download" %}
-                    <span>Pull</span>
+                    <span>{% translate "Pull" %}</span>
                 </button>
             </form>
         {% else %}
             <button type="button" class="phx-button phx-button--primary" disabled>
                 {% icon "download" %}
-                <span>Pull</span>
+                <span>{% translate "Pull" %}</span>
             </button>
         {% endif %}
     {% endif %}

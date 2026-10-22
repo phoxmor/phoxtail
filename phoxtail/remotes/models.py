@@ -13,14 +13,17 @@ class Remote(UUIDMixin, TimestampMixin, index.Indexed, models.Model):
         max_length=100,
         unique=True,
         help_text=_("Display label for this remote (e.g. 'Phoxtail Registry')."),
+        verbose_name=_("name"),
     )
     base_url = models.URLField(
         unique=True,
         help_text=_("Root URL of the remote project, e.g. https://registry.phoxtail.com — no trailing slash."),
+        verbose_name=_("base URL"),
     )
     token = models.CharField(
         max_length=200,
         help_text=_("Bearer token for this remote. Never displayed after save."),
+        verbose_name=_("token"),
     )
 
     search_fields = [

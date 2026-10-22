@@ -1,4 +1,4 @@
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 {% comment %}
 Copy Key Button Component (Icon Only with Tooltip)
 
@@ -12,7 +12,7 @@ Parameters:
 <button type="button"
         class="copy-key-btn"
         onclick="const btn = this; navigator.clipboard.writeText('{{ key }}'); btn.classList.add('copied'); setTimeout(() => btn.classList.remove('copied'), 1000);"
-        aria-label="Copy to clipboard">
+        aria-label="{% translate "Copy to clipboard" %}">
     <div class="copy-key-icon-wrapper copy-icon">{% include icon|default:"phoxtail_core/svgs/content_copy.html" %}</div>
     <div class="copy-key-icon-wrapper check-icon">{% icon "check" %}</div>
 </button>

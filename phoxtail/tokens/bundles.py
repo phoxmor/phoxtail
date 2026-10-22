@@ -28,6 +28,7 @@ from collections.abc import Iterable, Iterator
 from functools import cache
 from urllib.parse import urlsplit
 
+from django.utils.translation import gettext
 from oauth2_provider.oauth2_validators import OAuth2Validator
 from oauth2_provider.scopes import BaseScopes
 
@@ -180,8 +181,8 @@ def describe(bundle: str) -> str:
     name, _, act = bundle.partition(":")
     subject = next((config.verbose_name for app, config in phoxtail_apps() if app == name), name)
     if act == READ:
-        return f"Read {subject}"
-    return f"Read and change {subject}"
+        return gettext("Read %(subject)s") % {"subject": subject}
+    return gettext("Read and change %(subject)s") % {"subject": subject}
 
 
 class Bundles(BaseScopes):

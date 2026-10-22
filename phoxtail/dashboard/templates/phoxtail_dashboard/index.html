@@ -1,12 +1,12 @@
 {% extends "phoxtail_dashboard/base.html" %}
-{% load static %}
+{% load i18n static %}
 {% block extra_css %}
     {% for css_file in widget_css_files %}
         <link rel="stylesheet" href="{% static css_file %}">
     {% endfor %}
 {% endblock extra_css %}
 {% block head_title %}
-    Dashboard
+    {% translate "Dashboard" %}
 {% endblock head_title %}
 {% block body %}
     <div class="dash-layout">
@@ -34,8 +34,8 @@
                             {% else %}
                                 <div class="phx-card">
                                     <div class="dash-empty-state">
-                                        <h2 class="dash-empty-heading">No widgets available yet</h2>
-                                        <p class="dash-empty-text">Register widgets from your apps to bring this page to life.</p>
+                                        <h2 class="dash-empty-heading">{% translate "No widgets available yet" %}</h2>
+                                        <p class="dash-empty-text">{% translate "Register widgets from your apps to bring this page to life." %}</p>
                                     </div>
                                 </div>
                             {% endif %}

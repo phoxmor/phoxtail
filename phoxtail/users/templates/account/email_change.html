@@ -56,15 +56,15 @@
                             </p>
                         </div>
                         <div class="auth-actions-row">
-                            {% include "allauth/components/submit_button.html" with text_key="Re-send Verification" button_type="submit" form_id="pending-email" name="action_send" variant="secondary" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Re-send Verification") button_type="submit" form_id="pending-email" name="action_send" variant="secondary" %}
                             {% if current_emailaddress %}
-                                {% include "allauth/components/submit_button.html" with text_key="Cancel Change" button_type="submit" form_id="pending-email" name="action_remove" variant="danger" %}
+                                {% include "allauth/components/submit_button.html" with text=_("Cancel Change") button_type="submit" form_id="pending-email" name="action_remove" variant="danger" %}
                             {% endif %}
                         </div>
                     {% endif %}
                     {% field "input" form.email label=_("Change to") %}
                     <div class="auth-actions">
-                        {% include "allauth/components/submit_button.html" with text_key="Change Email" button_type="submit" name="action_add" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Change Email") button_type="submit" name="action_add" %}
                     </div>
                 </form>
                 {% if new_emailaddress %}

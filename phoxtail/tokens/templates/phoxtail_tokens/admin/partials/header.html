@@ -1,7 +1,7 @@
 {% extends "phoxtail_core/page_header.html" %}
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 {% block icon %}{% icon "vpn_key" %}{% endblock %}
-{% block title %}API Tokens{% endblock %}
+{% block title %}{% translate "API Tokens" %}{% endblock %}
 {% block controls %}
     {% include 'phoxtail_tokens/admin/partials/searchbar.html' %}
     <!-- Filters Button -->
@@ -14,7 +14,7 @@
             hx-target="#core-modal-placeholder-wrapper"
             hx-swap="innerHTML">
         {% icon "filter_alt" %}
-        <span>Filters</span>
+        <span>{% translate "Filters" %}</span>
         {% if filter_count > 0 %}<span class="phx-badge">{{ filter_count }}</span>{% endif %}
     </button>
     {% if can_create %}
@@ -27,7 +27,7 @@
                 hx-target="#core-modal-placeholder-wrapper"
                 hx-swap="innerHTML">
             {% icon "plus" %}
-            <span>Create</span>
+            <span>{% translate "Create" %}</span>
         </button>
     {% endif %}
 {% endblock %}

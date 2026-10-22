@@ -1,20 +1,20 @@
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {# A remote's fields, in the Connect and Edit drawers and redrawn with their errors. #}
 <div class="phoxtail-form-stack">
     <div class="phx-card">
         <h3 class="phx-card__title">
             {% icon "globe" %}
-            Remote
+            {% translate "Remote" %}
         </h3>
         <div class="phx-card__fields">
-            {% field "input" form.name show_label=True show_help_text=False placeholder="e.g. Phoxtail Registry" %}
+            {% field "input" form.name show_label=True show_help_text=False placeholder=_("e.g. Phoxtail Registry") %}
             {% field "input" form.base_url input_type="url" show_label=True show_help_text=False placeholder="https://registry.example.com" %}
         </div>
     </div>
     <div class="phx-card">
         <h3 class="phx-card__title">
             {% icon "key" %}
-            Token
+            {% translate "Token" %}
         </h3>
         <div class="phx-card__fields">
             {% field "input" form.token show_label=True show_help_text=True placeholder="phxt_…" %}

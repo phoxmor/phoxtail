@@ -8,11 +8,19 @@ from wagtailmedia.models import AbstractMedia
 class PhoxtailImage(AbstractImage):
     admin_form_fields = Image.admin_form_fields
 
+    class Meta:
+        verbose_name = _("image")
+        verbose_name_plural = _("images")
+
 
 class PhoxtailImageRendition(AbstractRendition):
-    image = models.ForeignKey(PhoxtailImage, on_delete=models.CASCADE, related_name="renditions")
+    image = models.ForeignKey(
+        PhoxtailImage, on_delete=models.CASCADE, related_name="renditions", verbose_name=_("image")
+    )
 
     class Meta:
+        verbose_name = _("image rendition")
+        verbose_name_plural = _("image renditions")
         unique_together = (("image", "filter_spec", "focal_point_key"),)
 
 

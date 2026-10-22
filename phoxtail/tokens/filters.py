@@ -18,6 +18,8 @@ import django_filters
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.search.backends import get_search_backend
 
 from .models import AccessToken
@@ -32,9 +34,9 @@ class TokenStatus:
     REVOKED = "revoked"
 
     choices = (
-        (ACTIVE, "Active"),
-        (EXPIRED, "Expired"),
-        (REVOKED, "Revoked"),
+        (ACTIVE, pgettext_lazy("token status", "Active")),
+        (EXPIRED, _("Expired")),
+        (REVOKED, _("Revoked")),
     )
 
 
@@ -53,26 +55,26 @@ class TokenFilter(django_filters.FilterSet):
 
     search = django_filters.CharFilter(
         method="filter_search",
-        label="Search",
+        label=_("Search"),
     )
 
     status = django_filters.ChoiceFilter(
         method="filter_status",
         choices=TokenStatus.choices,
-        label="Status",
-        empty_label="All",
+        label=_("Status"),
+        empty_label=_("All"),
     )
 
     user = django_filters.ModelChoiceFilter(
         field_name="user",
         queryset=User.objects.filter(access_tokens__isnull=False).distinct().order_by("email"),
-        label="User",
-        empty_label="All",
+        label=_("User"),
+        empty_label=_("All"),
     )
 
     page = django_filters.NumberFilter(
         method="filter_page",
-        label="Page",
+        label=_("Page"),
     )
 
     class Meta:

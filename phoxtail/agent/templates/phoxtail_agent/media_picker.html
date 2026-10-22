@@ -1,13 +1,13 @@
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 <div class="phoxtail-media-picker-overlay"
      data-modal-animation="slide-left">
     <div class="phoxtail-media-picker-drawer phoxtail-modal-drawer">
         <div class="phoxtail-bar-panel-header">
-            <span class="phoxtail-bar-panel-title">Menu &amp; Media</span>
+            <span class="phoxtail-bar-panel-title">{% translate "Menu &amp; Media" %}</span>
             <button type="button"
                     onclick="closeModalLevel1();"
                     class="phoxtail-bar-panel-close"
-                    title="Close">
+                    title="{% translate "Close" %}">
                 {% icon "close" class="phoxtail-bar-btn-icon" %}
             </button>
         </div>
@@ -21,7 +21,7 @@
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "menu" class="phoxtail-bar-btn-icon" %}
-                Menu
+                {% translate "Menu" %}
             </button>
             <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'images' %}phoxtail-media-picker-tab--active{% endif %}"
@@ -31,7 +31,7 @@
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "image" class="phoxtail-bar-btn-icon" %}
-                Images
+                {% translate "Images" %}
             </button>
             <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'videos' %}phoxtail-media-picker-tab--active{% endif %}"
@@ -41,7 +41,7 @@
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "videocam" class="phoxtail-bar-btn-icon" %}
-                Videos
+                {% translate "Videos" %}
             </button>
             <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'audio' %}phoxtail-media-picker-tab--active{% endif %}"
@@ -51,7 +51,7 @@
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "music_note" class="phoxtail-bar-btn-icon" %}
-                Audio
+                {% translate "Audio" %}
             </button>
             <button type="button"
                     class="phoxtail-media-picker-tab {% if tab == 'documents' %}phoxtail-media-picker-tab--active{% endif %}"
@@ -61,7 +61,7 @@
                     hx-target="#phoxtail-media-picker-results"
                     hx-swap="innerHTML">
                 {% icon "draft" class="phoxtail-bar-btn-icon" %}
-                Documents
+                {% translate "Documents" %}
             </button>
         </div>
 
@@ -93,7 +93,7 @@
                            id="phoxtail-media-picker-collection-search"
                            name="q"
                            class="phoxtail-media-picker-collection-search-input"
-                           placeholder="Filter collections…"
+                           placeholder="{% translate "Search…" %}"
                            autocomplete="off"
                            hx-get="{% url 'phoxtail_agent:collection_picker' %}"
                            hx-trigger="input changed delay:250ms, search"
@@ -115,15 +115,15 @@
             <button type="button"
                     id="phoxtail-media-picker-clear"
                     class="phoxtail-bar-search-clear {% if not query %}phoxtail-bar-hidden{% endif %}"
-                    title="Clear search"
-                    aria-label="Clear search">
+                    title="{% translate "Clear search" %}"
+                    aria-label="{% translate "Clear search" %}">
                 {% icon "close" class="phoxtail-bar-btn-icon" %}
             </button>
             <input type="text"
                    id="phoxtail-media-picker-search"
                    name="q"
                    value="{{ query }}"
-                   placeholder="Search…"
+                   placeholder="{% translate "Search…" %}"
                    autocomplete="off"
                    class="phoxtail-bar-search-input"
                    hx-get="{% url 'phoxtail_agent:media_picker' %}"
@@ -143,11 +143,11 @@
              inert>
             <div class="phoxtail-media-picker-lightbox-inner">
                 <div class="phoxtail-bar-panel-header">
-                    <span class="phoxtail-bar-panel-title">Preview</span>
+                    <span class="phoxtail-bar-panel-title">{% translate "Preview" %}</span>
                     <button type="button"
                             id="phoxtail-media-picker-lightbox-close"
                             class="phoxtail-bar-panel-close"
-                            title="Close preview">
+                            title="{% translate "Close preview" %}">
                         {% icon "close" class="phoxtail-bar-btn-icon" %}
                     </button>
                 </div>
@@ -195,13 +195,13 @@
                             class="phoxtail-media-picker-lightbox-close-btn"
                             id="phoxtail-media-picker-lightbox-dismiss">
                         {% icon "close" class="phoxtail-bar-btn-icon" %}
-                        Close
+                        {% translate "Close" %}
                     </button>
                     <button type="button"
                             class="phoxtail-media-picker-lightbox-add-btn"
                             id="phoxtail-media-picker-lightbox-add">
                         {% icon "plus" class="phoxtail-bar-btn-icon" %}
-                        Add to chat
+                        {% translate "Add to chat" %}
                     </button>
                 </div>
             </div>

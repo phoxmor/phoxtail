@@ -1,9 +1,9 @@
-{% load phoxtail_core_tags %}
+{% load i18n phoxtail_core_tags %}
 {% url 'streams-sync:streams' as streams_url %}
 {# The count joins once the list has loaded (streams_response.html). #}
 {% if page.paginator %}
-    {% field "search" search_form.search count=page.paginator.count placeholder="Search variants" hx_get=streams_url hx_include="#remote-selected-value, #streams-mode-control" %}
+    {% field "search" search_form.search count=page.paginator.count placeholder=_("Search…") hx_get=streams_url hx_include="#remote-selected-value, #streams-mode-control" %}
 {% else %}
-    {% field "search" search_form.search placeholder="Search variants" hx_get=streams_url hx_include="#remote-selected-value, #streams-mode-control" %}
+    {% field "search" search_form.search placeholder=_("Search…") hx_get=streams_url hx_include="#remote-selected-value, #streams-mode-control" %}
 {% endif %}
 {{ search_form.page }}

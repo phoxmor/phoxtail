@@ -1,10 +1,10 @@
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 <div class="phoxtail-drawer__header">
     <div class="phoxtail-drawer__title-row">
-        <h2 class="phoxtail-drawer__title">Filters</h2>
+        <h2 class="phoxtail-drawer__title">{% translate "Filters" %}</h2>
         <button class="phoxtail-close-btn"
                 onclick="closeModal(this)"
-                aria-label="Close"
+                aria-label="{% translate "Close" %}"
                 type="button">
             {% icon "close" %}
         </button>
@@ -15,7 +15,7 @@
     <div>
         <div class="phx-filter__label">
             {% icon "tune" %}
-            <span>Status</span>
+            <span>{% translate "Status" %}</span>
         </div>
         {% field "select" filterset.form.status show_label=False show_help_text=False hx_get=filters_url hx_target="this" hx_swap="none" hx_trigger="change" %}
     </div>
@@ -23,7 +23,7 @@
         <div>
             <div class="phx-filter__label">
                 {% icon "person" %}
-                <span>User</span>
+                <span>{% translate "User" %}</span>
             </div>
             {% field "select" filterset.form.user show_label=False show_help_text=False hx_get=filters_url hx_target="this" hx_swap="none" hx_trigger="change" %}
         </div>

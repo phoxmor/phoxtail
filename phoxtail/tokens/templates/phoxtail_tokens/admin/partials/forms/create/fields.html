@@ -1,10 +1,10 @@
-{% load phoxtail_core_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {# A new token's fields, in the Create drawer and redrawn with their errors. #}
 <div class="phoxtail-form-stack">
     <div class="phx-card">
         <h3 class="phx-card__title">
             {% icon "vpn_key" %}
-            Details
+            {% translate "Details" %}
         </h3>
         <div class="phx-card__fields">
             {% field "input" form.name show_label=True show_help_text=True %}
@@ -14,7 +14,7 @@
     <div class="phx-card">
         <h3 class="phx-card__title">
             {% icon "lock" %}
-            Access
+            {% translate "Access" %}
         </h3>
         <div class="phx-card__fields">
             {% field "input" form.scopes show_label=True show_help_text=True %}

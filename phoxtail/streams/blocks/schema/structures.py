@@ -14,6 +14,7 @@ Nesting is achieved through depth-limited layer blocks from layers.py:
 - Layer 2: StructSchemaBlockL2 contains only fields (no further nesting)
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import BooleanBlock, IntegerBlock, StreamBlock
 
 from .base import FieldSchemaBlock
@@ -38,20 +39,20 @@ class StructSchemaBlock(FieldSchemaBlock):
             LAYER_BLOCK_CHOICES.LIST_STRUCT_L1,
         ],
         min_num=1,
-        help_text="Blocks that compose this structure (supports nested structures)",
+        help_text=_("Blocks that compose this structure (supports nested structures)"),
     )
 
     # UI configuration
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with this structure collapsed in the editor",
+        help_text=_("Start with this structure collapsed in the editor"),
     )
 
     class Meta:
         icon = "widgets"
-        label = "Structure"
-        group = "Structures"
+        label = _("Structure")
+        group = _("Structures")
 
 
 class ListFieldSchemaBlock(FieldSchemaBlock):
@@ -70,32 +71,32 @@ class ListFieldSchemaBlock(FieldSchemaBlock):
         FIELD_BLOCK_CHOICES.choices,
         min_num=1,
         max_num=1,
-        help_text=("Define the field type and configuration for each item in this list (add exactly one)"),
+        help_text=_("Define the field type and configuration for each item in this list (add exactly one)"),
     )
 
     # List constraints
     min_num = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum number of items required (optional)",
+        help_text=_("Minimum number of items required (optional)"),
     )
     max_num = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum number of items allowed (optional)",
+        help_text=_("Maximum number of items allowed (optional)"),
     )
 
     # UI configuration
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with all list items collapsed in the editor",
+        help_text=_("Start with all list items collapsed in the editor"),
     )
 
     class Meta:
         icon = "list"
-        label = "List of Fields"
-        group = "Structures"
+        label = _("List of Fields")
+        group = _("Structures")
 
 
 class ListStructSchemaBlock(FieldSchemaBlock):
@@ -116,32 +117,32 @@ class ListStructSchemaBlock(FieldSchemaBlock):
             LAYER_BLOCK_CHOICES.LIST_STRUCT_L1,
         ],
         min_num=1,
-        help_text=("Blocks that define the structure of each list item (supports nested structures)"),
+        help_text=_("Blocks that define the structure of each list item (supports nested structures)"),
     )
 
     # List constraints
     min_num = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum number of items required (optional)",
+        help_text=_("Minimum number of items required (optional)"),
     )
     max_num = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum number of items allowed (optional)",
+        help_text=_("Maximum number of items allowed (optional)"),
     )
 
     # UI configuration
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with all list items collapsed in the editor",
+        help_text=_("Start with all list items collapsed in the editor"),
     )
 
     class Meta:
         icon = "category"
-        label = "List of Structures"
-        group = "Structures"
+        label = _("List of Structures")
+        group = _("Structures")
 
 
 # ==============================================================================

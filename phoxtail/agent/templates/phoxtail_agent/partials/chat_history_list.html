@@ -1,3 +1,4 @@
+{% load i18n %}
 {% for conv in conversations %}
 <button type="button"
         class="phoxtail-chat-history-item"
@@ -7,6 +8,6 @@
 </button>
 {% empty %}
 <div class="phoxtail-chat-history-empty">
-    {% if query %}No chats match "{{ query }}".{% else %}No saved chats yet.{% endif %}
+    {% if query %}{% blocktranslate with query=query %}No chats match "{{ query }}".{% endblocktranslate %}{% else %}{% translate "No saved chats yet." %}{% endif %}
 </div>
 {% endfor %}

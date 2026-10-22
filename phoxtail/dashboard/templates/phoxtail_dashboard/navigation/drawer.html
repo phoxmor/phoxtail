@@ -118,7 +118,7 @@
                     <a href="{{ admin_path }}"
                        class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
                         <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
-                        <span class="dash-nav-label">{% translate 'Admin' %}</span>
+                        <span class="dash-nav-label">{% translate 'Admin' context 'admin area' %}</span>
                     </a>
                 {% endif %}
                 <form method="post" action="{% url 'account_logout' %}">
@@ -135,7 +135,7 @@
                 <a href="{% url 'account_login' %}"
                    class="phx-button phx-button--secondary">
                     {% include 'phoxtail_core/svgs/signin.html' %}
-                    {% translate 'Log in' %}
+                    {% translate 'Log in' context 'account' %}
                 </a>
                 <a href="{% url 'account_signup' %}"
                    class="phx-button phx-button--primary">

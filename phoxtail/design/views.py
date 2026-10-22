@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from wagtail.admin.ui.tables import Column, TitleColumn
 from wagtail.snippets.views.chooser import (
     ChooseResultsView,
@@ -15,7 +16,7 @@ class PaletteChooseView(ChooseView):
     def title_column(self):
         return TitleColumn(
             "title",
-            label="Palette Name",
+            label=_("Palette Name"),
             accessor="title",
             id_accessor="pk",
             url_name=self.chosen_url_name,
@@ -28,7 +29,7 @@ class PaletteChooseView(ChooseView):
         columns.append(
             Column(
                 "shades_preview",
-                label="Shades",
+                label=_("Shades"),
                 accessor=lambda obj: obj.shades_preview(),
             )
         )
@@ -40,7 +41,7 @@ class PaletteChooseResultsView(ChooseResultsView):
     def title_column(self):
         return TitleColumn(
             "title",
-            label="Palette Name",
+            label=_("Palette Name"),
             accessor="title",
             id_accessor="pk",
             url_name=self.chosen_url_name,
@@ -53,7 +54,7 @@ class PaletteChooseResultsView(ChooseResultsView):
         columns.append(
             Column(
                 "shades_preview",
-                label="Shades",
+                label=_("Shades"),
                 accessor=lambda obj: obj.shades_preview(),
             )
         )

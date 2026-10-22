@@ -19,11 +19,13 @@ class InternalLink(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed):
 
     label = models.CharField(
         max_length=255,
+        verbose_name=_("label"),
         help_text=_("Display text for this link (e.g. 'My Subscriptions')"),
     )
     url_name = models.CharField(
         max_length=255,
         unique=True,
+        verbose_name=_("URL name"),
         help_text=_("Django URL name (e.g. 'dashboard:index')"),
     )
 

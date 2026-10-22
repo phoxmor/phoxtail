@@ -31,6 +31,7 @@ from zoneinfo import ZoneInfo
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db.models import DateTimeField, Q, QuerySet
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 def localize(value: datetime, zone: tzinfo) -> datetime:
@@ -41,8 +42,10 @@ def localize(value: datetime, zone: tzinfo) -> datetime:
         expected = value.astimezone(UTC).astimezone(zone).utcoffset()
         if value.utcoffset() != expected:
             raise ValidationError(
-                "%(value)s is not a time on %(zone)s clocks, which are at %(expected)s then; "
-                "send it without an offset or with %(expected)s.",
+                _(
+                    "%(value)s is not a time on %(zone)s clocks, which are at %(expected)s then; "
+                    "send it without an offset or with %(expected)s."
+                ),
                 code="offset_mismatch",
                 params={"value": value.isoformat(), "zone": zone, "expected": _offset(expected)},
             )
@@ -55,12 +58,12 @@ def localize(value: datetime, zone: tzinfo) -> datetime:
     # A skipped time comes back from UTC as another wall-clock time; a repeated one as itself.
     if first.astimezone(UTC).astimezone(zone).replace(tzinfo=None) != value:
         raise ValidationError(
-            "%(value)s does not exist on %(zone)s clocks; they skip it that night.",
+            _("%(value)s does not exist on %(zone)s clocks; they skip it that night."),
             code="nonexistent_time",
             params={"value": value.isoformat(), "zone": zone},
         )
     raise ValidationError(
-        "%(value)s happens twice on %(zone)s clocks; send it with %(first)s or %(second)s.",
+        _("%(value)s happens twice on %(zone)s clocks; send it with %(first)s or %(second)s."),
         code="ambiguous_time",
         params={
             "value": value.isoformat(),

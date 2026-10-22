@@ -41,7 +41,7 @@
                     {% endif %}
                     {{ redirect_field }}
                     <div class="auth-actions">
-                        {% include "allauth/components/submit_button.html" with text_key="Request Code" button_type="submit" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Request Code") button_type="submit" %}
                     </div>
                 </form>
                 {% url 'account_login' as login_url %}

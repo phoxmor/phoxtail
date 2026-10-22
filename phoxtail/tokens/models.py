@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.search import index
 
 from phoxtail.core.mixins import AdminURLMixin, UUIDMixin
@@ -11,16 +12,12 @@ from .constants import TokenType
 
 class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="access_tokens",
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="access_tokens", verbose_name=_("user")
     )
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=100, verbose_name=_("name"))
+    description = models.TextField(blank=True, verbose_name=_("description"))
     token_type = models.CharField(
-        max_length=20,
-        choices=TokenType.choices,
-        default=TokenType.PERSONAL,
+        max_length=20, choices=TokenType.choices, default=TokenType.PERSONAL, verbose_name=_("token type")
     )
 
     # First 8 characters of the raw token ("phxt_" + 3 random). Stored
@@ -28,16 +25,16 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
     # lookup — `digest` has a unique index that already makes the lookup
     # O(log n). Prefix exists so users can identify a token in the admin
     # list without ever seeing the secret again.
-    prefix = models.CharField(max_length=8)
+    prefix = models.CharField(max_length=8, verbose_name=_("prefix"))
 
     # Last 4 characters of the raw token, stored plaintext for the same
     # display reason — lets users distinguish tokens that share a prefix.
-    suffix = models.CharField(max_length=4)
+    suffix = models.CharField(max_length=4, verbose_name=_("suffix"))
 
     # SHA-256 hex digest of the raw token. Fast hashing is correct here:
     # the token body carries 192 bits of entropy so brute force is
     # infeasible; slow KDFs (bcrypt/argon2) exist for low-entropy passwords.
-    digest = models.CharField(max_length=64, unique=True)
+    digest = models.CharField(max_length=64, unique=True, verbose_name=_("digest"))
 
     # A token is either unrestricted or carries an explicit ceiling; the
     # two are mutually exclusive and the service layer enforces that.
@@ -53,6 +50,7 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
             "own machine; too broad for anything you hand to another "
             "system. Leave off and choose scopes instead."
         ),
+        verbose_name=_("unrestricted"),
     )
 
     # Scope vocabulary is Django permission codenames
@@ -67,12 +65,13 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
             "a token can never do something its owner cannot. Required "
             "unless the token is unrestricted."
         ),
+        verbose_name=_("scopes"),
     )
 
-    expires_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_used_at = models.DateTimeField(null=True, blank=True)
-    revoked_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True, verbose_name=_("expires at"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=pgettext_lazy("timestamp", "created at"))
+    last_used_at = models.DateTimeField(null=True, blank=True, verbose_name=_("last used at"))
+    revoked_at = models.DateTimeField(null=True, blank=True, verbose_name=_("revoked at"))
 
     search_fields = [
         index.AutocompleteField("name", boost=10),
@@ -92,6 +91,8 @@ class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
     ]
 
     class Meta:
+        verbose_name = _("API token")
+        verbose_name_plural = _("API tokens")
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["user", "-created_at"]),

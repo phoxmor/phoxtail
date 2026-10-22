@@ -4,14 +4,14 @@ A token (level 0), titled by its name: its details and, while it is active
 and the viewer may, Revoke. A revoke closes the drawer, and the list redraws
 itself.
 {% endcomment %}
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 {% block title %}{{ token.name }}{% endblock %}
 {% block body %}
     <div class="phoxtail-form-stack">
         <div class="phx-card">
             <h3 class="phx-card__title">
                 {% icon "vpn_key" %}
-                Token
+                {% translate "Token" %}
             </h3>
             {% if token.description %}<p class="phx-card__text">{{ token.description }}</p>{% endif %}
             <div class="phx-card__meta">
@@ -30,14 +30,14 @@ itself.
         <div class="phx-card">
             <h3 class="phx-card__title">
                 {% icon "lock" %}
-                Access
+                {% translate "Access" %}
             </h3>
             <div class="phx-card__meta">
                 <div class="phx-card__meta-row">
                     {% icon "tune" %}
                     <span class="phx-card__meta-value">
                         {% if token.unrestricted %}
-                            Unrestricted: anything its owner can do
+                            {% translate "Unrestricted: anything its owner can do" %}
                         {% else %}
                             {{ token.scopes|join:", " }}
                         {% endif %}
@@ -47,9 +47,9 @@ itself.
                     {% icon "calendar_lock" %}
                     <span class="phx-card__meta-value">
                         {% if token.expires_at %}
-                            Expires {{ token.expires_at|date:"M j, Y H:i" }}
+                            {% blocktranslate with expires_at=token.expires_at|date:"M j, Y H:i" %}Expires {{ expires_at }}{% endblocktranslate %}
                         {% else %}
-                            Never expires
+                            {% translate "Never expires" %}
                         {% endif %}
                     </span>
                 </div>
@@ -58,27 +58,27 @@ itself.
         <div class="phx-card">
             <h3 class="phx-card__title">
                 {% icon "schedule" %}
-                Activity
+                {% translate "Activity" %}
             </h3>
             <div class="phx-card__meta">
                 <div class="phx-card__meta-row">
                     {% icon "calendar_month" %}
-                    <span class="phx-card__meta-value">Created {{ token.created_at|date:"M j, Y H:i" }}</span>
+                    <span class="phx-card__meta-value">{% blocktranslate with created_at=token.created_at|date:"M j, Y H:i" %}Created {{ created_at }}{% endblocktranslate %}</span>
                 </div>
                 <div class="phx-card__meta-row">
                     {% icon "schedule" %}
                     <span class="phx-card__meta-value">
                         {% if token.last_used_at %}
-                            Last used {{ token.last_used_at|date:"M j, Y H:i" }}
+                            {% blocktranslate with last_used_at=token.last_used_at|date:"M j, Y H:i" %}Last used {{ last_used_at }}{% endblocktranslate %}
                         {% else %}
-                            Never used
+                            {% translate "Never used" %}
                         {% endif %}
                     </span>
                 </div>
                 {% if token.revoked_at %}
                     <div class="phx-card__meta-row">
                         {% icon "cancel" %}
-                        <span class="phx-card__meta-value">Revoked {{ token.revoked_at|date:"M j, Y H:i" }}</span>
+                        <span class="phx-card__meta-value">{% blocktranslate with revoked_at=token.revoked_at|date:"M j, Y H:i" %}Revoked {{ revoked_at }}{% endblocktranslate %}</span>
                     </div>
                 {% endif %}
             </div>
@@ -87,10 +87,10 @@ itself.
             <div class="phx-card">
                 <h3 class="phx-card__title">
                     {% icon "danger" %}
-                    Revoke token
+                    {% translate "Revoke token" %}
                 </h3>
                 <p class="phx-card__text">
-                    Any client or script using this token stops working at once. This cannot be undone.
+                    {% translate "Any client or script using this token stops working at once. This cannot be undone." %}
                 </p>
                 <div id="token-revoke-csrf" hidden>{% csrf_token %}</div>
                 <button class="phx-button phx-button--danger phx-button--full"
@@ -99,8 +99,8 @@ itself.
                         hx-include="#token-revoke-csrf"
                         hx-swap="none"
                         hx-disabled-elt="this, #base-modal .phoxtail-drawer__footer button"
-                        hx-confirm="Revoke '{{ token.name }}'? This cannot be undone.">
-                    <span>Revoke</span>
+                        hx-confirm="{% blocktranslate with name=token.name %}Revoke '{{ name }}'? This cannot be undone.{% endblocktranslate %}">
+                    <span>{% translate "Revoke" %}</span>
                 </button>
             </div>
         {% endif %}

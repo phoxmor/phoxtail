@@ -15,6 +15,8 @@ Organized by category:
 - Embed & Media (1 type)
 """
 
+from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.blocks import (
     BooleanBlock,
     CharBlock,
@@ -38,23 +40,23 @@ class CharSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Index this field content for searching",
+        help_text=_("Index this field content for searching"),
     )
 
     class Meta:
-        label = "Single Line Text (Char)"
+        label = _("Single Line Text (Char)")
         icon = "short-text"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 class TextSchemaBlock(FieldSchemaBlock):
@@ -63,37 +65,37 @@ class TextSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
     rows = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Number of visible text lines (optional)",
+        help_text=_("Number of visible text lines (optional)"),
     )
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Index this field content for searching",
+        help_text=_("Index this field content for searching"),
     )
 
     class Meta:
-        label = "Multi-line Text"
+        label = _("Multi-line Text")
         icon = "subject"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 class EmailSchemaBlock(FieldSchemaBlock):
     """Email address field with validation."""
 
     class Meta:
-        label = "Email"
+        label = pgettext_lazy("field type", "Email")
         icon = "mail"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 class URLSchemaBlock(FieldSchemaBlock):
@@ -102,18 +104,18 @@ class URLSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
 
     class Meta:
-        label = "URL"
+        label = pgettext_lazy("field type", "URL")
         icon = "link"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 class BlockQuoteSchemaBlock(FieldSchemaBlock):
@@ -122,18 +124,18 @@ class BlockQuoteSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
 
     class Meta:
-        label = "Block Quote"
+        label = _("Block Quote")
         icon = "quote"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 class RawHTMLSchemaBlock(FieldSchemaBlock):
@@ -142,18 +144,18 @@ class RawHTMLSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
 
     class Meta:
-        label = "Raw HTML"
+        label = _("Raw HTML")
         icon = "code"
-        group = "Text Fields"
+        group = _("Text Fields")
 
 
 # ==============================================================================
@@ -166,17 +168,17 @@ class IntegerSchemaBlock(FieldSchemaBlock):
 
     min_value = IntegerBlock(
         required=False,
-        help_text="Minimum value (optional)",
+        help_text=_("Minimum value (optional)"),
     )
     max_value = IntegerBlock(
         required=False,
-        help_text="Maximum value (optional)",
+        help_text=_("Maximum value (optional)"),
     )
 
     class Meta:
-        label = "Integer"
+        label = _("Integer")
         icon = "numbers"
-        group = "Numeric Fields"
+        group = _("Numeric Fields")
 
 
 class FloatSchemaBlock(FieldSchemaBlock):
@@ -184,17 +186,17 @@ class FloatSchemaBlock(FieldSchemaBlock):
 
     min_value = IntegerBlock(
         required=False,
-        help_text="Minimum value (optional)",
+        help_text=_("Minimum value (optional)"),
     )
     max_value = IntegerBlock(
         required=False,
-        help_text="Maximum value (optional)",
+        help_text=_("Maximum value (optional)"),
     )
 
     class Meta:
-        label = "Float"
+        label = _("Float")
         icon = "numbers"
-        group = "Numeric Fields"
+        group = _("Numeric Fields")
 
 
 class DecimalSchemaBlock(FieldSchemaBlock):
@@ -202,27 +204,27 @@ class DecimalSchemaBlock(FieldSchemaBlock):
 
     min_value = IntegerBlock(
         required=False,
-        help_text="Minimum value (optional)",
+        help_text=_("Minimum value (optional)"),
     )
     max_value = IntegerBlock(
         required=False,
-        help_text="Maximum value (optional)",
+        help_text=_("Maximum value (optional)"),
     )
     max_digits = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Total number of digits (optional)",
+        help_text=_("Total number of digits (optional)"),
     )
     decimal_places = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Number of decimal places (optional)",
+        help_text=_("Number of decimal places (optional)"),
     )
 
     class Meta:
-        label = "Decimal"
+        label = _("Decimal")
         icon = "numbers"
-        group = "Numeric Fields"
+        group = _("Numeric Fields")
 
 
 # ==============================================================================
@@ -237,9 +239,9 @@ class BooleanSchemaBlock(FieldSchemaBlock):
     # It's always optional (checkbox unchecked = False)
 
     class Meta:
-        label = "Boolean (Checkbox)"
+        label = _("Boolean (Checkbox)")
         icon = "check-box"
-        group = "Boolean & Logic"
+        group = _("Boolean & Logic")
 
 
 # ==============================================================================
@@ -253,13 +255,13 @@ class DateSchemaBlock(FieldSchemaBlock):
     format = CharBlock(
         required=False,
         max_length=50,
-        help_text="Date format (from Django's DATE_INPUT_FORMATS, optional)",
+        help_text=_("Date format (from Django's DATE_INPUT_FORMATS, optional)"),
     )
 
     class Meta:
-        label = "Date"
+        label = _("Date")
         icon = "calendar-today"
-        group = "Date & Time"
+        group = _("Date & Time")
 
 
 class TimeSchemaBlock(FieldSchemaBlock):
@@ -268,13 +270,13 @@ class TimeSchemaBlock(FieldSchemaBlock):
     format = CharBlock(
         required=False,
         max_length=50,
-        help_text="Time format (from Django's TIME_INPUT_FORMATS, optional)",
+        help_text=_("Time format (from Django's TIME_INPUT_FORMATS, optional)"),
     )
 
     class Meta:
-        label = "Time"
+        label = _("Time")
         icon = "schedule"
-        group = "Date & Time"
+        group = _("Date & Time")
 
 
 class DateTimeSchemaBlock(FieldSchemaBlock):
@@ -283,13 +285,13 @@ class DateTimeSchemaBlock(FieldSchemaBlock):
     format = CharBlock(
         required=False,
         max_length=50,
-        help_text="DateTime format (from Django's DATETIME_INPUT_FORMATS, optional)",
+        help_text=_("DateTime format (from Django's DATETIME_INPUT_FORMATS, optional)"),
     )
 
     class Meta:
-        label = "Date & Time"
+        label = _("Date & Time")
         icon = "calendar-clock"
-        group = "Date & Time"
+        group = _("Date & Time")
 
 
 # ==============================================================================
@@ -303,55 +305,55 @@ class RichTextSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (text-only, optional)",
+        help_text=_("Minimum character length (text-only, optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (text-only, optional)",
+        help_text=_("Maximum character length (text-only, optional)"),
     )
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Index this field content for searching",
+        help_text=_("Index this field content for searching"),
     )
     editor = CharBlock(
         required=False,
         max_length=100,
-        help_text="Rich text editor selection (optional)",
+        help_text=_("Rich text editor selection (optional)"),
     )
     features = MultipleChoiceBlock(
         required=False,
         choices=[
-            ("h1", "Heading 1"),
-            ("h2", "Heading 2"),
-            ("h3", "Heading 3"),
-            ("h4", "Heading 4"),
-            ("h5", "Heading 5"),
-            ("h6", "Heading 6"),
-            ("bold", "Bold"),
-            ("italic", "Italic"),
-            ("underline", "Underline"),
-            ("strikethrough", "Strikethrough"),
-            ("ol", "Ordered List"),
-            ("ul", "Unordered List"),
-            ("link", "Link"),
-            ("document-link", "Document Link"),
-            ("blockquote", "Block Quote"),
-            ("superscript", "Superscript"),
-            ("subscript", "Subscript"),
-            ("code", "Code"),
-            ("hr", "Horizontal Rule"),
-            ("embed", "Embed"),
-            ("image", "Image"),
+            ("h1", _("Heading 1")),
+            ("h2", _("Heading 2")),
+            ("h3", _("Heading 3")),
+            ("h4", _("Heading 4")),
+            ("h5", _("Heading 5")),
+            ("h6", _("Heading 6")),
+            ("bold", _("Bold")),
+            ("italic", _("Italic")),
+            ("underline", _("Underline")),
+            ("strikethrough", _("Strikethrough")),
+            ("ol", _("Ordered List")),
+            ("ul", _("Unordered List")),
+            ("link", _("Link")),
+            ("document-link", _("Document Link")),
+            ("blockquote", _("Block Quote")),
+            ("superscript", _("Superscript")),
+            ("subscript", _("Subscript")),
+            ("code", _("Code")),
+            ("hr", _("Horizontal Rule")),
+            ("embed", _("Embed")),
+            ("image", _("Image")),
         ],
-        help_text="Select which formatting features should be available in the editor",
+        help_text=_("Select which formatting features should be available in the editor"),
     )
 
     class Meta:
-        label = "Rich Text Editor"
+        label = _("Rich Text Editor")
         icon = "format-paragraph"
-        group = "Rich Content"
+        group = _("Rich Content")
 
 
 # ==============================================================================
@@ -364,30 +366,32 @@ class RegexSchemaBlock(FieldSchemaBlock):
 
     regex = CharBlock(
         max_length=500,
-        help_text="Regular expression pattern to validate against",
+        help_text=_("Regular expression pattern to validate against"),
     )
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum character length (optional)",
+        help_text=_("Minimum character length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum character length (optional)",
+        help_text=_("Maximum character length (optional)"),
     )
     error_messages = TextBlock(
         required=False,
         help_text=(
-            "Error messages in JSON format (optional)\\n"
-            '{"required": "This field is required", "invalid": "Invalid format"}'
+            _(
+                "Error messages in JSON format (optional)\\n"
+                '{"required": "This field is required", "invalid": "Invalid format"}'
+            )
         ),
     )
 
     class Meta:
-        label = "Regular Expression"
+        label = _("Regular Expression")
         icon = "regular-expression"
-        group = "Advanced Fields"
+        group = _("Advanced Fields")
 
 
 # ==============================================================================
@@ -399,11 +403,11 @@ _ChoiceItemBlock = StructBlock(
     [
         (
             "value",
-            CharBlock(label="Value", help_text="The value stored when this choice is selected"),
+            CharBlock(label=_("Value"), help_text=_("The value stored when this choice is selected")),
         ),
-        ("label", CharBlock(label="Label", help_text="The text shown to the user")),
+        ("label", CharBlock(label=_("Label"), help_text=_("The text shown to the user"))),
     ],
-    label="Choice",
+    label=_("Choice"),
 )
 
 
@@ -412,18 +416,18 @@ class ChoiceSchemaBlock(FieldSchemaBlock):
 
     choices = ListBlock(
         _ChoiceItemBlock,
-        help_text="Add one entry per available choice",
+        help_text=_("Add one entry per available choice"),
     )
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Index this field content for searching",
+        help_text=_("Index this field content for searching"),
     )
 
     class Meta:
-        label = "Choice"
+        label = _("Choice")
         icon = "radio-button-checked"
-        group = "Advanced Fields"
+        group = _("Advanced Fields")
 
 
 class MultipleChoiceSchemaBlock(FieldSchemaBlock):
@@ -431,18 +435,18 @@ class MultipleChoiceSchemaBlock(FieldSchemaBlock):
 
     choices = ListBlock(
         _ChoiceItemBlock,
-        help_text="Add one entry per available choice",
+        help_text=_("Add one entry per available choice"),
     )
     search_index = BooleanBlock(
         required=False,
         default=True,
-        help_text="Index this field content for searching",
+        help_text=_("Index this field content for searching"),
     )
 
     class Meta:
-        label = "Multiple Choice"
+        label = _("Multiple Choice")
         icon = "checklist"
-        group = "Advanced Fields"
+        group = _("Advanced Fields")
 
 
 # ==============================================================================
@@ -456,36 +460,36 @@ class PageChooserSchemaBlock(FieldSchemaBlock):
     page_type = CharBlock(
         required=False,
         max_length=255,
-        help_text=("Restrict to specific page types (optional)\\nExample: blog.BlogPage or app.HomePage"),
+        help_text=_("Restrict to specific page types (optional)\\nExample: blog.BlogPage or app.HomePage"),
     )
     can_choose_root = BooleanBlock(
         required=False,
         default=False,
-        help_text="Allow selection of page tree root",
+        help_text=_("Allow selection of page tree root"),
     )
 
     class Meta:
-        label = "Page Chooser"
+        label = _("Page Chooser")
         icon = "draft"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class DocumentChooserSchemaBlock(FieldSchemaBlock):
     """Document chooser field."""
 
     class Meta:
-        label = "Document Chooser"
+        label = _("Document Chooser")
         icon = "description"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class ImageChooserSchemaBlock(FieldSchemaBlock):
     """Image chooser field."""
 
     class Meta:
-        label = "Image Chooser"
+        label = _("Image Chooser")
         icon = "image"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class ImageSchemaBlock(FieldSchemaBlock):
@@ -494,9 +498,9 @@ class ImageSchemaBlock(FieldSchemaBlock):
     # Note: ImageBlock is different from ImageChooserBlock - includes alt text
 
     class Meta:
-        label = "Image with Alt Text"
+        label = _("Image with Alt Text")
         icon = "image"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class SnippetChooserSchemaBlock(FieldSchemaBlock):
@@ -504,31 +508,31 @@ class SnippetChooserSchemaBlock(FieldSchemaBlock):
 
     target_model = CharBlock(
         max_length=255,
-        help_text=("Target snippet model in format: app_label.ModelName\nExample: blog.Author or products.Category"),
+        help_text=_("Target snippet model in format: app_label.ModelName\nExample: blog.Author or products.Category"),
     )
 
     class Meta:
-        label = "Snippet Chooser"
+        label = _("Snippet Chooser")
         icon = "snippet"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class VideoChooserSchemaBlock(FieldSchemaBlock):
     """Video chooser field (requires wagtailmedia)."""
 
     class Meta:
-        label = "Video Chooser"
+        label = _("Video Chooser")
         icon = "media"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 class AudioChooserSchemaBlock(FieldSchemaBlock):
     """Audio chooser field (requires wagtailmedia)."""
 
     class Meta:
-        label = "Audio Chooser"
+        label = _("Audio Chooser")
         icon = "media"
-        group = "Chooser Fields"
+        group = _("Chooser Fields")
 
 
 # ==============================================================================
@@ -542,28 +546,28 @@ class EmbedSchemaBlock(FieldSchemaBlock):
     min_length = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum URL length (optional)",
+        help_text=_("Minimum URL length (optional)"),
     )
     max_length = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum URL length (optional)",
+        help_text=_("Maximum URL length (optional)"),
     )
     max_width = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum embed width in pixels (optional)",
+        help_text=_("Maximum embed width in pixels (optional)"),
     )
     max_height = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum embed height in pixels (optional)",
+        help_text=_("Maximum embed height in pixels (optional)"),
     )
 
     class Meta:
-        label = "Embed (Video/Social)"
+        label = _("Embed (Video/Social)")
         icon = "media"
-        group = "Embed & Media"
+        group = _("Embed & Media")
 
 
 # ==============================================================================

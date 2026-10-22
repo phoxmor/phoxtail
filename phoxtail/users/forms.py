@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 from phonenumber_field.formfields import REGION_CODE_TO_COUNTRY_CODE, PrefixChoiceField, SplitPhoneNumberField
 
@@ -77,7 +78,7 @@ class SignupForm(AllauthSignupForm):
     )
     last_name = forms.CharField(
         max_length=30,
-        label=_("Last Name"),
+        label=pgettext_lazy("person", "Last Name"),
         widget=forms.TextInput(attrs={"placeholder": _("Enter your last name")}),
     )
 
@@ -114,7 +115,7 @@ class UserProfileForm(forms.ModelForm):
     )
     last_name = forms.CharField(
         max_length=30,
-        label=_("Last Name"),
+        label=pgettext_lazy("person", "Last Name"),
         widget=forms.TextInput(attrs={"placeholder": _("Enter your last name")}),
     )
     # Optional here, unlike signup: the model allows a blank number, so an

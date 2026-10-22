@@ -1,21 +1,21 @@
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 <div class="phoxtail-chat-history-overlay"
      data-modal-animation="slide-left">
     <div class="phoxtail-chat-history-drawer phoxtail-modal-drawer">
         <div class="phoxtail-bar-panel-header">
-            <span class="phoxtail-bar-panel-title">Chats</span>
+            <span class="phoxtail-bar-panel-title">{% translate "Chats" %}</span>
             <div class="phoxtail-chat-history-header-actions">
                 <button type="button"
                         class="phoxtail-chat-history-new-btn"
                         onclick="window.phoxtailChat && window.phoxtailChat.newChat(); closeModalLevel1();"
-                        title="New Chat (N)">
+                        title="{% translate "New Chat (N)" %}">
                     {% icon "plus" class="phoxtail-bar-btn-icon" %}
-                    <span>New Chat</span>
+                    <span>{% translate "New Chat" %}</span>
                 </button>
                 <button type="button"
                         onclick="closeModalLevel1()"
                         class="phoxtail-bar-panel-close"
-                        title="Close">
+                        title="{% translate "Close" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
@@ -29,15 +29,15 @@
                 <button type="button"
                         id="phoxtail-chat-history-clear"
                         class="phoxtail-chat-history-clear {% if not query %}phoxtail-chat-history-hidden{% endif %}"
-                        title="Clear search"
-                        aria-label="Clear search">
+                        title="{% translate "Clear search" %}"
+                        aria-label="{% translate "Clear search" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <input type="text"
                        id="phoxtail-chat-history-input"
                        name="q"
                        value="{{ query }}"
-                       placeholder="Search chats…"
+                       placeholder="{% translate "Search…" %}"
                        autocomplete="off"
                        class="phoxtail-chat-history-search-input"
                        hx-get="{% url 'phoxtail_agent:chat_history' %}"

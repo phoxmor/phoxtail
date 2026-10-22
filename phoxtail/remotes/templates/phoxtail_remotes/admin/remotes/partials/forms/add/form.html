@@ -1,10 +1,11 @@
 {% extends "phoxtail_core/modal_drawer.html" %}
+{% load i18n %}
 {% comment %}
 Connect a remote (level 0): its fields, checked against the remote by the
 footer's Connect. A refusal redraws the fields in place (#add-remote-form); a
 connect closes the drawer, and the list redraws itself.
 {% endcomment %}
-{% block title %}Connect remote{% endblock %}
+{% block title %}{% translate "Connect remote" %}{% endblock %}
 {% block body %}
     <form id="add-remote-form"
           hx-disabled-elt="#base-modal .phoxtail-drawer__footer button"
@@ -16,6 +17,6 @@ connect closes the drawer, and the list redraws itself.
 {% endblock %}
 {% block actions %}
     <button class="phx-button phx-button--primary" type="submit" form="add-remote-form">
-        <span>Connect</span>
+        <span>{% translate "Connect" %}</span>
     </button>
 {% endblock %}

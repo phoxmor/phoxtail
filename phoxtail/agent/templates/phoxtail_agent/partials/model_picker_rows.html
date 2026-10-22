@@ -1,4 +1,4 @@
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 {% for artifact in artifacts %}
 <div class="phoxtail-bar-block-row phoxtail-model-row"
      tabindex="0"
@@ -12,5 +12,5 @@
     </div>
 </div>
 {% empty %}
-<p class="phoxtail-model-picker-empty">No models configured.</p>
+<p class="phoxtail-model-picker-empty">{% translate "No models configured." %}</p>
 {% endfor %}

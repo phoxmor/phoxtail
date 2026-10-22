@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
 from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
@@ -159,6 +160,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         null=True,
         blank=True,
         help_text=_("Select a font for the site."),
+        verbose_name=_("font"),
     )
 
     edit_handler = TabbedInterface(
@@ -210,7 +212,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
                         heading=_("Admin Branding"),
                     ),
                 ],
-                heading=_("Admin"),
+                heading=pgettext_lazy("admin area", "Admin"),
             ),
             ObjectList(
                 [
@@ -251,22 +253,27 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         return "\n".join(declarations)
 
     class Meta:
-        verbose_name = _("Site")
+        verbose_name = pgettext_lazy("website", "Site")
 
 
 class SiteSettingFont(Orderable, models.Model):
     """Links a FontFamily to a SiteSetting with a semantic role."""
 
-    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="fonts")
-    font_family = models.ForeignKey("phoxtail_design.FontFamily", on_delete=models.CASCADE, related_name="+")
+    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="fonts", verbose_name=_("config"))
+    font_family = models.ForeignKey(
+        "phoxtail_design.FontFamily", on_delete=models.CASCADE, related_name="+", verbose_name=_("font family")
+    )
     role = models.ForeignKey(
         "phoxtail_design.FontRole",
         on_delete=models.PROTECT,
         related_name="+",
         help_text=_("Semantic role this font serves (e.g., heading, body)."),
+        verbose_name=_("role"),
     )
 
     class Meta(Orderable.Meta):
+        verbose_name = _("site font")
+        verbose_name_plural = _("site fonts")
         constraints = [
             models.UniqueConstraint(
                 fields=["config", "role"],
@@ -288,16 +295,21 @@ class SiteSettingFont(Orderable, models.Model):
 class SiteSettingPalette(Orderable, models.Model):
     """Links a Palette to a SiteSetting with a semantic role."""
 
-    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="palettes")
-    palette = models.ForeignKey("phoxtail_design.Palette", on_delete=models.CASCADE, related_name="+")
+    config = ParentalKey(SiteSetting, on_delete=models.CASCADE, related_name="palettes", verbose_name=_("config"))
+    palette = models.ForeignKey(
+        "phoxtail_design.Palette", on_delete=models.CASCADE, related_name="+", verbose_name=_("palette")
+    )
     role = models.ForeignKey(
         "phoxtail_design.PaletteRole",
         on_delete=models.PROTECT,
         related_name="+",
         help_text=_("Semantic role this palette serves (e.g., surface, primary, accent)."),
+        verbose_name=_("role"),
     )
 
     class Meta(Orderable.Meta):
+        verbose_name = _("site palette")
+        verbose_name_plural = _("site palettes")
         constraints = [
             models.UniqueConstraint(
                 fields=["config", "role"],

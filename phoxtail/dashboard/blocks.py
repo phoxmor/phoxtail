@@ -1,4 +1,5 @@
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail import blocks
 from wagtail.snippets.blocks import SnippetChooserBlock
 
@@ -8,6 +9,7 @@ class MenuEntryBlock(blocks.StructBlock):
 
     label = blocks.CharBlock(
         required=False,
+        label=_("Label"),
         help_text=_("Entry text. Falls back to the target's own name when empty."),
     )
     open_in_new_tab = blocks.BooleanBlock(
@@ -25,7 +27,7 @@ class PageLinkBlock(MenuEntryBlock):
     between projects, and an entry type nobody picks costs nothing.
     """
 
-    page = blocks.PageChooserBlock(required=True, help_text=_("The page this entry opens."))
+    page = blocks.PageChooserBlock(required=True, label=_("Page"), help_text=_("The page this entry opens."))
 
     class Meta:
         icon = "draft"
@@ -38,28 +40,33 @@ class InternalLinkBlock(MenuEntryBlock):
     link = SnippetChooserBlock(
         "phoxtail_core.InternalLink",
         required=True,
+        label=_("Link"),
         help_text=_("The route this entry opens."),
     )
 
     class Meta:
         icon = "link"
-        label = _("Internal link")
+        label = pgettext_lazy("menu entry", "Internal link")
 
 
 class ExternalLinkBlock(MenuEntryBlock):
     """Anywhere else — another product, a help centre, a social account."""
 
-    url = blocks.URLBlock(required=True, help_text=_("The address this entry opens."))
+    url = blocks.URLBlock(
+        required=True,
+        label=pgettext_lazy("menu entry", "URL"),
+        help_text=_("The address this entry opens."),
+    )
 
     class Meta:
         icon = "site"
-        label = _("External link")
+        label = pgettext_lazy("menu entry", "External link")
 
 
 class SeparatorBlock(blocks.StructBlock):
     """A break between entries, optionally naming the run that follows it."""
 
-    label = blocks.CharBlock(required=False, help_text=_("Optional heading for the entries below."))
+    label = blocks.CharBlock(required=False, label=_("Label"), help_text=_("Optional heading for the entries below."))
 
     class Meta:
         icon = "horizontal-rule"
@@ -74,7 +81,7 @@ class DropdownBlock(blocks.StructBlock):
     enough everywhere this vocabulary is already in use.
     """
 
-    label = blocks.CharBlock(required=True, help_text=_("Name of the group."))
+    label = blocks.CharBlock(required=True, label=_("Label"), help_text=_("Name of the group."))
     items = blocks.StreamBlock(
         [
             ("page", PageLinkBlock()),
@@ -83,6 +90,7 @@ class DropdownBlock(blocks.StructBlock):
             ("separator", SeparatorBlock()),
         ],
         required=False,
+        label=_("Items"),
     )
 
     class Meta:

@@ -4,7 +4,7 @@ A remote (level 0), titled by its name: its fields, saved by the footer's Save, 
 Disconnect. A refusal redraws the fields in place (#edit-remote-form); a save
 or a disconnect closes the drawer, and the list redraws itself.
 {% endcomment %}
-{% load phoxtail_design_tags %}
+{% load i18n phoxtail_design_tags %}
 {% block title %}{{ remote.name }}{% endblock %}
 {% block body %}
     <div class="phoxtail-form-stack">
@@ -18,9 +18,9 @@ or a disconnect closes the drawer, and the list redraws itself.
         <div class="phx-card">
             <h3 class="phx-card__title">
                 {% icon "danger" %}
-                Disconnect remote
+                {% translate "Disconnect remote" %}
             </h3>
-            <p class="phx-card__text">Removes this connection. Installed variants are not affected.</p>
+            <p class="phx-card__text">{% translate "Removes this connection. Installed variants are not affected." %}</p>
             <div id="remote-delete-csrf" hidden>{% csrf_token %}</div>
             <button class="phx-button phx-button--danger phx-button--full"
                     type="button"
@@ -28,14 +28,14 @@ or a disconnect closes the drawer, and the list redraws itself.
                     hx-include="#remote-delete-csrf"
                     hx-swap="none"
                     hx-disabled-elt="this, #base-modal .phoxtail-drawer__footer button"
-                    hx-confirm="Disconnect '{{ remote.name }}'? This cannot be undone.">
-                <span>Disconnect</span>
+                    hx-confirm="{% blocktranslate with name=remote.name %}Disconnect '{{ name }}'? This cannot be undone.{% endblocktranslate %}">
+                <span>{% translate "Disconnect" %}</span>
             </button>
         </div>
     </div>
 {% endblock %}
 {% block actions %}
     <button class="phx-button phx-button--primary" type="submit" form="edit-remote-form">
-        <span>Save</span>
+        <span>{% translate "Save" context "button" %}</span>
     </button>
 {% endblock %}

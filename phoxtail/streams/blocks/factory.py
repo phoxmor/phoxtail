@@ -4,6 +4,7 @@ Factory for generating Wagtail blocks dynamically from database-stored schemas.
 This module reads Block.schema and creates actual Wagtail block classes at runtime.
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import (
     BooleanBlock,
     CharBlock,
@@ -134,9 +135,9 @@ def create_shared_block_ref(block):
     if block.site_slot:
         fields["hidden"] = BooleanBlock(
             required=False,
-            label="Hide on this page",
+            label=_("Hide on this page"),
             help_text=(
-                "Suppress this site-wide block on this page — it renders neither here nor in its automatic position."
+                _("Suppress this site-wide block on this page — it renders neither here nor in its automatic position.")
             ),
         )
 

@@ -1,4 +1,4 @@
-{% load phoxtail_design_tags phoxtail_streams_tags static %}
+{% load i18n phoxtail_design_tags phoxtail_streams_tags static %}
 {# The bar appears for anyone who can use something in it. Each item then  #}
 {# asks its own question, because they are not the same question: the chat #}
 {# button opens a view gated on access_chatbot, while the media picker,   #}
@@ -53,7 +53,7 @@
             <button type="button"
                     id="phoxtail-bar-media-btn"
                     class="phoxtail-bar-btn phoxtail-bar-media-btn"
-                    title="Menu &amp; Media (M)"
+                    title="{% translate "Menu &amp; Media (M)" %}"
                     aria-expanded="false">
                 {% icon "menu" class="phoxtail-bar-btn-icon" %}
             </button>
@@ -62,7 +62,7 @@
             <button type="button"
                     id="phoxtail-bar-chatbot-btn"
                     class="phoxtail-bar-btn"
-                    title="Chat (C)"
+                    title="{% translate "Chat (C)" %}"
                     aria-expanded="false">
                 {% icon "chat" class="phoxtail-bar-btn-icon" %}
             </button>
@@ -71,7 +71,7 @@
             <button type="button"
                     id="phoxtail-bar-actions-btn"
                     class="phoxtail-bar-btn"
-                    title="Actions (A)"
+                    title="{% translate "Actions (A)" %}"
                     aria-haspopup="menu"
                     aria-expanded="false">
                 {% icon "more_horiz" class="phoxtail-bar-btn-icon" %}
@@ -83,8 +83,8 @@
     {% if user.is_superuser %}
     <div class="phoxtail-bar-panel phoxtail-bar-actions-panel" id="phoxtail-bar-actions-panel">
         <div class="phoxtail-bar-panel-header">
-            <span class="phoxtail-bar-panel-title">Actions</span>
-            <button type="button" id="phoxtail-bar-actions-close" class="phoxtail-bar-panel-close" title="Close">
+            <span class="phoxtail-bar-panel-title">{% translate "Actions" %}</span>
+            <button type="button" id="phoxtail-bar-actions-close" class="phoxtail-bar-panel-close" title="{% translate "Close" %}">
                 {% icon "close" class="phoxtail-bar-btn-icon" %}
             </button>
         </div>
@@ -94,11 +94,11 @@
                     id="phoxtail-bar-publish-btn"
                     class="phoxtail-bar-actions-item"
                     role="menuitem"
-                    title="Publish (P)">
+                    title="{% translate "Publish (P)" %}">
                 {% icon "cloud_upload" class="phoxtail-bar-row-icon" %}
                 <div class="phoxtail-bar-row-info">
-                    <span class="phoxtail-bar-row-type">Publish</span>
-                    <span class="phoxtail-bar-row-meta">Make this page live</span>
+                    <span class="phoxtail-bar-row-type">{% translate "Publish" context "page action" %}</span>
+                    <span class="phoxtail-bar-row-meta">{% translate "Make this page live" %}</span>
                 </div>
             </button>
             {% if page.live %}
@@ -106,11 +106,11 @@
                     id="phoxtail-bar-unpublish-btn"
                     class="phoxtail-bar-actions-item"
                     role="menuitem"
-                    title="Unpublish (U)">
+                    title="{% translate "Unpublish (U)" %}">
                 {% icon "cloud_off" class="phoxtail-bar-row-icon" %}
                 <div class="phoxtail-bar-row-info">
-                    <span class="phoxtail-bar-row-type">Unpublish</span>
-                    <span class="phoxtail-bar-row-meta">Take this page offline</span>
+                    <span class="phoxtail-bar-row-type">{% translate "Unpublish" context "page action" %}</span>
+                    <span class="phoxtail-bar-row-meta">{% translate "Take this page offline" %}</span>
                 </div>
             </button>
             {% endif %}
@@ -119,11 +119,11 @@
                id="phoxtail-bar-edit-btn"
                class="phoxtail-bar-actions-item"
                role="menuitem"
-               title="Edit page (E)">
+               title="{% translate "Edit page (E)" %}">
                 {% icon "edit" class="phoxtail-bar-row-icon" %}
                 <div class="phoxtail-bar-row-info">
-                    <span class="phoxtail-bar-row-type">Edit page</span>
-                    <span class="phoxtail-bar-row-meta">Open in page editor</span>
+                    <span class="phoxtail-bar-row-type">{% translate "Edit page" %}</span>
+                    <span class="phoxtail-bar-row-meta">{% translate "Open in page editor" %}</span>
                 </div>
             </a>
             <div class="phoxtail-bar-sep-line"></div>
@@ -132,11 +132,11 @@
                id="phoxtail-bar-admin-btn"
                class="phoxtail-bar-actions-item"
                role="menuitem"
-               title="Admin Dashboard (D)">
+               title="{% translate "Admin Dashboard (D)" %}">
                 {% icon "settings" class="phoxtail-bar-row-icon" %}
                 <div class="phoxtail-bar-row-info">
-                    <span class="phoxtail-bar-row-type">Admin Dashboard</span>
-                    <span class="phoxtail-bar-row-meta">Go to admin dashboard</span>
+                    <span class="phoxtail-bar-row-type">{% translate "Admin Dashboard" %}</span>
+                    <span class="phoxtail-bar-row-meta">{% translate "Go to admin dashboard" %}</span>
                 </div>
             </a>
             {% if site_dashboard_url %}
@@ -144,11 +144,11 @@
                id="phoxtail-bar-dashboard-btn"
                class="phoxtail-bar-actions-item"
                role="menuitem"
-               title="Site Dashboard (S)">
+               title="{% translate "Site Dashboard (S)" %}">
                 {% icon "browse" class="phoxtail-bar-row-icon" %}
                 <div class="phoxtail-bar-row-info">
-                    <span class="phoxtail-bar-row-type">Site Dashboard</span>
-                    <span class="phoxtail-bar-row-meta">Go to frontend dashboard</span>
+                    <span class="phoxtail-bar-row-type">{% translate "Site Dashboard" %}</span>
+                    <span class="phoxtail-bar-row-meta">{% translate "Go to frontend dashboard" %}</span>
                 </div>
             </a>
             {% endif %}
@@ -159,13 +159,13 @@
 
 {% if perms.phoxtail_agent.access_chatbot %}
 <div id="phoxtail-chatbot-drawer"
-     aria-label="Chatbot"
+     aria-label="{% translate "Chatbot" %}"
      role="complementary"
      data-chat-history-url="{{ chat_history_url }}"
      data-model-picker-url="{{ model_picker_url }}">
     <div class="phoxtail-chatbot-resize-handle"
          id="phoxtail-chatbot-resize-handle"
-         title="Drag to resize — double-click to reset"></div>
+         title="{% translate "Drag to resize — double-click to reset" %}"></div>
     <div class="phoxtail-chatbot-drawer-messages" id="phoxtail-chatbot-messages">
         {# In-flow topbar: scrolls away with the conversation instead of floating #}
         <div class="phoxtail-chatbot-topbar">
@@ -173,14 +173,14 @@
                 <button type="button"
                         id="phoxtail-chatbot-history-btn"
                         class="phoxtail-chatbot-topbar-history"
-                        title="Chat history (H)"
+                        title="{% translate "Chat history (H)" %}"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleHistory()">
                     {% icon "menu" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <button type="button"
                         id="phoxtail-chatbot-newchat-btn"
                         class="phoxtail-chatbot-topbar-history"
-                        title="New chat (N)"
+                        title="{% translate "New chat (N)" %}"
                         onclick="window.phoxtailChat && window.phoxtailChat.newChat();">
                     {% icon "plus" class="phoxtail-bar-btn-icon" %}
                 </button>
@@ -189,10 +189,10 @@
                 <button type="button"
                         id="phoxtail-chatbot-expand-btn"
                         class="phoxtail-chatbot-topbar-history"
-                        title="Expand (E)">
+                        title="{% translate "Expand (E)" %}">
                     {% icon "open_in_full" class="phoxtail-bar-btn-icon" %}
                 </button>
-                <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="Close (C)">
+                <button type="button" id="phoxtail-chatbot-drawer-close" class="phoxtail-chatbot-topbar-close" title="{% translate "Close (C)" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
@@ -207,9 +207,9 @@
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
                     {% icon "cognition" class="phoxtail-bar-btn-icon" %}
-                    Inference
+                    {% translate "Inference" %}
                 </span>
-                <button type="button" id="phoxtail-model-picker-close" class="phoxtail-bar-panel-close" title="Close">
+                <button type="button" id="phoxtail-model-picker-close" class="phoxtail-bar-panel-close" title="{% translate "Close" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
@@ -221,14 +221,14 @@
                 <button type="button"
                         id="phoxtail-model-search-clear"
                         class="phoxtail-bar-search-clear phoxtail-bar-hidden"
-                        title="Clear search"
-                        aria-label="Clear search">
+                        title="{% translate "Clear search" %}"
+                        aria-label="{% translate "Clear search" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <input type="text"
                        id="phoxtail-model-search"
                        name="q"
-                       placeholder="Search models…"
+                       placeholder="{% translate "Search…" %}"
                        autocomplete="off"
                        class="phoxtail-bar-search-input"
                        hx-get="{{ model_picker_url }}"
@@ -242,10 +242,10 @@
         <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
-                    Blocks
+                    {% translate "Blocks" %}
                     <span class="phoxtail-bar-badge" id="phoxtail-bar-blocks-count">{{ page.body|length }}</span>
                 </span>
-                <button type="button" id="phoxtail-bar-panel-close" class="phoxtail-bar-panel-close" title="Close">
+                <button type="button" id="phoxtail-bar-panel-close" class="phoxtail-bar-panel-close" title="{% translate "Close" %}">
                     {% icon "close" class="phoxtail-bar-btn-icon" %}
                 </button>
             </div>
@@ -256,12 +256,12 @@
                     {% icon "web" class="phoxtail-bar-row-icon" %}
                     <div class="phoxtail-bar-row-info">
                         <span class="phoxtail-bar-row-type">{{ page.title|truncatechars:28 }}</span>
-                        <span class="phoxtail-bar-row-meta">{{ page.content_type.model }} · #{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}live{% else %}draft{% endif %}</span>
+                        <span class="phoxtail-bar-row-meta">{{ page.content_type.model }} · #{{ page.id }} · {{ page.locale.language_code }} · {% if page.live %}{% translate "live" context "page status" %}{% else %}{% translate "draft" context "page status" %}{% endif %}</span>
                     </div>
-                    <button type="button" class="phoxtail-bar-copy-btn" title="Copy page context">
+                    <button type="button" class="phoxtail-bar-copy-btn" title="{% translate "Copy page context" %}">
                         {% icon "content_copy" class="phoxtail-bar-btn-icon" %}
                     </button>
-                    <button type="button" class="phoxtail-bar-add-btn" title="Add to chat">
+                    <button type="button" class="phoxtail-bar-add-btn" title="{% translate "Add to chat" %}">
                         {% icon "plus" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-add" %}
                         {% icon "remove" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-remove" %}
                     </button>
@@ -281,10 +281,10 @@
                         <span class="phoxtail-bar-row-type">{{ block.block_type }}</span>
                         {% if variant %}<span class="phoxtail-bar-row-meta">{{ variant.identifier }}</span>{% endif %}
                     </div>
-                    <button type="button" class="phoxtail-bar-copy-btn" title="Copy block context">
+                    <button type="button" class="phoxtail-bar-copy-btn" title="{% translate "Copy block context" %}">
                         {% icon "content_copy" class="phoxtail-bar-btn-icon" %}
                     </button>
-                    <button type="button" class="phoxtail-bar-add-btn" title="Add to chat">
+                    <button type="button" class="phoxtail-bar-add-btn" title="{% translate "Add to chat" %}">
                         {% icon "plus" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-add" %}
                         {% icon "remove" class="phoxtail-bar-btn-icon phoxtail-add-btn-icon-remove" %}
                     </button>
@@ -296,16 +296,16 @@
         <textarea
             id="phoxtail-chatbot-input"
             class="phoxtail-chatbot-input"
-            placeholder="Chat with Phoxtail…"
+            placeholder="{% translate "Chat with Phoxtail…" %}"
             rows="1"
-            aria-label="Message"></textarea>
+            aria-label="{% translate "Message" %}"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
             <div class="phoxtail-chatbot-compose-actions-left">
                 {% if page %}
                 <button type="button"
                         id="phoxtail-bar-blocks-btn"
                         class="phoxtail-chatbot-compose-action-btn"
-                        title="Blocks (B)"
+                        title="{% translate "Blocks (B)" %}"
                         aria-expanded="false">
                     {% icon "layers" class="phoxtail-bar-btn-icon" %}
                 </button>
@@ -314,7 +314,7 @@
                 <button type="button"
                         id="phoxtail-chatbot-media-btn"
                         class="phoxtail-chatbot-compose-action-btn phoxtail-bar-media-btn"
-                        title="Menu &amp; Media (M)"
+                        title="{% translate "Menu &amp; Media (M)" %}"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
                     {% icon "menu" class="phoxtail-bar-btn-icon" %}
                 </button>
@@ -322,7 +322,7 @@
                 <button type="button"
                         id="phoxtail-model-picker-btn"
                         class="phoxtail-chatbot-compose-action-btn phoxtail-chatbot-model-btn"
-                        title="Model (I)"
+                        title="{% translate "Model (I)" %}"
                         aria-expanded="false">
                     {% icon "cognition" class="phoxtail-bar-btn-icon" %}
                     <span id="phoxtail-model-picker-label" class="phoxtail-model-picker-label"></span>
@@ -330,10 +330,10 @@
             </div>
             <button type="button"
                     class="phoxtail-chatbot-stop-btn"
-                    title="Stop generation">
+                    title="{% translate "Stop generation" %}">
                 {% icon "stop_fill" class="phoxtail-bar-btn-icon" %}
             </button>
-            <button type="submit" class="phoxtail-chatbot-send-btn" title="Send (Enter)">
+            <button type="submit" class="phoxtail-chatbot-send-btn" title="{% translate "Send (Enter)" %}">
                 {% icon "arrow_upward" class="phoxtail-bar-btn-icon" %}
             </button>
         </div>

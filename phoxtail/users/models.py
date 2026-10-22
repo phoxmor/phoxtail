@@ -37,15 +37,12 @@ class AbstractPhoxtailUser(
         validators=[validate_born_at],
     )
     gender = models.ForeignKey(
-        "phoxtail_users.Gender",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
+        "phoxtail_users.Gender", blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("gender")
     )
-    country = CountryField(blank=True, null=True)
+    country = CountryField(blank=True, null=True, verbose_name=_("country"))
 
-    phone_number = PhoneNumberField(blank=True, null=True)
-    avatar = ImageField(upload_to="avatars/", blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True, null=True, verbose_name=_("phone number"))
+    avatar = ImageField(upload_to="avatars/", blank=True, null=True, verbose_name=_("avatar"))
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -102,13 +99,8 @@ class Gender(
     AdminURLMixin,
     index.Indexed,
 ):
-    name = models.CharField(max_length=50, unique=True)
-    symbol = models.CharField(
-        max_length=10,
-        unique=True,
-        null=True,
-        blank=True,
-    )
+    name = models.CharField(max_length=50, unique=True, verbose_name=_("name"))
+    symbol = models.CharField(max_length=10, unique=True, null=True, blank=True, verbose_name=_("symbol"))
 
     search_fields = [
         index.AutocompleteField("name"),

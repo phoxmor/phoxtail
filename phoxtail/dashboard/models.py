@@ -11,6 +11,7 @@ absent, not silently answered in another language.
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.fields import StreamField
 from wagtail.search import index
 
@@ -23,7 +24,7 @@ class Menu(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model
         "wagtailcore.Site",
         on_delete=models.CASCADE,
         related_name="dashboard_menus",
-        verbose_name=_("Site"),
+        verbose_name=pgettext_lazy("website", "Site"),
     )
     locale = models.ForeignKey(
         "wagtailcore.Locale",

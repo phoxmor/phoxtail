@@ -1,10 +1,11 @@
 {% extends "phoxtail_core/modal_drawer.html" %}
+{% load i18n %}
 {% comment %}
 Create a token (level 0): its fields, created by the footer's Create. A
 refusal redraws the fields in place (#create-token-form); a create turns this
 drawer into the one that shows the new token, once (revealed.html).
 {% endcomment %}
-{% block title %}Create token{% endblock %}
+{% block title %}{% translate "Create token" %}{% endblock %}
 {% block body %}
     <form id="create-token-form"
           hx-disabled-elt="#base-modal .phoxtail-drawer__footer button"
@@ -16,6 +17,6 @@ drawer into the one that shows the new token, once (revealed.html).
 {% endblock %}
 {% block actions %}
     <button class="phx-button phx-button--primary" type="submit" form="create-token-form">
-        <span>Create</span>
+        <span>{% translate "Create" %}</span>
     </button>
 {% endblock %}

@@ -58,17 +58,18 @@
                         {# the phone field keeps its own two-part row: prefix select beside the number #}
                         {% field "phone" form.phone_number %}
                         {# help_text is Django's validator list; the rules belong on a failed submit, not under an empty field #}
-                        {% field "input" form.password1 show_help_text=False %}
+                        {% translate "Password" context "account" as password_label %}
+                        {% field "input" form.password1 show_help_text=False label=password_label %}
                         {% field "input" form.password2 show_help_text=False %}
                         {{ redirect_field }}
                         <div class="auth-actions">
-                            {% include "allauth/components/submit_button.html" with text_key="Sign Up" button_type="submit" %}
+                            {% include "allauth/components/submit_button.html" with text=_("Sign Up") button_type="submit" %}
                         </div>
                     </form>
                 {% endif %}
                 {% if PASSKEY_SIGNUP_ENABLED %}
                     <div class="auth-section-divider">
-                        {% include "allauth/components/submit_button.html" with text_key="Sign up using a passkey" button_type="submit" form_id="passkey_signup_form" button_id="passkey_signup" %}
+                        {% include "allauth/components/submit_button.html" with text=_("Sign up using a passkey") button_type="submit" form_id="passkey_signup_form" button_id="passkey_signup" %}
                         <form id="passkey_signup_form"
                               action="{{ signup_by_passkey_url }}"
                               method="post"

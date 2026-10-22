@@ -21,6 +21,7 @@ Example - Pricing block structure:
         - fields: feature, is_enabled
 """
 
+from django.utils.translation import gettext_lazy as _
 from wagtail.blocks import BooleanBlock, IntegerBlock, StreamBlock
 
 from .base import FieldSchemaBlock
@@ -42,19 +43,19 @@ class StructSchemaBlockL2(FieldSchemaBlock):
     blocks = StreamBlock(
         FIELD_BLOCK_CHOICES.choices,
         min_num=1,
-        help_text="Fields in this structure (innermost layer, no further nesting)",
+        help_text=_("Fields in this structure (innermost layer, no further nesting)"),
     )
 
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with this structure collapsed in the editor",
+        help_text=_("Start with this structure collapsed in the editor"),
     )
 
     class Meta:
         icon = "snippet"
-        label = "Structure (L2)"
-        group = "Layers"
+        label = _("Structure (L2)")
+        group = _("Layers")
 
 
 # ==============================================================================
@@ -76,19 +77,19 @@ class StructSchemaBlockL1(FieldSchemaBlock):
             ("struct", StructSchemaBlockL2()),
         ],
         min_num=1,
-        help_text="Fields and structures (can nest one more layer)",
+        help_text=_("Fields and structures (can nest one more layer)"),
     )
 
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with this structure collapsed in the editor",
+        help_text=_("Start with this structure collapsed in the editor"),
     )
 
     class Meta:
         icon = "widgets"
-        label = "Structure (L1)"
-        group = "Layers"
+        label = _("Structure (L1)")
+        group = _("Layers")
 
 
 class StreamSchemaBlockL1(FieldSchemaBlock):
@@ -105,30 +106,30 @@ class StreamSchemaBlockL1(FieldSchemaBlock):
             ("struct", StructSchemaBlockL2()),
         ],
         min_num=1,
-        help_text="Blocks in this stream (can contain L2 structures)",
+        help_text=_("Blocks in this stream (can contain L2 structures)"),
     )
 
     min_num = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum number of blocks required (optional)",
+        help_text=_("Minimum number of blocks required (optional)"),
     )
     max_num = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum number of blocks allowed (optional)",
+        help_text=_("Maximum number of blocks allowed (optional)"),
     )
 
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with all blocks collapsed in the editor",
+        help_text=_("Start with all blocks collapsed in the editor"),
     )
 
     class Meta:
         icon = "view-stream"
-        label = "Stream (L1)"
-        group = "Layers"
+        label = _("Stream (L1)")
+        group = _("Layers")
 
 
 class ListStructSchemaBlockL1(FieldSchemaBlock):
@@ -145,30 +146,30 @@ class ListStructSchemaBlockL1(FieldSchemaBlock):
             ("struct", StructSchemaBlockL2()),
         ],
         min_num=1,
-        help_text="Fields in each list item (can contain L2 structures)",
+        help_text=_("Fields in each list item (can contain L2 structures)"),
     )
 
     min_num = IntegerBlock(
         required=False,
         min_value=0,
-        help_text="Minimum number of items required (optional)",
+        help_text=_("Minimum number of items required (optional)"),
     )
     max_num = IntegerBlock(
         required=False,
         min_value=1,
-        help_text="Maximum number of items allowed (optional)",
+        help_text=_("Maximum number of items allowed (optional)"),
     )
 
     collapsed = BooleanBlock(
         required=False,
         default=False,
-        help_text="Start with all list items collapsed in the editor",
+        help_text=_("Start with all list items collapsed in the editor"),
     )
 
     class Meta:
         icon = "category"
-        label = "List of Structures (L1)"
-        group = "Layers"
+        label = _("List of Structures (L1)")
+        group = _("Layers")
 
 
 # ==============================================================================

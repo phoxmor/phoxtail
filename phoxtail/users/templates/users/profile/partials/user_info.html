@@ -20,7 +20,7 @@
             hx-vals='{"content_url": "{{ profile_update_form_url }}"}'
             hx-target="#core-modal-placeholder-wrapper"
             hx-swap="innerHTML">
-        <span>{% translate "Edit" %}</span>
+        <span>{% translate "Edit" context "button" %}</span>
     </button>
 </div>
 <div class="phx-card usr-tile usr-tile--personal">
@@ -50,7 +50,7 @@
     </h3>
     <dl class="usr-details">
         <div>
-            <dt>{% translate "Email" %}</dt>
+            <dt>{% translate "Email" context "contact detail" %}</dt>
             <dd>{{ user.email }}</dd>
         </div>
         <div>

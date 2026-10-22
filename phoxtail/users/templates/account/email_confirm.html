@@ -20,7 +20,7 @@
                         {% user_display confirmation.email_address.user as user_display %}
                         {% if can_confirm %}
                             <p class="auth-subtitle">
-                                {% blocktrans with email=confirmation.email_address.email user=user_display %}
+                                {% blocktrans trimmed with email=confirmation.email_address.email user=user_display %}
                                     Please confirm that
                                     <a href="mailto:{{ email }}" class="auth-link">
                                         {{ email }}
@@ -36,7 +36,7 @@
                                 {% csrf_token %}
                                 {{ redirect_field }}
                                 <div class="auth-actions">
-                                    {% include "allauth/components/submit_button.html" with text_key="Confirm" button_type="submit" %}
+                                    {% include "allauth/components/submit_button.html" with text=_("Confirm") button_type="submit" %}
                                 </div>
                             </form>
                         {% else %}
@@ -44,7 +44,7 @@
                                style="text-align: center;
                                       max-width: 24rem;
                                       line-height: 1.625">
-                                {% blocktrans with email=confirmation.email_address.email %}
+                                {% blocktrans trimmed with email=confirmation.email_address.email %}
                                     Unable to confirm {{ email }} because it is already confirmed by a different account.
                                 {% endblocktrans %}
                             </p>
@@ -52,7 +52,7 @@
                     {% else %}
                         {% url 'account_email' as email_url %}
                         <p class="auth-subtitle">
-                            {% blocktrans with email_url=email_url %}
+                            {% blocktrans trimmed with email_url=email_url %}
                                 This email confirmation link expired or is invalid. Please
                                 <a href="{{ email_url }}" class="auth-link">
                                     issue a new email confirmation request

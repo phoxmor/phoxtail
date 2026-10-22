@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
+from django.utils.translation import pgettext
 from django_htmx.http import trigger_client_event
 
 from .forms import UserProfileForm
@@ -39,7 +40,7 @@ def profile_update_view(request):
         else:
             messages.info(request, _("No changes were made to your profile."))
     else:
-        messages.error(request, _("Please correct the errors below."))
+        messages.error(request, pgettext("form", "Please correct the errors below."))
 
     context = {"form": form, "user": user, "saved": saved}
     response = render(request, "users/profile/partials/update_profile_response.html", context)

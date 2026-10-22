@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 def username_lowercase_validator(value):
     if value != value.lower():
-        raise ValidationError("Username must be lowercase.")
+        raise ValidationError(_("Username must be lowercase."))
 
 
 def validate_born_at(value):
