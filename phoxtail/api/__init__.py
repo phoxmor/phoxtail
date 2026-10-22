@@ -124,7 +124,7 @@ class WhoAmI(Schema):
     # scoped ones: a caller cannot discover its own limits if the endpoint
     # that reports them is behind those limits. Declared explicitly rather
     # than inheriting, because the API-wide default refuses everyone.
-    auth=[PhoxtailTokenAuth(), PhoxtailSessionAuth()],
+    auth=authenticated(),
 )
 def whoami(request):
     """Answer "who is this, and what may they do" for the caller's own token.

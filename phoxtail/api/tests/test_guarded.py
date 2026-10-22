@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import pytest
 from django.contrib.auth.models import Permission
+from django.test import RequestFactory
 from ninja.errors import HttpError
 
 from phoxtail.api.auth import (
@@ -142,7 +143,7 @@ class TestAuthorizeTurnsItIntoA403:
         wrapper = Authorize(lambda request: context, guarded(CODENAME)[0].predicate)
 
         with pytest.raises(HttpError) as response:
-            wrapper(object())
+            wrapper(RequestFactory().get("/api/"))
 
         assert response.value.status_code == 403
         assert "does not have permission" in response.value.message

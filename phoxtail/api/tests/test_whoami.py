@@ -16,7 +16,6 @@ from phoxtail.api import api, whoami
 from phoxtail.api.auth import Authorize
 from phoxtail.core.authorization import AuthorizationContext
 from phoxtail.tokens.auth import credential
-from phoxtail.tokens.ninja import PhoxtailTokenAuth
 from phoxtail.tokens.tests.factories import AccessTokenFactory, UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -102,15 +101,28 @@ class TestItIsReachableByEveryCredential:
     def test_it_declares_its_own_auth_rather_than_inheriting(self):
         assert self._operation().auth_callbacks, "would inherit the scoped-token refusal"
 
-    def test_none_of_its_backends_apply_a_predicate(self):
-        assert not [cb for cb in self._operation().auth_callbacks if isinstance(cb, Authorize)]
+    def test_every_door_is_an_api_door(self):
+        # Through Authorize, so the API's own rules (the caller's language)
+        # reach this endpoint as they reach every other.
+        assert all(isinstance(cb, Authorize) for cb in self._operation().auth_callbacks)
 
     def test_a_scoped_token_is_admitted(self):
         user = UserFactory()
         token = AccessTokenFactory(user=user, unrestricted=False, scopes=[PUBLISH])
         request = RequestFactory().get("/api/whoami/", HTTP_AUTHORIZATION=f"Bearer {token._raw_token}")
 
-        resolved = PhoxtailTokenAuth().authenticate(request, f"Bearer {token._raw_token}")
+        resolved = next(filter(None, (door(request) for door in self._operation().auth_callbacks)))
 
         assert resolved.user == user
         assert _call(resolved)["scopes"] == [PUBLISH]
+
+    def test_a_token_naming_nothing_held_by_nobody_is_admitted(self):
+        # No scope, no permission: the narrowest credential there is still
+        # learns its own limits here.
+        user = UserFactory()
+        token = AccessTokenFactory(user=user, unrestricted=False, scopes=[])
+        request = RequestFactory().get("/api/whoami/", HTTP_AUTHORIZATION=f"Bearer {token._raw_token}")
+
+        resolved = next(filter(None, (door(request) for door in self._operation().auth_callbacks)))
+
+        assert resolved.user == user

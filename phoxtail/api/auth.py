@@ -22,6 +22,7 @@ from typing import Any
 from ninja.errors import HttpError
 from ninja.security import SessionAuth
 
+from phoxtail.api.language import speak_to_program
 from phoxtail.core.authorization import AuthorizationContext
 from phoxtail.tokens.ninja import PhoxtailTokenAuth
 
@@ -67,6 +68,10 @@ class Authorize:
     under one shared name the token door and the session door overwrite
     each other, and every endpoint would advertise whichever was written
     last. Named after the backend, each door is documented once, as itself.
+
+    A caller holding a token is a program, so from here on the request
+    speaks the language :mod:`phoxtail.api.language` picks for it,
+    refusals included. A browser session keeps its person's choice.
     """
 
     def __new__(cls, authenticator: Callable[..., Any], *args: Any, **kwargs: Any) -> Authorize:
@@ -93,6 +98,8 @@ class Authorize:
         context = self.authenticator(request)
         if not context:
             return None
+        if context.token is not None:
+            speak_to_program(request)
         try:
             permitted = self.predicate(context)
         except Refused as refusal:
