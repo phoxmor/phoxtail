@@ -1,9 +1,9 @@
-Phoxtail speaks Greek. The dashboard, the auth pages, the profile, the admin's
-snippets and settings, and the page bar and chatbot follow the active language,
-with one Greek catalogue in `phoxtail/core/locale/el`; text the bar's and
-chatbot's scripts build in the browser is still English. Because
-`phoxtail.core` comes first in `INSTALLED_APPS`, its Greek also takes over
-allauth's on the strings the auth pages share with it.
+Phoxtail speaks Greek. The dashboard, the authentication pages, the profile,
+the admin's snippets and settings, and the page bar and chatbot follow the
+active language, with one Greek catalogue in `phoxtail/translations/locale/el`;
+text the bar's and chatbot's scripts build in the browser is still English.
+Because phoxtail's translations come first in `INSTALLED_APPS`, its Greek also
+takes over allauth's on the strings the authentication pages share with it.
 
 Model fields and models now carry translatable labels. Each app gains a
 `*_translatable_labels` migration that changes no database table. The labels on

@@ -28,6 +28,27 @@ check-migrations:
 	DJANGO_SETTINGS_MODULE=phoxtail.core.tests.settings \
 	uv run python -m django makemigrations --check --dry-run $(ARGS)
 
+# Translations
+# Run after changing any sentence a person reads, as makemigrations after a
+# model: it gathers every marked sentence into each language's list, keeping
+# what is translated and dropping what is gone, then compiles each list with
+# phoxtail's corrections to other packages' sentences. It ends by naming what
+# is left to translate; translate those in the .po and run it again.
+MAKEMESSAGES = --all --no-obsolete \
+	--ignore='tests/*' --ignore='*/tests/*' --ignore='cli/*' \
+	--ignore='project_template/*' --ignore='*/static/*'
+
+translations:
+	cd phoxtail && DJANGO_SETTINGS_MODULE=phoxtail.translations.tests.settings \
+	uv run python -m django makemessages $(MAKEMESSAGES)
+	uv run python -m phoxtail.translations.compile
+
+# Fails when the run above was forgotten: a sentence new or gone in the code,
+# or one left to translate. Gathers in a copy, so it never writes the lists.
+translations-check:
+	DJANGO_SETTINGS_MODULE=phoxtail.translations.tests.settings \
+	uv run python -m phoxtail.translations.verify $(MAKEMESSAGES)
+
 # Testing
 test-cli:
 	uv run pytest phoxtail/cli/tests/ -p no:django $(ARGS)

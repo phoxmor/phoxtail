@@ -3,7 +3,6 @@ from allauth.account.forms import SignupForm as AllauthSignupForm
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 from phonenumber_field.formfields import REGION_CODE_TO_COUNTRY_CODE, PrefixChoiceField, SplitPhoneNumberField
 
@@ -70,7 +69,7 @@ class SignupForm(AllauthSignupForm):
     )
     last_name = forms.CharField(
         max_length=30,
-        label=pgettext_lazy("person", "Last Name"),
+        label=_("Last Name"),
         widget=forms.TextInput(attrs={"placeholder": _("Enter your last name")}),
     )
 
@@ -87,6 +86,20 @@ class SignupForm(AllauthSignupForm):
     )
     country = CountryField(blank_label=_("Select your country")).formfield(label=_("Country"), required=False)
     phone_number = CustomSplitPhoneNumberField(label=_("Phone Number"))
+
+    # Who they are, then how to reach them, then the password; allauth draws
+    # the fields in this order.
+    field_order = [
+        "first_name",
+        "last_name",
+        "email",
+        "born_at",
+        "gender",
+        "country",
+        "phone_number",
+        "password1",
+        "password2",
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -111,7 +124,7 @@ class UserProfileForm(forms.ModelForm):
     )
     last_name = forms.CharField(
         max_length=30,
-        label=pgettext_lazy("person", "Last Name"),
+        label=_("Last Name"),
         widget=forms.TextInput(attrs={"placeholder": _("Enter your last name")}),
     )
     # Optional here, unlike signup: the model allows a blank number, so an

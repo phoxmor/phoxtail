@@ -1,0 +1,64 @@
+{% load allauth %}
+{% comment %}
+A single field allauth builds by hand, not from a form field: an email
+address to pick (radio), one shown read-only, or recovery codes (textarea).
+Drawn in core's choice row and outlined field, so it matches the fields drawn
+from forms; the line under the box takes Django's ids (<id>_error,
+<id>_helptext), which the control's aria-describedby points at, as Django
+writes them on a form field.
+{% endcomment %}
+{% if attrs.type == "radio" or attrs.type == "checkbox" %}
+    <div class="phx-field">
+        <label {% if attrs.id %}for="{{ attrs.id }}"{% endif %} class="phx-choice">
+            <input class="phx-choice__input phx-choice__input--{{ attrs.type }}"
+                   type="{{ attrs.type }}"
+                   {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+                   {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+                   {% if attrs.value is not None %}value="{{ attrs.value }}"{% endif %}
+                   {% if attrs.checked %}checked{% endif %}
+                   {% if attrs.disabled %}disabled{% endif %}
+                   {% if attrs.required %}required{% endif %}
+                   {% if attrs.id and slots.help_text %}aria-describedby="{{ attrs.id }}_helptext"{% endif %}>
+            <span class="phx-choice__text auth-choice">{% slot label %}{% endslot %}{% if slots.help_text %}<span class="phx-choice__help"{% if attrs.id %} id="{{ attrs.id }}_helptext"{% endif %}>{% slot help_text %}{% endslot %}</span>{% endif %}</span>
+        </label>
+    </div>
+{% else %}
+    <div class="phx-field{% if attrs.errors %} phx-field--error{% endif %}">
+        <div class="phx-field__box{% if attrs.type == "textarea" %} phx-field__box--textarea{% endif %}">
+            {% if attrs.type == "textarea" %}
+                <textarea class="phx-field__control"
+                          placeholder="{{ attrs.placeholder|default:' ' }}"
+                          {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+                          {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+                          {% if attrs.rows %}rows="{{ attrs.rows }}"{% endif %}
+                          {% if attrs.disabled %}disabled{% endif %}
+                          {% if attrs.readonly %}readonly{% endif %}
+                          {% if attrs.required %}required{% endif %}
+                          {% if attrs.errors %}aria-invalid="true"{% endif %}{% if attrs.id and attrs.errors %} aria-describedby="{{ attrs.id }}_error"{% elif attrs.id and slots.help_text %} aria-describedby="{{ attrs.id }}_helptext"{% endif %}>{% slot value %}{% endslot %}</textarea>
+            {% else %}
+                <input class="phx-field__control"
+                       type="{{ attrs.type|default:'text' }}"
+                       placeholder="{{ attrs.placeholder|default:' ' }}"
+                       {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+                       {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+                       {% if attrs.value is not None %}value="{{ attrs.value }}"{% endif %}
+                       {% if attrs.autocomplete %}autocomplete="{{ attrs.autocomplete }}"{% endif %}
+                       {% if attrs.disabled %}disabled{% endif %}
+                       {% if attrs.readonly %}readonly{% endif %}
+                       {% if attrs.required %}required{% endif %}
+                       {% if attrs.errors %}aria-invalid="true"{% endif %}{% if attrs.id and attrs.errors %} aria-describedby="{{ attrs.id }}_error"{% elif attrs.id and slots.help_text %} aria-describedby="{{ attrs.id }}_helptext"{% endif %}>
+            {% endif %}
+            <label {% if attrs.id %}for="{{ attrs.id }}"{% endif %} class="phx-field__label">{% slot label %}{% endslot %}</label>
+            <fieldset class="phx-field__outline" aria-hidden="true">
+                <legend class="phx-field__notch"><span>{% slot label %}{% endslot %}</span></legend>
+            </fieldset>
+        </div>
+        {% if attrs.errors %}
+            <div class="phx-field__supporting"{% if attrs.id %} id="{{ attrs.id }}_error"{% endif %}>
+                {% for error in attrs.errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+        {% elif slots.help_text %}
+            <div class="phx-field__supporting"{% if attrs.id %} id="{{ attrs.id }}_helptext"{% endif %}>{% slot help_text %}{% endslot %}</div>
+        {% endif %}
+    </div>
+{% endif %}

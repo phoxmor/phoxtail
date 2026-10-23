@@ -1,0 +1,13 @@
+{% load allauth %}
+<form class="auth-form"
+      method="{{ attrs.method }}"
+      {% if attrs.action %}action="{{ attrs.action }}"{% endif %}>
+    {% slot body %}
+    {% endslot %}
+    {% if slots.actions %}
+        <div class="auth-actions-row">
+            {% slot actions %}
+            {% endslot %}
+        </div>
+    {% endif %}
+</form>

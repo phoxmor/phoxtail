@@ -1,799 +1,205 @@
-/* core/static/core/css/account/auth.css */
+/* The auth pages (allauth/layouts/entrance.html and every page on it): the
+   logo and the language menu in the page's top corners, one auth card at
+   the page's centre, core's ground, card, fields, buttons and notices. */
 
-/* ========================================
-   AUTH PAGES – Body
-   ======================================== */
+/* The site's own fonts, as on the dashboard; the system's where a site
+   chose none. */
 .auth-body {
     margin: 0;
-    min-height: 100vh;
-    position: relative;
+    font-family: var(--font-body), var(--font-family);
 }
 
-
-/* ========================================
-   AUTH PAGES – Page Background
-   ======================================== */
-.auth-bg {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    z-index: -20;
-    background: rgb(var(--color-surface-50));
-}
-
-.auth-bg-embers {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: -10;
-}
-
-.auth-bg-ember {
-    position: absolute;
-    top: 0;
-    left: 0;
-    border-radius: 50%;
-    box-shadow: 0 0 12px currentColor;
-}
-
-/* ========================================
-   AUTH PAGES – Layout
-   ======================================== */
+/* The card alone at the page's centre. The page keeps the bar's room at
+   the top and, to stay centred, the same at the bottom: a tall card never
+   runs under it. */
 .auth-page {
-    position: relative;
-    z-index: 10;
+    box-sizing: border-box;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    
-    font-family: var(--font-family);
+    padding-block: 6rem;
 }
 
 .auth-container {
     width: 100%;
     max-width: 480px;
-    position: relative;
     padding: 1rem;
 }
 
-.auth-container--wide {
-    max-width: 720px;
-}
-
-
-/* ========================================
-   AUTH PAGES – Card
-   ======================================== */
-.auth-card-glow {
-    display: none;
-}
-
-/* Borderless: the card is a shape defined by its fill against the blurred
-   page behind it, not a box with a line drawn round it. */
-.auth-card {
-    position: relative;
-    z-index: 10;
-    /* A white layer on the glass: the card reads brighter than the
-       surface-50 page. The blur stays light, so the embers behind it still
-       glimmer through; a heavier one would smear them into nothing */
-    background:
-        linear-gradient(rgb(255 255 255 / 0.6), rgb(255 255 255 / 0.6)),
-        rgb(var(--color-surface-50) / 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border-radius: 1.5rem;
-    /* Tinted by the surface, so on a light page it lifts the card rather than
-       smudging the paper beneath it. The faint halo reaches every side, so
-       the top edge still reads where the card and page share a colour. */
-    box-shadow:
-        0 0 24px -6px rgb(var(--color-surface-900) / 0.08),
-        0 20px 40px -16px rgb(var(--color-surface-900) / 0.12);
-    padding: 2rem;
-}
-
-
-/* ========================================
-   AUTH PAGES – Logo
-   ======================================== */
-.auth-logo-wrapper {
+.auth-bar {
+    position: absolute;
+    top: 1rem;
+    /* On a phone, in line with the card's edge. */
+    left: 1rem;
+    right: 1rem;
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* A logo alone sits at the middle. */
+.auth-bar:not(:has(.phx-language-menu)) {
     justify-content: center;
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 10;
+}
+
+@media (min-width: 768px) {
+    .auth-page {
+        padding-block: 7rem;
+    }
+
+    .auth-bar {
+        left: 1.5rem;
+        right: 1.5rem;
+    }
 }
 
 .auth-logo-link {
     display: block;
-    transition: opacity 0.2s ease;
 }
 
-.auth-logo-link:hover {
-    opacity: 0.85;
-}
-
+/* A box, not a height: a tall logo fills its height, a long wordmark its
+   width. */
 .auth-logo-img {
-    max-height: 5rem;
-    max-width: 100%;
+    display: block;
     width: auto;
     height: auto;
+    max-height: 4rem;
+    max-width: 9rem;
+    object-fit: contain;
 }
 
 @media (min-width: 768px) {
     .auth-logo-img {
-        max-height: 6rem;
+        max-height: 4.5rem;
     }
 }
 
-
-/* ========================================
-   AUTH PAGES – Typography
-   ======================================== */
-.auth-header {
-    position: relative;
-    z-index: 10;
+/* One column in the card, evenly spaced. */
+.auth-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-bottom: 2.5rem;
+    gap: 1.5rem;
 }
 
 .auth-heading {
+    margin: 0;
+    font-family: var(--font-heading), var(--font-family);
     font-size: 2.25rem;
     font-weight: 700;
-    color: rgb(var(--color-surface-800));
-    text-align: center;
-    margin: 0 0 1rem;
-    letter-spacing: -0.025em;
     line-height: 1.2;
+    letter-spacing: -0.025em;
+    text-align: center;
+    color: rgb(var(--color-surface-800));
 }
 
 .auth-subtitle {
-    color: rgb(var(--color-surface-600));
-    text-align: center;
-    line-height: 1.625;
     max-width: 24rem;
+    margin: 0 auto;
     font-size: 0.875rem;
-    margin: 0;
+    line-height: 1.625;
+    text-align: center;
+    color: rgb(var(--color-surface-600));
 }
 
-
-/* ========================================
-   AUTH PAGES – Form
-   ======================================== */
-/* --phx-field-gap: the space between fields, which fields made of parts (the
-   phone number) keep between their parts too. */
+/* A stack by gap, not by margins: the form's hidden inputs (csrf, next)
+   take no place in it. --phx-field-gap: the space between fields, which
+   fields made of parts (the phone number) keep between their parts too. */
 .auth-form {
     --phx-field-gap: 1.5rem;
-    position: relative;
-    z-index: 10;
-}
-
-.auth-form > * + * {
-    margin-top: var(--phx-field-gap);
-}
-
-/* ========================================
-   AUTH PAGES – Field
-   ======================================== */
-.auth-field > * + * {
-    margin-top: 0.75rem;
-}
-
-.auth-label {
     display: flex;
-    align-items: center;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(var(--color-surface-700));
-    margin-bottom: 0.5rem;
+    flex-direction: column;
+    gap: var(--phx-field-gap);
 }
 
-.auth-label-indicator {
-    display: none;
-}
-
-.auth-input-wrapper {
-    position: relative;
-}
-
-.auth-input,
-input.auth-input,
-select.auth-input,
-textarea.auth-input {
-    display: block;
-    width: 100%;
-    padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
-    border: 1px solid rgb(var(--color-surface-300) / 0.6);
-    background-color: rgba(255, 255, 255, 0.6);
-    background-image: none;
-    background-repeat: no-repeat;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    color: rgb(var(--color-surface-800));
-    font-size: 1rem;
-    font-family: var(--font-family);
-    transition: all 0.3s ease;
-    outline: none;
-    box-sizing: border-box;
-}
-
-select.auth-input {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    padding-right: 2.5rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.25rem;
-}
-
-input[type="date"].auth-input {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    padding-right: 2.5rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.25rem;
-}
-
-/* Hide native date picker indicator but keep it functional */
-input[type="date"].auth-input::-webkit-calendar-picker-indicator {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 2.5rem;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    cursor: pointer;
-    opacity: 0;
-}
-
-select.auth-input option {
-    background-color: rgb(255, 255, 255);
-    color: rgb(var(--color-surface-800));
-}
-
-.auth-input::placeholder {
-    color: rgb(var(--color-surface-500));
-}
-
-.auth-input:hover {
-    border-color: rgb(var(--color-surface-400) / 0.7);
-}
-
-.auth-input:focus {
-    border-color: rgb(var(--color-primary-400) / 0.7);
-    background-color: rgba(255, 255, 255, 0.8);
-    box-shadow: none;
-}
-
-.auth-input--error,
-.auth-input--error:hover {
-    border-color: rgb(239, 68, 68);
-}
-
-.auth-input:disabled,
-.auth-input[disabled] {
-    background-color: rgb(var(--color-surface-100) / 0.5);
-    border-color: rgb(var(--color-surface-300) / 0.5);
-    color: rgb(var(--color-surface-600));
-    cursor: not-allowed;
-}
-
-.auth-input-glow {
-    position: absolute;
-    inset: 0;
-    border-radius: 0.75rem;
-    background: linear-gradient(
-        to right,
-        rgb(var(--color-primary-500) / 0.1),
-        rgb(var(--color-accent-500) / 0.1)
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: -10;
-    filter: blur(4px);
-    pointer-events: none;
-}
-
-.auth-input-wrapper:focus-within .auth-input-glow {
-    opacity: 1;
-}
-
-
-/* ========================================
-   AUTH PAGES – Checkbox
-   ======================================== */
-.auth-checkbox-row {
-    display: flex;
-    align-items: center;
-    position: relative;
-    z-index: 10;
-}
-
-.auth-checkbox {
-    height: 1rem;
-    width: 1rem;
-    border-radius: 0.25rem;
-    border: 1px solid rgb(var(--color-surface-300));
-    accent-color: rgb(var(--color-primary-600));
-}
-
-.auth-checkbox-label {
-    margin-left: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(var(--color-surface-700));
-}
-
-
-/* ========================================
-   AUTH PAGES – Error messages
-   ======================================== */
-.auth-error {
-    font-size: 0.875rem;
-    color: rgb(220, 38, 38);
-    display: flex;
-    align-items: center;
-    margin-top: 0.5rem;
-}
-
-.auth-error-dot {
-    width: 0.375rem;
-    height: 0.375rem;
-    background: rgb(239, 68, 68);
-    border-radius: 9999px;
-    margin-right: 0.5rem;
-    flex-shrink: 0;
-}
-
-/* ========================================
-   AUTH PAGES – Button (gradient)
-   ======================================== */
-.auth-btn {
-    position: relative;
-    width: 100%;
-    display: block;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    font-family: var(--font-family);
-    text-decoration: none;
-    color: inherit;
-}
-
-.auth-btn-glow {
-    position: absolute;
-    inset: 0;
-    background: rgb(var(--color-primary-600));
-    border-radius: calc(infinity * 1px);
-    filter: blur(4px);
-    opacity: 0.4;
-    transition: opacity 0.3s ease;
-}
-
-.auth-btn:hover .auth-btn-glow {
-    opacity: 0.6;
-}
-
-/* One pill, every page. 0.75rem of padding on a 1.25 line-height 14px label
-   lands on a 44px control: short and quiet like a YouTube action chip, but
-   still on the 44px touch target a full-width form CTA has to hold. Weight
-   500 rather than 600 — at this size 600 reads as shouting. */
-.auth-btn-inner {
-    position: relative;
-    background: rgb(var(--color-primary-600));
-    padding: 0.75rem 1.5rem;
-    border-radius: calc(infinity * 1px);
-    color: white;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.25;
-    text-align: center;
-    transition: all 0.3s ease;
-    border: none;
-    cursor: pointer;
-}
-
-.auth-btn:hover .auth-btn-inner {
-    background: rgb(var(--color-primary-700));
-}
-
-.auth-btn:focus-visible .auth-btn-inner {
-    outline: 2px solid rgb(var(--color-primary-400) / 0.5);
-    outline-offset: 2px;
-}
-
-
-/* Secondary / danger variants share the pill shape but drop the fill,
-   so a row of actions reads as one primary choice plus alternatives. */
-/* display, not opacity: `.auth-btn:hover .auth-btn-glow` is more specific
-   than a variant class and would light the halo back up on hover. */
-.auth-btn--secondary .auth-btn-glow,
-.auth-btn--danger .auth-btn-glow {
-    display: none;
-}
-
-/* One quiet button. Both variants share every box property; only the label
-   colour tells them apart, so a destructive action reads as the same weight
-   of choice as a plain alternative.
-
-   The outline is the widgets' own field border (surface-400 light, surface-600
-   dark, hovering to on-surface) written out in surface tokens, because the
-   --md-sys-* tokens are scoped to .phx-field and do not resolve here. An opaque
-   fill would blend into the card, so the button is a hairline on nothing —
-   exactly what the inputs above it look like. */
-.auth-btn--secondary .auth-btn-inner,
-.auth-btn--danger .auth-btn-inner {
-    background: transparent;
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-400));
-}
-
-.auth-btn--secondary:hover .auth-btn-inner,
-.auth-btn--danger:hover .auth-btn-inner {
-    background: rgb(var(--color-surface-100) / 0.7);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-900));
-}
-
-.auth-btn--secondary .auth-btn-inner {
-    color: rgb(var(--color-surface-700));
-}
-
-.auth-btn--danger .auth-btn-inner {
-    color: rgb(var(--color-destructive-600));
-}
-
-
-/* ========================================
-   AUTH PAGES – Action row
-   ======================================== */
+/* One full-width action per row: side by side, the secondary ones read as
+   fragments of the primary. */
 .auth-actions-row {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    position: relative;
-    z-index: 10;
 }
 
-/* Every action keeps its own full-width row at every width: side-by-side
-   pills made the secondary ones read as fragments of the primary. */
-.auth-actions-row .auth-btn {
-    flex: 1;
-}
-
-
-
-/* ========================================
-   AUTH PAGES – Links
-   ======================================== */
-.auth-link {
+/* Our links (the forgot-password link), and allauth's, which it writes
+   bare inside a sentence. */
+.auth-link,
+.auth-card a:not([class]) {
     color: rgb(var(--color-primary-600));
     font-weight: 500;
-    transition: color 0.2s ease;
     text-decoration: none;
 }
 
-.auth-link:hover {
-    color: rgb(var(--color-primary-500));
+.auth-link:hover,
+.auth-card a:not([class]):hover {
     text-decoration: underline;
 }
 
-
-/* ========================================
-   AUTH PAGES – Note
-   ======================================== */
-.auth-note {
-    position: relative;
-    z-index: 10;
-    width: 100%;
-    box-sizing: border-box;
-    background: rgb(var(--color-surface-100) / 0.6);
-    box-shadow: inset 0 0 0 1px rgb(var(--color-surface-300) / 0.6);
-    border-radius: 0.75rem;
-    padding: 0.875rem 1.125rem;
-    margin: 0 0 1.5rem;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+/* A second part of a page (adding an email under the list): a line and
+   room above its heading. */
+.auth-section {
+    margin: 0.5rem 0 0;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(var(--color-surface-200));
 }
 
-.auth-note p {
-    margin: 0;
-    font-size: 0.875rem;
-    line-height: 1.625;
-    color: rgb(var(--color-surface-700));
-    text-align: center;
-}
-
-.auth-note p + p {
-    margin-top: 0.5rem;
-}
-
-/* inside a form the `> * + *` rhythm already spaces the note from what follows */
-.auth-form > .auth-note {
-    margin-bottom: 0;
-}
-
-
-/* ========================================
-   AUTH PAGES – Divider
-   ======================================== */
-.auth-divider {
-    border: none;
-    border-top: 1px solid rgb(var(--color-surface-200) / 0.5);
-    margin: 1.5rem 0;
-}
-
-
-/* ========================================
-   AUTH PAGES – Required asterisk
-   ======================================== */
-.auth-required {
-    color: rgb(239, 68, 68);
-    margin-left: 0.125rem;
-}
-
-
-/* ========================================
-   AUTH PAGES – Actions area
-   ======================================== */
-.auth-actions {
-    padding-top: 1rem;
-    position: relative;
-    z-index: 10;
-}
-
-.auth-section-divider {
-    padding-top: 1.5rem;
-    margin-top: 1.5rem;
-    border-top: 1px solid rgb(var(--color-surface-200) / 0.5);
-    position: relative;
-    z-index: 10;
-}
-
-.auth-section-divider > * + * {
-    margin-top: 1rem;
-}
-
-.auth-text-center {
-    text-align: center;
-}
-
-.auth-text-muted {
-    font-size: 0.875rem;
-    color: rgb(var(--color-surface-600));
-}
-
-.auth-mt-6 {
-    margin-top: 1.5rem;
-}
-
-.auth-pt-2 {
-    padding-top: 0.5rem;
-}
-
-
-/* ========================================
-   AUTH PAGES – Phone field layout
-   ======================================== */
-.auth-phone-wrapper {
+/* A choice allauth labels with a value and its tags (an email address,
+   Verified, Primary): the value on its line, the tags on the next. */
+.auth-choice:has(.phx-tag) {
     display: flex;
-    flex-direction: column;
-    position: relative;
+    flex-wrap: wrap;
+    gap: 0.375rem;
 }
 
-.auth-phone-inner {
-    position: relative;
+.auth-choice:has(.phx-tag)::after {
+    content: "";
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+    margin-top: -0.375rem;
+}
+
+.auth-choice > .phx-tag {
+    order: 2;
+}
+
+/* "or" between two lines: the other ways in. A joining word, the quietest
+   text in the card: set as a field's supporting text, one step quieter
+   than the subtitle. */
+.auth-or {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 1rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: rgb(var(--color-surface-500));
 }
 
-
-/* ========================================
-   AUTH PAGES – Misc / Hidden
-   ======================================== */
-.auth-hidden {
-    display: none;
+.auth-or::before,
+.auth-or::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid rgb(var(--color-surface-200));
 }
 
-.auth-page-container {
-    width: 100%;
-    max-width: 48rem;
-}
-
-
-/* ========================================
-   AUTH PAGES – Dark Mode
-   ======================================== */
 @media (prefers-color-scheme: dark) {
-
-    /* Background gradient */
-    .auth-bg {
-        background: rgb(var(--color-surface-950));
-    }
-
-    /* Card */
-    .auth-card {
-        background: rgb(var(--color-surface-50) / 0.05);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    .auth-card-shimmer {
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-    }
-
-    /* Typography */
     .auth-heading {
         color: rgb(var(--color-surface-200));
     }
 
-    .auth-subtitle {
+    .auth-subtitle,
+    .auth-or {
         color: rgb(var(--color-surface-400));
     }
 
-    /* Labels */
-    .auth-label {
-        color: rgb(var(--color-surface-300));
-    }
-
-    /* Inputs */
-    .auth-input,
-    input.auth-input,
-    select.auth-input,
-    textarea.auth-input {
-        background-color: rgba(255, 255, 255, 0.05);
-        background-image: none;
-        border-color: rgb(var(--color-surface-400) / 0.8);
-        color: rgb(var(--color-surface-100));
-        color-scheme: dark;
-    }
-
-    .auth-input::placeholder {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .auth-input:hover {
-        border-color: rgb(var(--color-surface-300) / 0.8);
-    }
-
-    .auth-input:focus {
-        border-color: rgb(var(--color-primary-400) / 0.9);
-        background-color: rgba(255, 255, 255, 0.07);
-    }
-
-    .auth-input:disabled,
-    .auth-input[disabled] {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-color: rgb(var(--color-surface-600) / 0.6);
-        color: rgb(var(--color-surface-400));
-    }
-
-    select.auth-input {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    }
-
-    input[type="date"].auth-input {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'%3E%3C/path%3E%3C/svg%3E");
-    }
-
-    select.auth-input option {
-        background-color: rgb(var(--color-surface-900));
-        color: rgb(var(--color-surface-100));
-    }
-
-    /* Checkbox */
-    .auth-checkbox {
-        border-color: rgb(var(--color-surface-500));
-    }
-
-    .auth-checkbox-label {
-        color: rgb(var(--color-surface-300));
-    }
-
-    /* Error messages */
-    .auth-error {
-        color: rgb(248, 113, 113);
-    }
-
-    .auth-error-dot {
-        background: rgb(248, 113, 113);
-    }
-
-    .auth-error-box {
-        background: rgba(127, 29, 29, 0.3);
-        border-color: rgba(153, 27, 27, 0.3);
-    }
-
-    .auth-error-box-icon {
-        color: rgb(248, 113, 113);
-    }
-
-    .auth-error-box-text {
-        color: rgb(254, 202, 202);
-    }
-
-    /* Buttons */
-    .auth-btn-glow {
-        background: rgb(var(--color-primary-500));
-        opacity: 0.2;
-    }
-
-    /* Same inversion, read from the other end of the ramp. */
-    .auth-btn-inner {
-        background: rgb(var(--color-primary-500));
-        color: white;
-    }
-
-    .auth-btn:hover .auth-btn-inner {
-        background: rgb(var(--color-primary-400));
-    }
-
-    .auth-btn--secondary .auth-btn-inner,
-    .auth-btn--danger .auth-btn-inner {
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600));
-    }
-
-    .auth-btn--secondary:hover .auth-btn-inner,
-    .auth-btn--danger:hover .auth-btn-inner {
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-100));
-    }
-
-    .auth-btn--secondary .auth-btn-inner {
-        color: rgb(var(--color-surface-300));
-    }
-
-    .auth-btn--danger .auth-btn-inner {
-        color: rgb(var(--color-destructive-400));
-    }
-
-    /* Links */
-    .auth-link {
+    .auth-link,
+    .auth-card a:not([class]) {
         color: rgb(var(--color-primary-400));
     }
 
-    .auth-link:hover {
-        color: rgb(var(--color-primary-300));
-    }
-
-    /* Notes */
-    .auth-note {
-        background: rgba(255, 255, 255, 0.05);
-        box-shadow: inset 0 0 0 1px rgb(var(--color-surface-600) / 0.6);
-    }
-
-    .auth-note p {
-        color: rgb(var(--color-surface-300));
-    }
-
-    /* Dividers */
-    .auth-divider {
-        border-top-color: rgb(var(--color-surface-700) / 0.3);
-    }
-
-    .auth-section-divider {
-        border-top-color: rgb(var(--color-surface-700) / 0.3);
-    }
-
-    /* Muted text */
-    .auth-text-muted {
-        color: rgb(var(--color-surface-400));
-    }
-
-    /* Required asterisk */
-    .auth-required {
-        color: rgb(248, 113, 113);
+    .auth-section,
+    .auth-or::before,
+    .auth-or::after {
+        border-top-color: rgb(var(--color-surface-800));
     }
 }

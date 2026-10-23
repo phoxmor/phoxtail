@@ -8,4 +8,5 @@ urlpatterns = [
     path("", include("phoxtail.users.urls")),
     path("accounts/", include("allauth.urls")),
     path("core/", include("phoxtail.core.urls")),
+    path("i18n/", include("django.conf.urls.i18n")),
 ]

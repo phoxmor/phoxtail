@@ -1,0 +1,239 @@
+# phoxtail's Greek for sentences allauth writes, where allauth's reads wrong or
+# off phoxtail's words. Drop an entry once theirs reads right.
+msgid ""
+msgstr ""
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Password"
+msgstr "Συνθηματικό"
+
+#, python-format
+msgid ""
+"If you have not created an account yet, then please %(link)ssign "
+"up%(end_link)s first."
+msgstr "Αν δεν έχετε ακόμη λογαριασμό, %(link)sεγγραφείτε%(end_link)s πρώτα."
+
+msgid "Sign in with a passkey"
+msgstr "Σύνδεση με κλειδί πρόσβασης"
+
+msgid "Password Reset"
+msgstr "Επαναφορά συνθηματικού"
+
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll send you "
+"an email allowing you to reset it."
+msgstr ""
+"Ξεχάσατε το συνθηματικό σας; Πληκτρολογήστε τη διεύθυνση email σας και θα "
+"σας στείλουμε ένα email για να το επαναφέρετε."
+
+msgid "Reset My Password"
+msgstr "Επαναφορά συνθηματικού"
+
+msgid "Please contact us if you have any trouble resetting your password."
+msgstr "Επικοινωνήστε μαζί μας αν δυσκολευτείτε να επαναφέρετε το συνθηματικό σας."
+
+msgid ""
+"We have sent you an email. If you have not received it please check your "
+"spam folder. Otherwise contact us if you do not receive it in a few minutes."
+msgstr ""
+"Σας στείλαμε ένα email. Αν δεν το βλέπετε, ελέγξτε τον φάκελο ανεπιθύμητης "
+"αλληλογραφίας. Αν δεν φτάσει σε λίγα λεπτά, επικοινωνήστε μαζί μας."
+
+msgid "Bad Token"
+msgstr "Μη έγκυρος σύνδεσμος"
+
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
+msgstr ""
+"Ο σύνδεσμος επαναφοράς δεν είναι έγκυρος, ίσως επειδή έχει ήδη "
+"χρησιμοποιηθεί. Ζητήστε <a href=\"%(passwd_reset_url)s\">νέα επαναφορά "
+"συνθηματικού</a>."
+
+#, python-format
+msgid "Already have an account? Then please %(link)ssign in%(end_link)s."
+msgstr "Έχετε ήδη λογαριασμό; %(link)sΣυνδεθείτε%(end_link)s."
+
+msgid "Sign up using a passkey"
+msgstr "Εγγραφή με κλειδί πρόσβασης"
+
+msgid "Sign Up Closed"
+msgstr "Οι εγγραφές είναι κλειστές"
+
+msgid "We are sorry, but the sign up is currently closed."
+msgstr "Λυπούμαστε, οι εγγραφές είναι κλειστές προς το παρόν."
+
+msgid "Send me a sign-in code"
+msgstr "Στείλτε μου κωδικό σύνδεσης"
+
+msgid "You will receive a special code for a password-free sign-in."
+msgstr "Θα λάβετε έναν κωδικό για να συνδεθείτε χωρίς συνθηματικό."
+
+msgid "Request Code"
+msgstr "Αποστολή κωδικού"
+
+msgid "Other sign-in options"
+msgstr "Άλλοι τρόποι σύνδεσης"
+
+msgid "Sign In"
+msgstr "Σύνδεση"
+
+msgid "Enter Sign-In Code"
+msgstr "Εισαγάγετε τον κωδικό σύνδεσης"
+
+msgid "Enter Email Verification Code"
+msgstr "Εισαγάγετε τον κωδικό επαλήθευσης email"
+
+#, python-format
+msgid ""
+"We've sent a code to %(recipient)s. The code expires shortly, so please "
+"enter it soon."
+msgstr ""
+"Στείλαμε έναν κωδικό στο %(recipient)s. Ο κωδικός λήγει σύντομα, οπότε "
+"πληκτρολογήστε τον το συντομότερο."
+
+msgid "Account Inactive"
+msgstr "Ανενεργός λογαριασμός"
+
+msgid "Please reauthenticate to safeguard your account."
+msgstr "Για την ασφάλεια του λογαριασμού σας, συνδεθείτε ξανά."
+
+msgid "Alternative options"
+msgstr "Άλλοι τρόποι"
+
+msgid "Confirm Email Address"
+msgstr "Επιβεβαίωση διεύθυνσης email"
+
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an email "
+"address for user %(user_display)s."
+msgstr ""
+"Επιβεβαιώστε ότι η διεύθυνση <a href=\"mailto:%(email)s\">%(email)s</a> "
+"ανήκει στον χρήστη %(user_display)s."
+
+#, python-format
+msgid ""
+"Unable to confirm %(email)s because it is already confirmed by a different "
+"account."
+msgstr ""
+"Δεν είναι δυνατή η επιβεβαίωση του %(email)s, γιατί το έχει ήδη επιβεβαιώσει"
+" άλλος λογαριασμός."
+
+#, python-format
+msgid ""
+"This email confirmation link expired or is invalid. Please <a "
+"href=\"%(email_url)s\">issue a new email confirmation request</a>."
+msgstr ""
+"Ο σύνδεσμος επιβεβαίωσης έληξε ή δεν είναι έγκυρος. <a "
+"href=\"%(email_url)s\">Ζητήστε νέο email επιβεβαίωσης</a>."
+
+msgid "Enter your password:"
+msgstr "Πληκτρολογήστε το συνθηματικό σας:"
+
+msgid ""
+"We have sent an email to you for verification. Follow the link provided to "
+"finalize the signup process. If you do not see the verification email in "
+"your main inbox, check your spam folder. Please contact us if you do not "
+"receive the verification email within a few minutes."
+msgstr ""
+"Σας στείλαμε ένα email επαλήθευσης. Ακολουθήστε τον σύνδεσμο που περιέχει "
+"για να ολοκληρώσετε την εγγραφή. Αν δεν το βλέπετε στα εισερχόμενα, ελέγξτε "
+"τον φάκελο ανεπιθύμητης αλληλογραφίας. Αν δεν φτάσει σε λίγα λεπτά, "
+"επικοινωνήστε μαζί μας."
+
+msgid "Email Addresses"
+msgstr "Διευθύνσεις email"
+
+msgid "The following email addresses are associated with your account:"
+msgstr "Οι παρακάτω διευθύνσεις email είναι συνδεδεμένες με τον λογαριασμό σας:"
+
+msgid "Verified"
+msgstr "Επαληθευμένη"
+
+msgid "Unverified"
+msgstr "Μη επαληθευμένη"
+
+msgid "Primary"
+msgstr "Κύρια"
+
+msgid "Make Primary"
+msgstr "Ορισμός ως κύριας"
+
+msgid "Re-send Verification"
+msgstr "Νέα αποστολή επαλήθευσης"
+
+msgid "Add Email Address"
+msgstr "Προσθήκη διεύθυνσης email"
+
+msgid "Add Email"
+msgstr "Προσθήκη email"
+
+msgid "Email Address"
+msgstr "Διεύθυνση email"
+
+msgid "Current email"
+msgstr "Τρέχον email"
+
+msgid "Changing to"
+msgstr "Αλλάζει σε"
+
+msgid "Your email address is still pending verification."
+msgstr "Η διεύθυνση email σας δεν έχει επαληθευτεί ακόμη."
+
+msgid "Cancel Change"
+msgstr "Ακύρωση αλλαγής"
+
+msgid "Change Email"
+msgstr "Αλλαγή email"
+
+msgid "Are you sure you want to sign out?"
+msgstr "Θέλετε σίγουρα να αποσυνδεθείτε;"
+
+msgid "New Password (again)"
+msgstr "Νέο συνθηματικό (ξανά)"
+
+msgid "Set Password"
+msgstr "Ορισμός συνθηματικού"
+
+msgid "Verify Your Email Address"
+msgstr "Επαληθεύστε τη διεύθυνση email σας"
+
+msgid ""
+"This part of the site requires us to verify that\n"
+"you are who you claim to be. For this purpose, we require that you\n"
+"verify ownership of your email address. "
+msgstr ""
+"Για αυτό το τμήμα του ιστότοπου πρέπει να επιβεβαιώσουμε την ταυτότητά σας.\n"
+"Γι' αυτό σας ζητάμε να επαληθεύσετε\n"
+"τη διεύθυνση email σας. "
+
+msgid ""
+"We have sent an email to you for\n"
+"verification. Please click on the link inside that email. If you do not see "
+"the verification email in your main inbox, check your spam folder. Otherwise"
+"\n"
+"contact us if you do not receive it within a few minutes."
+msgstr ""
+"Σας στείλαμε ένα email\n"
+"επαλήθευσης. Πατήστε τον σύνδεσμο που περιέχει. Αν δεν το βλέπετε στα "
+"εισερχόμενα, ελέγξτε τον φάκελο ανεπιθύμητης αλληλογραφίας. Αν δεν φτάσει\n"
+"σε λίγα λεπτά, επικοινωνήστε μαζί μας."
+
+#, python-format
+msgid ""
+"<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your "
+"email address</a>."
+msgstr ""
+"<strong>Σημείωση:</strong> μπορείτε ακόμη να <a "
+"href=\"%(email_url)s\">αλλάξετε τη διεύθυνση email σας</a>."
+
+msgid "Do you really want to remove the selected email address?"
+msgstr "Θέλετε σίγουρα να αφαιρέσετε την επιλεγμένη διεύθυνση email;"
+

@@ -342,7 +342,7 @@ class RichTextSchemaBlock(FieldSchemaBlock):
             ("blockquote", _("Block Quote")),
             ("superscript", _("Superscript")),
             ("subscript", _("Subscript")),
-            ("code", _("Code")),
+            ("code", pgettext_lazy("source code", "Code")),
             ("hr", _("Horizontal Rule")),
             ("embed", _("Embed")),
             ("image", _("Image")),

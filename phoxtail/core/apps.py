@@ -7,6 +7,10 @@ class PhoxtailCoreConfig(PhoxtailAppConfig):
     label = "phoxtail_core"
     verbose_name = "Phoxtail Core"
 
+    # Every screen phoxtail draws reads its translations, and they must be
+    # found before the packages they correct, so the wiring puts them first.
+    depends_on = ["phoxtail.translations"]
+
     def ready(self) -> None:
         # Mount the HTTP face of every discoverable phoxtail app onto the
         # shared NinjaAPI instance. Running this from ready() guarantees
@@ -20,3 +24,7 @@ class PhoxtailCoreConfig(PhoxtailAppConfig):
 
         # Every {% field %} call is checked at startup, not when its page is drawn.
         from phoxtail.core import checks  # noqa: F401
+
+        # Registered here, not in the translations app, so a project that
+        # leaves that app out is told so.
+        from phoxtail.translations import checks as translation_checks  # noqa: F401

@@ -19,7 +19,7 @@ The wiring pass reads INSTALLED_APPS as it stands when called, so the call
 at the bottom of this module has not seen an app appended after the import;
 a second pass adds what that app declares and leaves the rest as it was.
 
-Three orderings below are load-bearing rather than tidy, and are commented where
+Four orderings below are load-bearing rather than tidy, and are commented where
 they occur. Keep them if you rebuild this list rather than append to it.
 
 Not a template for production settings: sqlite in memory, a fixed SECRET_KEY,
@@ -47,6 +47,9 @@ DATABASES = {
 AUTH_USER_MODEL = "phoxtail_users.User"
 
 INSTALLED_APPS = [
+    # First, as wire_apps puts it in a project: its translations correct
+    # the packages below, and Django reads the first app that has a sentence.
+    "phoxtail.translations",
     # Before the packages they draw over, as in a project: Django uses the
     # first app's template of a name, so phoxtail's allauth and Wagtail
     # templates win.

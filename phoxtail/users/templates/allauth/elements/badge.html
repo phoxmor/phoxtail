@@ -1,0 +1,7 @@
+{% load allauth %}
+{% comment %}
+allauth names a badge's tone in its tags; core's tag follows: success,
+warning, danger as --destructive, any other neutral.
+{% endcomment %}
+<span class="phx-tag phx-tag--small{% if 'success' in attrs.tags %} phx-tag--success{% elif 'warning' in attrs.tags %} phx-tag--warning{% elif 'danger' in attrs.tags %} phx-tag--destructive{% endif %}"
+      {% if attrs.title %}title="{{ attrs.title }}"{% endif %}>{% slot %}{% endslot %}</span>

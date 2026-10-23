@@ -1,50 +1,50 @@
-{% extends "allauth/layouts/base.html" %}
-{% load i18n phoxtail_core_tags %}
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n allauth phoxtail_core_tags phoxtail_design_tags %}
 {% comment %}
 Wagtail's login for pages restricted to logged-in users (WAGTAIL_FRONTEND_LOGIN_TEMPLATE),
-served by Django's LoginView. The form posts back to its own URL, query string included.
+served by Django's LoginView, in the auth pages' frame and elements. The form posts back
+to its own URL, query string included.
 {% endcomment %}
 {% block head_title %}
     {% trans "Login" %}
 {% endblock head_title %}
 {% block content %}
-    <div class="auth-page">
-        <div class="auth-container">
-            <div class="auth-card">
-                {% include "allauth/components/logo.html" %}
-                <div class="auth-header">
-                    <h1 class="auth-heading">{% trans "Access required" %}</h1>
-                    <p class="auth-subtitle">{% trans "This page is private. Log in to continue." %}</p>
+    {% element h1 %}
+        {% trans "Access required" %}
+    {% endelement %}
+    {% element p %}
+        {% trans "This page is private. Log in to continue." %}
+    {% endelement %}
+    {% if user.is_authenticated %}
+        {% element alert %}
+            {% slot message %}
+                {% trans "Your account cannot view this page. Log in with one that can." %}
+            {% endslot %}
+        {% endelement %}
+    {% endif %}
+    {% element form method="post" %}
+        {% slot body %}
+            {% csrf_token %}
+            {% for error in form.non_field_errors %}
+                <div class="phx-notice phx-notice--destructive" role="alert">
+                    {% icon "danger" %}
+                    <p>{{ error }}</p>
                 </div>
-                <form class="auth-form" method="post">
-                    {% csrf_token %}
-                    {% if user.is_authenticated %}
-                        <div class="auth-note">
-                            <p>{% trans "Your account cannot view this page. Log in with one that can." %}</p>
-                        </div>
-                    {% endif %}
-                    {% for error in form.non_field_errors %}
-                        <p class="auth-error">
-                            <span class="auth-error-dot"></span>
-                            {{ error }}
-                        </p>
-                    {% endfor %}
-                    {% field "input" form.username input_type="email" autofocus=True %}
-                    {% translate "Password" context "account" as password_label %}
-                    {% field "input" form.password label=password_label %}
-                    {# only where allauth's URLs are mounted; this page must not depend on them #}
-                    {% url 'account_reset_password' as reset_url %}
-                    {% if reset_url %}
-                        <div class="auth-pt-2 auth-text-center">
-                            <a href="{{ reset_url }}" class="auth-link auth-text-muted">{% trans "Forgot your password?" %}</a>
-                        </div>
-                    {% endif %}
-                    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-                    <div class="auth-actions auth-actions-row">
-                        {% include "allauth/components/submit_button.html" with text=_("Login") button_type="submit" %}
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+            {% endfor %}
+            {# Django's login field is a text box; an email keyboard suits it. #}
+            {% field "input" form.username input_type="email" %}
+            {% field "input" form.password %}
+            {# only where allauth's URLs are mounted; this page must not depend on them #}
+            {% url 'account_reset_password' as reset_url %}
+            {% if reset_url %}
+                <a href="{{ reset_url }}" class="auth-link">{% trans "Forgot your password?" %}</a>
+            {% endif %}
+            {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        {% endslot %}
+        {% slot actions %}
+            {% element button type="submit" %}
+                {% trans "Login" %}
+            {% endelement %}
+        {% endslot %}
+    {% endelement %}
 {% endblock content %}

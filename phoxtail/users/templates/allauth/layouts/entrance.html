@@ -1,0 +1,22 @@
+{% extends "allauth/layouts/base.html" %}
+{% comment %}
+The frame of every auth page that allauth draws from its entrance elements:
+messages, the ground, the logo and the language menu in the top corners;
+the page fills the card. A page copied whole replaces the body block, frame
+and all.
+{% endcomment %}
+{% block body %}
+    {% include "account/messages.html" %}
+    <main class="auth-page phx-ground">
+        <header class="auth-bar">
+            {% include "allauth/components/logo.html" %}
+            {% include "phoxtail_core/language_menu.html" %}
+        </header>
+        <div class="auth-container">
+            <div class="phx-card auth-card">
+                {% block content %}
+                {% endblock content %}
+            </div>
+        </div>
+    </main>
+{% endblock body %}

@@ -45,6 +45,15 @@ jobs:
       - name: Assert models and migrations agree
         run: make check-migrations
 
+      # The same drift for sentences: one added, reworded or removed without
+      # `make translations`, or left untranslated. It gathers in a copy with
+      # gettext's tools (xgettext, msgmerge), which the runner image lacks.
+      - name: Assert sentences and translations agree
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends gettext
+          make translations-check
+
       # On the run that already happens: a job of its own would pay for a second
       # checkout, sync and suite to learn one number.
       - run: uv run --python ${{ matrix.python-version }} pytest -n auto --cov --cov-report=term

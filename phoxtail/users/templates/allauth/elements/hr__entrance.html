@@ -1,0 +1,8 @@
+{% load i18n %}
+{% comment %}
+On an auth page allauth draws a rule only between a form and the
+other ways in (a code, a passkey, another account), so it reads "or".
+{% endcomment %}
+<div class="auth-or">
+    <span>{% translate "or" %}</span>
+</div>

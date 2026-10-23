@@ -28,7 +28,7 @@ def test_login_posts_the_fields_django_login_reads(rf):
     assert 'type="email"' in html
     assert 'name="password"' in html
     assert '<input type="hidden" name="next" value="/private/">' in html
-    assert "auth-card" in html
+    assert "phx-card" in html
 
 
 def test_login_renders_without_allauth_urls(rf):
@@ -44,8 +44,8 @@ def test_login_explains_itself_only_to_a_logged_in_visitor(rf, django_user_model
     anonymous = _render(rf, "wagtailadmin/pages/login.html", {"form": AuthenticationForm()})
     logged_in = _render(rf, "wagtailadmin/pages/login.html", {"form": AuthenticationForm()}, user=user)
 
-    assert "auth-note" not in anonymous
-    assert "auth-note" in logged_in
+    assert "phx-notice" not in anonymous
+    assert "phx-notice" in logged_in
 
 
 def test_password_prompt_posts_to_wagtail_with_its_return_url(rf):
@@ -61,4 +61,4 @@ def test_password_prompt_posts_to_wagtail_with_its_return_url(rf):
     assert 'action="/_util/authenticate/1/2/"' in html
     assert 'name="password"' in html
     assert 'name="return_url"' in html
-    assert "auth-card" in html
+    assert "phx-card" in html

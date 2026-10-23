@@ -1,0 +1,17 @@
+{% load phoxtail_core_tags phoxtail_design_tags %}
+{% comment %}
+Every field of the form, in the form's order, each in core's field template
+for its widget, or Django's own where none draws it. Labels stay even where
+a page asks for none (unlabeled): the outlined field shows its label inside
+the box.
+{% endcomment %}
+{% for error in attrs.form.non_field_errors %}
+    <div class="phx-notice phx-notice--destructive" role="alert">
+        {% icon "danger" %}
+        <p>{{ error }}</p>
+    </div>
+{% endfor %}
+{% for hidden in attrs.form.hidden_fields %}{{ hidden }}{% endfor %}
+{% for bound_field in attrs.form.visible_fields %}
+    {% field bound_field %}
+{% endfor %}

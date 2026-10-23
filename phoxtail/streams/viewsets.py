@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from wagtail.admin.panels import FieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
 from wagtail.snippets.views.snippets import CreateView, EditView, SnippetViewSet
@@ -146,7 +147,7 @@ class BlockVariantViewSet(SnippetViewSet):
                     FieldPanel("css", widget=forms.Textarea(attrs={"rows": 15})),
                     FieldPanel("javascript", widget=forms.Textarea(attrs={"rows": 15})),
                 ],
-                heading=_("Code"),
+                heading=pgettext_lazy("source code", "Code"),
             ),
             ObjectList(
                 [

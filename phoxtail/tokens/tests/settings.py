@@ -17,6 +17,9 @@ DATABASES = {
 }
 
 INSTALLED_APPS = [
+    # First, as wire_apps puts it in a project: its translations correct
+    # the packages below, and Django reads the first app that has a sentence.
+    "phoxtail.translations",
     # Before the packages they draw over, as in a project: Django uses the
     # first app's template of a name, so phoxtail's allauth and Wagtail
     # templates win.
@@ -33,6 +36,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_htmx",
     "django_filters",
+    # The consent screen draws with allauth's layouts and element tags.
+    "allauth",
+    "allauth.account",
     "taggit",
     "modelcluster",
     "wagtail",
@@ -58,6 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 TEMPLATES = [

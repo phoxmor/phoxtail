@@ -1,0 +1,19 @@
+{% load allauth %}
+{% comment %}
+allauth tags only the buttons that are not a page's main action; core's
+variant follows: danger or delete is --danger, an outline, secondary or link
+one --secondary, any other --primary. size and full come from the layout's
+own button (button__entrance.html).
+{% endcomment %}
+{% comment %} djlint:off {% endcomment %}
+<{% if attrs.href %}a href="{{ attrs.href }}"{% else %}button{% endif %}
+class="phx-button {% if 'danger' in attrs.tags or 'delete' in attrs.tags %}phx-button--danger{% elif 'outline' in attrs.tags or 'secondary' in attrs.tags or 'link' in attrs.tags %}phx-button--secondary{% else %}phx-button--primary{% endif %}{% if full %} phx-button--full{% endif %}{% if size %} phx-button--{{ size }}{% endif %}"
+{% if attrs.form %}form="{{ attrs.form }}"{% endif %}
+{% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+{% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+{% if attrs.value %}value="{{ attrs.value }}"{% endif %}
+{% if attrs.type %}type="{{ attrs.type }}"{% endif %}
+>
+{% slot %}
+{% endslot %}
+</{% if attrs.href %}a{% else %}button{% endif %}>

@@ -1,5 +1,15 @@
-{% load allauth %}
-<div class="auth-note">
+{% load allauth phoxtail_design_tags %}
+{% comment %}
+A note in the card (already logged in, a page this account cannot view):
+core's notice, its tone from allauth's tags, info where none is named.
+{% endcomment %}
+<div class="phx-notice {% if 'error' in attrs.tags or 'danger' in attrs.tags %}phx-notice--destructive{% elif 'warning' in attrs.tags %}phx-notice--warning{% elif 'success' in attrs.tags %}phx-notice--success{% else %}phx-notice--info{% endif %}"
+     {% if 'error' in attrs.tags or 'danger' in attrs.tags %}role="alert"{% endif %}>
+    {% if 'error' in attrs.tags or 'danger' in attrs.tags %}
+        {% icon "danger" %}
+    {% else %}
+        {% icon "info" %}
+    {% endif %}
     <p>
         {% slot message %}
         {% endslot %}
