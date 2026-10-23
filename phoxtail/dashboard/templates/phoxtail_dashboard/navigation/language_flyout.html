@@ -1,9 +1,9 @@
-{% load i18n phoxtail_dashboard_tags phoxtail_design_tags %}
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
 {% comment %}
 The language switcher in the sidebar: its row opens a card beside the
 sidebar, the current language marked.
 {% endcomment %}
-{% dashboard_languages as languages %}
+{% languages as languages %}
 {% if languages %}
     <button type="button"
             class="dash-nav-item dash-flyout-trigger"

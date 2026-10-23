@@ -121,6 +121,18 @@
     height: 1rem;
 }
 
+/* --small: beside a line of text rather than standing alone (an email
+   address's Verified and Primary). */
+.phx-tag--small {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.phx-tag--small svg {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
 /* --overlay: laid over other content (a corner of a card), so the tint sits
    on the risen colour and nothing shows through. */
 .phx-tag--overlay {

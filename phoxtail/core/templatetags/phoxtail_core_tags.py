@@ -9,17 +9,32 @@ register = template.Library()
 
 
 @register.simple_tag
-def field(name, bound_field, **options):
+def field(name, bound_field=None, **options):
     """Draw a bound form field with one of core's field templates.
 
     The field sees only what is passed here, never the page's values, so a
-    value set higher up cannot change it.
+    value set higher up cannot change it. Without a template name, the one
+    built around the field's widget draws it, or Django where none is: for a
+    form drawn whole.
 
     Usage:
         {% field "input" form.email %}
         {% field "select" form.status show_label=False hx_get=url %}
+        {% for bound_field in form %}{% field bound_field %}{% endfor %}
     """
     return render_field(name, bound_field, **options)
+
+
+@register.simple_tag(takes_context=True)
+def languages(context):
+    """The languages this page can be read in, each with its URL; empty for one.
+
+    Usage:
+        {% languages as options %}
+    """
+    from phoxtail.core.languages import languages as page_languages
+
+    return page_languages(context.get("request"))
 
 
 @register.simple_tag

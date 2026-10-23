@@ -60,7 +60,8 @@ def _check_template(engine, folder, path):
     for node in nodes:
         if node.func is not field:
             continue
-        # The tag also takes its first two arguments by keyword.
+        # The tag also takes its first two arguments by keyword. A variable
+        # (a name, or a form field given alone) is known only when it draws.
         expression = node.args[0] if node.args else node.kwargs.get("name")
         if expression is None or not isinstance(expression.var, str) or expression.filters:
             continue

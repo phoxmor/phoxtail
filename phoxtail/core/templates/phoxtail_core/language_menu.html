@@ -1,0 +1,39 @@
+{% load i18n phoxtail_core_tags phoxtail_design_tags %}
+{% comment %}
+The languages this page can be read in, as a button that opens a menu; drawn
+only when there is a second language and set_language is published. Each
+choice is posted, not followed: set_language stores it, then redirects to the
+page in that language. Opened and closed by js/language_menu.js (loaded by
+scripts.html).
+{% endcomment %}
+{% languages as options %}
+{% url 'set_language' as set_language_url %}
+{% if options and set_language_url %}
+    {% get_current_language as current_language %}
+    <div class="phx-language-menu" data-language-menu>
+        <button type="button"
+                class="phx-button phx-button--secondary phx-button--small phx-language-menu__button"
+                aria-label="{% translate 'Language' %}"
+                aria-expanded="false"
+                aria-haspopup="true">
+            {% icon "language" %}
+            <span class="phx-language-menu__code">{{ current_language }}</span>
+        </button>
+        <div class="phx-language-menu__list phx-popover">
+            {% for option in options %}
+                <form method="post" action="{{ set_language_url }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="language" value="{{ option.code }}">
+                    <input type="hidden" name="next" value="{{ option.url }}">
+                    <button type="submit"
+                            class="phx-language-menu__option"
+                            lang="{{ option.code }}"
+                            {% if option.active %}aria-current="true"{% endif %}>
+                        <span>{{ option.name_local }}</span>
+                        <span class="phx-language-menu__option-code">{{ option.code }}</span>
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}

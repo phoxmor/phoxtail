@@ -65,6 +65,10 @@ def test_a_name_held_in_a_variable_is_left_to_the_draw(site_template):
     assert site_template(LOAD + "{% field name form.email show_lable=False %}") == []
 
 
+def test_a_form_field_given_alone_is_left_to_the_draw(site_template):
+    assert site_template(LOAD + "{% field form.email %}{% field form.email autofocus=True %}") == []
+
+
 def test_a_template_with_a_relative_include_is_read(site_template):
     """A relative name resolves against the template's own name, as its loader gives it."""
     source = LOAD + '{% include "./part.html" %}{% field "input" form.email show_lable=False %}'

@@ -50,6 +50,10 @@ FRAME_WIDGETS = {
     "date_stepper": (DateInput, ()),
     "week_stepper": (DateInput, ()),
 }
+# The frames a field given alone picks from, most particular first: a phone
+# number is a MultiWidget, not an Input, and a checkbox is an Input the
+# "input" frame refuses.
+GENERIC_FRAMES = ("checkbox", "phone", "textarea", "choices", "select", "input")
 # The options each field reads, and whether it passes any hx_* option on to
 # its control. render_field refuses others, so a misspelled option fails
 # instead of being ignored; a test keeps each list equal to its template.
@@ -159,12 +163,28 @@ class BooleanFilterSelect(NullBooleanSelect):
         self.choices = [("unknown", _("All")), ("true", _("Yes")), ("false", _("No"))]
 
 
-def render_field(name, bound_field, /, **options):
+def render_field(name, bound_field=None, /, **options):
     """Draw a bound form field with one of core's field templates.
 
     Django's own ``BoundField.render`` draws it, through the form's renderer, so
     the template sees the field and the options passed here, nothing else.
+    Given the form field alone, it draws it in the field template built
+    around its widget, or Django's own way where none is.
     """
+    if bound_field is None:
+        if not isinstance(name, BoundField):
+            raise TypeError(
+                f"{{% field %}} needs a form field, got {name!r}; check the spelling of the form and field names"
+            )
+        name, bound_field = _frame_for(name), name
+        if name is None:
+            if options:
+                raise TypeError(
+                    f"no field template draws {bound_field.name!r} "
+                    f"({type(bound_field.field.widget).__name__}), so it takes "
+                    f"no options; got {', '.join(sorted(options))}"
+                )
+            return bound_field.as_field_group()
     if not isinstance(name, str) or not FIELD_NAME.fullmatch(name):
         raise ValueError(
             f"{name!r} is not a field name: use a template name from "
@@ -198,6 +218,19 @@ def render_field(name, bound_field, /, **options):
     if name in FIELD_CONTEXT:
         values.update(FIELD_CONTEXT[name](bound_field, options))
     return bound_field.render(f"{FIELD_TEMPLATES}/{name}.html", values)
+
+
+def _frame_for(bound_field):
+    """The field template built around a bound field's widget; None if none is.
+
+    Read from FRAME_WIDGETS, so it picks only a frame render_field accepts.
+    """
+    widget = bound_field.field.widget
+    for name in GENERIC_FRAMES:
+        accepted, refused = FRAME_WIDGETS[name]
+        if isinstance(widget, accepted) and not isinstance(widget, refused):
+            return name
+    return None
 
 
 def refuse_unknown_options(name, options):
