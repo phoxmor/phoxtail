@@ -12,5 +12,15 @@ class PhoxtailUsersConfig(PhoxtailAppConfig):
     # A user's avatar is drawn through sorl's thumbnail tag, so every project
     # that installs this app gets sorl's app with it.
     depends_on = ["sorl.thumbnail"]
-    # Every country field names countries as the phone prefixes do.
-    default_settings = {"COUNTRIES_OVERRIDE": countries_override()}
+    default_settings = {
+        # Every country field names countries as the phone prefixes do.
+        "COUNTRIES_OVERRIDE": countries_override(),
+        # allauth finds a user by email or username, and lets an inactive one
+        # through to its "Account Inactive" page; Django's own backend finds
+        # one only by email (USERNAME_FIELD) and refuses an inactive one as a
+        # wrong password.
+        "AUTHENTICATION_BACKENDS": [
+            "django.contrib.auth.backends.ModelBackend",
+            "allauth.account.auth_backends.AuthenticationBackend",
+        ],
+    }

@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_htmx",
     "django_filters",
-    # The consent screen draws with allauth's layouts and element tags.
+    # The consent screen draws with allauth's layouts and element tags, and
+    # phoxtail.users ships allauth's backend, which reads allauth's models.
     "allauth",
     "allauth.account",
     "taggit",
