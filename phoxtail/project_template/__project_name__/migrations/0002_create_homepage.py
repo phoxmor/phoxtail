@@ -208,8 +208,8 @@ _CSS = """\
 /* ── Top Bar ── */
 #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__top-bar {
     width: 100%;
-    height: 64px;
-    padding: 0 1rem;
+    /* 1rem from the top edge, as the auth pages' bar. */
+    padding: 1rem;
     display: flex;
     align-items: center;
     position: absolute;
@@ -229,8 +229,12 @@ _CSS = """\
 }
 
 #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image {
-    height: 1.5rem;
+    /* The auth pages' logo box: the wordmark fills its width. */
+    display: block;
     width: auto;
+    height: auto;
+    max-height: 4rem;
+    max-width: 9rem;
 }
 
 #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image--dark {
@@ -485,7 +489,7 @@ _CSS = """\
     }
 
     #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__logo-image--dark {
-        display: inline;
+        display: block;
     }
 
     #phoenix-hatchling-{{ block.id }} .phoenix-hatchling__halo-core,
