@@ -19,7 +19,7 @@ The wiring pass reads INSTALLED_APPS as it stands when called, so the call
 at the bottom of this module has not seen an app appended after the import;
 a second pass adds what that app declares and leaves the rest as it was.
 
-Two orderings below are load-bearing rather than tidy, and are commented where
+Three orderings below are load-bearing rather than tidy, and are commented where
 they occur. Keep them if you rebuild this list rather than append to it.
 
 Not a template for production settings: sqlite in memory, a fixed SECRET_KEY,
@@ -47,6 +47,19 @@ DATABASES = {
 AUTH_USER_MODEL = "phoxtail_users.User"
 
 INSTALLED_APPS = [
+    # Before the packages they draw over, as in a project: Django uses the
+    # first app's template of a name, so phoxtail's allauth and Wagtail
+    # templates win.
+    "phoxtail.core",
+    "phoxtail.users",
+    "phoxtail.media",
+    "phoxtail.design",
+    "phoxtail.streams",
+    "phoxtail.remotes",
+    "phoxtail.cms",
+    "phoxtail.agent",
+    "phoxtail.dashboard",
+    "phoxtail.tokens",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
@@ -73,16 +86,6 @@ INSTALLED_APPS = [
     "wagtail.sites",
     "wagtail.locales",
     "wagtail.users",
-    "phoxtail.core",
-    "phoxtail.users",
-    "phoxtail.media",
-    "phoxtail.design",
-    "phoxtail.streams",
-    "phoxtail.remotes",
-    "phoxtail.cms",
-    "phoxtail.agent",
-    "phoxtail.dashboard",
-    "phoxtail.tokens",
     # After the phoxtail apps, as in the hatched project template: phoxtail.cms
     # installs its draft-redirect guard before this app connects the handler,
     # which is the order the guard is written for. See phoxtail/cms/signals.py.

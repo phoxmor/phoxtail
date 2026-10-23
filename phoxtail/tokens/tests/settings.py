@@ -17,6 +17,17 @@ DATABASES = {
 }
 
 INSTALLED_APPS = [
+    # Before the packages they draw over, as in a project: Django uses the
+    # first app's template of a name, so phoxtail's allauth and Wagtail
+    # templates win.
+    "phoxtail.core",
+    "phoxtail.users",
+    "phoxtail.media",
+    "phoxtail.design",
+    "phoxtail.streams",
+    "phoxtail.remotes",
+    "phoxtail.cms",
+    "phoxtail.tokens",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
@@ -42,14 +53,6 @@ INSTALLED_APPS = [
     # Every screen phoxtail renders for a person loads its site settings
     # in the page chrome, so a view test that renders one needs the tags.
     "wagtail.contrib.settings",
-    "phoxtail.core",
-    "phoxtail.users",
-    "phoxtail.media",
-    "phoxtail.design",
-    "phoxtail.streams",
-    "phoxtail.remotes",
-    "phoxtail.cms",
-    "phoxtail.tokens",
 ]
 
 MIDDLEWARE = [
