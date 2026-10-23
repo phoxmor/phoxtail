@@ -1,9 +1,14 @@
 {% load i18n phoxtail_core_tags phoxtail_design_tags %}
+{% comment %}
+The language switcher in the top bar: its button opens a menu below it,
+the current language marked. Opened and closed by core's
+js/language_menu.js (loaded by scripts.html).
+{% endcomment %}
 {% languages as languages %}
 {% if languages %}
-    <div class="dash-lang" data-dash-lang>
+    <div class="dash-lang" data-language-menu>
         <button type="button"
-                class="dash-dock__item dash-dock__more-btn dash-lang__btn"
+                class="dash-dock__item dash-dock__more-btn phx-language-menu__button"
                 aria-label="{% translate 'Language' %}"
                 aria-expanded="false"
                 aria-haspopup="true">
@@ -27,28 +32,4 @@
             {% endfor %}
         </div>
     </div>
-    <script>
-        (function () {
-            const root = document.querySelector('[data-dash-lang]');
-            const btn = root.querySelector('.dash-lang__btn');
-
-            const setOpen = (open) => {
-                root.classList.toggle('dash-lang--open', open);
-                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            };
-
-            btn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                setOpen(!root.classList.contains('dash-lang--open'));
-            });
-
-            document.addEventListener('click', function (e) {
-                if (!root.contains(e.target)) setOpen(false);
-            });
-
-            document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') setOpen(false);
-            });
-        })();
-    </script>
 {% endif %}

@@ -460,7 +460,7 @@
     z-index: 200;
 }
 
-.dash-lang--open .dash-lang__menu {
+.phx-language-menu--open .dash-lang__menu {
     display: flex;
 }
 

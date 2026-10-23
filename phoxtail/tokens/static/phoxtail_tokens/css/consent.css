@@ -1,16 +1,12 @@
 /* tokens/static/phoxtail_tokens/css/consent.css — the consent screen's own lines */
 
 .consent-lead {
-    position: relative;
-    z-index: 10;
     margin: 0 0 0.5rem;
     font-size: 0.875rem;
     color: rgb(var(--color-surface-600));
 }
 
 .consent-list {
-    position: relative;
-    z-index: 10;
     list-style: none;
     margin: 0 0 1.5rem;
     padding: 0;

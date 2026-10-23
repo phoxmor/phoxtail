@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: phoxtail\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 13:42-0500\n"
+"POT-Creation-Date: 2026-10-23 16:07-0500\n"
 "PO-Revision-Date: 2026-10-21 00:00+0000\n"
 "Last-Translator: Evangelos Pisinas <evangelos.pisinas@phoxtail.com>\n"
 "Language-Team: Greek\n"
@@ -827,7 +827,7 @@ msgid "Next week"
 msgstr "Επόμενη εβδομάδα"
 
 #: core/templates/phoxtail_core/language_menu.html:16
-#: dashboard/templates/phoxtail_dashboard/navigation/language.html:7
+#: dashboard/templates/phoxtail_dashboard/navigation/language.html:12
 #: dashboard/templates/phoxtail_dashboard/navigation/language_flyout.html:22
 msgid "Language"
 msgstr "Γλώσσα"
@@ -1020,7 +1020,6 @@ msgid "Close menu"
 msgstr "Κλείσιμο μενού"
 
 #: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:138
-msgctxt "account"
 msgid "Log in"
 msgstr "Σύνδεση"
 

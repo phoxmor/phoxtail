@@ -65,6 +65,20 @@ class TestDrawerLanguages:
         assert 'name="next" value="/en/dashboard/"' in html
         assert 'name="next" value="/el/dashboard/"' in html
 
+    def test_core_language_menu_script_opens_it(self, rf, settings):
+        settings.USE_I18N = True
+        settings.LANGUAGES = [("en", "English"), ("el", "Greek")]
+        settings.ROOT_URLCONF = "phoxtail.dashboard.tests.language_urls"
+        with override("en"):
+            html = render_to_string(
+                "phoxtail_dashboard/navigation/language.html",
+                {"request": rf.get("/en/dashboard/")},
+            )
+
+        assert "data-language-menu" in html
+        assert "phx-language-menu__button" in html
+        assert "<script" not in html
+
 
 class TestPageHeader:
     """A page's header is titled by the nav entry it belongs to."""
