@@ -56,15 +56,13 @@ Phoxtail does not scaffold a website. It scaffolds a platform.
 phoxtail hatch my_platform
 ```
 
-```
-  ┌  Hatching 'my_platform' development  ┐
-  │  ✓ 1. Config                         │
-  │  ✓ 2. Network                        │
-  │  ✓ 3. Database                       │
-  │  ✓ 4. Access                         │
-  │  ▸ 5. Launch                         │
-  └──────────────────────────────────────┘
-```
+**Hatching 'my_platform'**
+
+- ✅ Config
+- ✅ Network
+- ✅ Database
+- ✅ Access
+- ✅ Launch
 
 ## 🐦‍🔥 Grow the platform
 
@@ -74,19 +72,17 @@ phoxtail hatch my_platform
 phoxtail install <package>
 ```
 
-```
-  ┌  Installing '<package>'  ┐
-  │  ✓ 1. Check              │
-  │  ✓ 2. Lock               │
-  │  ✓ 3. Sync               │
-  │  ✓ 4. Register           │
-  │  ✓ 5. Compose            │
-  │  ✓ 6. Build              │
-  │  ✓ 7. Migrate            │
-  │  ✓ 8. Populate           │
-  │  ▸ 9. Launch             │
-  └──────────────────────────┘
-```
+**Installing '&lt;package&gt;'**
+
+- ✅ Check
+- ✅ Lock
+- ✅ Sync
+- ✅ Register
+- ✅ Compose
+- ✅ Build
+- ✅ Migrate
+- ✅ Populate
+- ✅ Launch
 
 ## Commands
 
