@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html_join
 from django.utils.translation import gettext_lazy as _
 from modelcluster.fields import ParentalKey
 from modelcluster.models import ClusterableModel
@@ -8,6 +8,7 @@ from wagtail.search import index
 from wagtail_color_panel.fields import ColorField
 
 from phoxtail.core.mixins import TimestampMixin, UUIDMixin
+from phoxtail.design import css
 
 
 class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
@@ -16,6 +17,7 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
     name = models.CharField(
         max_length=100,
         unique=True,
+        validators=[css.validate_font_name],
         help_text=_("Font family name as it appears in CSS (e.g., 'Inter', 'Roboto')"),
         verbose_name=_("name"),
     )
@@ -42,6 +44,7 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
         max_length=255,
         blank=True,
         default="system-ui, -apple-system, sans-serif",
+        validators=[css.validate_fallback],
         help_text=_("CSS fallback fonts (e.g., 'system-ui, -apple-system, sans-serif')"),
         verbose_name=_("fallback"),
     )
@@ -60,9 +63,7 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
 
     def get_css_font_family(self):
         """Return the complete font-family CSS value with fallbacks"""
-        if self.fallback:
-            return f"'{self.name}', {self.fallback}"
-        return f"'{self.name}'"
+        return css.font_family(self.name, self.fallback)
 
     def get_css_font_face_all(self):
         """Generate @font-face declarations for all weights"""
@@ -97,7 +98,7 @@ class FontFamily(index.Indexed, UUIDMixin, TimestampMixin, ClusterableModel):
         vars = []
         for name, value in semantic_weights.items():
             best_match = self.get_nearest_weight(value)
-            vars.append(f"--font-{role_identifier}-weight-{name}: {best_match};")
+            vars.append(f"--font-{css.name(role_identifier)}-weight-{name}: {int(best_match)};")
         return "\n".join(vars)
 
 
@@ -143,11 +144,12 @@ class FontWeight(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Mod
         if not self.file:
             return ""
 
+        style = self.style if self.style in ("normal", "italic") else "normal"
         return f"""@font-face {{
-    font-family: '{self.family.name}';
-    src: url('{self.file.url}') format('woff2');
-    font-weight: {self.weight};
-    font-style: {self.style};
+    font-family: {css.string(self.family.name)};
+    src: {css.url(self.file.url)} format('woff2');
+    font-weight: {int(self.weight)};
+    font-style: {style};
     font-display: swap;
 }}"""
 
@@ -164,6 +166,7 @@ class FontRole(index.Indexed, models.Model):
     identifier = models.CharField(
         max_length=50,
         unique=True,
+        validators=[css.validate_identifier],
         help_text=_("CSS namespace identifier (e.g., 'heading'). Used as prefix in CSS variables: --font-{identifier}"),
         verbose_name=_("identifier"),
     )
@@ -197,6 +200,7 @@ class PaletteRole(index.Indexed, models.Model):
     identifier = models.CharField(
         max_length=50,
         unique=True,
+        validators=[css.validate_identifier],
         help_text=_(
             "CSS namespace identifier (e.g., 'surface'). Used as prefix in CSS variables: --color-{identifier}-{shade}"
         ),
@@ -337,7 +341,7 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model)
 
         for shade in shades:
             rgb_value = self.get_rgb_shade(shade)
-            css_vars.append(f"--color-{color_name}-{shade}: {rgb_value};")
+            css_vars.append(f"--color-{css.name(color_name)}-{shade}: {rgb_value};")
 
         return "\n".join(css_vars)
 
@@ -372,13 +376,13 @@ class Palette(index.Indexed, UUIDMixin, TimestampMixin, Orderable, models.Model)
             (self.shade_900, "900"),
             (self.shade_950, "950"),
         ]
-        html = "".join(
-            f'<span style="display: inline-block; width: 1.5rem; height: 1.5rem; '
-            f"border-radius: 0.375rem; border: 1px solid #a3a3a3; margin-right: 4px; "
-            f'background-color: {shade[0]};" title="{shade[1]}"></span>'
-            for shade in shades
+        return format_html_join(
+            "",
+            '<span style="display: inline-block; width: 1.5rem; height: 1.5rem; '
+            "border-radius: 0.375rem; border: 1px solid #a3a3a3; margin-right: 4px; "
+            'background-color: {};" title="{}"></span>',
+            shades,
         )
-        return mark_safe(html)
 
     # Wagtail reads the label off the function object; a type checker sees
     # only the callable.

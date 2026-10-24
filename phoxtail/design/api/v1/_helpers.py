@@ -3,8 +3,25 @@
 from __future__ import annotations
 
 import hashlib
+from typing import Annotated
 
+from ninja import Field
 from ninja.errors import HttpError
+from wagtail_color_panel.validators import hex_triplet_validator
+
+from phoxtail.design import css
+
+# ---------------------------------------------------------------------------
+# Field types
+# ---------------------------------------------------------------------------
+
+# Values written into every page's CSS: refused here, as a 422 naming the
+# field, by the patterns the models' validators use (phoxtail.design.css)
+# and their columns' lengths; the API document shows each rule.
+FontName = Annotated[str, Field(pattern=f"^{css.FONT_NAME}$", max_length=100)]
+Fallback = Annotated[str, Field(pattern=f"^(?:{css.FALLBACK})?$", max_length=255)]
+Identifier = Annotated[str, Field(pattern=f"^{css.IDENTIFIER}$", max_length=50)]
+HexColor = Annotated[str, Field(pattern=hex_triplet_validator.regex.pattern)]
 
 # ---------------------------------------------------------------------------
 # ETag utilities

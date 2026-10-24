@@ -14,6 +14,8 @@ from phoxtail.api.auth import guarded
 from phoxtail.api.pagination import Router
 from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
+    Fallback,
+    FontName,
     font_family_etag,
     require_if_match,
     resolve_font_family,
@@ -48,17 +50,17 @@ class FontFamilySummary(Schema):
 
 
 class FontFamilyCreate(Schema):
-    name: str
+    name: FontName
     description: str = ""
     category: str = "sans-serif"
-    fallback: str = "system-ui, -apple-system, sans-serif"
+    fallback: Fallback = "system-ui, -apple-system, sans-serif"
 
 
 class FontFamilyPatch(Schema):
-    name: str | None = None
+    name: FontName | None = None
     description: str | None = None
     category: str | None = None
-    fallback: str | None = None
+    fallback: Fallback | None = None
 
 
 class Error(Schema):

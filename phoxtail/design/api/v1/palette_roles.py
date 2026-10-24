@@ -11,6 +11,7 @@ from phoxtail.api.auth import guarded
 from phoxtail.api.pagination import Router
 from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
+    Identifier,
     palette_role_etag,
     require_if_match,
     resolve_palette_role,
@@ -33,13 +34,13 @@ class PaletteRoleSummary(Schema):
 
 class PaletteRoleCreate(Schema):
     name: str
-    identifier: str
+    identifier: Identifier
     description: str = ""
 
 
 class PaletteRolePatch(Schema):
     name: str | None = None
-    identifier: str | None = None
+    identifier: Identifier | None = None
     description: str | None = None
 
 

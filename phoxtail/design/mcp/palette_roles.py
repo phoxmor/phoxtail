@@ -59,6 +59,7 @@ def palette_roles_get(role_id: int) -> str:
         "Create a new semantic palette role. "
         "`identifier` is the CSS namespace key (e.g., 'primary' → "
         "--color-primary-500). "
+        "It takes letters, digits, hyphens and underscores. "
         "`description` should explain light/dark mode shade mapping semantics."
     ),
 )
@@ -85,6 +86,7 @@ def palette_roles_create(
     auth=[scoped("phoxtail_design.change_paletterole")],
     description=(
         "Update a palette role. Requires `etag` from phoxtail_palette_roles_get. "
+        "`identifier` follows the same rule as on create. "
         "WARNING: changing `identifier` renames the CSS variable namespace — "
         "update any template references too."
     ),

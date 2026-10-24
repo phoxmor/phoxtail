@@ -59,6 +59,7 @@ def font_roles_get(role_id: int) -> str:
         "Create a new semantic font role. "
         "`identifier` becomes the CSS namespace (e.g., 'heading' → "
         "--font-heading-*). "
+        "It takes letters, digits, hyphens and underscores. "
         "`description` should explain where this role is used typographically."
     ),
 )
@@ -85,6 +86,7 @@ def font_roles_create(
     auth=[scoped("phoxtail_design.change_fontrole")],
     description=(
         "Update a font role. Requires `etag` from phoxtail_font_roles_get. "
+        "`identifier` follows the same rule as on create. "
         "WARNING: changing `identifier` renames the CSS variable namespace — "
         "update any template references too."
     ),

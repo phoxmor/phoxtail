@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
 from modelcluster.fields import ParentalKey
@@ -8,6 +9,8 @@ from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.admin.panels.group import ObjectList, TabbedInterface
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 from wagtail.models import Orderable, Page
+
+from phoxtail.design import css as design_css
 
 from .streams import BodyStreamField
 
@@ -234,6 +237,8 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         ]
     )
 
+    # Both are written into a <style> on every page: each value in them is
+    # escaped where it is built (phoxtail.design.css), so neither contains "<".
     @property
     def css_variables(self):
         """Generate CSS custom properties for all configured design tokens."""
@@ -242,7 +247,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
             css.append(sp.get_css_variables())
         for sf in self.fonts.select_related("font_family", "role").all():
             css.append(sf.get_css_variables())
-        return "\n".join(css)
+        return mark_safe("\n".join(css))
 
     @property
     def font_face_declarations(self):
@@ -250,7 +255,7 @@ class SiteSetting(ClusterableModel, BaseSiteSetting):
         declarations = []
         for sf in self.fonts.select_related("font_family").all():
             declarations.append(sf.font_family.get_css_font_face_all())
-        return "\n".join(declarations)
+        return mark_safe("\n".join(declarations))
 
     class Meta:
         verbose_name = pgettext_lazy("website", "Site")
@@ -287,7 +292,7 @@ class SiteSettingFont(Orderable, models.Model):
     def get_css_variables(self):
         """Generate CSS variables using the role identifier as namespace."""
         identifier = self.role.identifier
-        css = [f"--font-{identifier}: {self.font_family.get_css_font_family()};"]
+        css = [f"--font-{design_css.name(identifier)}: {self.font_family.get_css_font_family()};"]
         css.append(self.font_family.get_weight_variables(identifier))
         return "\n".join(css)
 

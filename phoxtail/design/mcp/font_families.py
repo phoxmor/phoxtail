@@ -65,7 +65,10 @@ def font_families_get(font_family_id: int) -> str:
     description=(
         "Create a new font family entry. "
         "category choices: " + _CATEGORIES + ". "
-        "`fallback` is the CSS fallback stack (e.g., 'system-ui, sans-serif'). "
+        "`name` takes letters, digits, spaces and hyphens. "
+        "`fallback` is the CSS fallback stack (e.g., 'system-ui, sans-serif'): "
+        "font names (the same characters as `name`) separated by commas, each "
+        "bare or in quotes. "
         "Font weight files are uploaded separately via phoxtail_font_weights_upload."
     ),
 )
@@ -99,7 +102,8 @@ def font_families_create(
     description=(
         "Update a font family's metadata. "
         "Requires `etag` from phoxtail_font_families_get. "
-        "Writable fields: name, description, category, fallback."
+        "Writable fields: name, description, category, fallback "
+        "(the same rules as phoxtail_font_families_create)."
     ),
 )
 def font_families_update(

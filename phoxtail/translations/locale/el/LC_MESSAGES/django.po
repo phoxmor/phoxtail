@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: phoxtail\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 16:07-0500\n"
+"POT-Creation-Date: 2026-10-23 16:56-0500\n"
 "PO-Revision-Date: 2026-10-21 00:00+0000\n"
 "Last-Translator: Evangelos Pisinas <evangelos.pisinas@phoxtail.com>\n"
 "Language-Team: Greek\n"
@@ -13,8 +13,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: agent/models.py:14 agent/models.py:40 design/models.py:168
-#: design/models.py:203 design/models.py:243 streams/models.py:83
+#: agent/models.py:14 agent/models.py:40 design/models.py:171
+#: design/models.py:207 design/models.py:247 streams/models.py:83
 #: streams/models.py:256 streams/models.py:300
 msgid "identifier"
 msgstr "αναγνωριστικό"
@@ -73,7 +73,7 @@ msgstr "χρήστης"
 msgid "message history"
 msgstr "ιστορικό μηνυμάτων"
 
-#: agent/models.py:83 design/models.py:273
+#: agent/models.py:83 design/models.py:277
 msgid "title"
 msgstr "τίτλος"
 
@@ -274,56 +274,56 @@ msgstr "Πάροχοι"
 msgid "Models"
 msgstr "Μοντέλα"
 
-#: cms/models.py:48
+#: cms/models.py:51
 msgid "For search engines"
 msgstr "Για μηχανές αναζήτησης"
 
-#: cms/models.py:53 dashboard/blocks.py:30 dashboard/blocks.py:34
+#: cms/models.py:56 dashboard/blocks.py:30 dashboard/blocks.py:34
 #: tokens/filters.py:77
 msgid "Page"
 msgstr "Σελίδα"
 
-#: cms/models.py:54
+#: cms/models.py:57
 msgid "Pages"
 msgstr "Σελίδες"
 
-#: cms/models.py:66 cms/models.py:175
+#: cms/models.py:69 cms/models.py:178
 msgid "Logo"
 msgstr "Λογότυπο"
 
-#: cms/models.py:67
+#: cms/models.py:70
 msgid "Site logo for light mode."
 msgstr "Λογότυπο του ιστότοπου για το φωτεινό θέμα."
 
-#: cms/models.py:75
+#: cms/models.py:78
 msgid "Logo (Dark)"
 msgstr "Λογότυπο (σκούρο)"
 
-#: cms/models.py:76
+#: cms/models.py:79
 msgid "Site logo for dark mode."
 msgstr "Λογότυπο του ιστότοπου για το σκούρο θέμα."
 
-#: cms/models.py:84 cms/models.py:182
+#: cms/models.py:87 cms/models.py:185
 msgid "Favicon"
 msgstr "Favicon"
 
-#: cms/models.py:85
+#: cms/models.py:88
 msgid "Browser favicon for light mode."
 msgstr "Favicon του προγράμματος περιήγησης για το φωτεινό θέμα."
 
-#: cms/models.py:93
+#: cms/models.py:96
 msgid "Favicon (Dark)"
 msgstr "Favicon (σκούρο)"
 
-#: cms/models.py:94
+#: cms/models.py:97
 msgid "Browser favicon for dark mode."
 msgstr "Favicon του προγράμματος περιήγησης για το σκούρο θέμα."
 
-#: cms/models.py:104
+#: cms/models.py:107
 msgid "Open Graph Image"
 msgstr "Εικόνα Open Graph"
 
-#: cms/models.py:105
+#: cms/models.py:108
 msgid ""
 "Image displayed when sharing on social media in light mode. Recommended "
 "size: 1200x630px"
@@ -331,11 +331,11 @@ msgstr ""
 "Η εικόνα που εμφανίζεται όταν μοιράζεστε τον ιστότοπο στα μέσα κοινωνικής "
 "δικτύωσης, στο φωτεινό θέμα. Προτεινόμενο μέγεθος: 1200x630px"
 
-#: cms/models.py:113
+#: cms/models.py:116
 msgid "Open Graph Image (Dark)"
 msgstr "Εικόνα Open Graph (σκούρο)"
 
-#: cms/models.py:114
+#: cms/models.py:117
 msgid ""
 "Image displayed when sharing on social media in dark mode. Recommended size: "
 "1200x630px"
@@ -343,67 +343,67 @@ msgstr ""
 "Η εικόνα που εμφανίζεται όταν μοιράζεστε τον ιστότοπο στα μέσα κοινωνικής "
 "δικτύωσης, στο σκούρο θέμα. Προτεινόμενο μέγεθος: 1200x630px"
 
-#: cms/models.py:124
+#: cms/models.py:127
 msgid "Admin Logo"
 msgstr "Λογότυπο διαχείρισης"
 
-#: cms/models.py:125
+#: cms/models.py:128
 msgid "Used as the main logo in the admin interface (light mode)."
 msgstr "Το κύριο λογότυπο στο περιβάλλον διαχείρισης (φωτεινό θέμα)."
 
-#: cms/models.py:133
+#: cms/models.py:136
 msgid "Admin Logo (Dark)"
 msgstr "Λογότυπο διαχείρισης (σκούρο)"
 
-#: cms/models.py:134
+#: cms/models.py:137
 msgid "Used as the main logo in the admin interface (dark mode)."
 msgstr "Το κύριο λογότυπο στο περιβάλλον διαχείρισης (σκούρο θέμα)."
 
-#: cms/models.py:142
+#: cms/models.py:145
 msgid "Admin Symbol"
 msgstr "Σύμβολο διαχείρισης"
 
-#: cms/models.py:143
+#: cms/models.py:146
 msgid ""
 "Displayed as the small icon in admin areas like the sidebar (light mode)."
 msgstr ""
 "Το μικρό εικονίδιο σε σημεία της διαχείρισης, όπως το πλαϊνό μενού (φωτεινό "
 "θέμα)."
 
-#: cms/models.py:151
+#: cms/models.py:154
 msgid "Admin Symbol (Dark)"
 msgstr "Σύμβολο διαχείρισης (σκούρο)"
 
-#: cms/models.py:152
+#: cms/models.py:155
 msgid ""
 "Displayed as the small icon in admin areas like the sidebar (dark mode)."
 msgstr ""
 "Το μικρό εικονίδιο σε σημεία της διαχείρισης, όπως το πλαϊνό μενού (σκούρο "
 "θέμα)."
 
-#: cms/models.py:162
+#: cms/models.py:165
 msgid "Select a font for the site."
 msgstr "Επιλέξτε γραμματοσειρά για τον ιστότοπο."
 
-#: cms/models.py:163
+#: cms/models.py:166
 msgid "font"
 msgstr "γραμματοσειρά"
 
-#: cms/models.py:183
+#: cms/models.py:186
 msgid "Favicons are small icons displayed in browser tabs and bookmarks."
 msgstr ""
 "Τα favicon είναι τα μικρά εικονίδια που εμφανίζονται στις καρτέλες και στους "
 "σελιδοδείκτες του προγράμματος περιήγησης."
 
-#: cms/models.py:186
+#: cms/models.py:189
 msgid "Branding"
 msgstr "Ταυτότητα"
 
-#: cms/models.py:195
+#: cms/models.py:198
 msgid "Open Graph"
 msgstr "Open Graph"
 
-#: cms/models.py:197
+#: cms/models.py:200
 msgid ""
 "Open Graph images are displayed when your site is shared on social media "
 "platforms."
@@ -411,15 +411,15 @@ msgstr ""
 "Οι εικόνες Open Graph εμφανίζονται όταν κάποιος μοιράζεται τον ιστότοπό σας "
 "στα μέσα κοινωνικής δικτύωσης."
 
-#: cms/models.py:201
+#: cms/models.py:204
 msgid "Social"
 msgstr "Κοινωνικά δίκτυα"
 
-#: cms/models.py:212
+#: cms/models.py:215
 msgid "Admin Branding"
 msgstr "Ταυτότητα διαχείρισης"
 
-#: cms/models.py:215
+#: cms/models.py:218
 #: dashboard/templates/phoxtail_dashboard/navigation/dock.html:25
 #: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:121
 #: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:74
@@ -427,82 +427,82 @@ msgctxt "admin area"
 msgid "Admin"
 msgstr "Διαχείριση"
 
-#: cms/models.py:221
+#: cms/models.py:224
 msgid "Font"
 msgstr "Γραμματοσειρά"
 
-#: cms/models.py:222
+#: cms/models.py:225
 msgid "Typography"
 msgstr "Τυπογραφία"
 
-#: cms/models.py:223
+#: cms/models.py:226
 msgid "Assign fonts to semantic roles (e.g. heading, body, mono)."
 msgstr ""
 "Αντιστοιχίστε γραμματοσειρές σε ρόλους (π.χ. επικεφαλίδα, κείμενο, σταθερό "
 "πλάτος)."
 
-#: cms/models.py:227 design/models.py:297 design/viewsets.py:110
+#: cms/models.py:230 design/models.py:301 design/viewsets.py:110
 msgid "Palette"
 msgstr "Παλέτα"
 
-#: cms/models.py:228
+#: cms/models.py:231
 msgid "Color Palettes"
 msgstr "Παλέτες χρωμάτων"
 
-#: cms/models.py:229
+#: cms/models.py:232
 msgid "Assign palettes to semantic roles (e.g. surface, primary, accent)."
 msgstr ""
 "Αντιστοιχίστε παλέτες σε ρόλους (π.χ. επιφάνεια, κύριο χρώμα, χρώμα έμφασης)."
 
-#: cms/models.py:232 streams/admin/sync/forms.py:47
+#: cms/models.py:235 streams/admin/sync/forms.py:47
 msgid "Theme"
 msgstr "Θέμα"
 
-#: cms/models.py:256 dashboard/models.py:27
+#: cms/models.py:261 dashboard/models.py:27
 msgctxt "website"
 msgid "Site"
 msgstr "Ιστότοπος"
 
-#: cms/models.py:262 cms/models.py:298
+#: cms/models.py:267 cms/models.py:303
 msgid "config"
 msgstr "ρυθμίσεις"
 
-#: cms/models.py:264
+#: cms/models.py:269
 msgid "font family"
 msgstr "οικογένεια γραμματοσειράς"
 
-#: cms/models.py:270
+#: cms/models.py:275
 msgid "Semantic role this font serves (e.g., heading, body)."
 msgstr ""
 "Ο ρόλος που εξυπηρετεί αυτή η γραμματοσειρά (π.χ. επικεφαλίδα, κείμενο)."
 
-#: cms/models.py:271 cms/models.py:307
+#: cms/models.py:276 cms/models.py:312
 msgid "role"
 msgstr "ρόλος"
 
-#: cms/models.py:275
+#: cms/models.py:280
 msgid "site font"
 msgstr "γραμματοσειρά ιστότοπου"
 
-#: cms/models.py:276
+#: cms/models.py:281
 msgid "site fonts"
 msgstr "γραμματοσειρές ιστότοπου"
 
-#: cms/models.py:300
+#: cms/models.py:305
 msgid "palette"
 msgstr "παλέτα"
 
-#: cms/models.py:306
+#: cms/models.py:311
 msgid "Semantic role this palette serves (e.g., surface, primary, accent)."
 msgstr ""
 "Ο ρόλος που εξυπηρετεί αυτή η παλέτα (π.χ. επιφάνεια, κύριο χρώμα, χρώμα "
 "έμφασης)."
 
-#: cms/models.py:311
+#: cms/models.py:316
 msgid "site palette"
 msgstr "παλέτα ιστότοπου"
 
-#: cms/models.py:312
+#: cms/models.py:317
 msgid "site palettes"
 msgstr "παλέτες ιστότοπου"
 
@@ -1049,127 +1049,137 @@ msgstr "Ιστότοπος"
 msgid "Platform"
 msgstr "Πλατφόρμα"
 
-#: design/models.py:19
+#: design/css.py:36
+msgid "Use letters, digits, spaces and hyphens."
+msgstr "Χρησιμοποιήστε γράμματα, ψηφία, κενά και παύλες."
+
+#: design/css.py:40
+msgid "Use font names separated by commas; a name may be in quotes."
+msgstr ""
+"Χρησιμοποιήστε ονόματα γραμματοσειρών χωρισμένα με κόμματα· ένα όνομα μπορεί "
+"να είναι σε εισαγωγικά."
+
+#: design/models.py:21
 msgid "Font family name as it appears in CSS (e.g., 'Inter', 'Roboto')"
 msgstr ""
 "Το όνομα της οικογένειας γραμματοσειράς όπως γράφεται στο CSS (π.χ. 'Inter', "
 "'Roboto')"
 
-#: design/models.py:20 design/models.py:162 design/models.py:195
-#: design/models.py:237 remotes/models.py:16 streams/models.py:78
+#: design/models.py:22 design/models.py:164 design/models.py:198
+#: design/models.py:241 remotes/models.py:16 streams/models.py:78
 #: streams/models.py:250 streams/models.py:295 tokens/models.py:17
 #: users/models.py:102
 msgid "name"
 msgstr "όνομα"
 
-#: design/models.py:25
+#: design/models.py:27
 msgid "Optional description of the font and its intended use"
 msgstr "Προαιρετική περιγραφή της γραμματοσειράς και της χρήσης της"
 
-#: design/models.py:26 design/models.py:171 design/models.py:213
-#: design/models.py:249 design/models.py:276 streams/models.py:86
+#: design/models.py:28 design/models.py:174 design/models.py:217
+#: design/models.py:253 design/models.py:280 streams/models.py:86
 #: streams/models.py:259 streams/models.py:304 tokens/models.py:18
 msgid "description"
 msgstr "περιγραφή"
 
-#: design/models.py:31
+#: design/models.py:33
 msgid "Serif"
 msgstr "Serif"
 
-#: design/models.py:32
+#: design/models.py:34
 msgid "Sans Serif"
 msgstr "Sans Serif"
 
-#: design/models.py:33
+#: design/models.py:35
 msgid "Monospace"
 msgstr "Σταθερού πλάτους"
 
-#: design/models.py:34
+#: design/models.py:36
 msgid "Display"
 msgstr "Διακοσμητική"
 
-#: design/models.py:35
+#: design/models.py:37
 msgid "Handwriting"
 msgstr "Χειρόγραφη"
 
-#: design/models.py:38
+#: design/models.py:40
 msgid "Font category - helps with fallback selection and appropriate usage"
 msgstr ""
 "Η κατηγορία της γραμματοσειράς: βοηθά στην επιλογή εναλλακτικών "
 "γραμματοσειρών και στη σωστή χρήση της"
 
-#: design/models.py:39
+#: design/models.py:41
 msgid "category"
 msgstr "κατηγορία"
 
-#: design/models.py:45
+#: design/models.py:48
 msgid "CSS fallback fonts (e.g., 'system-ui, -apple-system, sans-serif')"
 msgstr ""
 "Εναλλακτικές γραμματοσειρές CSS (π.χ. 'system-ui, -apple-system, sans-serif')"
 
-#: design/models.py:46
+#: design/models.py:49
 msgid "fallback"
 msgstr "εναλλακτικές"
 
-#: design/models.py:54
+#: design/models.py:57
 msgid "Font Family"
 msgstr "Οικογένεια γραμματοσειράς"
 
-#: design/models.py:55 design/viewsets.py:48 design/viewsets.py:49
+#: design/models.py:58 design/viewsets.py:48 design/viewsets.py:49
 msgid "Font Families"
 msgstr "Οικογένειες γραμματοσειρών"
 
-#: design/models.py:107
+#: design/models.py:108
 msgid "family"
 msgstr "οικογένεια"
 
-#: design/models.py:110
+#: design/models.py:111
 msgid "Font weight value (100=Thin, 400=Regular, 700=Bold, 900=Black)"
 msgstr ""
 "Το βάρος της γραμματοσειράς (100=Λεπτή, 400=Κανονική, 700=Έντονη, 900=Πολύ "
 "έντονη)"
 
-#: design/models.py:111
+#: design/models.py:112
 msgid "weight"
 msgstr "βάρος"
 
-#: design/models.py:116
+#: design/models.py:117
 msgid "Normal"
 msgstr "Κανονική"
 
-#: design/models.py:117 streams/blocks/schema/fields.py:335
+#: design/models.py:118 streams/blocks/schema/fields.py:335
 msgid "Italic"
 msgstr "Πλάγια"
 
-#: design/models.py:120
+#: design/models.py:121
 msgid "Font style"
 msgstr "Στυλ γραμματοσειράς"
 
-#: design/models.py:121
+#: design/models.py:122
 msgid "style"
 msgstr "στυλ"
 
-#: design/models.py:124
+#: design/models.py:125
 msgid "WOFF2 font file (convert TTF/OTF to WOFF2 first)"
 msgstr "Αρχείο γραμματοσειράς WOFF2 (μετατρέψτε πρώτα το TTF/OTF σε WOFF2)"
 
-#: design/models.py:124
+#: design/models.py:125
 msgid "file"
 msgstr "αρχείο"
 
-#: design/models.py:128 design/viewsets.py:68
+#: design/models.py:129 design/viewsets.py:68
 msgid "Font Weight"
 msgstr "Βάρος γραμματοσειράς"
 
-#: design/models.py:129 design/viewsets.py:79 design/viewsets.py:80
+#: design/models.py:130 design/viewsets.py:79 design/viewsets.py:80
 msgid "Font Weights"
 msgstr "Βάρη γραμματοσειράς"
 
-#: design/models.py:161
+#: design/models.py:163
 msgid "Display name (e.g., 'Heading', 'Body', 'Monospace')"
 msgstr "Εμφανιζόμενο όνομα (π.χ. 'Επικεφαλίδα', 'Κείμενο', 'Σταθερού πλάτους')"
 
-#: design/models.py:167
+#: design/models.py:170
 #, python-brace-format
 msgid ""
 "CSS namespace identifier (e.g., 'heading'). Used as prefix in CSS variables: "
@@ -1178,23 +1188,23 @@ msgstr ""
 "Αναγνωριστικό για το CSS (π.χ. 'heading'). Χρησιμοποιείται ως πρόθεμα στις "
 "μεταβλητές CSS: --font-{identifier}"
 
-#: design/models.py:171
+#: design/models.py:174
 msgid "Describes the semantic purpose of this font role."
 msgstr "Περιγράφει τον σκοπό αυτού του ρόλου γραμματοσειράς."
 
-#: design/models.py:180
+#: design/models.py:183
 msgid "Font Role"
 msgstr "Ρόλος γραμματοσειράς"
 
-#: design/models.py:181 design/viewsets.py:31 design/viewsets.py:32
+#: design/models.py:184 design/viewsets.py:31 design/viewsets.py:32
 msgid "Font Roles"
 msgstr "Ρόλοι γραμματοσειρών"
 
-#: design/models.py:194
+#: design/models.py:197
 msgid "Display name (e.g., 'Surface', 'Primary', 'Accent')"
 msgstr "Εμφανιζόμενο όνομα (π.χ. 'Επιφάνεια', 'Κύριο', 'Έμφαση')"
 
-#: design/models.py:201
+#: design/models.py:205
 #, python-brace-format
 msgid ""
 "CSS namespace identifier (e.g., 'surface'). Used as prefix in CSS variables: "
@@ -1203,7 +1213,7 @@ msgstr ""
 "Αναγνωριστικό για το CSS (π.χ. 'surface'). Χρησιμοποιείται ως πρόθεμα στις "
 "μεταβλητές CSS: --color-{identifier}-{shade}"
 
-#: design/models.py:208
+#: design/models.py:212
 msgid ""
 "Describes the semantic purpose of this role and how its shades map to light/"
 "dark mode (e.g., shade-50 for light backgrounds, shade-950 for dark "
@@ -1213,142 +1223,142 @@ msgstr ""
 "στο φωτεινό και στο σκούρο θέμα (π.χ. shade-50 για φωτεινά φόντα, shade-950 "
 "για σκούρα)."
 
-#: design/models.py:222
+#: design/models.py:226
 msgid "Palette Role"
 msgstr "Ρόλος παλέτας"
 
-#: design/models.py:223 design/viewsets.py:14 design/viewsets.py:15
+#: design/models.py:227 design/viewsets.py:14 design/viewsets.py:15
 msgid "Palette Roles"
 msgstr "Ρόλοι παλετών"
 
-#: design/models.py:236
+#: design/models.py:240
 msgid "Human-readable name (e.g., 'Tailwind', 'Spring')"
 msgstr "Ευανάγνωστο όνομα (π.χ. 'Tailwind', 'Spring')"
 
-#: design/models.py:242
+#: design/models.py:246
 msgid "Slug-style identifier matching the filesystem group directory"
 msgstr ""
 "Αναγνωριστικό σε μορφή slug, ίδιο με τον φάκελο της ομάδας στο σύστημα "
 "αρχείων"
 
-#: design/models.py:248
+#: design/models.py:252
 msgid "Optional description of the palette set's purpose or theme"
 msgstr "Προαιρετική περιγραφή του σκοπού ή του θέματος του σετ παλετών"
 
-#: design/models.py:258
+#: design/models.py:262
 msgid "Palette Set"
 msgstr "Σετ παλετών"
 
-#: design/models.py:259 design/viewsets.py:89 design/viewsets.py:90
+#: design/models.py:263 design/viewsets.py:89 design/viewsets.py:90
 msgid "Palette Sets"
 msgstr "Σετ παλετών"
 
-#: design/models.py:270
+#: design/models.py:274
 msgid "palette set"
 msgstr "σετ παλετών"
 
-#: design/models.py:273
+#: design/models.py:277
 msgid "Name of the palette (e.g., 'red', 'custom_blue')"
 msgstr "Το όνομα της παλέτας (π.χ. 'red', 'custom_blue')"
 
-#: design/models.py:276
+#: design/models.py:280
 msgid "Optional description of the palette"
 msgstr "Προαιρετική περιγραφή της παλέτας"
 
-#: design/models.py:278
+#: design/models.py:282
 msgid "Hex color for shade 50 (lightest)"
 msgstr "Χρώμα hex για την απόχρωση 50 (η πιο ανοιχτή)"
 
-#: design/models.py:278
+#: design/models.py:282
 msgid "shade 50"
 msgstr "απόχρωση 50"
 
-#: design/models.py:279
+#: design/models.py:283
 msgid "Hex color for shade 100"
 msgstr "Χρώμα hex για την απόχρωση 100"
 
-#: design/models.py:279
+#: design/models.py:283
 msgid "shade 100"
 msgstr "απόχρωση 100"
 
-#: design/models.py:280
+#: design/models.py:284
 msgid "Hex color for shade 200"
 msgstr "Χρώμα hex για την απόχρωση 200"
 
-#: design/models.py:280
+#: design/models.py:284
 msgid "shade 200"
 msgstr "απόχρωση 200"
 
-#: design/models.py:281
+#: design/models.py:285
 msgid "Hex color for shade 300"
 msgstr "Χρώμα hex για την απόχρωση 300"
 
-#: design/models.py:281
+#: design/models.py:285
 msgid "shade 300"
 msgstr "απόχρωση 300"
 
-#: design/models.py:282
+#: design/models.py:286
 msgid "Hex color for shade 400"
 msgstr "Χρώμα hex για την απόχρωση 400"
 
-#: design/models.py:282
+#: design/models.py:286
 msgid "shade 400"
 msgstr "απόχρωση 400"
 
-#: design/models.py:283
+#: design/models.py:287
 msgid "Hex color for shade 500 (base)"
 msgstr "Χρώμα hex για την απόχρωση 500 (η βασική)"
 
-#: design/models.py:283
+#: design/models.py:287
 msgid "shade 500"
 msgstr "απόχρωση 500"
 
-#: design/models.py:284
+#: design/models.py:288
 msgid "Hex color for shade 600"
 msgstr "Χρώμα hex για την απόχρωση 600"
 
-#: design/models.py:284
+#: design/models.py:288
 msgid "shade 600"
 msgstr "απόχρωση 600"
 
-#: design/models.py:285
+#: design/models.py:289
 msgid "Hex color for shade 700"
 msgstr "Χρώμα hex για την απόχρωση 700"
 
-#: design/models.py:285
+#: design/models.py:289
 msgid "shade 700"
 msgstr "απόχρωση 700"
 
-#: design/models.py:286
+#: design/models.py:290
 msgid "Hex color for shade 800"
 msgstr "Χρώμα hex για την απόχρωση 800"
 
-#: design/models.py:286
+#: design/models.py:290
 msgid "shade 800"
 msgstr "απόχρωση 800"
 
-#: design/models.py:287
+#: design/models.py:291
 msgid "Hex color for shade 900"
 msgstr "Χρώμα hex για την απόχρωση 900"
 
-#: design/models.py:287
+#: design/models.py:291
 msgid "shade 900"
 msgstr "απόχρωση 900"
 
-#: design/models.py:288
+#: design/models.py:292
 msgid "Hex color for shade 950 (darkest)"
 msgstr "Χρώμα hex για την απόχρωση 950 (η πιο σκούρα)"
 
-#: design/models.py:288
+#: design/models.py:292
 msgid "shade 950"
 msgstr "απόχρωση 950"
 
-#: design/models.py:298 design/viewsets.py:128 design/viewsets.py:137
+#: design/models.py:302 design/viewsets.py:128 design/viewsets.py:137
 #: design/viewsets.py:138
 msgid "Palettes"
 msgstr "Παλέτες"
 
-#: design/models.py:385 design/views.py:32 design/views.py:57
+#: design/models.py:389 design/views.py:32 design/views.py:57
 #: design/viewsets.py:169
 msgid "Shades"
 msgstr "Αποχρώσεις"

@@ -13,6 +13,7 @@ from phoxtail.api.auth import guarded
 from phoxtail.api.pagination import Router
 from phoxtail.api.search import narrow_by_search
 from phoxtail.design.api.v1._helpers import (
+    HexColor,
     palette_etag,
     require_if_match,
     resolve_palette,
@@ -59,17 +60,17 @@ class PaletteCreate(Schema):
     title: str
     description: str = ""
     sort_order: int | None = None
-    shade_50: str
-    shade_100: str
-    shade_200: str
-    shade_300: str
-    shade_400: str
-    shade_500: str
-    shade_600: str
-    shade_700: str
-    shade_800: str
-    shade_900: str
-    shade_950: str
+    shade_50: HexColor
+    shade_100: HexColor
+    shade_200: HexColor
+    shade_300: HexColor
+    shade_400: HexColor
+    shade_500: HexColor
+    shade_600: HexColor
+    shade_700: HexColor
+    shade_800: HexColor
+    shade_900: HexColor
+    shade_950: HexColor
 
 
 class PalettePatch(Schema):
@@ -77,17 +78,17 @@ class PalettePatch(Schema):
     title: str | None = None
     description: str | None = None
     sort_order: int | None = None
-    shade_50: str | None = None
-    shade_100: str | None = None
-    shade_200: str | None = None
-    shade_300: str | None = None
-    shade_400: str | None = None
-    shade_500: str | None = None
-    shade_600: str | None = None
-    shade_700: str | None = None
-    shade_800: str | None = None
-    shade_900: str | None = None
-    shade_950: str | None = None
+    shade_50: HexColor | None = None
+    shade_100: HexColor | None = None
+    shade_200: HexColor | None = None
+    shade_300: HexColor | None = None
+    shade_400: HexColor | None = None
+    shade_500: HexColor | None = None
+    shade_600: HexColor | None = None
+    shade_700: HexColor | None = None
+    shade_800: HexColor | None = None
+    shade_900: HexColor | None = None
+    shade_950: HexColor | None = None
 
 
 class Error(Schema):
