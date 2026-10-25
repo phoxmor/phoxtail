@@ -40,6 +40,63 @@ def _read_image(user: str, ip: str, image: str) -> tuple[bool, str]:
     return result.returncode == 0, result.stderr.strip()
 
 
+def _upload_config(user: str, ip: str, local: Path, remote: str, *, replace: bool) -> None:
+    """Copy one config file to the server, leaving an existing copy alone.
+
+    With ``replace``, an existing copy that differs from the local one is shown
+    as a diff and replaced on confirmation. Only for a file that is pure
+    template output: `.env` holds the secrets, and the server's `nginx.conf`
+    is the HTTPS one `server ssl` wrote, which the local file is not.
+    """
+    import difflib
+
+    import questionary
+    from rich.syntax import Syntax
+
+    name = Path(remote).name
+    if not ssh_check(user, ip, f"test -f {remote}"):
+        with console.status(f"  Copying {name}..."):
+            if not scp_to(user, ip, local, remote):
+                console.print(f"  [red]✗[/red] Failed to copy {name}")
+                raise typer.Exit(1)
+        console.print(f"  [green]✓[/green] {name} uploaded")
+        return
+
+    if not replace:
+        console.print(
+            f"  [green]✓[/green] {name} [dim](already on server — delete {remote} on server to replace)[/dim]"
+        )
+        return
+
+    current = ssh_run(user, ip, f"cat {remote}")
+    if current.returncode != 0:
+        console.print(f"  [red]✗[/red] Could not read {remote}: {current.stderr.strip()}")
+        raise typer.Exit(1)
+    diff = "".join(
+        difflib.unified_diff(
+            current.stdout.splitlines(keepends=True),
+            local.read_text().splitlines(keepends=True),
+            fromfile=f"server: {remote}",
+            tofile=f"local: {local}",
+        )
+    )
+    if not diff:
+        console.print(f"  [green]✓[/green] {name} [dim](up to date)[/dim]")
+        return
+
+    console.print(f"\n  [yellow]{name} on the server differs from {local}:[/yellow]")
+    console.print(Syntax(diff, "diff"))
+    if not questionary.confirm(f"Replace the server's {name}?", default=False).ask():
+        console.print(f"  [yellow]![/yellow] Kept the server's {name}; this deploy runs it as it is")
+        return
+
+    with console.status(f"  Copying {name}..."):
+        if not scp_to(user, ip, local, remote):
+            console.print(f"  [red]✗[/red] Failed to copy {name}")
+            raise typer.Exit(1)
+    console.print(f"  [green]✓[/green] {name} replaced")
+
+
 def deploy(
     ip: str = typer.Argument(..., help="Server IP address."),
     user: str = typer.Option(
@@ -148,20 +205,13 @@ def deploy(
         # ------------------------------------------------------------------
         console.print("\n[bold]Uploading config files[/bold]")
         for local_path, _, remote_name in local_configs:
-            remote_path = f"{project_dir}/{remote_name}"
-
-            if ssh_check(user, ip, f"test -f {remote_path}"):
-                console.print(
-                    f"  [green]✓[/green] {remote_name} "
-                    f"[dim](already on server — delete {project_dir}/{remote_name} on server to replace)[/dim]"
-                )
-                continue
-
-            with console.status(f"  Copying {remote_name}..."):
-                if not scp_to(user, ip, local_path, remote_path):
-                    console.print(f"  [red]✗[/red] Failed to copy {remote_name}")
-                    raise typer.Exit(1)
-            console.print(f"  [green]✓[/green] {remote_name} uploaded")
+            _upload_config(
+                user,
+                ip,
+                local_path,
+                f"{project_dir}/{remote_name}",
+                replace=remote_name == "docker-compose.yaml",
+            )
 
         # phoxtail.toml — always upload so the server stays in sync with local
         config_file = find_config_file()
