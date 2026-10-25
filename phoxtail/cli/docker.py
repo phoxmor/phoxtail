@@ -174,6 +174,38 @@ def _phoxtail_dependencies() -> list[str]:
     return sorted(names, key=lambda n: n != "phoxtail")
 
 
+def _locked_commits(packages: list[str]) -> dict[str, str]:
+    """Return the commit uv.lock holds for each git-sourced package in *packages*.
+
+    A git source locks as ``...#<sha>``; a package the lock does not hold, or
+    holds from an index, is left out.
+    """
+    try:
+        lock = tomllib.loads(Path("uv.lock").read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+    commits = {}
+    for package in lock.get("package", []):
+        git = package.get("source", {}).get("git", "")
+        if package.get("name") in packages and "#" in git:
+            commits[package["name"]] = git.rsplit("#", 1)[1]
+    return commits
+
+
+def _commit_moves(before: dict[str, str], after: dict[str, str]) -> list[str]:
+    """Describe, one line per package, the commit a release takes it to."""
+    lines = []
+    for name, new in after.items():
+        old = before.get(name)
+        if old is None:
+            lines.append(f"{name} {new[:7]}")
+        elif old == new:
+            lines.append(f"{name} {new[:7]} (unchanged)")
+        else:
+            lines.append(f"{name} {old[:7]} → {new[:7]}")
+    return lines
+
+
 def _push_image(base: str, sha: str | None) -> int:
     """Push <base>:latest (and <base>:<sha> when available) to the registry."""
     rc = subprocess.call(["docker", "push", f"{base}:latest"])
@@ -357,6 +389,7 @@ def release_cmd(
     packages = _phoxtail_dependencies()
     console.print(f"\n  [bold cyan]→[/bold cyan] Updating lockfile ({', '.join(packages)})")
     upgrade_flags = [flag for pkg in packages for flag in ("--upgrade-package", pkg)]
+    before = _locked_commits(packages)
     lock_result = subprocess.run(
         ["uv", "lock", *upgrade_flags],
         capture_output=True,
@@ -369,6 +402,8 @@ def release_cmd(
         )
     else:
         console.print("  [green]✓[/green] Lockfile updated")
+        for line in _commit_moves(before, _locked_commits(packages)):
+            console.print(f"    {line}")
 
     sha_label = sha or "no git SHA"
     console.print(f"\n  [bold cyan]→[/bold cyan] Building [bold]{base}[/bold] ({sha_label})")
