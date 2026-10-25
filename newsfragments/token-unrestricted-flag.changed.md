@@ -3,5 +3,6 @@ either carries scopes — Django permission codenames such as
 `phoxtail_streams.change_blockvariant` — or is marked `unrestricted`, and
 issuing one requires choosing. The `"*"` wildcard is gone: it granted
 capabilities that did not exist when the token was issued, so installing an
-app silently widened every token already in circulation. Existing tokens
-keep working; re-issue any you want narrowed.
+app silently widened every token already in circulation. Tokens issued with
+`"*"` are not converted: they are refused wherever a scope is checked, until
+re-issued as unrestricted or with the scopes they need.
