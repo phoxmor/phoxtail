@@ -67,6 +67,10 @@ engine = [
     "sorl-thumbnail>=13.0.0",
     "fonttools[woff]>=4.63.0",
     "redis>=8.0.1",
+    # users.utils counts ages with relativedelta; celery happens to pull it
+    # in today, but nothing promised that. An open upper bound would promise
+    # majors that do not exist yet.
+    "python-dateutil>=2.8.2,<4",
 ]
 dashboard = [
     "phoxtail[engine]",
