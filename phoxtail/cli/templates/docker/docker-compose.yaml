@@ -97,7 +97,7 @@ services:
 
 {% if environment == "production" %}
   nginx:
-    image: nginx:latest
+    image: nginx:1.31
     restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
@@ -117,7 +117,7 @@ services:
       - web
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v5.8.0
     profiles: ["ssl"]
     env_file:
       - ./.env
