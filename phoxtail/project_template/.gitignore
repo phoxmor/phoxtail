@@ -8,7 +8,6 @@ __pycache__/
 .pytest_cache/
 requirements.txt
 .phoxtail/
-uv.lock
 
 # Python build artifacts
 *.egg-info/
