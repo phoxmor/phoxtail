@@ -1,6 +1,8 @@
 """Database management commands for Phoxtail."""
 
+import re
 import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 
 import typer
@@ -18,6 +20,12 @@ console = Console()
 
 DUMP_FILENAME = "remote_pull.sql"
 PUSH_DUMP_FILENAME = "local_push.sql"
+
+PG_DUMP = "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost -U $POSTGRES_USER $POSTGRES_DB"
+
+# DJANGO_ENV becomes part of a file name and of a remote shell command, so it
+# must be a plain word. No underscore: that is the separator in the name.
+_ENVIRONMENT = re.compile(r"[A-Za-z0-9-]+")
 
 
 @app.command(name="pull")
@@ -376,12 +384,81 @@ def push(
             )
 
 
-@app.command(name="backup")
-def backup() -> None:
-    """Create a database backup.
+def backup_name(environment: str | None, source: str = ".env") -> str:
+    """Name a backup after the database it holds: ``<slug>_<env>_<UTC time>.sql``.
 
-    Saves a timestamped SQL dump to the db-backups volume.
+    The environment is the one recorded next to that database, never the
+    place the command runs, so a copy moved anywhere still says what it is.
     """
+    if not environment or not _ENVIRONMENT.fullmatch(environment):
+        problem = "is not set" if not environment else f"is not a plain word ({environment!r})"
+        console.print(
+            f"[red]Error:[/red] DJANGO_ENV in {source} {problem}. It names the backup (development, production, …)."
+        )
+        raise typer.Exit(1)
+    stamp = datetime.now(UTC).strftime("%Y-%m-%d_%H-%M-%S")
+    return f"{slugify(get_project_name())}_{environment}_{stamp}.sql"
+
+
+def _dump_into(name: str) -> str:
+    """Shell that dumps into ``/db-backups/<name>`` only when the dump is whole.
+
+    The dump goes to a ``.partial`` file first and is renamed once pg_dump
+    succeeded and wrote something, so a file with a backup's name is always
+    a complete backup. A failed dump leaves nothing behind.
+    """
+    partial = f"/db-backups/{name}.partial"
+    return (
+        f"{PG_DUMP} > {partial} && test -s {partial} && mv {partial} /db-backups/{name}"
+        f" || {{ rm -f {partial}; exit 1; }}"
+    )
+
+
+def _remote_environment(remote_host: str, project_dir: str) -> str | None:
+    """Read DJANGO_ENV from the server's own .env, which deploy never overwrites."""
+    result = subprocess.run(
+        ["ssh", *_SSH_MUX, remote_host, f"grep -m1 '^DJANGO_ENV=' {project_dir}/.env"],
+        capture_output=True,
+        text=True,
+    )
+    # grep exits 1 when the key is absent (reported by backup_name); 2 means
+    # no readable .env, and 255 is ssh itself failing.
+    if result.returncode not in (0, 1):
+        reason = "could not reach the server" if result.returncode == 255 else f"cannot read {project_dir}/.env"
+        console.print(f"[red]Error:[/red] {reason}: {result.stderr.strip()}")
+        raise typer.Exit(1)
+    value = result.stdout.strip().partition("=")[2].strip()
+    return value.strip("'\"") or None
+
+
+@app.command(name="backup")
+def backup(
+    ip: str | None = typer.Argument(None, help="Server IP address. Omit to back up the local database."),
+    user: str = typer.Option(
+        "phoxtail",
+        "--user",
+        "-u",
+        help="Deploy username on the server.",
+    ),
+) -> None:
+    """Create a database backup, locally or on a server.
+
+    Saves an SQL dump named ``<slug>_<DJANGO_ENV>_<UTC time>.sql`` to
+    db-backups/. With an IP, the dump is made on the server, kept in the
+    server's db-backups/, and copied into the local db-backups/.
+
+    Examples:
+        phoxtail db backup
+        phoxtail db backup 203.0.113.5
+    """
+    if ip is None:
+        _backup_local()
+    else:
+        _backup_remote(ip, user)
+
+
+def _backup_local() -> None:
+    name = backup_name(read_env_value("DJANGO_ENV"))
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -389,23 +466,70 @@ def backup() -> None:
     ) as progress:
         progress.add_task(description="Creating database backup...", total=None)
         try:
-            docker_db(
-                "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
-                " -U $POSTGRES_USER $POSTGRES_DB"
-                " > /db-backups/$(date +%F_%H-%M-%S).sql"
-            )
-            console.print("[green bold]✓ Database backup created[/green bold]")
+            docker_db(_dump_into(name))
+            console.print(f"[green bold]✓ Database backup created:[/green bold] db-backups/{name}")
         except subprocess.CalledProcessError as e:
             stderr = e.stderr if e.stderr else str(e)
             console.print(f"[red]Error:[/red] {stderr}")
             raise typer.Exit(1)
 
 
+def _backup_remote(ip: str, user: str) -> None:
+    verify_server_identity(user, ip)
+
+    remote_host = f"{user}@{ip}"
+    project_dir = f"~/{slugify(get_project_name())}"
+    name = backup_name(_remote_environment(remote_host, project_dir), source=f"the server's {project_dir}/.env")
+    remote_path = f"{project_dir}/db-backups/{name}"
+    backups_dir = Path.cwd() / "db-backups"
+    backups_dir.mkdir(exist_ok=True)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        transient=True,
+    ) as progress:
+        task = progress.add_task(description="Dumping database on server...", total=None)
+        result = subprocess.run(
+            [
+                "ssh",
+                *_SSH_MUX,
+                remote_host,
+                f"cd {project_dir} && docker compose exec -T db sh -c '{_dump_into(name)}'",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            console.print(f"[red]Server backup failed:[/red] {result.stderr.strip()}")
+            raise typer.Exit(1)
+
+        progress.update(task, description="Downloading backup...")
+        # Downloaded under a .partial name too, for the same reason as the dump.
+        partial = backups_dir / f"{name}.partial"
+        result = subprocess.run(
+            ["scp", *_SCP_OPTS, f"{remote_host}:{remote_path}", str(partial)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            partial.replace(backups_dir / name)
+        else:
+            partial.unlink(missing_ok=True)
+            console.print(
+                f"[red]Download failed:[/red] {result.stderr.strip()}\n"
+                f"  The backup is safe on the server: {remote_path}"
+            )
+            raise typer.Exit(1)
+
+    console.print(f"[green bold]✓ Server backup created:[/green bold] {remote_path}\n  Copied to db-backups/{name}")
+
+
 @app.command(name="restore")
 def restore(
     backup_file: str = typer.Argument(
         ...,
-        help="Backup filename to restore (e.g., 2026-03-15_12-00-00.sql)",
+        help="Backup filename in db-backups/ (e.g., mysite_production_2026-03-15_12-00-00.sql)",
     ),
 ) -> None:
     """Restore the database from a backup file.

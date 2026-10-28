@@ -1,12 +1,16 @@
 """Tests for cli.db commands."""
 
+import re
 import subprocess
+from datetime import UTC, datetime
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 import typer
+from typer.testing import CliRunner
 
-from phoxtail.cli.db import backup, pull, restore
+from phoxtail.cli.db import PG_DUMP, _dump_into, app, backup, backup_name, pull, restore
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -279,21 +283,252 @@ class TestPull:
 # ---------------------------------------------------------------------------
 
 
+class TestBackupName:
+    """A backup is named after the database it holds, not where it was made."""
+
+    def test_slug_environment_and_utc_time(self):
+        name = backup_name("production")
+        assert re.fullmatch(r"phoxtail_production_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.sql", name)
+
+    def test_time_is_utc(self):
+        frozen = datetime(2026, 10, 28, 10, 19, 28, tzinfo=UTC)
+        with patch("phoxtail.cli.db.datetime") as mock_datetime:
+            mock_datetime.now.return_value = frozen
+            assert backup_name("development") == "phoxtail_development_2026-10-28_10-19-28.sql"
+        mock_datetime.now.assert_called_once_with(UTC)
+
+    @pytest.mark.parametrize("environment", [None, ""])
+    def test_missing_environment_stops(self, environment):
+        with pytest.raises(typer.Exit) as exc_info:
+            backup_name(environment)
+        assert exc_info.value.exit_code == 1
+
+    @pytest.mark.parametrize("environment", ["prod_eu", "prod eu", "x;rm -rf ~", "../production"])
+    def test_environment_that_is_not_a_plain_word_stops(self, environment):
+        """It lands in a file name and a remote shell command."""
+        with pytest.raises(typer.Exit):
+            backup_name(environment)
+
+
 class TestBackup:
-    """Tests for the db backup command."""
+    """Tests for the local db backup."""
+
+    @pytest.fixture
+    def env_file(self, project_dir):
+        (project_dir / ".env").write_text("DJANGO_ENV=development\n")
 
     @patch("phoxtail.cli.db.docker_db")
-    def test_backup_success(self, mock_docker_db):
+    def test_backup_success(self, mock_docker_db, env_file):
         mock_docker_db.return_value = _completed()
-        backup()
+        backup(ip=None)
         mock_docker_db.assert_called_once()
-        assert "pg_dump" in mock_docker_db.call_args[0][0]
+        command = mock_docker_db.call_args[0][0]
+        name = re.search(r"phoxtail_development_[\d_-]+\.sql", command)[0]
+        assert command == _dump_into(name)
+
+
+class TestDumpInto:
+    """A file under a backup's name is only ever a complete dump."""
+
+    def test_dumps_to_partial_then_renames(self):
+        name = "phoxtail_production_2026-10-28_10-19-28.sql"
+        partial = f"/db-backups/{name}.partial"
+        assert _dump_into(name) == (
+            f"{PG_DUMP} > {partial} && test -s {partial} && mv {partial} /db-backups/{name}"
+            f" || {{ rm -f {partial}; exit 1; }}"
+        )
+
+    @pytest.mark.parametrize(
+        ("dump", "leaves"),
+        [
+            ("echo '-- dump'", ["x.sql"]),  # success: only the named file
+            ("true", []),  # empty dump: nothing
+            ("{ echo partial; false; }", []),  # wrote data, then failed: nothing
+        ],
+    )
+    def test_shell_behaviour(self, tmp_path, dump, leaves):
+        """Run the real shell against a scratch folder standing in for /db-backups."""
+        backups = tmp_path / "db-backups"
+        backups.mkdir()
+        script = _dump_into("x.sql").replace(PG_DUMP, dump).replace("/db-backups", str(backups))
+        result = subprocess.run(["sh", "-c", script], capture_output=True)
+        assert (result.returncode == 0) == bool(leaves)
+        assert sorted(p.name for p in backups.iterdir()) == leaves
 
     @patch("phoxtail.cli.db.docker_db")
-    def test_backup_failure_exits(self, mock_docker_db):
+    def test_quoted_environment_is_read(self, mock_docker_db, project_dir):
+        (project_dir / ".env").write_text('DJANGO_ENV="development"\n')
+        mock_docker_db.return_value = _completed()
+        backup(ip=None)
+        assert "/db-backups/phoxtail_development_" in mock_docker_db.call_args[0][0]
+
+    @patch("phoxtail.cli.db.docker_db")
+    def test_missing_environment_dumps_nothing(self, mock_docker_db, project_dir):
+        with pytest.raises(typer.Exit) as exc_info:
+            backup(ip=None)
+        assert exc_info.value.exit_code == 1
+        mock_docker_db.assert_not_called()
+
+    @patch("phoxtail.cli.db.docker_db")
+    def test_backup_failure_exits(self, mock_docker_db, env_file):
         mock_docker_db.side_effect = subprocess.CalledProcessError(1, "pg_dump", stderr="no db")
         with pytest.raises(typer.Exit):
-            backup()
+            backup(ip=None)
+
+
+class TestBackupRemote:
+    """Tests for db backup <ip>: dump on the server, keep it there, copy it here."""
+
+    IP = "203.0.113.5"
+
+    def _run(self, environment="DJANGO_ENV=production\n", dump=None, download=None):
+        """subprocess.run fake: env read, server dump, download, in that order.
+
+        A successful download writes the file scp was told to write.
+        """
+
+        def scp(cmd, **kwargs):
+            if download is not None:
+                Path(cmd[-1]).write_text("-- half a dump")
+                return download
+            Path(cmd[-1]).write_text("-- dump")
+            return _completed()
+
+        steps = iter([lambda cmd, **kw: _completed(stdout=environment), lambda cmd, **kw: dump or _completed(), scp])
+        return lambda cmd, **kwargs: next(steps)(cmd, **kwargs)
+
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_happy_path(self, mock_run, mock_verify, project_dir):
+        mock_run.side_effect = self._run()
+        backup(ip=self.IP, user="phoxtail")
+
+        mock_verify.assert_called_once_with("phoxtail", self.IP)
+        env_call, dump_call, scp_call = (c[0][0] for c in mock_run.call_args_list)
+
+        # The environment comes from the server's own .env.
+        assert env_call[0] == "ssh"
+        assert env_call[-1] == "grep -m1 '^DJANGO_ENV=' ~/phoxtail/.env"
+
+        # The dump is written into the server's db-backups and checked non-empty.
+        assert dump_call[0] == "ssh"
+        assert dump_call[-2] == "phoxtail@203.0.113.5"
+        name = re.search(r"phoxtail_production_[\d_-]+\.sql", dump_call[-1])[0]
+        assert dump_call[-1] == f"cd ~/phoxtail && docker compose exec -T db sh -c '{_dump_into(name)}'"
+
+        # The same file is downloaded under a .partial name, then renamed.
+        assert scp_call[0] == "scp"
+        assert scp_call[-2] == f"phoxtail@203.0.113.5:~/phoxtail/db-backups/{name}"
+        assert scp_call[-1] == str(project_dir / "db-backups" / f"{name}.partial")
+        assert sorted(p.name for p in (project_dir / "db-backups").iterdir()) == [name]
+
+        # Nothing is deleted on either side, except a failed dump's .partial.
+        removals = re.findall(r"rm -f (\S+);", " ".join(" ".join(c[0][0]) for c in mock_run.call_args_list))
+        assert removals == [f"/db-backups/{name}.partial"]
+
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_environment_is_the_servers_not_the_local_one(self, mock_run, mock_verify, project_dir):
+        """A stale local deploy .env must not name the server's backup."""
+        (project_dir / ".env").write_text("DJANGO_ENV=development\n")
+        deploy = project_dir / ".phoxtail" / "deploy"
+        deploy.mkdir(parents=True)
+        (deploy / ".env").write_text("DJANGO_ENV=staging\n")
+        mock_run.side_effect = self._run(environment="DJANGO_ENV='production'\n")
+
+        backup(ip=self.IP, user="phoxtail")
+
+        assert "/db-backups/phoxtail_production_" in mock_run.call_args_list[1][0][0][-1]
+
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_custom_user(self, mock_run, mock_verify, project_dir):
+        mock_run.side_effect = self._run()
+        backup(ip=self.IP, user="deploy")
+        mock_verify.assert_called_once_with("deploy", self.IP)
+        assert all("deploy@203.0.113.5" in " ".join(c[0][0]) for c in mock_run.call_args_list)
+
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_missing_server_environment_dumps_nothing(self, mock_run, mock_verify, project_dir):
+        mock_run.side_effect = [_completed(returncode=1, stdout="")]
+        with pytest.raises(typer.Exit) as exc_info:
+            backup(ip=self.IP, user="phoxtail")
+        assert exc_info.value.exit_code == 1
+        assert mock_run.call_count == 1  # only the env read
+
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_dump_failure_downloads_nothing(self, mock_run, mock_verify, project_dir):
+        mock_run.side_effect = self._run(dump=_completed(returncode=1, stderr="no such service: db"))
+        with pytest.raises(typer.Exit) as exc_info:
+            backup(ip=self.IP, user="phoxtail")
+        assert exc_info.value.exit_code == 1
+        assert mock_run.call_count == 2  # no scp
+
+    @patch("phoxtail.cli.db.console.print")
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_download_failure_points_at_the_server_copy(self, mock_run, mock_verify, mock_print, project_dir):
+        mock_run.side_effect = self._run(download=_completed(returncode=1, stderr="Permission denied"))
+        with pytest.raises(typer.Exit) as exc_info:
+            backup(ip=self.IP, user="phoxtail")
+        assert exc_info.value.exit_code == 1
+        message = mock_print.call_args[0][0]
+        assert "Permission denied" in message
+        assert "safe on the server: ~/phoxtail/db-backups/phoxtail_production_" in message
+        # The half-written download is gone; nothing carries a backup's name.
+        assert list((project_dir / "db-backups").iterdir()) == []
+
+    @pytest.mark.parametrize(
+        ("returncode", "reason"),
+        [(255, "could not reach the server"), (2, "cannot read ~/phoxtail/.env")],
+    )
+    @patch("phoxtail.cli.db.console.print")
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_environment_read_failure_is_named(
+        self, mock_run, mock_verify, mock_print, project_dir, returncode, reason
+    ):
+        """Not reported as "DJANGO_ENV is not set" when the read itself failed."""
+        mock_run.side_effect = [_completed(returncode=returncode, stderr="boom")]
+        with pytest.raises(typer.Exit):
+            backup(ip=self.IP, user="phoxtail")
+        assert mock_print.call_args[0][0] == f"[red]Error:[/red] {reason}: boom"
+        assert mock_run.call_count == 1
+
+    @patch("phoxtail.cli.db.subprocess.run")
+    @patch("phoxtail.cli.db.verify_server_identity", side_effect=typer.Exit(1))
+    def test_wrong_server_touches_nothing(self, mock_verify, mock_run, project_dir):
+        with pytest.raises(typer.Exit):
+            backup(ip=self.IP, user="phoxtail")
+        mock_run.assert_not_called()
+
+
+class TestBackupCommandLine:
+    """Through Typer: the IP is optional and --user defaults to phoxtail."""
+
+    @patch("phoxtail.cli.db._backup_remote")
+    @patch("phoxtail.cli.db._backup_local")
+    def test_no_ip_backs_up_locally(self, mock_local, mock_remote):
+        result = CliRunner().invoke(app, ["backup"])
+        assert result.exit_code == 0, result.output
+        mock_local.assert_called_once_with()
+        mock_remote.assert_not_called()
+
+    @patch("phoxtail.cli.db._backup_remote")
+    @patch("phoxtail.cli.db._backup_local")
+    def test_ip_backs_up_the_server(self, mock_local, mock_remote):
+        result = CliRunner().invoke(app, ["backup", "203.0.113.5"])
+        assert result.exit_code == 0, result.output
+        mock_remote.assert_called_once_with("203.0.113.5", "phoxtail")
+        mock_local.assert_not_called()
+
+    @patch("phoxtail.cli.db._backup_remote")
+    def test_user_option(self, mock_remote):
+        result = CliRunner().invoke(app, ["backup", "203.0.113.5", "-u", "deploy"])
+        assert result.exit_code == 0, result.output
+        mock_remote.assert_called_once_with("203.0.113.5", "deploy")
 
 
 # ---------------------------------------------------------------------------
