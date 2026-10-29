@@ -312,9 +312,15 @@ def ssh_run(
     ip: str,
     command: str,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a command on the server, capture output."""
+    """Run a command on the server, capture output.
+
+    No command here reads input, so ssh gets none: left to itself it would
+    read the answer meant for the next prompt, and a scripted
+    ``echo y | phoxtail db push <ip>`` would abort.
+    """
     return subprocess.run(
         ["ssh", *_SSH_MUX, f"{user}@{ip}", command],
+        stdin=subprocess.DEVNULL,
         capture_output=True,
         text=True,
     )
