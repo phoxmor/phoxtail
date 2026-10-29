@@ -6,10 +6,10 @@
 .gitattributes
 
 # Python
-__pycache__
-*.py[cod]
-*$py.class
-*.egg-info
+**/__pycache__
+**/*.py[cod]
+**/*$py.class
+**/*.egg-info
 .Python
 .venv
 venv
@@ -21,7 +21,7 @@ env
 htmlcov
 
 # Node
-node_modules
+**/node_modules
 npm-debug.log
 yarn-debug.log
 yarn-error.log
@@ -50,9 +50,9 @@ static
 # Editor / OS
 .vscode
 .idea
-.DS_Store
-*.swp
-*.swo
+**/.DS_Store
+**/*.swp
+**/*.swo
 
 # Docker / deploy artefacts
 Dockerfile

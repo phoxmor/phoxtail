@@ -76,9 +76,10 @@ class TestDockerignoreTemplate:
         assert "**/*.sql" in lines
 
     def test_excludes_python_caches(self):
-        result = render_template("docker/dockerignore", {})
-        assert "__pycache__" in result
-        assert ".venv" in result
+        lines = render_template("docker/dockerignore", {}).splitlines()
+        assert "**/__pycache__" in lines
+        assert "**/*.py[cod]" in lines
+        assert ".venv" in lines
 
 
 class TestComposeTemplate:
