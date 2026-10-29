@@ -1,3 +1,5 @@
+# A bare name matches at the root only; `**/` matches at any depth.
+
 # Version control
 .git
 .gitignore
@@ -24,9 +26,20 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 
-# Environment / secrets
-.env
-.env.*
+# Environment / secrets, at any depth: the production .env lives in
+# .phoxtail/deploy/
+**/.env
+**/.env.*
+
+# The CLI's local state: deploy files with production secrets, MCP uploads
+.phoxtail
+
+# Every hidden file or folder at the root: local tool and editor state, which
+# may hold credentials and which the app never reads
+.*
+
+# Database dumps hold every user's data
+**/*.sql
 
 # Runtime state (bind-mounted at runtime, must not be in the build context)
 certbot

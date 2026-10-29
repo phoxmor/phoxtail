@@ -206,13 +206,77 @@ def _commit_moves(before: dict[str, str], after: dict[str, str]) -> list[str]:
     return lines
 
 
+# Names a pushed image must not carry under /app: anyone who can pull an
+# image can read its files, the CLI writes the production .env into
+# .phoxtail/deploy/, and a database dump holds every user's data. Checked in
+# the built image, so a site whose .dockerignore predates an exclusion is
+# caught too.
+_PRIVATE_NAMES = (".env", ".env.*", ".phoxtail", "*.sql")
+
+
+def _private_paths(image: str) -> list[str] | None:
+    """List the paths under /app in image that may hold secrets or user data.
+
+    Returns None when the image could not be inspected.
+    """
+    expression = ["("]
+    for name in _PRIVATE_NAMES:
+        if len(expression) > 1:
+            expression.append("-o")
+        expression += ["-name", name]
+    expression += [")", "-print", "-prune"]
+    result = subprocess.run(
+        [
+            "docker",
+            "run",
+            "--rm",
+            "--pull",
+            "never",
+            "--network",
+            "none",
+            "--user",
+            "0",
+            "--entrypoint",
+            "find",
+            image,
+            "/app",
+            *expression,
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        console.print(f"[red]Refused:[/red] could not inspect [bold]{image}[/bold] for private files.")
+        if result.stderr.strip():
+            console.print(f"  {result.stderr.strip()}")
+        return None
+    return sorted(result.stdout.splitlines())
+
+
 def _push_image(base: str, sha: str | None) -> int:
-    """Push <base>:latest (and <base>:<sha> when available) to the registry."""
-    rc = subprocess.call(["docker", "push", f"{base}:latest"])
-    if rc != 0:
-        return rc
-    if sha:
-        return subprocess.call(["docker", "push", f"{base}:{sha}"])
+    """Push <base>:latest (and <base>:<sha> when available) to the registry.
+
+    Each tag is inspected first and refused if it carries private files.
+    """
+    tags = [f"{base}:latest"] + ([f"{base}:{sha}"] if sha else [])
+    for image in tags:
+        found = _private_paths(image)
+        if found is None:
+            return 1
+        if found:
+            console.print(f"[red]Refused:[/red] [bold]{image}[/bold] carries files that may hold secrets or user data:")
+            for path in found:
+                console.print(f"  {path}")
+            console.print(
+                "  Anyone who can pull the image can read them. Exclude them from the build:\n\n"
+                "  [cyan]phoxtail docker create dockerignore --force[/cyan]\n\n"
+                "  then re-apply any edits of your own and build again."
+            )
+            return 1
+    for image in tags:
+        rc = subprocess.call(["docker", "push", image])
+        if rc != 0:
+            return rc
     return 0
 
 
@@ -351,6 +415,7 @@ def build_cmd(
 def push_cmd() -> None:
     """Push the production image (:latest and :<git-sha>) to the configured registry.
 
+    Refuses an image that carries a .env, .env.*, .phoxtail or .sql under /app.
     Assumes the image has already been built locally (run ``phoxtail docker build`` first).
 
     Examples:
@@ -375,7 +440,8 @@ def release_cmd(
 ) -> None:
     """Build and push the production image in one step (build + push).
 
-    Equivalent to running ``phoxtail docker build`` followed by ``phoxtail docker push``.
+    Equivalent to running ``phoxtail docker build`` followed by ``phoxtail docker push``,
+    so it refuses an image that carries private files too.
 
     Examples:
         phoxtail docker release
@@ -561,8 +627,9 @@ def dockerignore(
 ) -> None:
     """Create a .dockerignore file.
 
-    Excludes runtime state (certbot, media, static, db-backups), secrets,
-    VCS and cache dirs from the Docker build context. This is generated
+    Excludes runtime state (certbot, media, static, db-backups), secrets
+    (.env at any depth, .phoxtail/), hidden files at the root, database
+    dumps, VCS and cache dirs from the Docker build context. This is generated
     automatically by ``phoxtail docker create dockerfile`` — use this
     command to regenerate it standalone.
 
