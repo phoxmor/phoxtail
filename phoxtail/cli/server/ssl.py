@@ -6,9 +6,10 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 
-from phoxtail.cli.server.utils import read_deploy_env, scp_to, ssh_check, ssh_live
+from phoxtail.cli.server.utils import read_deploy_env, scp_to, ssh_check, ssh_live, ssh_run
 from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
 
 console = Console()
@@ -21,6 +22,40 @@ def _dns_resolves_to(domain: str, ip: str) -> bool:
         return socket.gethostbyname(domain) == ip
     except socket.gaierror:
         return False
+
+
+def _install_renewal_cron(user: str, ip: str, entry: str, marker: str) -> bool:
+    """Make the server's renewal line the current one; True when it is.
+
+    The line is phoxtail's by its ``# <marker>`` ending. A server set up
+    before the line changed keeps its old one unless it is replaced here,
+    so a differing line is shown and replaced on confirmation, and every
+    other cron entry is left as it is.
+    """
+    import questionary
+
+    ours = f"# {marker}[[:space:]]*$"
+    current = ssh_run(user, ip, f"crontab -l 2>/dev/null | grep -E -- '{ours}'").stdout.strip()
+    if current == entry:
+        console.print("  [green]✓[/green] Renewal cron [dim](already installed)[/dim]")
+        return True
+
+    if current:
+        console.print("\n  [yellow]The server's renewal cron is not the current one:[/yellow]")
+        for line in current.splitlines():
+            console.print(f"  [red]- {escape(line)}[/red]")
+        console.print(f"  [green]+ {escape(entry)}[/green]")
+        if not questionary.confirm("Replace it?", default=False).ask():
+            console.print("  [yellow]![/yellow] Kept the server's renewal cron")
+            return False
+
+    # Our line out (old ones and any duplicates), the current one in.
+    install = f"{{ crontab -l 2>/dev/null | grep -vE -- '{ours}'; echo '{entry}'; }} | crontab -"
+    if not ssh_check(user, ip, install):
+        return False
+    verb = "replaced" if current else "installed"
+    console.print(f"  [green]✓[/green] Renewal cron {verb} [dim](runs 03:00 on the 1st and 15th)[/dim]")
+    return True
 
 
 def ssl(
@@ -64,10 +99,10 @@ def ssl(
     3. Runs certbot HTTP-01 on the server (skipped if cert already exists).
     4. Generates production nginx.conf locally and uploads it.
     5. Reloads nginx inside the running container.
-    6. Installs a cron job for automatic renewal (idempotent).
+    6. Installs the renewal cron job, or replaces an outdated one (asks first).
 
-    Re-running is safe — cert issuance and cron installation are both skipped
-    if already done.
+    Re-running is safe — cert issuance is skipped if done, and a current
+    renewal cron is left as it is.
 
     Testing flags (use before the real run):
 
@@ -272,7 +307,7 @@ def ssl(
         console.print("  [green]✓[/green] Nginx reloaded")
 
         # ------------------------------------------------------------------
-        # 9. Renewal cron (idempotent — marker comment prevents duplicates)
+        # 9. Renewal cron — brought up to date; the marker says which line is phoxtail's
         # ------------------------------------------------------------------
         cron_marker = f"phoxtail-ssl-{project_slug}"
         renew_cmd = (
@@ -281,19 +316,10 @@ def ssl(
         )
         cron_entry = f"0 3 1,15 * * {renew_cmd}  # {cron_marker}"
 
-        cron_exists = ssh_check(user, ip, f"crontab -l 2>/dev/null | grep -qF '{cron_marker}'")
-        cron_success = False
-        if cron_exists:
-            console.print("  [green]✓[/green] Renewal cron [dim](already installed)[/dim]")
-            cron_success = True
-        else:
-            install_cron = f"(crontab -l 2>/dev/null; echo '{cron_entry}') | crontab -"
-            cron_success = ssh_check(user, ip, install_cron)
-            if cron_success:
-                console.print("  [green]✓[/green] Renewal cron installed [dim](runs 03:00 on the 1st and 15th)[/dim]")
-            else:
-                console.print("  [yellow]⚠[/yellow]  Could not install renewal cron — renew manually with:")
-                console.print(f"  [dim]{renew_cmd}[/dim]")
+        cron_success = _install_renewal_cron(user, ip, cron_entry, cron_marker)
+        if not cron_success:
+            console.print("  [yellow]⚠[/yellow]  Renewal cron is not the current one — renew manually with:")
+            console.print(f"  [dim]{renew_cmd}[/dim]")
 
         # ------------------------------------------------------------------
         # Done
