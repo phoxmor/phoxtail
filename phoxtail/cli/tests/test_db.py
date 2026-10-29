@@ -10,7 +10,7 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
-from phoxtail.cli.db import PG_DUMP, _dump_into, app, backup, backup_name, pull, restore
+from phoxtail.cli.db import PG_DUMP, _dump_into, app, backup, backup_name, pull, push, restore, safety_name
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -19,6 +19,12 @@ from phoxtail.cli.db import PG_DUMP, _dump_into, app, backup, backup_name, pull,
 
 def _completed(returncode=0, stdout="", stderr=""):
     return subprocess.CompletedProcess([], returncode, stdout=stdout, stderr=stderr)
+
+
+def _env(**values):
+    """A read_env_value fake: a development .env holding ``values``."""
+    values = {"DJANGO_ENV": "development", **values}
+    return lambda key, *args: values.get(key)
 
 
 # ---------------------------------------------------------------------------
@@ -37,11 +43,15 @@ class TestPull:
     ``Confirm.ask`` (interactive gate) so ``pull`` runs through.
     """
 
+    @pytest.fixture(autouse=True)
+    def development_env(self, project_dir):
+        (project_dir / ".env").write_text("DJANGO_ENV=development\n")
+
     @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     @patch("phoxtail.cli.db.typer.prompt", return_value="secret")
     def test_happy_path_with_superusers(
@@ -107,7 +117,7 @@ class TestPull:
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_no_superusers_found(
         self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
@@ -128,7 +138,7 @@ class TestPull:
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value=None)
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env())
     @patch("phoxtail.cli.db.subprocess.run")
     def test_domain_defaults_to_localhost(
         self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
@@ -151,7 +161,7 @@ class TestPull:
     @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_ssh_failure_exits(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """SSH failure raises typer.Exit."""
@@ -164,7 +174,7 @@ class TestPull:
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_safety_backup_failure_non_fatal(
         self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
@@ -189,7 +199,7 @@ class TestPull:
     @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_restore_failure_exits(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """Restore failure raises typer.Exit."""
@@ -211,7 +221,7 @@ class TestPull:
     @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_dump_cleanup_on_failure(self, mock_run, mock_env, mock_docker_db, mock_verify, mock_confirm, project_dir):
         """Dump file is cleaned up even when pull fails."""
@@ -236,7 +246,7 @@ class TestPull:
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="mysite.local")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="mysite.local"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_custom_domain(
         self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
@@ -258,7 +268,7 @@ class TestPull:
     @patch("phoxtail.cli.db.verify_server_identity")
     @patch("phoxtail.cli.db.docker_manage")
     @patch("phoxtail.cli.db.docker_db")
-    @patch("phoxtail.cli.db.read_env_value", return_value="localhost")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
     def test_superuser_marker_ignores_noise(
         self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
@@ -281,6 +291,133 @@ class TestPull:
 # ---------------------------------------------------------------------------
 # backup
 # ---------------------------------------------------------------------------
+
+
+class TestPullSafetyCopy:
+    """pull keeps the local database it replaces as <slug>_<env>_before-pull.sql."""
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.docker_manage", return_value=_completed(stdout="__SUPERUSERS__:"))
+    @patch("phoxtail.cli.db.docker_db")
+    @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
+    @patch("phoxtail.cli.db.subprocess.run", return_value=_completed())
+    def test_safety_copy_is_named_after_the_local_database(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    ):
+        (project_dir / "db-backups").mkdir()
+        (project_dir / "db-backups" / "remote_pull.sql").write_text("-- SQL dump")
+        pull(ip="203.0.113.5", user="phoxtail")
+        assert mock_docker_db.call_args_list[0][0][0] == _dump_into("phoxtail_development_before-pull.sql")
+
+    @patch("phoxtail.cli.db.Confirm.ask")
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.docker_db")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_missing_environment_stops_before_anything(
+        self, mock_run, mock_docker_db, mock_verify, mock_confirm, project_dir
+    ):
+        with pytest.raises(typer.Exit) as exc_info:
+            pull(ip="203.0.113.5", user="phoxtail")
+        assert exc_info.value.exit_code == 1
+        assert not (project_dir / "db-backups").exists()
+        mock_verify.assert_not_called()
+        mock_confirm.assert_not_called()
+        mock_run.assert_not_called()
+        mock_docker_db.assert_not_called()
+
+
+class TestSafetyName:
+    def test_one_slot_per_step(self):
+        assert safety_name("production", "push") == "phoxtail_production_before-push.sql"
+        assert safety_name("development", "restore") == "phoxtail_development_before-restore.sql"
+
+    @pytest.mark.parametrize("environment", [None, "", "prod_eu", "a;b"])
+    def test_environment_must_be_a_plain_word(self, environment):
+        with pytest.raises(typer.Exit):
+            safety_name(environment, "pull")
+
+
+# ---------------------------------------------------------------------------
+# push
+# ---------------------------------------------------------------------------
+
+
+class TestPush:
+    """db push: the server's database is kept as <slug>_<server env>_before-push.sql."""
+
+    IP = "203.0.113.5"
+
+    @pytest.fixture(autouse=True)
+    def deploy_env(self, project_dir):
+        deploy = project_dir / ".phoxtail" / "deploy"
+        deploy.mkdir(parents=True)
+        (deploy / ".env").write_text("DOMAIN=example.com\nDJANGO_ENV=staging\n")
+
+    @staticmethod
+    def _runs(environment="DJANGO_ENV=production\n", safety=None):
+        """subprocess.run results in push's order."""
+        return [
+            _completed(stdout=environment),  # server's DJANGO_ENV
+            _completed(stdout="-- local dump"),  # local pg_dump
+            _completed(),  # upload
+            safety or _completed(),  # server safety copy
+            _completed(),  # server restore
+            _completed(),  # hostnames
+            _completed(),  # cleanup
+        ]
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_happy_path(self, mock_run, mock_verify, mock_confirm, project_dir):
+        mock_run.side_effect = self._runs()
+        push(ip=self.IP, user="phoxtail")
+
+        commands = [c[0][0] for c in mock_run.call_args_list]
+        # The environment is read from the server's .env, not the stale local deploy copy.
+        assert commands[0][-1] == "grep -m1 '^DJANGO_ENV=' ~/phoxtail/.env"
+        assert commands[3][-1] == (
+            f"cd ~/phoxtail && docker compose exec -T db sh -c '{_dump_into('phoxtail_production_before-push.sql')}'"
+        )
+        # The server is restored only after its copy was taken.
+        assert "DROP SCHEMA public CASCADE" in commands[4][-1]
+        assert "example.com" in mock_run.call_args_list[5][1]["input"]
+        # The copy is kept: only the uploaded dump is cleaned up.
+        assert commands[6][-1] == "rm -f ~/phoxtail/db-backups/local_push.sql"
+
+    @patch("phoxtail.cli.db.Confirm.ask")
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_missing_server_environment_stops_before_anything(self, mock_run, mock_verify, mock_confirm, project_dir):
+        mock_run.side_effect = [_completed(returncode=1)]
+        with pytest.raises(typer.Exit) as exc_info:
+            push(ip=self.IP, user="phoxtail")
+        assert exc_info.value.exit_code == 1
+        mock_confirm.assert_not_called()
+        assert mock_run.call_count == 1  # only the env read
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_failed_safety_copy_leaves_the_server_database_alone(
+        self, mock_run, mock_verify, mock_confirm, project_dir
+    ):
+        mock_run.side_effect = self._runs(safety=_completed(returncode=1, stderr="disk full"))
+        with pytest.raises(typer.Exit):
+            push(ip=self.IP, user="phoxtail")
+        commands = [" ".join(c[0][0]) for c in mock_run.call_args_list]
+        assert not any("DROP SCHEMA" in c for c in commands)
+
+    @patch("phoxtail.cli.db.Confirm.ask", return_value=False)
+    @patch("phoxtail.cli.db.verify_server_identity")
+    @patch("phoxtail.cli.db.subprocess.run")
+    def test_declining_touches_nothing(self, mock_run, mock_verify, mock_confirm, project_dir):
+        mock_run.side_effect = self._runs()
+        with pytest.raises(typer.Exit) as exc_info:
+            push(ip=self.IP, user="phoxtail")
+        assert exc_info.value.exit_code == 0
+        assert mock_run.call_count == 1  # only the env read
 
 
 class TestBackupName:
@@ -409,6 +546,8 @@ class TestBackupRemote:
         # The environment comes from the server's own .env.
         assert env_call[0] == "ssh"
         assert env_call[-1] == "grep -m1 '^DJANGO_ENV=' ~/phoxtail/.env"
+        # ssh must not swallow the answer meant for a prompt that follows.
+        assert mock_run.call_args_list[0][1]["stdin"] is subprocess.DEVNULL
 
         # The dump is written into the server's db-backups and checked non-empty.
         assert dump_call[0] == "ssh"
@@ -539,6 +678,10 @@ class TestBackupCommandLine:
 class TestRestore:
     """Tests for the db restore command."""
 
+    @pytest.fixture(autouse=True)
+    def development_env(self, project_dir):
+        (project_dir / ".env").write_text("DJANGO_ENV=development\n")
+
     @patch("phoxtail.cli.db.docker_db")
     @patch("rich.prompt.Confirm.ask", return_value=True)
     def test_restore_success(self, mock_confirm, mock_docker_db):
@@ -546,6 +689,7 @@ class TestRestore:
         restore(backup_file="2026-03-15_12-00-00.sql")
 
         assert mock_docker_db.call_count == 2  # safety backup + restore
+        assert mock_docker_db.call_args_list[0][0][0] == _dump_into("phoxtail_development_before-restore.sql")
         # Restore command references the backup file
         restore_call = mock_docker_db.call_args_list[1][0][0]
         assert "2026-03-15_12-00-00.sql" in restore_call
@@ -567,3 +711,30 @@ class TestRestore:
         ]
         with pytest.raises(typer.Exit):
             restore(backup_file="backup.sql")
+
+    @patch("phoxtail.cli.db.docker_db")
+    @patch("rich.prompt.Confirm.ask")
+    def test_missing_environment_stops_before_anything(self, mock_confirm, mock_docker_db, project_dir):
+        (project_dir / ".env").write_text("DOMAIN=localhost\n")
+        with pytest.raises(typer.Exit) as exc_info:
+            restore(backup_file="backup.sql")
+        assert exc_info.value.exit_code == 1
+        mock_confirm.assert_not_called()
+        mock_docker_db.assert_not_called()
+
+    @patch("phoxtail.cli.db.docker_db")
+    @patch("rich.prompt.Confirm.ask")
+    def test_restoring_its_own_safety_copy_is_refused(self, mock_confirm, mock_docker_db):
+        """Taking the copy first would overwrite the file being restored."""
+        with pytest.raises(typer.Exit) as exc_info:
+            restore(backup_file="phoxtail_development_before-restore.sql")
+        assert exc_info.value.exit_code == 1
+        mock_confirm.assert_not_called()
+        mock_docker_db.assert_not_called()
+
+    @patch("phoxtail.cli.db.docker_db")
+    @patch("rich.prompt.Confirm.ask", return_value=True)
+    def test_another_steps_safety_copy_restores(self, mock_confirm, mock_docker_db):
+        mock_docker_db.return_value = _completed()
+        restore(backup_file="phoxtail_development_before-pull.sql")
+        assert "/db-backups/phoxtail_development_before-pull.sql" in mock_docker_db.call_args_list[1][0][0]

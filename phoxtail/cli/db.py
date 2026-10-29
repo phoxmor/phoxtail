@@ -43,6 +43,7 @@ def pull(
     Creates a pg_dump on the remote, downloads it via SCP, and restores
     it locally.  A safety backup is created automatically before restoring.
     """
+    safety = safety_name(read_env_value("DJANGO_ENV"), "pull")
     backups_dir = Path.cwd() / "db-backups"
     backups_dir.mkdir(exist_ok=True)
     local_dump_path = backups_dir / DUMP_FILENAME
@@ -105,11 +106,7 @@ def pull(
             # 3. Safety backup of current local state.
             progress.update(task, description="Creating safety backup...")
             try:
-                docker_db(
-                    "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
-                    " -U $POSTGRES_USER $POSTGRES_DB"
-                    " > /db-backups/pre_pull_safety.sql"
-                )
+                docker_db(_dump_into(safety))
             except subprocess.CalledProcessError as e:
                 console.print(f"  [yellow]Safety backup skipped:[/yellow] {e.stderr or str(e)}")
 
@@ -241,6 +238,12 @@ def push(
         )
         raise typer.Exit(1)
 
+    remote_host = f"{user}@{ip}"
+    project_dir = f"~/{slugify(get_project_name())}"
+    safety = safety_name(
+        _remote_environment(remote_host, project_dir), "push", source=f"the server's {project_dir}/.env"
+    )
+
     if not Confirm.ask(
         f"This will REPLACE the [bold]{get_project_name()}[/bold] database on "
         f"[bold]{ip}[/bold] ({remote_domain}) with your local database. Continue?",
@@ -248,8 +251,6 @@ def push(
     ):
         raise typer.Exit(0)
 
-    remote_host = f"{user}@{ip}"
-    project_dir = f"~/{slugify(get_project_name())}"
     remote_dump_path = f"{project_dir}/db-backups/{PUSH_DUMP_FILENAME}"
 
     backups_dir = Path.cwd() / "db-backups"
@@ -301,11 +302,7 @@ def push(
                     "ssh",
                     *_SSH_MUX,
                     remote_host,
-                    f"cd {project_dir} && docker compose exec -T db sh -c "
-                    f"'PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
-                    f" -U $POSTGRES_USER $POSTGRES_DB"
-                    f" > /db-backups/pre_push_safety.sql"
-                    f" && test -s /db-backups/pre_push_safety.sql'",
+                    f"cd {project_dir} && docker compose exec -T db sh -c '{_dump_into(safety)}'",
                 ],
                 capture_output=True,
                 text=True,
@@ -384,20 +381,34 @@ def push(
             )
 
 
-def backup_name(environment: str | None, source: str = ".env") -> str:
-    """Name a backup after the database it holds: ``<slug>_<env>_<UTC time>.sql``.
-
-    The environment is the one recorded next to that database, never the
-    place the command runs, so a copy moved anywhere still says what it is.
-    """
+def _database_label(environment: str | None, source: str) -> str:
+    """``<slug>_<env>``: which site's database, and which environment's."""
     if not environment or not _ENVIRONMENT.fullmatch(environment):
         problem = "is not set" if not environment else f"is not a plain word ({environment!r})"
         console.print(
             f"[red]Error:[/red] DJANGO_ENV in {source} {problem}. It names the backup (development, production, …)."
         )
         raise typer.Exit(1)
+    return f"{slugify(get_project_name())}_{environment}"
+
+
+def backup_name(environment: str | None, source: str = ".env") -> str:
+    """Name a backup after the database it holds: ``<slug>_<env>_<UTC time>.sql``.
+
+    The environment is the one recorded next to that database, never the
+    place the command runs, so a copy moved anywhere still says what it is.
+    """
     stamp = datetime.now(UTC).strftime("%Y-%m-%d_%H-%M-%S")
-    return f"{slugify(get_project_name())}_{environment}_{stamp}.sql"
+    return f"{_database_label(environment, source)}_{stamp}.sql"
+
+
+def safety_name(environment: str | None, step: str, source: str = ".env") -> str:
+    """Name the copy a step takes before replacing a database: ``<slug>_<env>_before-<step>.sql``.
+
+    One slot per step, overwritten by the next run of that step: it undoes
+    the last one, it is not a backup to keep.
+    """
+    return f"{_database_label(environment, source)}_before-{step}.sql"
 
 
 def _dump_into(name: str) -> str:
@@ -418,6 +429,7 @@ def _remote_environment(remote_host: str, project_dir: str) -> str | None:
     """Read DJANGO_ENV from the server's own .env, which deploy never overwrites."""
     result = subprocess.run(
         ["ssh", *_SSH_MUX, remote_host, f"grep -m1 '^DJANGO_ENV=' {project_dir}/.env"],
+        stdin=subprocess.DEVNULL,  # ssh would otherwise read the answer meant for the prompt after it
         capture_output=True,
         text=True,
     )
@@ -537,6 +549,14 @@ def restore(
     A safety backup of the current state is created automatically before restoring.
     The restore runs in a single transaction and will roll back on error.
     """
+    safety = safety_name(read_env_value("DJANGO_ENV"), "restore")
+    if Path(backup_file).name == safety:
+        # The copy taken first would overwrite the very file about to be restored.
+        console.print(
+            f"[red]Error:[/red] {backup_file} is the copy restore itself takes, and taking it would"
+            " overwrite it. Copy it to another name in db-backups/ and restore that."
+        )
+        raise typer.Exit(1)
     if not Confirm.ask(
         f"This will replace the current database with [bold]{backup_file}[/bold]. Continue?",
         default=False,
@@ -550,11 +570,7 @@ def restore(
     ) as progress:
         try:
             progress.add_task(description="Creating safety backup of current state...", total=None)
-            docker_db(
-                "PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h localhost"
-                " -U $POSTGRES_USER $POSTGRES_DB"
-                " > /db-backups/pre_restore_safety.sql"
-            )
+            docker_db(_dump_into(safety))
 
             progress.add_task(description=f"Restoring from {backup_file}...", total=None)
             docker_db(
