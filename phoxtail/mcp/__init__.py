@@ -21,16 +21,20 @@ Usage::
 
 from __future__ import annotations
 
+from contextlib import suppress
 from pathlib import Path
 
 from fastmcp import FastMCP
 
 # In dev mode the project root is bind-mounted read-write at /app, so mkdir
 # here propagates to the host. Guard with is_dir() so this is a no-op on the
-# host (local imports, tests) where /app doesn't exist.
+# host (local imports, tests) where /app doesn't exist. A production image
+# has no .phoxtail and its /app belongs to root, so the folder cannot be made
+# there; uploads are staged only in dev, so nothing is lost by skipping it.
 _container_root = Path("/app")
 if _container_root.is_dir():
-    (_container_root / ".phoxtail" / "mcp" / "uploads").mkdir(parents=True, exist_ok=True)
+    with suppress(OSError):
+        (_container_root / ".phoxtail" / "mcp" / "uploads").mkdir(parents=True, exist_ok=True)
 
 from phoxtail.mcp.authorization import AmbientCredentialFilter, WhoamiVerifier  # noqa: E402
 

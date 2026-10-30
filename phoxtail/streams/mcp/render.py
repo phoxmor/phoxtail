@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any, Literal
 
 from fastmcp.utilities.types import Image as MCPImage
@@ -26,16 +26,21 @@ _VIEWPORTS: dict[str, ViewportSize] = {
 _VISION_DIR = ".phoxtail/vision"
 
 
-def _resolve_save_path(stem: str, viewport: str) -> Path | None:
-    """Return .phoxtail/vision/<stem>-<viewport>.png if a project root is found."""
+def _save_screenshot(stem: str, viewport: str, image_bytes: bytes) -> None:
+    """Keep a copy at .phoxtail/vision/<stem>-<viewport>.png when it can be written.
+
+    A production image has no .phoxtail and its /app belongs to root, so the
+    copy is skipped there; the tool still returns the image inline.
+    """
     from phoxtail.cli.utils.config import find_config_file
 
     config = find_config_file()
     if config is None:
-        return None
+        return
     vision_dir = config.parent / _VISION_DIR
-    vision_dir.mkdir(parents=True, exist_ok=True)
-    return vision_dir / f"{stem}-{viewport}.png"
+    with suppress(OSError):
+        vision_dir.mkdir(parents=True, exist_ok=True)
+        (vision_dir / f"{stem}-{viewport}.png").write_bytes(image_bytes)
 
 
 @mcp_server.tool(
@@ -51,8 +56,8 @@ def _resolve_save_path(stem: str, viewport: str) -> Path | None:
         "theme: 'light' (default) or 'dark' to render in the given color scheme. "
         "The block is rendered in real page context (real surrounding blocks, "
         "real CSS, real fonts). "
-        "Screenshots are saved to .phoxtail/vision/ in the project root and also "
-        "returned inline so you can see them immediately."
+        "Screenshots are returned inline so you can see them immediately, and "
+        "saved to .phoxtail/vision/ in the project root when it can be written."
     ),
 )
 async def render_block(
@@ -125,9 +130,7 @@ async def render_block(
         except ImportError:
             image_bytes = captures[0]
 
-    save_path = _resolve_save_path(block_uuid, f"{viewport}-{theme}")
-    if save_path:
-        save_path.write_bytes(image_bytes)
+    _save_screenshot(block_uuid, f"{viewport}-{theme}", image_bytes)
 
     return MCPImage(data=image_bytes, format="png")
 
@@ -144,8 +147,9 @@ async def render_block(
         "theme: 'light' (default) or 'dark'. "
         "The page is rendered with its real site context (correct palette, fonts, "
         "shared blocks). "
-        "Screenshots are saved to .phoxtail/vision/page-<page_id>-<viewport>-<theme>.png "
-        "and also returned inline."
+        "Screenshots are returned inline, and saved to "
+        ".phoxtail/vision/page-<page_id>-<viewport>-<theme>.png when the project "
+        "root can be written."
     ),
 )
 async def screenshot_page(
@@ -187,8 +191,6 @@ async def screenshot_page(
         await ctx.close()
         await browser.close()
 
-    save_path = _resolve_save_path(f"page-{page_id}", f"{viewport}-{theme}")
-    if save_path:
-        save_path.write_bytes(image_bytes)
+    _save_screenshot(f"page-{page_id}", f"{viewport}-{theme}", image_bytes)
 
     return MCPImage(data=image_bytes, format="png")
