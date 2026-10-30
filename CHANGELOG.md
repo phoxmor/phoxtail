@@ -15,8 +15,9 @@ migrating into it. Any release that does so says so here.
 
 ## [0.4.0] — 2026-10-30
 
-This release fixes a leak: images built by phoxtail 0.2.0 and 0.3.0 carry the
-project's production `.env` once the project has been deployed with
+This release fixes a leak: images built by phoxtail 0.2.0 and 0.3.0 (and by
+installs from the git repository since 2026-06-10) carry the project's
+production `.env` once the project has been deployed with
 `phoxtail server deploy`
 ([GHSA-52f8-g7r4-m363](https://github.com/phoxmor/phoxtail/security/advisories/GHSA-52f8-g7r4-m363)).
 It also names database backups after the site and environment they hold, and
@@ -40,8 +41,10 @@ Upgrading from 0.3.0 — read these first:
   generated `.dockerignore` excluded `.env` only at the project root, while
   `phoxtail server deploy` keeps the production `.env` (with `SECRET_KEY` and
   the database password) in `.phoxtail/deploy/`. Anyone able to pull an image
-  built after a project's first `server deploy` could read those files. The
-  `.dockerignore` template now excludes `.env` files at any depth,
+  built after a project's first `server deploy` could read those files, and
+  other files the project folder held but git does not, such as uploads under
+  `.phoxtail/` and hidden files at the root. The `.dockerignore` template now
+  excludes `.env` files at any depth,
   `.phoxtail/`, every hidden file or folder at the project root and database
   dumps (`*.sql`), as well as Python caches, `node_modules` and editor files at
   any depth, so bytecode compiled on the developer's machine stays out too.
@@ -50,17 +53,25 @@ Upgrading from 0.3.0 — read these first:
 
   Existing projects:
 
-  1. Run `phoxtail docker create dockerignore --force`, then re-apply any
+  1. Upgrade to phoxtail 0.4.0 first: the refusal runs in the CLI that
+     pushes.
+  2. Run `phoxtail docker create dockerignore --force`, then re-apply any
      edits of your own.
-  2. Run `phoxtail docker release`, then `phoxtail server deploy <ip>`.
-  3. Change every credential the `.env` holds (at least `SECRET_KEY`, the
-     database password and any email password) in both copies, on the server
-     and in `.phoxtail/deploy/`, then run `phoxtail server deploy <ip>` again
-     so the containers read the new values. Postgres reads
-     `POSTGRES_PASSWORD` only when it first creates its volume, so change a
-     database password in the database itself as well. Changing `SECRET_KEY`
-     logs everyone out.
-  4. Delete the old image versions from your registry, keeping the one the
+  3. Run `phoxtail docker release`, then `phoxtail server deploy <ip>`.
+  4. Change the credentials the `.env` holds, in both copies (on the server
+     and in `.phoxtail/deploy/`), then run `phoxtail server deploy <ip>`
+     again:
+     - the email password first, since it works from anywhere: create a new
+       one with your provider, deploy it, check that mail is sent, then
+       revoke the old one;
+     - `SECRET_KEY`. Everyone is logged out, and links already emailed stop
+       working. Do not keep the old key in `SECRET_KEY_FALLBACKS`;
+     - any key you added yourself;
+     - the database password only if its port was ever reachable from
+       outside the server (the generated compose file publishes none).
+       Change it in the database first, then in `.env`, or the site cannot
+       connect.
+  5. Delete the old image versions from your registry, keeping the one the
      server now runs.
 
 ### Added
