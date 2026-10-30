@@ -64,10 +64,22 @@ class TestDockerignoreTemplate:
         assert ".env" in result
         assert ".git" in result
 
+    def test_excludes_secrets_at_any_depth(self):
+        lines = render_template("docker/dockerignore", {}).splitlines()
+        assert "**/.env" in lines
+        assert "**/.env.*" in lines
+        assert ".phoxtail" in lines
+
+    def test_excludes_hidden_root_files_and_dumps(self):
+        lines = render_template("docker/dockerignore", {}).splitlines()
+        assert ".*" in lines
+        assert "**/*.sql" in lines
+
     def test_excludes_python_caches(self):
-        result = render_template("docker/dockerignore", {})
-        assert "__pycache__" in result
-        assert ".venv" in result
+        lines = render_template("docker/dockerignore", {}).splitlines()
+        assert "**/__pycache__" in lines
+        assert "**/*.py[cod]" in lines
+        assert ".venv" in lines
 
 
 class TestComposeTemplate:

@@ -13,6 +13,114 @@ migrating into it. Any release that does so says so here.
 
 <!-- towncrier release notes start -->
 
+## [0.4.0] — 2026-10-30
+
+This release fixes a leak: images built by phoxtail 0.2.0 and 0.3.0 (and by
+installs from the git repository since 2026-06-10) carry the project's
+production `.env` once the project has been deployed with
+`phoxtail server deploy`
+([GHSA-52f8-g7r4-m363](https://github.com/phoxmor/phoxtail/security/advisories/GHSA-52f8-g7r4-m363)).
+It also names database backups after the site and environment they hold, and
+lets `phoxtail db backup` back up a server.
+
+Upgrading from 0.3.0 — read these first:
+
+- **Every deployed project must act** (see Security): regenerate
+  `.dockerignore`, release, change the credentials in `.env`, and delete the
+  old images. Until `.dockerignore` is regenerated, `phoxtail docker push` and
+  `phoxtail docker release` refuse the project's image.
+- **`phoxtail db backup`, `db pull`, `db push` and `db restore` stop without
+  `DJANGO_ENV`** in the `.env` next to the database they touch, and their files
+  have new names.
+
+### Security
+
+- Production images no longer carry the project's secrets
+  ([GHSA-52f8-g7r4-m363](https://github.com/phoxmor/phoxtail/security/advisories/GHSA-52f8-g7r4-m363)).
+  The generated Dockerfile copies the project folder into the image, and the
+  generated `.dockerignore` excluded `.env` only at the project root, while
+  `phoxtail server deploy` keeps the production `.env` (with `SECRET_KEY` and
+  the database password) in `.phoxtail/deploy/`. Anyone able to pull an image
+  built after a project's first `server deploy` could read those files, and
+  other files the project folder held but git does not, such as uploads under
+  `.phoxtail/` and hidden files at the root. The `.dockerignore` template now
+  excludes `.env` files at any depth,
+  `.phoxtail/`, every hidden file or folder at the project root and database
+  dumps (`*.sql`), as well as Python caches, `node_modules` and editor files at
+  any depth, so bytecode compiled on the developer's machine stays out too.
+  `phoxtail docker push` and `phoxtail docker release` now refuse to push an
+  image with a `.env`, `.env.*`, `.phoxtail` or `.sql` file under `/app`.
+
+  Existing projects:
+
+  1. Upgrade to phoxtail 0.4.0 first: the refusal runs in the CLI that
+     pushes.
+  2. Run `phoxtail docker create dockerignore --force`, then re-apply any
+     edits of your own.
+  3. Run `phoxtail docker release`, then `phoxtail server deploy <ip>`.
+  4. Change the credentials the `.env` holds, in both copies (on the server
+     and in `.phoxtail/deploy/`), then run `phoxtail server deploy <ip>`
+     again:
+     - the email password first, since it works from anywhere: create a new
+       one with your provider, deploy it, check that mail is sent, then
+       revoke the old one;
+     - `SECRET_KEY`. Everyone is logged out, and links already emailed stop
+       working. Do not keep the old key in `SECRET_KEY_FALLBACKS`;
+     - any key you added yourself;
+     - the database password only if its port was ever reachable from
+       outside the server (the generated compose file publishes none).
+       Change it in the database first, then in `.env`, or the site cannot
+       connect.
+  5. Delete the old image versions from your registry, keeping the one the
+     server now runs.
+
+### Added
+
+- `phoxtail db backup <ip>` backs up a server's database: it dumps it into the
+  server's `db-backups/`, keeps it there, and copies it into the local
+  `db-backups/`. Without an IP it backs up the local database as before.
+
+### Changed
+
+- `phoxtail db backup` now names its files `<project-slug>_<DJANGO_ENV>_<UTC
+  time>.sql`, for example `mysite_production_2026-10-28_10-19-28.sql`, so a
+  backup says which site and which environment it holds even after it is
+  copied elsewhere. The environment is read from the `.env` next to the
+  database that is dumped, and the command stops with an error if
+  `DJANGO_ENV` is missing. A failed dump leaves no file behind. Existing
+  backups keep their names and `db restore` still accepts them.
+- The copy that `db pull`, `db restore` and `db push` take of a database
+  before replacing it is now named `<project-slug>_<DJANGO_ENV>_before-<step>.sql`
+  (for example `mysite_production_before-push.sql`) instead of
+  `pre_<step>_safety.sql`, so it says which site and environment it holds.
+  Each step still keeps one copy, overwritten by its next run, and the copy
+  is written whole or not at all. The commands stop before changing anything
+  if `DJANGO_ENV` is missing from the `.env` next to the database they
+  replace. `db restore` refuses its own `before-restore` copy, since taking
+  the copy first would overwrite it. Old `pre_*_safety.sql` files are no
+  longer written and can be deleted.
+- A hatched project now commits its `uv.lock`: the template's `.gitignore` no
+  longer ignores it, so the exact version of every installed package is in the
+  project's history and each upgrade shows as a diff. An existing project picks
+  this up by removing the `uv.lock` line from its own `.gitignore`.
+
+### Fixed
+
+- The MCP server and API token checks no longer fail in production images that
+  carry no `.phoxtail` folder, such as those built with the new `.dockerignore`.
+  Importing the MCP server tried to create `.phoxtail/mcp/uploads` under `/app`,
+  which the app user cannot write there, and every API token check imports it.
+  The screenshot tools now still return the image when they cannot also save a
+  copy under `.phoxtail/vision/`.
+- `phoxtail server ssl` now replaces an outdated certificate-renewal cron line
+  instead of keeping it: it shows the server's line next to the current one and
+  asks before replacing it, leaving every other cron entry as it is. On a
+  server set up before 0.3.0, running `phoxtail server ssl <ip>` is now how the
+  `--no-deps` renewal line arrives; no `crontab -e` edit is needed.
+- `phoxtail db pull`, `db push` and the other server commands now read a piped
+  answer: the ssh call that checks the server's identity used to swallow it,
+  so `echo y | phoxtail db push <ip>` aborted at the prompt.
+
 ## [0.3.0] — 2026-10-26
 
 This release puts a permission on every door: each API endpoint and MCP tool now
@@ -783,5 +891,6 @@ log:
 
 - [0.1.0...0.1.1](https://github.com/phoxmor/phoxtail/compare/v0.1.0...v0.1.1)
 
+[0.4.0]: https://github.com/phoxmor/phoxtail/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/phoxmor/phoxtail/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/phoxmor/phoxtail/compare/v0.1.1...v0.2.0
