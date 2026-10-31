@@ -34,7 +34,7 @@ body:
     attributes:
       label: Phoxtail version
       description: The output of `phoxtail version`.
-      placeholder: Phoxtail v0.4.0
+      placeholder: Phoxtail v0.5.0
     validations:
       required: true
 

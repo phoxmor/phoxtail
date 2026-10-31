@@ -13,6 +13,36 @@ migrating into it. Any release that does so says so here.
 
 <!-- towncrier release notes start -->
 
+## [0.5.0] — 2026-10-31
+
+This release stops a missing icon from breaking a page: a block variant that
+names an icon removed in an earlier release now renders without it and logs
+a warning, instead of answering with a server error.
+
+Upgrading from 0.4.0 — read this first:
+
+- **`dashboard_icon_path` is gone** (see Removed). Templates of your own that
+  use it, or pass `icon` to `phoxtail_core/copy_key_button.html`, must switch
+  to `{% icon %}`.
+
+### Removed
+
+- The `dashboard_icon_path` template tag is removed, and so is the `icon`
+  parameter of `phoxtail_core/copy_key_button.html`. Every icon is now drawn
+  with `{% icon "<name>" %}`, so a missing name renders nothing and logs a
+  warning everywhere instead of failing the page in the dashboard navigation.
+  Templates that used `{% dashboard_icon_path name as path %}{% include path %}`
+  should use `{% icon name %}`.
+
+### Fixed
+
+- A page whose block variant names an icon that no longer exists now renders
+  without that icon instead of failing with a server error. The `{% icon %}`
+  tag logs a warning naming the missing icon (`Icon '<name>' not found`), so
+  stored variants that still use a name removed in an earlier release can be
+  found and fixed.
+
+
 ## [0.4.0] — 2026-10-30
 
 This release fixes a leak: images built by phoxtail 0.2.0 and 0.3.0 (and by
@@ -891,6 +921,7 @@ log:
 
 - [0.1.0...0.1.1](https://github.com/phoxmor/phoxtail/compare/v0.1.0...v0.1.1)
 
+[0.5.0]: https://github.com/phoxmor/phoxtail/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/phoxmor/phoxtail/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/phoxmor/phoxtail/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/phoxmor/phoxtail/compare/v0.1.1...v0.2.0
