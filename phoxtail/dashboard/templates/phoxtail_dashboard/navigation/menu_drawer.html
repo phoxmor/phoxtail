@@ -1,4 +1,4 @@
-{% load phoxtail_dashboard_tags %}
+{% load phoxtail_dashboard_tags phoxtail_design_tags %}
 {% comment %}
 The menu inside the drawer. A dropdown becomes an accordion opening in
 place, already open when it holds the page being read.
@@ -14,7 +14,7 @@ place, already open when it holds the page being read.
                         aria-expanded="{% if holds_current %}true{% else %}false{% endif %}">
                     <span>{{ entry.value.label }}</span>
                     <span class="dash-menu-drawer__chevron{% if holds_current %} dash-menu-drawer__chevron--rotated{% endif %}">
-                        {% include 'phoxtail_core/svgs/chevron_down.html' %}
+                        {% icon "chevron_down" %}
                     </span>
                 </button>
                 <div class="dash-menu-drawer__panel{% if holds_current %} dash-menu-drawer__panel--expanded{% endif %}">

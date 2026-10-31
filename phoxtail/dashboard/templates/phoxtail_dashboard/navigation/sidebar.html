@@ -1,4 +1,4 @@
-{% load i18n static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags %}
+{% load i18n static wagtailimages_tags wagtailsettings_tags phoxtail_design_tags %}
 <div class="dash-sidebar-wrapper">
     <div class="dash-sidebar-spacer" id="dash-sidebar-spacer">
         <div class="dash-sidebar phx-card phx-card--flush" id="dash-sidebar">
@@ -35,15 +35,14 @@
                     {% url 'dashboard:index' as dashboard_path %}
                     <a href="{{ dashboard_path }}"
                        class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+                        <span class="dash-nav-icon">{% icon "dashboard" %}</span>
                         <span class="dash-nav-label">{% translate 'Dashboard' %}</span>
                     </a>
                     {% for item in dashboard_nav_items %}
                         {% url item.url_name as item_path %}
-                        {% dashboard_icon_path item.icon as svg_path %}
                         <a href="{{ item_path }}"
                            class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
-                            <span class="dash-nav-icon">{% include svg_path %}</span>
+                            <span class="dash-nav-icon">{% icon item.icon %}</span>
                             <span class="dash-nav-label">{{ item.label }}</span>
                         </a>
                     {% endfor %}
@@ -56,28 +55,28 @@
                         class="dash-nav-item dash-sidebar__collapse-btn"
                         id="sidebar-collapse-btn"
                         aria-label="{% translate 'Toggle sidebar' %}">
-                    <span class="dash-nav-icon dash-sidebar__collapse-icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                    <span class="dash-nav-icon dash-sidebar__collapse-icon">{% icon "menu" %}</span>
                     <span class="dash-nav-label" id="sidebar-collapse-label">{% translate 'Collapse menu' %}</span>
                 </button>
                 {% include 'phoxtail_dashboard/navigation/language_flyout.html' %}
                 {% url 'users:profile' as profile_path %}
                 <a href="{{profile_path}}"
                    class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
-                    <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                    <span class="dash-nav-icon">{% icon "person" %}</span>
                     <span class="dash-nav-label">{% translate 'Profile' %}</span>
                 </a>
                 {% url 'wagtailadmin_home' as admin_path %}
                 {% if perms.wagtailadmin.access_admin %}
                     <a href="{{ admin_path }}"
                        class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+                        <span class="dash-nav-icon">{% icon "settings" %}</span>
                         <span class="dash-nav-label">{% translate 'Admin' context 'admin area' %}</span>
                     </a>
                 {% endif %}
                 <form method="post" action="{% url 'account_logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="dash-nav-item dash-nav-signout">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+                        <span class="dash-nav-icon">{% icon "signout" %}</span>
                         <span class="dash-nav-label">{% translate 'Sign out' %}</span>
                     </button>
                 </form>

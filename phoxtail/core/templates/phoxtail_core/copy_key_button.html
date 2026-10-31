@@ -7,13 +7,12 @@ Usage:
 
 Parameters:
 - key (required): The value to copy to clipboard
-- icon (optional): Custom icon template path (defaults to phoxtail_core/svgs/content_copy.html)
 {% endcomment %}
 <button type="button"
         class="copy-key-btn"
         onclick="const btn = this; navigator.clipboard.writeText('{{ key }}'); btn.classList.add('copied'); setTimeout(() => btn.classList.remove('copied'), 1000);"
         aria-label="{% translate "Copy to clipboard" %}">
-    <div class="copy-key-icon-wrapper copy-icon">{% include icon|default:"phoxtail_core/svgs/content_copy.html" %}</div>
+    <div class="copy-key-icon-wrapper copy-icon">{% icon "content_copy" %}</div>
     <div class="copy-key-icon-wrapper check-icon">{% icon "check" %}</div>
 </button>
 <style>

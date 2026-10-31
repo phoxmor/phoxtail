@@ -1,9 +1,8 @@
-{% load phoxtail_dashboard_tags %}
+{% load phoxtail_design_tags %}
 <a class="dash-widget phx-card phx-card--clickable" href="{% url data.url_name %}">
     <span class="phx-card__title">
         {% if data.icon %}
-            {% dashboard_icon_path data.icon as icon_template %}
-            <span class="phx-card__icon">{% include icon_template %}</span>
+            <span class="phx-card__icon">{% icon data.icon %}</span>
         {% endif %}
         {{ data.title }}
     </span>

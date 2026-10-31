@@ -1,4 +1,4 @@
-{% load i18n static wagtailimages_tags wagtailsettings_tags phoxtail_dashboard_tags phoxtail_design_tags %}
+{% load i18n static wagtailimages_tags wagtailsettings_tags phoxtail_design_tags %}
 {% get_settings %}
 <!-- Top Bar -->
 <nav class="dash-topbar phx-raised">
@@ -38,7 +38,7 @@
                         class="dash-dock__item dash-dock__more-btn"
                         aria-label="{% translate 'Open menu' %}"
                         type="button">
-                    <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/menu.html' %}</span>
+                    <span class="dash-dock__icon">{% icon "menu" %}</span>
                     <span class="dash-dock__label">{% translate 'Menu' %}</span>
                 </button>
             </div>
@@ -92,15 +92,14 @@
                 {% url 'dashboard:index' as dashboard_path %}
                 <a href="{{ dashboard_path }}"
                    class="dash-nav-item{% if request.path == dashboard_path %} dash-nav-item--active{% endif %}">
-                    <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/dashboard.html' %}</span>
+                    <span class="dash-nav-icon">{% icon "dashboard" %}</span>
                     <span class="dash-nav-label">{% translate 'Dashboard' %}</span>
                 </a>
                 {% for item in dashboard_nav_items %}
                     {% url item.url_name as item_path %}
-                    {% dashboard_icon_path item.icon as svg_path %}
                     <a href="{{ item_path }}"
                        class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
-                        <span class="dash-nav-icon">{% include svg_path %}</span>
+                        <span class="dash-nav-icon">{% icon item.icon %}</span>
                         <span class="dash-nav-label">{{ item.label }}</span>
                     </a>
                 {% endfor %}
@@ -110,21 +109,21 @@
                 {% url 'users:profile' as profile_path %}
                 <a href="{{ profile_path }}"
                    class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
-                    <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+                    <span class="dash-nav-icon">{% icon "person" %}</span>
                     <span class="dash-nav-label">{% translate 'Profile' %}</span>
                 </a>
                 {% url 'wagtailadmin_home' as admin_path %}
                 {% if perms.wagtailadmin.access_admin %}
                     <a href="{{ admin_path }}"
                        class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+                        <span class="dash-nav-icon">{% icon "settings" %}</span>
                         <span class="dash-nav-label">{% translate 'Admin' context 'admin area' %}</span>
                     </a>
                 {% endif %}
                 <form method="post" action="{% url 'account_logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="dash-nav-item dash-nav-signout">
-                        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+                        <span class="dash-nav-icon">{% icon "signout" %}</span>
                         <span class="dash-nav-label">{% translate 'Sign out' %}</span>
                     </button>
                 </form>
@@ -134,12 +133,12 @@
             <div class="dash-mobile-sidebar__auth">
                 <a href="{% url 'account_login' %}"
                    class="phx-button phx-button--secondary">
-                    {% include 'phoxtail_core/svgs/signin.html' %}
+                    {% icon "signin" %}
                     {% translate 'Log in' %}
                 </a>
                 <a href="{% url 'account_signup' %}"
                    class="phx-button phx-button--primary">
-                    {% include 'phoxtail_core/svgs/person_add.html' %}
+                    {% icon "person_add" %}
                     {% translate 'Sign up' %}
                 </a>
             </div>

@@ -1,12 +1,11 @@
-{% load i18n phoxtail_dashboard_tags %}
+{% load i18n phoxtail_design_tags %}
 <div id="dock-sheet-backdrop" class="dash-dock-sheet-backdrop"></div>
 <div id="dock-sheet" class="dash-dock-sheet phx-raised">
     {% for item in dashboard_dock.overflow %}
         {% url item.url_name as item_path %}
-        {% dashboard_icon_path item.icon as svg_path %}
         <a href="{{ item_path }}"
            class="dash-nav-item{% if request.path == item_path %} dash-nav-item--active{% endif %}">
-            <span class="dash-nav-icon">{% include svg_path %}</span>
+            <span class="dash-nav-icon">{% icon item.icon %}</span>
             <span class="dash-nav-label">{{ item.label }}</span>
         </a>
     {% endfor %}
@@ -14,21 +13,21 @@
     {% url 'users:profile' as profile_path %}
     <a href="{{ profile_path }}"
        class="dash-nav-item{% if request.path == profile_path %} dash-nav-item--active{% endif %}">
-        <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/person.html' %}</span>
+        <span class="dash-nav-icon">{% icon "person" %}</span>
         <span class="dash-nav-label">{% translate 'Profile' %}</span>
     </a>
     {% url 'wagtailadmin_home' as admin_path %}
     {% if perms.wagtailadmin.access_admin %}
         <a href="{{ admin_path }}"
            class="dash-nav-item{% if request.path == admin_path %} dash-nav-item--active{% endif %}">
-            <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/settings.html' %}</span>
+            <span class="dash-nav-icon">{% icon "settings" %}</span>
             <span class="dash-nav-label">{% translate 'Admin' context 'admin area' %}</span>
         </a>
     {% endif %}
     <form method="post" action="{% url 'account_logout' %}">
         {% csrf_token %}
         <button type="submit" class="dash-nav-item dash-nav-signout">
-            <span class="dash-nav-icon">{% include 'phoxtail_core/svgs/signout.html' %}</span>
+            <span class="dash-nav-icon">{% icon "signout" %}</span>
             <span class="dash-nav-label">{% translate 'Sign out' %}</span>
         </button>
     </form>
@@ -37,28 +36,25 @@
     <div class="dash-dock__side dash-dock__side--left">
         {% for item in dashboard_dock.left %}
             {% url item.url_name as item_path %}
-            {% dashboard_icon_path item.icon as svg_path %}
             <a href="{{ item_path }}"
                class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
-                <span class="dash-dock__icon">{% include svg_path %}</span>
+                <span class="dash-dock__icon">{% icon item.icon %}</span>
                 <span class="dash-dock__label">{{ item.label }}</span>
             </a>
         {% endfor %}
     </div>
     {% url dashboard_dock.center.url_name as center_path %}
-    {% dashboard_icon_path dashboard_dock.center.icon as center_svg %}
     <a href="{{ center_path }}"
        class="dash-dock__item{% if request.path == center_path %} dash-dock__item--active{% endif %}">
-        <span class="dash-dock__icon">{% include center_svg %}</span>
+        <span class="dash-dock__icon">{% icon dashboard_dock.center.icon %}</span>
         <span class="dash-dock__label">{{ dashboard_dock.center.label }}</span>
     </a>
     <div class="dash-dock__side dash-dock__side--right">
         {% for item in dashboard_dock.right %}
             {% url item.url_name as item_path %}
-            {% dashboard_icon_path item.icon as svg_path %}
             <a href="{{ item_path }}"
                class="dash-dock__item{% if request.path == item_path %} dash-dock__item--active{% endif %}">
-                <span class="dash-dock__icon">{% include svg_path %}</span>
+                <span class="dash-dock__icon">{% icon item.icon %}</span>
                 <span class="dash-dock__label">{{ item.label }}</span>
             </a>
         {% endfor %}
@@ -67,7 +63,7 @@
                 class="dash-dock__item dash-dock__more-btn"
                 aria-label="{% translate 'More navigation items' %}"
                 aria-expanded="false">
-            <span class="dash-dock__icon">{% include 'phoxtail_core/svgs/more_horiz.html' %}</span>
+            <span class="dash-dock__icon">{% icon "more_horiz" %}</span>
             <span class="dash-dock__label">{% translate 'More' context 'navigation' %}</span>
         </button>
     </div>
