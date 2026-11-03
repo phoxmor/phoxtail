@@ -9,6 +9,10 @@ from phoxtail.core.mixins import AdminURLMixin, UUIDMixin
 
 from .constants import TokenType
 
+# Django registers a model only when its module is imported; loading it
+# here keeps that from depending on when Wagtail reads wagtail_hooks.
+from .permissions.models import AccessTokensAdminPermission  # noqa: F401
+
 
 class AccessToken(UUIDMixin, AdminURLMixin, index.Indexed, models.Model):
     user = models.ForeignKey(

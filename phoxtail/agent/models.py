@@ -9,6 +9,10 @@ from wagtail.search import index
 
 from phoxtail.core.mixins import AdminURLMixin, TimestampMixin, UUIDMixin
 
+# Django registers a model only when its module is imported; loading it
+# here keeps that from depending on when Wagtail reads wagtail_hooks.
+from .permissions.models import AgentAdminPermission  # noqa: F401
+
 
 class InferenceProvider(UUIDMixin, TimestampMixin, AdminURLMixin, index.Indexed, models.Model):
     identifier = models.SlugField(unique=True, verbose_name=_("identifier"))

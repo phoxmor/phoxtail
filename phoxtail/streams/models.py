@@ -47,6 +47,10 @@ from phoxtail.streams.constants import BlockSiteSlot
 from phoxtail.streams.fields import SharedBlockStreamField
 from phoxtail.streams.utils import _page_content_type_choices
 
+# Django registers a model only when its module is imported; loading it
+# here keeps that from depending on when Wagtail reads wagtail_hooks.
+from .permissions.models import StreamsAdminPermission  # noqa: F401
+
 
 class BlockCategory(UUIDMixin, TimestampMixin, AdminURLMixin, Orderable, index.Indexed):
     name = models.CharField(max_length=100, verbose_name=_("Name"))

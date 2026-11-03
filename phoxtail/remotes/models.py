@@ -5,6 +5,10 @@ from wagtail.search import index
 
 from phoxtail.core.mixins import TimestampMixin, UUIDMixin
 
+# Django registers a model only when its module is imported; loading it
+# here keeps that from depending on when Wagtail reads wagtail_hooks.
+from .permissions.models import RemotesAdminPermission  # noqa: F401
+
 
 class Remote(UUIDMixin, TimestampMixin, index.Indexed, models.Model):
     """A connection to another Phoxtail project — peer, registry, or swarm node."""
