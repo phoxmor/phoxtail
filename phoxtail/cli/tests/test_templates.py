@@ -1,5 +1,8 @@
 """Tests for CLI template rendering."""
 
+from typer.testing import CliRunner
+
+from phoxtail.cli.nginx import app as nginx_app
 from phoxtail.cli.utils.templates import render_template
 
 
@@ -168,7 +171,7 @@ class TestNginxInitialTemplate:
 
 
 class TestNginxProductionTemplate:
-    def _render(self, wildcard=False):
+    def _render(self, wildcard=False, www=True):
         domain = "example.com"
         if wildcard:
             server_name = f"{domain} .{domain}"
@@ -183,13 +186,32 @@ class TestNginxProductionTemplate:
                 "server_name": server_name,
                 "redirect_target": redirect_target,
                 "wildcard": wildcard,
+                "www": www,
             },
         )
 
     def test_standard_has_www_redirect(self):
         result = self._render(wildcard=False)
-        assert "server_name www.example.com" in result
+        assert "server_name www.example.com;" in result
         assert "return 301 https://example.com" in result
+
+    def test_no_www_serves_no_https_www(self):
+        """Without www on the certificate, nginx must not answer https://www with it."""
+        result = self._render(www=False)
+        assert "server_name www.example.com;" not in result
+        assert "server_name example.com;" in result
+        # Port 80 still takes www: http://www reaches the site, and certbot's
+        # challenge for www goes there when the name is added later.
+        assert "server_name example.com www.example.com;" in result
+
+    def test_the_command_serves_www_by_default(self, tmp_path):
+        """By hand, without a flag, the output keeps the https www block."""
+        output = tmp_path / "nginx.conf"
+        result = CliRunner().invoke(
+            nginx_app, ["create", "production", "--domain", "example.com", "--output", str(output)]
+        )
+        assert result.exit_code == 0, result.output
+        assert "server_name www.example.com;" in output.read_text()
 
     def test_wildcard_has_dot_domain(self):
         result = self._render(wildcard=True)

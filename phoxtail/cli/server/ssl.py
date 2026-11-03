@@ -24,6 +24,18 @@ def _dns_resolves_to(domain: str, ip: str) -> bool:
         return False
 
 
+def _certificate_names(listing: str) -> set[str]:
+    """The names on the certificate a ``certbot certificates`` listing shows.
+
+    certbot 5 labels the line ``Identifiers:``, earlier releases ``Domains:``.
+    """
+    for line in listing.splitlines():
+        label, _, names = line.strip().partition(": ")
+        if label in ("Identifiers", "Domains"):
+            return set(names.split())
+    return set()
+
+
 def _install_renewal_cron(user: str, ip: str, entry: str, marker: str) -> bool:
     """Make the server's renewal line the current one; True when it is.
 
@@ -73,7 +85,14 @@ def ssl(
         help="Let's Encrypt email. Reads DOMAIN_EMAIL from .phoxtail/deploy/.env if omitted.",
     ),
     user: str = typer.Option("phoxtail", "--user", "-u", help="Deploy username on the server."),
-    www: bool = typer.Option(False, "--www", help="Also request a certificate for www.{domain}."),
+    www: bool | None = typer.Option(
+        None,
+        "--www/--no-www",
+        help=(
+            "Put www.{domain} on the certificate, or leave it off; a name already on the"
+            " certificate stays. Default: on when it points at the server."
+        ),
+    ),
     dry_run: bool = typer.Option(
         False,
         "--dry-run",
@@ -95,9 +114,12 @@ def ssl(
 
     What it does:
     1. Checks SSH + Docker on the server.
-    2. Verifies the domain's DNS A record points to <ip>.
-    3. Runs certbot HTTP-01 on the server (skipped if cert already exists).
-    4. Generates production nginx.conf locally and uploads it.
+    2. Verifies the DNS A records of the domain and mcp.<domain> point to <ip>.
+       www.<domain> is included when it points to <ip> too.
+    3. Runs certbot HTTP-01 on the server (skipped if the certificate
+       already covers every name; a missing name is added, none is dropped).
+    4. Generates production nginx.conf locally, serving exactly the names
+       the certificate covers, and uploads it.
     5. Reloads nginx inside the running container.
     6. Installs the renewal cron job, or replaces an outdated one (asks first).
 
@@ -121,7 +143,8 @@ def ssl(
         phoxtail server ssl 1.2.3.4 --dry-run
         phoxtail server ssl 1.2.3.4 --staging
         phoxtail server ssl 1.2.3.4 --domain example.com
-        phoxtail server ssl 1.2.3.4 --skip-dns-check
+        phoxtail server ssl 1.2.3.4 --no-www
+        phoxtail server ssl 1.2.3.4 --skip-dns-check --www
     """
     if find_config_file() is None:
         console.print("[red]Error:[/red] No phoxtail.toml found. Run this command from a phoxtail project directory.")
@@ -141,6 +164,13 @@ def ssl(
         console.print(
             "[red]Error:[/red] Email is required.\n"
             "  Pass [bold]--email you@example.com[/bold] or set DOMAIN_EMAIL in .phoxtail/deploy/.env"
+        )
+        raise typer.Exit(1)
+
+    if www is None and skip_dns_check:
+        console.print(
+            "[red]Error:[/red] Without the DNS check, nothing tells whether www points at this server.\n"
+            "  Pass [bold]--www[/bold] or [bold]--no-www[/bold]."
         )
         raise typer.Exit(1)
 
@@ -175,9 +205,15 @@ def ssl(
         # ------------------------------------------------------------------
         # The MCP server is its own origin, mcp. in front of the site, and
         # is named on the same certificate; its record must resolve too.
-        names_to_check = [domain, f"mcp.{domain}"] + ([f"www.{domain}"] if www else [])
+        # www is optional: a site has it when its record points here, and a
+        # www left off a certificate that nginx serves is a browser warning.
+        if www is None:
+            www = _dns_resolves_to(f"www.{domain}", ip)
+            if not www:
+                console.print(f"  [dim]–[/dim] www.{domain} does not point here [dim](left out)[/dim]")
+        wanted = [domain, f"mcp.{domain}"] + ([f"www.{domain}"] if www else [])
         if not skip_dns_check:
-            for name in names_to_check:
+            for name in wanted:
                 with console.status(f"  Checking DNS for {name}..."):
                     dns_ok = _dns_resolves_to(name, ip)
                 if dns_ok:
@@ -194,25 +230,30 @@ def ssl(
                     raise typer.Exit(1)
 
         # ------------------------------------------------------------------
-        # 4. Cert existence check (idempotency — skipped for dry-run)
+        # 4. Cert existence check (idempotency; a dry run always simulates)
         # ------------------------------------------------------------------
-        # A certificate counts as present only if it names the MCP server
-        # too: one issued before that name existed is expanded rather than
-        # kept, and certbot's own listing is what says which names it holds.
-        cert_path = f"/etc/letsencrypt/live/{domain}/fullchain.pem"
-        if not dry_run:
-            cert_exists = ssh_check(
-                user,
-                ip,
-                f"cd {project_dir} && docker compose run --rm -T --entrypoint sh certbot -c "
-                f"'test -f {cert_path}' && docker compose run --rm -T --no-deps certbot certificates 2>/dev/null"
-                f" | grep -qF 'mcp.{domain}'",
-            )
-        else:
-            cert_exists = False
+        # A certificate counts as present only if it names every wanted name:
+        # one that misses a name is expanded rather than kept, and certbot's
+        # own listing is what says which names it holds. A name it already
+        # holds is never dropped, so a rerun cannot break an address that
+        # works today. A dry run reads the listing too, to simulate the same
+        # request the real run would make.
+        listing = ssh_run(
+            user,
+            ip,
+            f"cd {project_dir} && docker compose run --rm -T --no-deps certbot certificates"
+            f" --cert-name {domain} 2>/dev/null",
+        )
+        # An unread listing must stop the run: taken as "no certificate",
+        # the request below would drop every name it did not ask for.
+        if listing.returncode != 0:
+            console.print("  [red]✗[/red] Could not read the server's certificates")
+            raise typer.Exit(1)
+        held = _certificate_names(listing.stdout)
+        names = wanted + sorted(held - set(wanted))
 
-        if cert_exists:
-            console.print(f"  [green]✓[/green] Certificate already exists [dim]({domain}, mcp.{domain})[/dim]")
+        if held >= set(wanted) and not dry_run:
+            console.print(f"  [green]✓[/green] Certificate already exists [dim]({', '.join(names)})[/dim]")
         else:
             # ------------------------------------------------------------------
             # 5. Obtain / simulate certificate (HTTP-01 webroot)
@@ -222,10 +263,12 @@ def ssl(
                 extra_flags += " --dry-run"
             elif staging:
                 extra_flags += " --staging"
-            www_flag = f" -d www.{domain}" if www else ""
+            # --cert-name keeps one lineage under live/{domain}/, the path
+            # nginx reads; without it a changed name set may start another.
+            name_flags = "".join(f" -d {name}" for name in names)
             certbot_cmd = (
                 f"certonly --webroot --webroot-path /var/www/certbot"
-                f" -d {domain} -d mcp.{domain}{www_flag} --expand"
+                f" --cert-name {domain}{name_flags} --expand --non-interactive"
                 f" --email {email} --agree-tos --no-eff-email"
                 f"{extra_flags}"
             )
@@ -276,6 +319,7 @@ def ssl(
                 "production",
                 "--domain",
                 domain,
+                "--www" if f"www.{domain}" in names else "--no-www",
                 "--output",
                 str(nginx_local),
                 "--force",
@@ -336,6 +380,7 @@ def ssl(
                 "\n\n"
                 f"  [dim]Site:[/dim]      https://{domain}\n"
                 f"  [dim]Cert:[/dim]      /etc/letsencrypt/live/{domain}/\n"
+                f"  [dim]Names:[/dim]     {', '.join(names)}\n"
                 + renewal_line
                 + (
                     "\n  [yellow]Staging cert — run without --staging to issue a trusted cert.[/yellow]"

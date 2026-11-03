@@ -38,6 +38,11 @@ def production(
     output: Path = typer.Option(Path("nginx.conf"), "--output", "-o"),
     force: bool = typer.Option(False, "--force", "-f"),
     wildcard: bool = typer.Option(False, "--wildcard", "-w", help="Enable wildcard subdomains"),
+    www: bool = typer.Option(
+        True,
+        "--www/--no-www",
+        help="Serve https://www.{domain} (redirected to the domain). Only with a certificate that covers it.",
+    ),
 ) -> None:
     """Create production nginx.conf with optional wildcard support."""
     if output.exists() and not force:
@@ -68,6 +73,7 @@ def production(
             "server_name": server_name,
             "redirect_target": redirect_target,
             "wildcard": wildcard,
+            "www": www,
         },
     )
     output.write_text(content)
@@ -81,5 +87,7 @@ def production(
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS (preserves subdomain)")
         console.print(f"[yellow]Wildcard support enabled (.{domain})[/yellow]")
         console.print("[dim]Note:[/dim] Wildcard certs require DNS-01 challenge, not HTTP-01")
-    else:
+    elif www:
         console.print("[dim]Redirects:[/dim] HTTP → HTTPS, www → non-www")
+    else:
+        console.print("[dim]Redirects:[/dim] HTTP → HTTPS")
