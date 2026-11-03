@@ -1,9 +1,10 @@
 """Auto-created redirects must never point at a never-published page.
 
-Wagtail records a redirect for every page it moves. It skips draft
-*descendants* but not the moved page itself, so moving a page that has
-never been published leaves a redirect whose target can only 404 — and a
-later move that puts it back on that path turns it into a redirect to
+With ``WAGTAILREDIRECTS_AUTO_CREATE = "always"`` (and on every Wagtail
+before 8.1), Wagtail records a redirect for every page it moves. It skips
+draft *descendants* but not the moved page itself, so moving a page that
+has never been published leaves a redirect whose target can only 404 — and
+a later move that puts it back on that path turns it into a redirect to
 itself, i.e. a loop in the browser. ``phoxtail.cms.signals`` guards the
 signal so every caller (admin explorer, content API, agent move tool) is
 covered at once.
@@ -26,6 +27,14 @@ from phoxtail.cms.models import SitePage
 # without a reversible page route wagtail creates no redirects at all and
 # every "no redirect was created" assertion below would pass vacuously.
 pytestmark = [pytest.mark.django_db, pytest.mark.urls("phoxtail.cms.tests.urls")]
+
+
+@pytest.fixture(autouse=True)
+def redirect_every_move(settings):
+    """Wagtail 8.1 creates no redirects for a draft move by default, which
+    would make every test of the guard pass without reaching it. "always"
+    keeps the behaviour the guard exists for, on 8.0 and 8.1 alike."""
+    settings.WAGTAILREDIRECTS_AUTO_CREATE = "always"
 
 
 @pytest.fixture
