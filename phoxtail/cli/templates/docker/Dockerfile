@@ -71,7 +71,14 @@ COPY --from=builder-development /usr/local/bin/ /usr/local/bin/
 # shell, which is what `chromium.launch()` already uses — headed mode is the
 # only thing given up. Above `COPY . .` so source edits don't invalidate the
 # layer.
-RUN playwright install --with-deps --only-shell chromium \
+#
+# libatomic1 comes first because `--with-deps` cannot install it: playwright
+# bundles its own Node.js, which links against libatomic since Node.js 25, and
+# that Node is what runs the dependency install. It stays in the image because
+# the same Node runs again on every chromium launch.
+RUN apt-get update --yes --quiet \
+ && apt-get install --yes --quiet --no-install-recommends libatomic1 \
+ && playwright install --with-deps --only-shell chromium \
  && rm -rf /var/lib/apt/lists/*
 
 COPY . .

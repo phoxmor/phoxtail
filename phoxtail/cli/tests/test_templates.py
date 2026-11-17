@@ -53,6 +53,23 @@ class TestDockerfileTemplate:
         assert "AS development" in result
         assert "AS production" in result
 
+    def test_development_installs_libatomic_before_playwright(self):
+        # Playwright's bundled Node.js needs libatomic.so.1 just to start, so
+        # `playwright install --with-deps` cannot install it for itself.
+        result = render_template(
+            "docker/Dockerfile",
+            {
+                "python_version": "3.12",
+                "port": 80,
+                "gunicorn_workers": 3,
+            },
+        )
+        development = result[result.index("AS development") : result.index("AS production")]
+        install = "--no-install-recommends libatomic1"
+        assert install in development
+        assert development.index(install) < development.index("playwright install --with-deps")
+        assert "libatomic1" not in result[result.index("AS production") :]
+
 
 class TestDockerignoreTemplate:
     def test_excludes_runtime_state_dirs(self):
