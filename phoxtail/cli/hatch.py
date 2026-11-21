@@ -7,10 +7,12 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.prompt import Confirm
 
 from phoxtail import __version__
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import validate_project_name
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.net import net_stack_running
@@ -188,12 +190,43 @@ def _run_step(target_dir: Path, args: list[str]) -> bool:
     return result.returncode == 0
 
 
-def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[str, str]:
+def _stop_containers(target_dir: Path) -> None:
+    """Take down what the wizard's `docker compose run` steps left running.
+
+    ``run --rm`` removes the one-off web container, but not the services it
+    started as dependencies: the database keeps running until something
+    takes the project down.
+    """
+    # Each container gets its stop grace period, so this can take a while;
+    # without a word it would look like a hang.
+    with console.status("[dim]stopping the containers the wizard started…[/dim]"):
+        subprocess.run(
+            ["docker", "compose", "down"],
+            cwd=target_dir,
+            env=docker_env(),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+
+# Every step after configuration runs Docker.
+DOCKER_STEPS = ("attach_net", "setup_db", "superuser", "docker_up")
+
+
+def _run_wizard(
+    project_name: str,
+    target_dir: Path,
+    environment: str,
+    docker_problem: tools.Problem | None = None,
+) -> dict[str, str]:
     """Walk the user through optional post-scaffold setup steps.
 
     Each step invokes an existing phoxtail CLI command as a subprocess
     inside the new project directory (which has a phoxtail.toml).
     Steps are optional — the user can skip any of them.
+
+    With a *docker_problem*, only configuration is offered: it writes files,
+    while every later step would fail on Docker one after another.
 
     Returns a dict mapping step keys to their status ("done"/"skipped"/"failed").
     """
@@ -282,38 +315,32 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
     # Clear sub-step detail so the panel is clean when the next step renders.
     details.pop("configure", None)
 
-    # --- Step: Attach to shared net ---
-    # Placed before the database and launch steps, both of which shell out to
-    # `docker compose run`/`up`: attaching rewrites COMPOSE_FILE in .env, so
-    # doing it first means every later step already runs against the network
-    # the user chose, instead of moving it out from under a running project.
-    #
-    # Requires the config step's output. `net attach` edits .env and appends
-    # docker-compose.yaml to COMPOSE_FILE, creating .env if absent — so on a
-    # skipped config it would write a COMPOSE_FILE naming a base file that
-    # does not exist, breaking every later `docker compose` call, and the
-    # `phoxtail env create` we then tell the user to run would overwrite that
-    # .env and silently strip the wiring back out while the members file
-    # still claims the project is attached.
-    configured = (target_dir / ".env").exists() and (target_dir / "docker-compose.yaml").exists()
+    if docker_problem is not None:
+        for key in DOCKER_STEPS:
+            steps[key] = "skipped"
+            details[key] = docker_problem.reason
+        _clear_and_show_progress(project_name, steps, details, active_steps, environment, pause=prev_failed)
+        return steps
 
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["attach_net"],
-        pause=prev_failed,
-    )
-    if not configured:
-        steps["attach_net"] = "skipped"
-        prev_failed = False
-    elif Confirm.ask(
-        "  Attach to the shared local net (reachable at http://<project>.localhost alongside other Phoxtail projects)?",
-        default=False,
-    ):
-        details["attach_net"] = "attaching…"
+    # Set once a step may have started containers, cleared once they are
+    # stopped — so an interrupted wizard does not leave a database running.
+    ran_containers = False
+    try:
+        # --- Step: Attach to shared net ---
+        # Placed before the database and launch steps, both of which shell out to
+        # `docker compose run`/`up`: attaching rewrites COMPOSE_FILE in .env, so
+        # doing it first means every later step already runs against the network
+        # the user chose, instead of moving it out from under a running project.
+        #
+        # Requires the config step's output. `net attach` edits .env and appends
+        # docker-compose.yaml to COMPOSE_FILE, creating .env if absent — so on a
+        # skipped config it would write a COMPOSE_FILE naming a base file that
+        # does not exist, breaking every later `docker compose` call, and the
+        # `phoxtail env create` we then tell the user to run would overwrite that
+        # .env and silently strip the wiring back out while the members file
+        # still claims the project is attached.
+        configured = (target_dir / ".env").exists() and (target_dir / "docker-compose.yaml").exists()
+
         _clear_and_show_progress(
             project_name,
             steps,
@@ -321,39 +348,45 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
             active_steps,
             environment=environment,
             current_index=step_idx["attach_net"],
+            pause=prev_failed,
         )
-        attach_ok = _run_step(target_dir, ["net", "attach"])
-
-        if not attach_ok:
-            steps["attach_net"] = "failed"
-            details["attach_net"] = "net attach failed"
-            prev_failed = True
-        else:
-            steps["attach_net"] = "done"
+        if not configured:
+            steps["attach_net"] = "skipped"
             prev_failed = False
-    else:
-        steps["attach_net"] = "skipped"
-        prev_failed = False
+        elif Confirm.ask(
+            "  Attach to the shared local net"
+            " (reachable at http://<project>.localhost alongside other Phoxtail projects)?",
+            default=False,
+        ):
+            details["attach_net"] = "attaching…"
+            _clear_and_show_progress(
+                project_name,
+                steps,
+                details,
+                active_steps,
+                environment=environment,
+                current_index=step_idx["attach_net"],
+            )
+            attach_ok = _run_step(target_dir, ["net", "attach"])
 
-    # Clear the transient "attaching…" text, then restate the one detail worth
-    # carrying into the final panel — a skip the user never got asked about.
-    details.pop("attach_net", None)
-    if not configured:
-        details["attach_net"] = "needs project configuration first"
+            if not attach_ok:
+                steps["attach_net"] = "failed"
+                details["attach_net"] = "net attach failed"
+                prev_failed = True
+            else:
+                steps["attach_net"] = "done"
+                prev_failed = False
+        else:
+            steps["attach_net"] = "skipped"
+            prev_failed = False
 
-    # --- Step: Database ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["setup_db"],
-        pause=prev_failed,
-    )
+        # Clear the transient "attaching…" text, then restate the one detail worth
+        # carrying into the final panel — a skip the user never got asked about.
+        details.pop("attach_net", None)
+        if not configured:
+            details["attach_net"] = "needs project configuration first"
 
-    if Confirm.ask("  Set up the database?", default=True):
-        details["setup_db"] = "initializing…"
+        # --- Step: Database ---
         _clear_and_show_progress(
             project_name,
             steps,
@@ -361,78 +394,94 @@ def _run_wizard(project_name: str, target_dir: Path, environment: str) -> dict[s
             active_steps,
             environment=environment,
             current_index=step_idx["setup_db"],
+            pause=prev_failed,
         )
-        migrate_ok = _run_step(target_dir, ["manage", "migrate"])
 
-        if not migrate_ok:
-            steps["setup_db"] = "failed"
-            details["setup_db"] = "migrate failed"
-            prev_failed = True
+        if Confirm.ask("  Set up the database?", default=True):
+            details["setup_db"] = "initializing…"
+            _clear_and_show_progress(
+                project_name,
+                steps,
+                details,
+                active_steps,
+                environment=environment,
+                current_index=step_idx["setup_db"],
+            )
+            ran_containers = True
+            migrate_ok = _run_step(target_dir, ["manage", "migrate"])
+
+            if not migrate_ok:
+                steps["setup_db"] = "failed"
+                details["setup_db"] = "migrate failed"
+                prev_failed = True
+            else:
+                steps["setup_db"] = "done"
+                prev_failed = False
         else:
-            steps["setup_db"] = "done"
+            steps["setup_db"] = "skipped"
             prev_failed = False
-    else:
-        steps["setup_db"] = "skipped"
-        prev_failed = False
 
-    # Clear sub-step detail so the panel is clean when the next step renders.
-    details.pop("setup_db", None)
+        # Clear sub-step detail so the panel is clean when the next step renders.
+        details.pop("setup_db", None)
 
-    # --- Step: Create Admin Account ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["superuser"],
-        pause=prev_failed,
-    )
-    if Confirm.ask("  Create an admin account?", default=True):
-        console.print()
-        if _run_step(target_dir, ["manage", "createsuperuser"]):
-            # Verify the superuser's email in allauth automatically
-            _run_step(target_dir, ["manage", "verify_email", "--all-superusers"])
-            steps["superuser"] = "done"
-            prev_failed = False
-        else:
-            steps["superuser"] = "failed"
-            details["superuser"] = "command failed"
-            prev_failed = True
-        # Clean up containers started by docker compose run (e.g. db)
-        subprocess.run(
-            ["docker", "compose", "down"],
-            cwd=target_dir,
-            env=docker_env(),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+        # --- Step: Create Admin Account ---
+        _clear_and_show_progress(
+            project_name,
+            steps,
+            details,
+            active_steps,
+            environment=environment,
+            current_index=step_idx["superuser"],
+            pause=prev_failed,
         )
-    else:
-        steps["superuser"] = "skipped"
-        prev_failed = False
-
-    # --- Step: Launch App ---
-    _clear_and_show_progress(
-        project_name,
-        steps,
-        details,
-        active_steps,
-        environment=environment,
-        current_index=step_idx["docker_up"],
-        pause=prev_failed,
-    )
-    if Confirm.ask("  Launch the app?", default=True):
-        args = ["docker", "up", "--build"]
-        if _run_step(target_dir, args):
-            steps["docker_up"] = "done"
-            prev_failed = False
+        if Confirm.ask("  Create an admin account?", default=True):
+            console.print()
+            ran_containers = True
+            if _run_step(target_dir, ["manage", "createsuperuser"]):
+                # Verify the superuser's email in allauth automatically
+                _run_step(target_dir, ["manage", "verify_email", "--all-superusers"])
+                steps["superuser"] = "done"
+                prev_failed = False
+            else:
+                steps["superuser"] = "failed"
+                details["superuser"] = "command failed"
+                prev_failed = True
         else:
-            steps["docker_up"] = "failed"
-            details["docker_up"] = "command failed"
-            prev_failed = True
-    else:
-        steps["docker_up"] = "skipped"
-        prev_failed = False
+            steps["superuser"] = "skipped"
+            prev_failed = False
+
+        # Before the launch, which starts the project for real: stopping after
+        # it would take down what the user just asked for.
+        if ran_containers:
+            _stop_containers(target_dir)
+            ran_containers = False
+
+        # --- Step: Launch App ---
+        _clear_and_show_progress(
+            project_name,
+            steps,
+            details,
+            active_steps,
+            environment=environment,
+            current_index=step_idx["docker_up"],
+            pause=prev_failed,
+        )
+        if Confirm.ask("  Launch the app?", default=True):
+            args = ["docker", "up", "--build"]
+            if _run_step(target_dir, args):
+                steps["docker_up"] = "done"
+                prev_failed = False
+            else:
+                steps["docker_up"] = "failed"
+                details["docker_up"] = "command failed"
+                prev_failed = True
+        else:
+            steps["docker_up"] = "skipped"
+            prev_failed = False
+
+    finally:
+        if ran_containers:
+            _stop_containers(target_dir)
 
     # Show final state
     _clear_and_show_progress(project_name, steps, details, active_steps, environment, pause=prev_failed)
@@ -505,6 +554,10 @@ def hatch(
     if error:
         console.print(f"[red]Error:[/red] {error}")
         raise typer.Exit(1)
+
+    # Before anything is written — including the overwrite below, which
+    # deletes an existing directory: a project that cannot lock is no use.
+    tools.require(tools.UV)
 
     if directory is not None:
         target_dir = Path(directory).expanduser().resolve()
@@ -601,12 +654,17 @@ def hatch(
 
         # Run the setup wizard unless --no-wizard
         wizard_steps: dict[str, str] = {}
+        docker_problem: tools.Problem | None = None
         if not no_wizard:
             run_wizard = Confirm.ask("Would you like to run the setup wizard?", default=True)
             if run_wizard:
                 # Asked for on this same `not no_wizard` branch above.
                 assert environment is not None
-                wizard_steps = _run_wizard(project_name, target_dir, environment)
+                # Once, up front: the daemon check is the one that catches a
+                # Docker that is installed but stopped, or not this user's.
+                with console.status("[dim]checking Docker...[/dim]"):
+                    docker_problem = tools.check(tools.COMPOSE, daemon=True)
+                wizard_steps = _run_wizard(project_name, target_dir, environment, docker_problem)
 
         # Build context-aware next steps — separate skipped from failed
         next_steps = []
@@ -664,6 +722,11 @@ def hatch(
                 "  • [cyan]phoxtail net up[/cyan]"
                 "\n    [dim]start the shared net's router so http://<project>.localhost resolves[/dim]"
             )
+
+        # First, because the Docker steps listed after it wait on it.
+        if docker_problem is not None:
+            remedy = "\n".join(f"    [dim]{escape(line)}[/dim]" for line in docker_problem.remedy.splitlines())
+            next_steps.insert(0, f"  • [yellow]{escape(docker_problem.reason)}[/yellow]\n{remedy}")
 
         # Assemble next steps
         all_steps = [f"  • [cyan]cd {target_dir}[/cyan]\n    [dim]navigate to the project directory[/dim]"]

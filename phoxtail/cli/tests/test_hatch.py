@@ -1,6 +1,6 @@
 """Tests for the phoxtail hatch command."""
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -12,6 +12,7 @@ from phoxtail.cli.hatch import (
     TEMPLATE_DIR,
     _copy_template,
 )
+from phoxtail.cli.utils import tools
 
 runner = CliRunner()
 
@@ -413,3 +414,144 @@ class TestHatchCommand:
         # Project is still fully scaffolded even if uv lock fails
         assert (tmp_path / "myproject" / "pyproject.toml").exists()
         assert (tmp_path / "myproject" / "manage.py").exists()
+
+
+NO_DOCKER = tools.Problem("Docker not found", "Install Docker: https://docs.docker.com/get-started/get-docker/")
+
+
+def _without(program: str, problem: tools.Problem):
+    """A stand-in for tools.check that finds every program but *program*."""
+
+    def check(*programs: str, daemon: bool = False) -> tools.Problem | None:
+        return problem if program in programs else None
+
+    return check
+
+
+class TestHatchMeetingAMissingProgram:
+    """hatch checks before it writes, and carries on where it still can."""
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    def test_no_uv_refuses_before_writing_anything(self, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(tools, "check", _without(tools.UV, tools.Problem("uv not found", "Install uv.")))
+        existing = tmp_path / "myproject"
+        existing.mkdir()
+        (existing / "keep.txt").write_text("mine")
+
+        # "y" would confirm the overwrite, which deletes the directory.
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\n")
+
+        assert result.exit_code == 1
+        assert "uv not found" in result.output
+        assert (existing / "keep.txt").read_text() == "mine"
+        mock_run.assert_not_called()
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_no_docker_offers_configuration_only(self, mock_select, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(tools, "check", _without(tools.COMPOSE, NO_DOCKER))
+        mock_run.return_value.returncode = 0
+        mock_select.return_value.ask.return_value = "development"
+
+        # Run the wizard, generate configuration — and nothing else is asked.
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\ny\n")
+
+        assert result.exit_code == 0, result.output
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert calls[0] == ["uv", "lock"]
+        assert [c[-3:] for c in calls[1:]] == [
+            ["env", "create", "development"],
+            ["docker", "create", "dockerfile"],
+            ["create", "compose", "development"],
+        ]
+        assert "Set up the database?" not in result.output
+        # The reason on the skipped steps, the remedy first in the next steps,
+        # and the Docker steps still listed to run once it is installed.
+        assert "Docker not found" in result.output
+        assert "docs.docker.com" in result.output
+        assert "phoxtail manage migrate" in result.output
+        assert "phoxtail docker up --build" in result.output
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_wizard_asks_docker_once_with_its_daemon(self, mock_select, mock_run, tmp_path, monkeypatch):
+        """The daemon too: an installed but stopped Docker is the case to catch."""
+        monkeypatch.chdir(tmp_path)
+        asked: list[bool] = []
+
+        def check(*programs: str, daemon: bool = False) -> None:
+            if tools.COMPOSE in programs:
+                asked.append(daemon)
+
+        monkeypatch.setattr(tools, "check", check)
+        mock_run.return_value.returncode = 0
+        mock_select.return_value.ask.return_value = "development"
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\nn\n")
+        assert asked == [True]
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    def test_no_wizard_does_not_ask_docker(self, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        asked: list[tuple[str, ...]] = []
+
+        def check(*programs: str, daemon: bool = False) -> None:
+            asked.append(programs)
+
+        monkeypatch.setattr(tools, "check", check)
+        mock_run.return_value.returncode = 0
+        runner.invoke(app, ["hatch", "myproject", "--no-wizard"])
+        assert asked == [(tools.UV,)]
+
+
+class TestHatchStopsWhatItStarted:
+    """`docker compose run` leaves the database running; hatch takes it down."""
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_database_step_alone_is_cleaned_up(self, mock_select, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_select.return_value.ask.return_value = "development"
+
+        # Wizard, skip configuration, set up the database, skip admin and launch.
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\nn\nn\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert calls[-2][-2:] == ["manage", "migrate"]
+        assert calls[-1] == ["docker", "compose", "down"]
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_interrupted_wizard_is_cleaned_up(self, mock_select, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_select.return_value.ask.return_value = "development"
+
+        def run(args, **kwargs):
+            if args[-2:] == ["manage", "migrate"]:
+                raise KeyboardInterrupt
+            return MagicMock(returncode=0)
+
+        mock_run.side_effect = run
+
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\n")
+
+        assert result.exit_code == 0
+        assert "Cancelled." in result.output
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert calls[-1] == ["docker", "compose", "down"]
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_nothing_started_nothing_stopped(self, mock_select, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_select.return_value.ask.return_value = "development"
+
+        # Skip everything but the launch.
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\n")
+
+        calls = [c.args[0] for c in mock_run.call_args_list]
+        assert ["docker", "compose", "down"] not in calls
+        assert calls[-1][-3:] == ["docker", "up", "--build"]
