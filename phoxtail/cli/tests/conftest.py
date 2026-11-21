@@ -52,6 +52,25 @@ def programs_present(request, monkeypatch):
     monkeypatch.setattr(tools, "check", lambda *programs, daemon=False: None)
 
 
+@pytest.fixture
+def missing(monkeypatch):
+    """Make one program read as not installed, every other as installed.
+
+    ``missing(tools.UV)`` answers any check that names uv with a problem,
+    and returns that problem so a test can look for it in the output. It
+    stubs the same seam as :func:`programs_present`, so a command under
+    test runs nothing to find out.
+    """
+    from phoxtail.cli.utils import tools
+
+    def _missing(program: str) -> tools.Problem:
+        problem = tools.Problem(f"{program} not found", f"Install {program}.")
+        monkeypatch.setattr(tools, "check", lambda *programs, daemon=False: problem if program in programs else None)
+        return problem
+
+    return _missing
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mcp_tools_registered():
     """Register the MCP surface once, for tests that assert on the catalogue.

@@ -12,6 +12,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm
 
 from phoxtail.cli.install import _step_line
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.packages import (
     declared_requirement,
     entry_versions,
@@ -165,6 +166,16 @@ def upgrade(
         phoxtail upgrade wagtail
         phoxtail upgrade phoxtail --no-build
     """
+    # Before pyproject.toml is touched: without these the command would
+    # stop halfway, the dependency locked in but never built or migrated.
+    tools.require(tools.UV)
+    if not no_build:
+        tools.require(
+            tools.COMPOSE,
+            daemon=True,
+            note="Or upgrade the package without Docker: [cyan]--no-build[/cyan] stops after the lock and sync.",
+        )
+
     steps: dict[str, str] = {}
     details: dict[str, str] = {}
 

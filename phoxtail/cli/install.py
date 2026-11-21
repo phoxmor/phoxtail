@@ -14,6 +14,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 
 from phoxtail.cli.hatch import INSTALL_MARKER
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.docker import collect_package_compose_fragments
 from phoxtail.cli.utils.packages import is_declared, module_guess
@@ -295,6 +296,16 @@ def install(
     if not package:
         console.print("[red]Error:[/red] Provide a package name, or a --source git URL to derive it from.")
         raise typer.Exit(1)
+
+    # Before pyproject.toml is touched: without these the command would
+    # stop halfway, the dependency locked in but never built or migrated.
+    tools.require(tools.UV)
+    if not no_build:
+        tools.require(
+            tools.COMPOSE,
+            daemon=True,
+            note="Or add the package without Docker: [cyan]--no-build[/cyan] stops after the lock and sync.",
+        )
 
     project_name = get_project_name()
     postgres_version = _detect_postgres_version()

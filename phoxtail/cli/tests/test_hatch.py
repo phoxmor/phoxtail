@@ -416,25 +416,13 @@ class TestHatchCommand:
         assert (tmp_path / "myproject" / "manage.py").exists()
 
 
-NO_DOCKER = tools.Problem("Docker not found", "Install Docker: https://docs.docker.com/get-started/get-docker/")
-
-
-def _without(program: str, problem: tools.Problem):
-    """A stand-in for tools.check that finds every program but *program*."""
-
-    def check(*programs: str, daemon: bool = False) -> tools.Problem | None:
-        return problem if program in programs else None
-
-    return check
-
-
 class TestHatchMeetingAMissingProgram:
     """hatch checks before it writes, and carries on where it still can."""
 
     @patch("phoxtail.cli.hatch.subprocess.run")
-    def test_no_uv_refuses_before_writing_anything(self, mock_run, tmp_path, monkeypatch):
+    def test_no_uv_refuses_before_writing_anything(self, mock_run, tmp_path, monkeypatch, missing):
         monkeypatch.chdir(tmp_path)
-        monkeypatch.setattr(tools, "check", _without(tools.UV, tools.Problem("uv not found", "Install uv.")))
+        no_uv = missing(tools.UV)
         existing = tmp_path / "myproject"
         existing.mkdir()
         (existing / "keep.txt").write_text("mine")
@@ -443,15 +431,15 @@ class TestHatchMeetingAMissingProgram:
         result = runner.invoke(app, ["hatch", "myproject"], input="y\n")
 
         assert result.exit_code == 1
-        assert "uv not found" in result.output
+        assert no_uv.reason in result.output
         assert (existing / "keep.txt").read_text() == "mine"
         mock_run.assert_not_called()
 
     @patch("phoxtail.cli.hatch.subprocess.run")
     @patch("questionary.select")
-    def test_no_docker_offers_configuration_only(self, mock_select, mock_run, tmp_path, monkeypatch):
+    def test_no_docker_offers_configuration_only(self, mock_select, mock_run, tmp_path, monkeypatch, missing):
         monkeypatch.chdir(tmp_path)
-        monkeypatch.setattr(tools, "check", _without(tools.COMPOSE, NO_DOCKER))
+        no_docker = missing(tools.COMPOSE)
         mock_run.return_value.returncode = 0
         mock_select.return_value.ask.return_value = "development"
 
@@ -469,8 +457,8 @@ class TestHatchMeetingAMissingProgram:
         assert "Set up the database?" not in result.output
         # The reason on the skipped steps, the remedy first in the next steps,
         # and the Docker steps still listed to run once it is installed.
-        assert "Docker not found" in result.output
-        assert "docs.docker.com" in result.output
+        assert no_docker.reason in result.output
+        assert no_docker.remedy in result.output
         assert "phoxtail manage migrate" in result.output
         assert "phoxtail docker up --build" in result.output
 
