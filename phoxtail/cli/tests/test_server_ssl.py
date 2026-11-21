@@ -1,6 +1,7 @@
 """Tests for `phoxtail server ssl`: the certificate's names and the renewal cron."""
 
 import subprocess
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -287,3 +288,11 @@ def test_skipping_dns_takes_the_explicit_choice_without_lookups(reachable, choic
     lookup.assert_not_called()
     assert ("www.example.com" in _requested(ssh_live)) is served
     assert _nginx_www(nginx) is served
+
+
+def test_nginx_conf_is_generated_by_this_same_cli(reachable):
+    """Not whichever `phoxtail` PATH holds: run as `python -m`, there may be none."""
+    _, _, nginx = reachable
+    result = _run()
+    assert result.exit_code == 0, result.output
+    assert nginx.call_args.args[0][:5] == [sys.executable, "-m", "phoxtail", "nginx", "create"]

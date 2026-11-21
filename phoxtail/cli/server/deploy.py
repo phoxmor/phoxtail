@@ -1,6 +1,7 @@
 """server deploy — copy configs to server and start the application."""
 
 import subprocess
+import sys
 from pathlib import Path
 
 import typer
@@ -16,6 +17,7 @@ from phoxtail.cli.server.utils import (
     ssh_run,
     verify_server_identity,
 )
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import (
     find_config_file,
     get_docker_registry,
@@ -125,18 +127,22 @@ def deploy(
     if find_config_file() is None:
         console.print("[red]Error:[/red] No phoxtail.toml found. Run this command from a phoxtail project directory.")
         raise typer.Exit(1)
+    tools.require(tools.SSH, tools.SCP)
 
     project_dir = f"~/{slugify(get_project_name())}"
+    # This same CLI, not whichever `phoxtail` PATH finds first — run as
+    # `python -m phoxtail`, there may be none on PATH at all.
+    phoxtail = [sys.executable, "-m", "phoxtail"]
     local_configs = [
         (
             _DEPLOY_DIR / ".env",
-            ["phoxtail", "env", "create", "production", "--server-ip", ip, "--output", str(_DEPLOY_DIR / ".env")],
+            [*phoxtail, "env", "create", "production", "--server-ip", ip, "--output", str(_DEPLOY_DIR / ".env")],
             ".env",
         ),
         (
             _DEPLOY_DIR / "docker-compose.prod.yaml",
             [
-                "phoxtail",
+                *phoxtail,
                 "docker",
                 "create",
                 "compose",
@@ -149,7 +155,7 @@ def deploy(
         ),
         (
             _DEPLOY_DIR / "nginx.conf",
-            ["phoxtail", "nginx", "create", "initial", "--output", str(_DEPLOY_DIR / "nginx.conf")],
+            [*phoxtail, "nginx", "create", "initial", "--output", str(_DEPLOY_DIR / "nginx.conf")],
             "nginx.conf",
         ),
     ]

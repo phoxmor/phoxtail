@@ -2,6 +2,7 @@
 
 import socket
 import subprocess
+import sys
 from pathlib import Path
 
 import typer
@@ -10,6 +11,7 @@ from rich.markup import escape
 from rich.panel import Panel
 
 from phoxtail.cli.server.utils import read_deploy_env, scp_to, ssh_check, ssh_live, ssh_run
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import find_config_file, get_project_name, slugify
 
 console = Console()
@@ -149,6 +151,7 @@ def ssl(
     if find_config_file() is None:
         console.print("[red]Error:[/red] No phoxtail.toml found. Run this command from a phoxtail project directory.")
         raise typer.Exit(1)
+    tools.require(tools.SSH, tools.SCP)
 
     domain = domain or read_deploy_env("DOMAIN")
     email = email or read_deploy_env("DOMAIN_EMAIL")
@@ -311,8 +314,12 @@ def ssl(
         _DEPLOY_DIR.mkdir(parents=True, exist_ok=True)
         nginx_local = _DEPLOY_DIR / "nginx.prod.conf"
         console.print("\n  [bold cyan]→[/bold cyan] Generating production nginx.conf")
+        # This same CLI, not whichever `phoxtail` PATH finds first — run as
+        # `python -m phoxtail`, there may be none on PATH at all.
         rc = subprocess.call(
             [
+                sys.executable,
+                "-m",
                 "phoxtail",
                 "nginx",
                 "create",

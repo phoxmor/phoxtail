@@ -26,6 +26,7 @@ from phoxtail.cli.server.utils import (
     render_bootstrap,
     wait_for_cloud_init,
 )
+from phoxtail.cli.utils import tools
 
 console = Console()
 
@@ -377,6 +378,11 @@ def provision(
         phoxtail server provision --dry-run
     """
     import questionary
+
+    # Before the provider is asked for anything: the server is paid for the
+    # moment it is created, and only then do ssh-keygen and ssh run.
+    if not dry_run:
+        tools.require(tools.SSH, tools.SSH_KEYGEN)
 
     try:
         # --- Provider ---
