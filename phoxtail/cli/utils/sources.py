@@ -15,6 +15,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.packages import is_declared
 
 PYPI = "pypi"
@@ -188,6 +189,11 @@ def preflight(source: Source, package: str) -> tuple[bool | None, str]:
         return True, ""
 
     if source.kind == GIT:
+        # uv clones git sources with the git program, so without it the
+        # source cannot resolve however reachable the repository is.
+        problem = tools.check(tools.GIT)
+        if problem is not None:
+            return False, f"{problem.reason} — a git source needs it.\n{problem.remedy}"
         try:
             result = subprocess.run(
                 ["git", "ls-remote", source.location, "HEAD"],

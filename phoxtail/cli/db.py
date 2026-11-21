@@ -11,6 +11,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Confirm
 
 from phoxtail.cli.server.utils import _SCP_OPTS, _SSH_MUX, read_deploy_env, verify_server_identity
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import get_project_name, slugify
 from phoxtail.cli.utils.docker import docker_db, docker_env, docker_manage
 from phoxtail.cli.utils.env import read_env_value
@@ -43,6 +44,9 @@ def pull(
     Creates a pg_dump on the remote, downloads it via SCP, and restores
     it locally.  A safety backup is created automatically before restoring.
     """
+    # The daemon too: the dump and the download happen on the server first,
+    # and only then does the local restore find out Docker cannot run.
+    tools.require(tools.SSH, tools.SCP, tools.COMPOSE, daemon=True)
     safety = safety_name(read_env_value("DJANGO_ENV"), "pull")
     backups_dir = Path.cwd() / "db-backups"
     backups_dir.mkdir(exist_ok=True)
@@ -228,6 +232,7 @@ def push(
     then restores the local dump on the server. Rewrites Wagtail site
     hostnames to the production domain from .phoxtail/deploy/.env.
     """
+    tools.require(tools.SSH, tools.SCP, tools.COMPOSE)
     verify_server_identity(user, ip)
 
     remote_domain = read_deploy_env("DOMAIN")
@@ -464,8 +469,10 @@ def backup(
         phoxtail db backup 203.0.113.5
     """
     if ip is None:
+        tools.require(tools.COMPOSE)
         _backup_local()
     else:
+        tools.require(tools.SSH, tools.SCP)
         _backup_remote(ip, user)
 
 
@@ -549,6 +556,7 @@ def restore(
     A safety backup of the current state is created automatically before restoring.
     The restore runs in a single transaction and will roll back on error.
     """
+    tools.require(tools.COMPOSE)
     safety = safety_name(read_env_value("DJANGO_ENV"), "restore")
     if Path(backup_file).name == safety:
         # The copy taken first would overwrite the very file about to be restored.

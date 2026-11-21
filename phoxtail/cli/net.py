@@ -11,6 +11,7 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.completion import completer
 from phoxtail.cli.utils.config import (
     DEFAULT_API_BASE_URL,
@@ -167,9 +168,10 @@ def up(
     """Start the shared net and its Traefik router, then every attached project — or just one."""
     # Resolved before anything starts: an unknown slug should cost nothing.
     members = _targets(slug)
+    tools.require(tools.COMPOSE)
     try:
         ensure_network()
-    except (RuntimeError, FileNotFoundError) as exc:
+    except RuntimeError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
     NET_DIR.mkdir(parents=True, exist_ok=True)
@@ -208,6 +210,7 @@ def down(
 ) -> None:
     """Stop every attached project, then the Traefik router — or stop just one project."""
     members = _targets(slug)
+    tools.require(tools.COMPOSE)
     # The flag is about the fan-out; a target has already replaced it.
     ok = True
     if projects or slug is not None:
@@ -239,8 +242,14 @@ def down(
 def status() -> None:
     """Show the shared net's state, and this project's attachment to it."""
     compose_file_state = "[green]present[/green]" if NET_COMPOSE_FILE.exists() else "[dim]not created[/dim]"
-    network_state = "[green]present[/green]" if network_exists() else "[dim]absent[/dim]"
-    traefik_state = "[green]running[/green]" if net_stack_running() else "[yellow]not running[/yellow]"
+    # Status reports whatever it can see, so no Docker is a state to show,
+    # not a reason to refuse.
+    docker_problem = tools.check(tools.COMPOSE)
+    if docker_problem:
+        network_state = traefik_state = f"[yellow]unknown[/yellow] ({docker_problem.reason})"
+    else:
+        network_state = "[green]present[/green]" if network_exists() else "[dim]absent[/dim]"
+        traefik_state = "[green]running[/green]" if net_stack_running() else "[yellow]not running[/yellow]"
 
     console.print("[bold]Shared net[/bold]")
     console.print(f"  compose file: {compose_file_state} ({NET_COMPOSE_FILE})")
@@ -433,6 +442,7 @@ def attach() -> None:
         )
         raise typer.Exit(code=1)
 
+    tools.require(tools.COMPOSE)
     meets_min, raw_version = check_compose_version()
     if not meets_min:
         console.print(
@@ -444,7 +454,7 @@ def attach() -> None:
     try:
         other = slug_in_use_elsewhere(slug, root)
         ensure_network()
-    except (RuntimeError, FileNotFoundError) as exc:
+    except RuntimeError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
     if other is not None:

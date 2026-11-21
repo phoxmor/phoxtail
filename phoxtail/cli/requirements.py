@@ -6,7 +6,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from phoxtail.cli.utils.venv import check_uv_installed
+from phoxtail.cli.utils import tools
 
 app = typer.Typer()
 console = Console()
@@ -43,7 +43,7 @@ def compile(
         console.print(f"[red]Error:[/red] {input_file} not found")
         raise typer.Exit(1)
 
-    check_uv_installed()
+    tools.require(tools.UV)
 
     console.print(f"Compiling {input_file} → {output_file}...", style="cyan bold")
 

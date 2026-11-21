@@ -1,23 +1,13 @@
 """Virtual environment management utilities."""
 
-import shutil
 import subprocess
 from pathlib import Path
 
-import typer
 from rich.console import Console
 
+from phoxtail.cli.utils import tools
+
 console = Console()
-
-
-def check_uv_installed() -> None:
-    """Check if uv is installed and available. Exits if not found."""
-    if not shutil.which("uv"):
-        console.print("[red]Error:[/red] uv is not installed", style="bold")
-        console.print("\nInstall uv with:")
-        console.print("  curl -LsSf https://astral.sh/uv/install.sh | sh")
-        console.print("  or: pip install uv")
-        raise typer.Exit(1)
 
 
 class ToolVenv:
@@ -37,17 +27,13 @@ class ToolVenv:
         """Check if the tool venv exists."""
         return self.venv_dir.exists() and self.python_path.exists()
 
-    def _check_uv_installed(self) -> None:
-        """Check if uv is installed and available."""
-        check_uv_installed()
-
     def create(self) -> None:
         """Create the tool virtual environment using uv."""
         if self.exists():
             console.print("✓ Tool venv already exists", style="dim")
             return
 
-        self._check_uv_installed()
+        tools.require(tools.UV)
 
         console.print("Creating tool venv with uv...", style="yellow")
         self.venv_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -69,7 +55,7 @@ class ToolVenv:
         if not self.exists():
             self.create()
 
-        self._check_uv_installed()
+        tools.require(tools.UV)
 
         # Check if package is already installed
         if not upgrade:

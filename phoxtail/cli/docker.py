@@ -12,6 +12,7 @@ import yaml
 from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import (
     get_docker_registry,
     get_project_name,
@@ -48,6 +49,7 @@ def up(
         phoxtail docker up --build
         phoxtail docker up --scale web=2
     """
+    tools.require(tools.COMPOSE)
     env = docker_env()
 
     if build:
@@ -84,6 +86,7 @@ def down(ctx: typer.Context) -> None:
         phoxtail docker down
         phoxtail docker down --volumes
     """
+    tools.require(tools.COMPOSE)
     cmd = ["docker", "compose", "down", *ctx.args]
     sys.exit(subprocess.call(cmd, env=docker_env()))
 
@@ -104,6 +107,7 @@ def restart(ctx: typer.Context) -> None:
         phoxtail docker restart
         phoxtail docker restart web
     """
+    tools.require(tools.COMPOSE)
     cmd = ["docker", "compose", "restart", *ctx.args]
     sys.exit(subprocess.call(cmd, env=docker_env()))
 
@@ -295,12 +299,17 @@ def _registry_and_sha() -> tuple[str, str | None] | None:
             '  registry = "ghcr.io/<org_name>"[/dim]'
         )
         return None
-    sha = _git_sha()
+    # git only adds the second tag, so a machine without it still builds
+    # and pushes — but the warning has to name the right cause.
+    git_problem = tools.check(tools.GIT)
+    sha = None if git_problem else _git_sha()
     if sha is None:
-        console.print(
-            "[yellow]Warning:[/yellow] No git SHA available — building/pushing [bold]:latest[/bold] only.\n"
-            "  Commit your changes to enable SHA-tagged images."
+        cause, remedy = (
+            (git_problem.reason, "Install git to tag images with their commit.")
+            if git_problem
+            else ("No git SHA available", "Commit your changes to enable SHA-tagged images.")
         )
+        console.print(f"[yellow]Warning:[/yellow] {cause} — building/pushing [bold]:latest[/bold] only.\n  {remedy}")
     base = f"{docker_registry}/{slugify(get_project_name())}"
     return base, sha
 
@@ -330,6 +339,7 @@ def login_cmd(
     """
     import questionary
 
+    tools.require(tools.DOCKER)
     docker_registry = get_docker_registry()
     if not docker_registry:
         console.print(
@@ -398,6 +408,7 @@ def build_cmd(
         phoxtail docker build
         phoxtail docker build --no-cache
     """
+    tools.require(tools.DOCKER)
     result = _registry_and_sha()
     if result is None:
         raise typer.Exit(1)
@@ -421,6 +432,7 @@ def push_cmd() -> None:
     Examples:
         phoxtail docker push
     """
+    tools.require(tools.DOCKER)
     result = _registry_and_sha()
     if result is None:
         raise typer.Exit(1)
@@ -447,6 +459,7 @@ def release_cmd(
         phoxtail docker release
         phoxtail docker release --no-cache
     """
+    tools.require(tools.UV, tools.DOCKER)
     result = _registry_and_sha()
     if result is None:
         raise typer.Exit(1)
@@ -776,7 +789,12 @@ def compose(
             "registry_mode": registry,
         }
 
-        if Path(".venv").exists():
+        # The sync only refreshes what the fragment scan reads, so without
+        # uv the file is still written — from the .venv as it stands.
+        uv_problem = tools.check(tools.UV) if Path(".venv").exists() else None
+        if uv_problem:
+            console.print(f"[yellow]Warning:[/yellow] {uv_problem.reason} — fragments may be stale")
+        elif Path(".venv").exists():
             with console.status("[dim]Syncing .venv before scanning fragments…[/dim]"):
                 sync = subprocess.run(["uv", "sync"], capture_output=True, text=True)
             if sync.returncode != 0:

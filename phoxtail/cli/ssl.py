@@ -6,6 +6,7 @@ import sys
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.env import read_env_value
 
@@ -32,6 +33,7 @@ def obtain(
         phoxtail ssl obtain
         phoxtail ssl obtain --wildcard
     """
+    tools.require(tools.COMPOSE)
     domain = read_env_value("DOMAIN")
     email = read_env_value("DOMAIN_EMAIL")
 
@@ -83,6 +85,7 @@ def renew() -> None:
     Examples:
         phoxtail ssl renew
     """
+    tools.require(tools.COMPOSE)
     env = docker_env()
     result = subprocess.call(["docker", "compose", "run", "--rm", "--no-deps", "certbot", "renew", "-q"], env=env)
     if result != 0:

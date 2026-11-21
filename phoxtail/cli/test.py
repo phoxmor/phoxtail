@@ -6,6 +6,7 @@ import sys
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.docker import docker_env
 
 app = typer.Typer(
@@ -43,6 +44,9 @@ def test(
         cmd.extend(ctx.args)
         sys.exit(subprocess.call(cmd))
     else:
+        tools.require(
+            tools.COMPOSE, note="Or run the CLI tests alone, without Docker: [cyan]phoxtail test --cli[/cyan]"
+        )
         cmd = ["docker", "compose", "run", "--rm", "web", "pytest"]
         if coverage:
             cmd.extend(["--cov", "--cov-report=term-missing"])

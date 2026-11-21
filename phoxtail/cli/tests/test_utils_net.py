@@ -164,26 +164,40 @@ class TestSetEnvKey:
 
 
 class TestCheckComposeVersion:
-    @patch("phoxtail.cli.utils.net.subprocess.run")
+    # The version is read only once docker is found, so these pin a docker on
+    # PATH rather than depend on the machine running them having one.
+    @pytest.fixture(autouse=True)
+    def docker_on_path(self):
+        with patch("phoxtail.cli.utils.tools.shutil.which", return_value="/usr/bin/docker"):
+            yield
+
+    @patch("phoxtail.cli.utils.tools.subprocess.run")
     def test_meets_minimum(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=0, stdout="2.29.7\n", stderr="")
         meets_min, raw = check_compose_version()
         assert meets_min is True
         assert raw == "2.29.7"
 
-    @patch("phoxtail.cli.utils.net.subprocess.run")
+    @patch("phoxtail.cli.utils.tools.subprocess.run")
     def test_below_minimum(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=0, stdout="2.20.0\n", stderr="")
         meets_min, raw = check_compose_version()
         assert meets_min is False
         assert raw == "2.20.0"
 
-    @patch("phoxtail.cli.utils.net.subprocess.run")
+    @patch("phoxtail.cli.utils.tools.subprocess.run")
     def test_command_failure(self, mock_run):
         mock_run.return_value = subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr="not found")
         meets_min, raw = check_compose_version()
         assert meets_min is False
         assert raw == "unknown"
+
+    @patch("phoxtail.cli.utils.tools.subprocess.run")
+    def test_no_docker_is_unknown_without_running_it(self, mock_run):
+        with patch("phoxtail.cli.utils.tools.shutil.which", return_value=None):
+            meets_min, raw = check_compose_version()
+        assert (meets_min, raw) == (False, "unknown")
+        mock_run.assert_not_called()
 
 
 class TestSlugInUseElsewhere:

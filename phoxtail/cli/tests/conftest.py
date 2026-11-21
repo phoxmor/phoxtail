@@ -24,6 +24,34 @@ depends_on = ["cms"]
 """
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "real_programs: look programs up on the real PATH instead of assuming every one is installed",
+    )
+
+
+@pytest.fixture(autouse=True)
+def programs_present(request, monkeypatch):
+    """Answer every program check with "installed", unless a test opts out.
+
+    Commands now ask :func:`phoxtail.cli.utils.tools.check` before they run
+    docker, uv, ssh and the rest. Left real, that would make every command
+    test depend on what the machine running it has installed — and the
+    Compose and daemon probes would land in tests that patch
+    ``subprocess.run`` globally, shifting the calls those tests count.
+
+    Tests of the checks themselves, and of what a command does when a
+    program is missing, mark themselves ``real_programs`` and control
+    ``PATH`` instead.
+    """
+    if request.node.get_closest_marker("real_programs"):
+        return
+    from phoxtail.cli.utils import tools
+
+    monkeypatch.setattr(tools, "check", lambda *programs, daemon=False: None)
+
+
 @pytest.fixture(scope="session", autouse=True)
 def mcp_tools_registered():
     """Register the MCP surface once, for tests that assert on the catalogue.

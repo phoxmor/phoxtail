@@ -8,6 +8,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from phoxtail.cli.utils.tools import compose_version
+
 NET_DIR = Path.home() / ".phoxtail" / "net"
 NET_COMPOSE_FILE = NET_DIR / "docker-compose.yaml"
 NETWORK_NAME = "phoxtail-net"
@@ -60,10 +62,9 @@ def check_compose_version() -> tuple[bool, str]:
     Raw version is "unknown" if it couldn't be determined at all, in which
     case meets_minimum is False.
     """
-    result = subprocess.run(["docker", "compose", "version", "--short"], capture_output=True, text=True)
-    if result.returncode != 0:
+    raw = compose_version()
+    if raw is None:
         return False, "unknown"
-    raw = result.stdout.strip()
     parts = raw.lstrip("v").split(".")
     try:
         major, minor = int(parts[0]), int(parts[1])

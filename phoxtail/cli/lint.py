@@ -6,6 +6,8 @@ import sys
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils import tools
+
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
@@ -30,6 +32,7 @@ def lint(
         phoxtail lint --no-fix
         phoxtail lint --no-templates
     """
+    tools.require(tools.COMPOSE)
     ruff_cmd = "ruff check --select I,F401"
     if fix:
         ruff_cmd += " --fix"

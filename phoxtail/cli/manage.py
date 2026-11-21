@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.docker import docker_env
 
 console = Console()
@@ -70,6 +71,7 @@ def manage(
     """
     import questionary
 
+    tools.require(tools.COMPOSE)
     if command is None:
         if not sys.stdin.isatty():
             console.print("[red]Interactive mode requires a terminal.[/red]")

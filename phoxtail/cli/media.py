@@ -11,6 +11,7 @@ from rich.progress import BarColumn, Progress, TaskProgressColumn, TextColumn
 from rich.prompt import Confirm
 
 from phoxtail.cli.server.utils import _SSH_MUX, read_deploy_env, verify_server_identity
+from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import get_project_name, slugify
 
 app = typer.Typer()
@@ -131,6 +132,7 @@ def pull(
     Exports media from the running web container via docker compose cp,
     then rsyncs it locally. Works for both volume and bind-mount deployments.
     """
+    tools.require(tools.SSH, tools.RSYNC)
     verify_server_identity(user, ip)
 
     local_media_dir = Path.cwd() / "media"
@@ -224,6 +226,7 @@ def push(
     it into the running web container via docker compose cp. Works for
     both volume and bind-mount deployments.
     """
+    tools.require(tools.SSH, tools.RSYNC)
     verify_server_identity(user, ip)
 
     local_media_dir = Path.cwd() / "media"
