@@ -176,25 +176,23 @@ class TestPull:
     @patch("phoxtail.cli.db.docker_db")
     @patch("phoxtail.cli.db.read_env_value", side_effect=_env(DOMAIN="localhost"))
     @patch("phoxtail.cli.db.subprocess.run")
-    def test_safety_backup_failure_non_fatal(
-        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir
+    def test_safety_backup_failure_stops_before_the_server(
+        self, mock_run, mock_env, mock_docker_db, mock_manage, mock_verify, mock_confirm, project_dir, capsys
     ):
-        """Safety backup failure doesn't abort the pull."""
-        mock_run.return_value = _completed()
-        mock_manage.return_value = _completed(stdout="__SUPERUSERS__:")
+        """Without a copy of the local database the pull does not replace it,
+        and it finds that out before the server dumps or sends anything."""
+        mock_docker_db.side_effect = subprocess.CalledProcessError(1, "pg_dump", stderr="db is not running")
 
-        # Safety backup fails
-        mock_docker_db.side_effect = [
-            subprocess.CalledProcessError(1, "pg_dump"),  # safety backup
-            _completed(),  # hostname update
-        ]
+        with pytest.raises(typer.Exit) as exc_info:
+            _pull()
 
-        backups_dir = project_dir / "db-backups"
-        backups_dir.mkdir()
-        (backups_dir / "remote_pull.sql").write_text("-- SQL")
-
-        # Should not raise
-        _pull()
+        assert exc_info.value.exit_code == 1
+        mock_docker_db.assert_called_once()
+        mock_run.assert_not_called()
+        mock_manage.assert_not_called()
+        out = capsys.readouterr().out
+        assert "db is not running" in out
+        assert "Nothing was changed" in out
 
     @patch("phoxtail.cli.db.Confirm.ask", return_value=True)
     @patch("phoxtail.cli.db.verify_server_identity")

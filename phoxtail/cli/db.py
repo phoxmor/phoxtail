@@ -41,11 +41,12 @@ def pull(
 ) -> None:
     """Pull the database from a remote server.
 
-    Creates a pg_dump on the remote, downloads it via SCP, and restores
-    it locally.  A safety backup is created automatically before restoring.
+    Backs up the local database first, then creates a pg_dump on the
+    remote, downloads it via SCP, and restores it locally. If the local
+    backup cannot be taken, nothing else happens.
     """
-    # The daemon too: the dump and the download happen on the server first,
-    # and only then does the local restore find out Docker cannot run.
+    # The daemon too, so a stopped Docker is named, with how to start it,
+    # before the server is contacted at all.
     tools.require(tools.SSH, tools.SCP, tools.COMPOSE, daemon=True)
     safety = safety_name(read_env_value("DJANGO_ENV"), "pull")
     backups_dir = Path.cwd() / "db-backups"
@@ -72,7 +73,21 @@ def pull(
     ) as progress:
         task = progress.add_task(description="Starting...", total=None)
         try:
-            # 1. Dump on remote.
+            # 1. Safety backup of the local database, before anything else:
+            #    the restore below replaces it, so without a copy the pull
+            #    does not go on — and stopping here costs the server nothing.
+            progress.update(task, description="Creating safety backup...")
+            try:
+                docker_db(_dump_into(safety))
+            except subprocess.CalledProcessError as e:
+                progress.stop()
+                console.print(
+                    f"[red]Error:[/red] Could not back up the local database first: {e.stderr or e}\n"
+                    "  Nothing was changed, here or on the server."
+                )
+                raise typer.Exit(1) from None
+
+            # 2. Dump on remote.
             progress.update(task, description="Dumping database on remote...")
             remote_cmd = (
                 f"cd {project_dir} && "
@@ -88,7 +103,7 @@ def pull(
                 text=True,
             )
 
-            # 2. Download.
+            # 3. Download.
             progress.update(task, description="Downloading dump...")
             subprocess.run(
                 [
@@ -106,13 +121,6 @@ def pull(
                 ["ssh", *_SSH_MUX, remote_host, f"rm -f {project_dir}/{DUMP_FILENAME}"],
                 capture_output=True,
             )
-
-            # 3. Safety backup of current local state.
-            progress.update(task, description="Creating safety backup...")
-            try:
-                docker_db(_dump_into(safety))
-            except subprocess.CalledProcessError as e:
-                console.print(f"  [yellow]Safety backup skipped:[/yellow] {e.stderr or str(e)}")
 
             # 4. Restore: drop schema, recreate, load dump via stdin
             #    (avoids dependency on the db-backups bind mount).
