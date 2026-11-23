@@ -58,11 +58,12 @@ def _parse_rsync_stats(output: str) -> RsyncStats:
     return stats
 
 
-def _run_rsync_with_progress(rsync_cmd: list[str], label: str = "Syncing media") -> str:
-    """Run rsync and display a Rich progress bar from --info=progress2 output.
+def _run_rsync_with_progress(rsync_args: list[str], label: str = "Syncing media") -> str:
+    """Run rsync with *rsync_args*, showing a progress bar from --info=progress2.
 
     Returns the combined stdout/stderr output for stats parsing.
     """
+    rsync_cmd = ["rsync", *rsync_args]
     proc = subprocess.Popen(
         rsync_cmd,
         stdout=subprocess.PIPE,
@@ -163,8 +164,7 @@ def pull(
         # 2. Rsync staging dir → local media.
         remote_path = f"{remote_host}:{remote_staging}/"
         ssh_e = "ssh " + " ".join(_SSH_MUX)
-        rsync_cmd = [
-            "rsync",
+        rsync_args = [
             "-az",
             "-e",
             ssh_e,
@@ -175,17 +175,17 @@ def pull(
         ]
 
         if dry_run:
-            rsync_cmd[4:4] = ["--dry-run", "--verbose"]
-            rsync_cmd.remove("--info=progress2")
+            rsync_args[3:3] = ["--dry-run", "--verbose"]
+            rsync_args.remove("--info=progress2")
             console.print("[bold]Dry run:[/bold] showing what would be downloaded.\n")
-            subprocess.run(rsync_cmd, check=True)
+            subprocess.run(["rsync", *rsync_args], check=True)
             console.print("\n[dim]No files were transferred. Remove --dry-run to sync.[/dim]")
         elif verbose:
-            rsync_cmd[4:4] = ["--verbose", "--progress"]
-            rsync_cmd.remove("--info=progress2")
-            subprocess.run(rsync_cmd, check=True)
+            rsync_args[3:3] = ["--verbose", "--progress"]
+            rsync_args.remove("--info=progress2")
+            subprocess.run(["rsync", *rsync_args], check=True)
         else:
-            output = _run_rsync_with_progress(rsync_cmd, label="Downloading media")
+            output = _run_rsync_with_progress(rsync_args, label="Downloading media")
             _print_rsync_result(output)
 
     except subprocess.CalledProcessError:
@@ -277,8 +277,7 @@ def push(
         # 1. Rsync local media → staging dir on server.
         remote_path = f"{remote_host}:{remote_staging}/"
         ssh_e = "ssh " + " ".join(_SSH_MUX)
-        rsync_cmd = [
-            "rsync",
+        rsync_args = [
             "-az",
             "-e",
             ssh_e,
@@ -289,18 +288,18 @@ def push(
         ]
 
         if dry_run:
-            rsync_cmd[4:4] = ["--dry-run", "--verbose"]
-            rsync_cmd.remove("--info=progress2")
+            rsync_args[3:3] = ["--dry-run", "--verbose"]
+            rsync_args.remove("--info=progress2")
             console.print("[bold]Dry run:[/bold] showing what would be uploaded.\n")
-            subprocess.run(rsync_cmd, check=True)
+            subprocess.run(["rsync", *rsync_args], check=True)
             console.print("\n[dim]No files were transferred. Remove --dry-run to push.[/dim]")
             return
         elif verbose:
-            rsync_cmd[4:4] = ["--verbose", "--progress"]
-            rsync_cmd.remove("--info=progress2")
-            subprocess.run(rsync_cmd, check=True)
+            rsync_args[3:3] = ["--verbose", "--progress"]
+            rsync_args.remove("--info=progress2")
+            subprocess.run(["rsync", *rsync_args], check=True)
         else:
-            output = _run_rsync_with_progress(rsync_cmd, label="Uploading media")
+            output = _run_rsync_with_progress(rsync_args, label="Uploading media")
             _print_rsync_result(output)
 
         # 2. Load staging dir into the container.

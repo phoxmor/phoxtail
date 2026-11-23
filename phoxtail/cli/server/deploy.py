@@ -136,13 +136,12 @@ def deploy(
     local_configs = [
         (
             _DEPLOY_DIR / ".env",
-            [*phoxtail, "env", "create", "production", "--server-ip", ip, "--output", str(_DEPLOY_DIR / ".env")],
+            ["env", "create", "production", "--server-ip", ip, "--output", str(_DEPLOY_DIR / ".env")],
             ".env",
         ),
         (
             _DEPLOY_DIR / "docker-compose.prod.yaml",
             [
-                *phoxtail,
                 "docker",
                 "create",
                 "compose",
@@ -155,7 +154,7 @@ def deploy(
         ),
         (
             _DEPLOY_DIR / "nginx.conf",
-            [*phoxtail, "nginx", "create", "initial", "--output", str(_DEPLOY_DIR / "nginx.conf")],
+            ["nginx", "create", "initial", "--output", str(_DEPLOY_DIR / "nginx.conf")],
             "nginx.conf",
         ),
     ]
@@ -193,14 +192,14 @@ def deploy(
         # ------------------------------------------------------------------
         _DEPLOY_DIR.mkdir(parents=True, exist_ok=True)
         console.print("\n[bold]Local configuration[/bold]")
-        for local_path, cmd, _ in local_configs:
+        for local_path, args, _ in local_configs:
             if local_path.exists():
                 console.print(
                     f"  [green]✓[/green] {local_path.name} [dim](exists — delete {local_path} to regenerate)[/dim]"
                 )
                 continue
             console.print(f"\n  [bold cyan]→[/bold cyan] {local_path.name}")
-            rc = subprocess.call(cmd)
+            rc = subprocess.call([*phoxtail, *args])
             if rc != 0:
                 console.print(f"  [red]✗[/red] Failed to generate {local_path.name}")
                 raise typer.Exit(1)
