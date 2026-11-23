@@ -31,6 +31,12 @@ class TestLanguageFlyout:
         assert 'name="next" value="/el/dashboard/"' in html
         assert html.count("dash-lang__option--active") == 1
 
+    def test_the_card_opens_beside_the_sidebar_level_with_its_row(self, rf, settings):
+        """Core's popover.js places it; the gap is the card's (dashboard.css)."""
+        html = self._render(rf, settings, [("en", "English"), ("el", "Greek")])
+
+        assert 'data-popover-placement="right-start"' in html
+
     def test_a_single_language_draws_nothing(self, rf, settings):
         html = self._render(rf, settings, [("en", "English")])
 

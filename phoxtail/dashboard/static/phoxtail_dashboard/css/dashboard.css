@@ -1015,8 +1015,9 @@
    SIDEBAR – Flyouts (Website, language)
 
    A row opens a card beside the sidebar (the popover attribute: on top of
-   everything, closed by a click outside or Escape). The sidebar's script
-   places it.
+   everything, closed by a click outside or Escape), level with the row.
+   Core's popover.js places it (data-popover-placement); the sidebar's
+   script opens it on hover.
    ======================================== */
 .dash-flyout-trigger {
     width: 100%;
@@ -1026,8 +1027,10 @@
 }
 
 .dash-flyout {
-    position: fixed;
-    inset: auto;
+    /* Off the sidebar card's edge by 8px: the row sits 0.5rem inside the
+       card (.dash-sidebar__nav and __footer's side padding, the same
+       collapsed). */
+    --phx-popover-offset: calc(0.5rem + 8px);
     /* As wide as its longest label, within limits; a longer one wraps. */
     min-width: 10rem;
     max-width: 16rem;
@@ -1036,11 +1039,8 @@
     max-height: min(28rem, calc(100vh - 1.5rem));
     overflow-y: auto;
     scrollbar-width: none;
-    margin: 0;
     padding: 0.375rem;
-    border: none;
     border-radius: 1rem;
-    color: inherit;
 }
 
 /* The row says it opens something to its right. */

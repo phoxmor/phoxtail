@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: phoxtail\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-23 16:56-0500\n"
+"POT-Creation-Date: 2026-11-23 09:16-0600\n"
 "PO-Revision-Date: 2026-10-21 00:00+0000\n"
 "Last-Translator: Evangelos Pisinas <evangelos.pisinas@phoxtail.com>\n"
 "Language-Team: Greek\n"
@@ -13,87 +13,87 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: agent/models.py:14 agent/models.py:40 design/models.py:171
-#: design/models.py:207 design/models.py:247 streams/models.py:83
-#: streams/models.py:256 streams/models.py:300
+#: agent/models.py:18 agent/models.py:44 design/models.py:171
+#: design/models.py:207 design/models.py:247 streams/models.py:87
+#: streams/models.py:260 streams/models.py:304
 msgid "identifier"
 msgstr "αναγνωριστικό"
 
-#: agent/models.py:15 agent/models.py:41
+#: agent/models.py:19 agent/models.py:45
 msgid "display name"
 msgstr "εμφανιζόμενο όνομα"
 
-#: agent/models.py:16
+#: agent/models.py:20
 msgid "model prefix"
 msgstr "πρόθεμα μοντέλου"
 
-#: agent/models.py:17 remotes/models.py:21
+#: agent/models.py:21 remotes/models.py:25
 msgid "base URL"
 msgstr "βασική διεύθυνση URL"
 
-#: agent/models.py:18
+#: agent/models.py:22
 msgid "API key environment variable"
 msgstr "μεταβλητή περιβάλλοντος κλειδιού API"
 
-#: agent/models.py:19 agent/models.py:50
+#: agent/models.py:23 agent/models.py:54
 msgctxt "state"
 msgid "active"
 msgstr "ενεργό"
 
-#: agent/models.py:28
+#: agent/models.py:32
 msgid "inference provider"
 msgstr "πάροχος μοντέλων AI"
 
-#: agent/models.py:29
+#: agent/models.py:33
 msgid "inference providers"
 msgstr "πάροχοι μοντέλων AI"
 
-#: agent/models.py:38
+#: agent/models.py:42
 msgid "provider"
 msgstr "πάροχος"
 
-#: agent/models.py:48
+#: agent/models.py:52
 msgctxt "access"
 msgid "permission"
 msgstr "δικαίωμα"
 
-#: agent/models.py:70
+#: agent/models.py:74
 msgid "AI model"
 msgstr "μοντέλο AI"
 
-#: agent/models.py:71
+#: agent/models.py:75
 msgid "AI models"
 msgstr "μοντέλα AI"
 
-#: agent/models.py:80 tokens/models.py:15
+#: agent/models.py:84 tokens/models.py:19
 msgid "user"
 msgstr "χρήστης"
 
-#: agent/models.py:82
+#: agent/models.py:86
 msgid "message history"
 msgstr "ιστορικό μηνυμάτων"
 
-#: agent/models.py:83 design/models.py:277
+#: agent/models.py:87 design/models.py:277
 msgid "title"
 msgstr "τίτλος"
 
-#: agent/models.py:90
+#: agent/models.py:94
 msgid "last artifact used"
 msgstr "τελευταίο μοντέλο που χρησιμοποιήθηκε"
 
-#: agent/models.py:100
+#: agent/models.py:104
 msgid "conversation"
 msgstr "συνομιλία"
 
-#: agent/models.py:101
+#: agent/models.py:105
 msgid "conversations"
 msgstr "συνομιλίες"
 
-#: agent/models.py:113
+#: agent/models.py:117
 msgid "default artifact"
 msgstr "προεπιλεγμένο μοντέλο"
 
-#: agent/models.py:119 agent/wagtail_hooks.py:19
+#: agent/models.py:123 agent/wagtail_hooks.py:19
 #: cms/templates/phoxtail_cms/phoxtail_bar.html:210
 msgid "Inference"
 msgstr "Μοντέλα AI"
@@ -120,8 +120,8 @@ msgstr "Νέα συνομιλία"
 #: cms/templates/phoxtail_cms/phoxtail_bar.html:87
 #: cms/templates/phoxtail_cms/phoxtail_bar.html:212
 #: cms/templates/phoxtail_cms/phoxtail_bar.html:248
-#: core/templates/phoxtail_core/modal_drawer.html:35
-#: core/templates/phoxtail_core/modal_drawer.html:49
+#: core/templates/phoxtail_core/modal_drawer.html:42
+#: core/templates/phoxtail_core/modal_drawer.html:56
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:90
 #: tokens/templates/phoxtail_tokens/admin/partials/forms/filters/form_content.html:7
 msgid "Close"
@@ -420,9 +420,9 @@ msgid "Admin Branding"
 msgstr "Ταυτότητα διαχείρισης"
 
 #: cms/models.py:218
-#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:25
-#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:121
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:74
+#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:24
+#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:120
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:73
 msgctxt "admin area"
 msgid "Admin"
 msgstr "Διαχείριση"
@@ -613,7 +613,7 @@ msgstr "Ανάπτυξη (E)"
 msgid "Close (C)"
 msgstr "Κλείσιμο (C)"
 
-#: cms/templates/phoxtail_cms/phoxtail_bar.html:245 streams/models.py:226
+#: cms/templates/phoxtail_cms/phoxtail_bar.html:245 streams/models.py:230
 #: streams/viewsets.py:37 streams/viewsets.py:38
 msgid "Blocks"
 msgstr "Μπλοκ"
@@ -701,7 +701,7 @@ msgstr "Όχι"
 msgid "UUID"
 msgstr "UUID"
 
-#: core/mixins.py:29 tokens/models.py:72
+#: core/mixins.py:29 tokens/models.py:76
 msgctxt "timestamp"
 msgid "created at"
 msgstr "ημερομηνία δημιουργίας"
@@ -764,18 +764,18 @@ msgstr "Σφάλμα διακομιστή"
 msgid "Sorry, there seems to be an error. Please try again soon."
 msgstr "Λυπούμαστε, κάτι πήγε στραβά. Δοκιμάστε ξανά σε λίγο."
 
-#: core/templates/phoxtail_core/copy_key_button.html:15
+#: core/templates/phoxtail_core/copy_key_button.html:14
 msgid "Copy to clipboard"
 msgstr "Αντιγραφή στο πρόχειρο"
 
 #: core/templates/phoxtail_core/forms/fields/date_stepper.html:24
-#: core/templatetags/phoxtail_core_tags.py:123
+#: core/templatetags/phoxtail_core_tags.py:128
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:100
 msgid "Previous"
 msgstr "Προηγούμενο"
 
 #: core/templates/phoxtail_core/forms/fields/date_stepper.html:38
-#: core/templatetags/phoxtail_core_tags.py:126
+#: core/templatetags/phoxtail_core_tags.py:131
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:103
 msgid "Next"
 msgstr "Επόμενο"
@@ -828,7 +828,7 @@ msgstr "Επόμενη εβδομάδα"
 
 #: core/templates/phoxtail_core/language_menu.html:16
 #: dashboard/templates/phoxtail_dashboard/navigation/language.html:12
-#: dashboard/templates/phoxtail_dashboard/navigation/language_flyout.html:22
+#: dashboard/templates/phoxtail_dashboard/navigation/language_flyout.html:23
 msgid "Language"
 msgstr "Γλώσσα"
 
@@ -881,13 +881,17 @@ msgstr ""
 msgid "Continue"
 msgstr "Συνέχεια"
 
-#: core/templatetags/phoxtail_core_tags.py:122
+#: core/templatetags/phoxtail_core_tags.py:127
 msgid "First page"
 msgstr "Πρώτη σελίδα"
 
-#: core/templatetags/phoxtail_core_tags.py:127
+#: core/templatetags/phoxtail_core_tags.py:132
 msgid "Last page"
 msgstr "Τελευταία σελίδα"
+
+#: core/templatetags/phoxtail_core_tags.py:210
+msgid "More actions"
+msgstr "Περισσότερες ενέργειες"
 
 #: dashboard/blocks.py:12 dashboard/blocks.py:69 dashboard/blocks.py:84
 #: streams/blocks/schema/fields.py:408
@@ -988,25 +992,25 @@ msgstr ""
 "Καταχωρίστε μικροεφαρμογές από τις εφαρμογές σας για να ζωντανέψει αυτή η "
 "σελίδα."
 
-#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:18
-#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:114
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:67
+#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:17
+#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:113
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:66
 #: users/templates/users/profile/index.html:4
 #: users/templates/users/profile/index.html:12
 msgid "Profile"
 msgstr "Προφίλ"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:32
-#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:128
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:81
+#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:31
+#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:127
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:80
 msgid "Sign out"
 msgstr "Αποσύνδεση"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:68
+#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:64
 msgid "More navigation items"
 msgstr "Περισσότερες επιλογές πλοήγησης"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:71
+#: dashboard/templates/phoxtail_dashboard/navigation/dock.html:67
 msgctxt "navigation"
 msgid "More"
 msgstr "Περισσότερα"
@@ -1019,29 +1023,29 @@ msgstr "Άνοιγμα μενού"
 msgid "Close menu"
 msgstr "Κλείσιμο μενού"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:138
+#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:137
 msgid "Log in"
 msgstr "Σύνδεση"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:143
+#: dashboard/templates/phoxtail_dashboard/navigation/drawer.html:142
 msgid "Sign up"
 msgstr "Εγγραφή"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:58
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:57
 msgid "Toggle sidebar"
 msgstr "Εμφάνιση ή απόκρυψη πλαϊνού μενού"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:60
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:108
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:59
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:107
 msgid "Collapse menu"
 msgstr "Σύμπτυξη μενού"
 
-#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:107
+#: dashboard/templates/phoxtail_dashboard/navigation/sidebar.html:106
 msgid "Expand menu"
 msgstr "Ανάπτυξη μενού"
 
 #: dashboard/templates/phoxtail_dashboard/navigation/website_flyout.html:11
-#: dashboard/templates/phoxtail_dashboard/navigation/website_flyout.html:17
+#: dashboard/templates/phoxtail_dashboard/navigation/website_flyout.html:18
 msgid "Website"
 msgstr "Ιστότοπος"
 
@@ -1066,8 +1070,8 @@ msgstr ""
 "'Roboto')"
 
 #: design/models.py:22 design/models.py:164 design/models.py:198
-#: design/models.py:241 remotes/models.py:16 streams/models.py:78
-#: streams/models.py:250 streams/models.py:295 tokens/models.py:17
+#: design/models.py:241 remotes/models.py:20 streams/models.py:82
+#: streams/models.py:254 streams/models.py:299 tokens/models.py:21
 #: users/models.py:102
 msgid "name"
 msgstr "όνομα"
@@ -1077,8 +1081,8 @@ msgid "Optional description of the font and its intended use"
 msgstr "Προαιρετική περιγραφή της γραμματοσειράς και της χρήσης της"
 
 #: design/models.py:28 design/models.py:174 design/models.py:217
-#: design/models.py:253 design/models.py:280 streams/models.py:86
-#: streams/models.py:259 streams/models.py:304 tokens/models.py:18
+#: design/models.py:253 design/models.py:280 streams/models.py:90
+#: streams/models.py:263 streams/models.py:308 tokens/models.py:22
 msgid "description"
 msgstr "περιγραφή"
 
@@ -1397,7 +1401,7 @@ msgstr "παραλλαγή εικόνας"
 msgid "image renditions"
 msgstr "παραλλαγές εικόνας"
 
-#: media/models.py:30 media/models.py:41 streams/models.py:54
+#: media/models.py:30 media/models.py:41 streams/models.py:58
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:34
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:47
 #: tokens/admin/forms.py:32
@@ -1461,20 +1465,20 @@ msgstr "Νέο διακριτικό"
 msgid "Leave blank to keep %(token)s."
 msgstr "Αφήστε το κενό για να κρατήσετε το %(token)s."
 
-#: remotes/admin/remotes/viewsets.py:19 remotes/models.py:39
+#: remotes/admin/remotes/viewsets.py:19 remotes/models.py:43
 #: remotes/permissions/models.py:15 remotes/permissions/models.py:16
 #: remotes/templates/phoxtail_remotes/admin/remotes/index.html:3
 #: remotes/templates/phoxtail_remotes/admin/remotes/partials/header.html:4
 msgid "Remotes"
 msgstr "Απομακρυσμένα έργα"
 
-#: remotes/models.py:15
+#: remotes/models.py:19
 msgid "Display label for this remote (e.g. 'Phoxtail Registry')."
 msgstr ""
 "Το όνομα που εμφανίζεται για αυτό το απομακρυσμένο έργο (π.χ. 'Phoxtail "
 "Registry')."
 
-#: remotes/models.py:20
+#: remotes/models.py:24
 msgid ""
 "Root URL of the remote project, e.g. https://registry.phoxtail.com — no "
 "trailing slash."
@@ -1482,17 +1486,17 @@ msgstr ""
 "Η αρχική διεύθυνση URL του απομακρυσμένου έργου, π.χ. https://"
 "registry.phoxtail.com — χωρίς κάθετο στο τέλος."
 
-#: remotes/models.py:25
+#: remotes/models.py:29
 msgid "Bearer token for this remote. Never displayed after save."
 msgstr ""
 "Το διακριτικό για αυτό το απομακρυσμένο έργο. Δεν εμφανίζεται ποτέ μετά την "
 "αποθήκευση."
 
-#: remotes/models.py:26
+#: remotes/models.py:30
 msgid "token"
 msgstr "διακριτικό"
 
-#: remotes/models.py:38
+#: remotes/models.py:42
 #: remotes/templates/phoxtail_remotes/admin/remotes/partials/forms/fields.html:7
 #: streams/admin/sync/forms.py:13
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:66
@@ -2212,38 +2216,38 @@ msgstr "Τέλος του body"
 msgid "content"
 msgstr "περιεχόμενο"
 
-#: streams/models.py:52
+#: streams/models.py:56
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:32
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:45
 #: tokens/admin/forms.py:27
 msgid "Name"
 msgstr "Όνομα"
 
-#: streams/models.py:53
+#: streams/models.py:57
 msgid "Slug"
 msgstr "Slug"
 
-#: streams/models.py:68
+#: streams/models.py:72
 msgid "Block Category"
 msgstr "Κατηγορία μπλοκ"
 
-#: streams/models.py:69 streams/viewsets.py:21 streams/viewsets.py:22
+#: streams/models.py:73 streams/viewsets.py:21 streams/viewsets.py:22
 msgid "Block Categories"
 msgstr "Κατηγορίες μπλοκ"
 
-#: streams/models.py:78
+#: streams/models.py:82
 msgid "Display name"
 msgstr "Εμφανιζόμενο όνομα"
 
-#: streams/models.py:82
+#: streams/models.py:86
 msgid "Unique identifier (e.g., 'header_section', 'simple_hero')"
 msgstr "Μοναδικό αναγνωριστικό (π.χ. 'header_section', 'simple_hero')"
 
-#: streams/models.py:86
+#: streams/models.py:90
 msgid "Description of this block's purpose and use case"
 msgstr "Περιγραφή του σκοπού και της χρήσης αυτού του μπλοκ"
 
-#: streams/models.py:93
+#: streams/models.py:97
 msgid ""
 "Wagtail icon name for this block (e.g., 'image', 'doc-full', 'media'). "
 "Displayed in the block chooser."
@@ -2251,11 +2255,11 @@ msgstr ""
 "Όνομα εικονιδίου Wagtail για αυτό το μπλοκ (π.χ. 'image', 'doc-full', "
 "'media'). Εμφανίζεται στην επιλογή μπλοκ."
 
-#: streams/models.py:95
+#: streams/models.py:99
 msgid "icon"
 msgstr "εικονίδιο"
 
-#: streams/models.py:101
+#: streams/models.py:105
 msgid ""
 "Group label shown in the block chooser (e.g., 'Blog', 'Media'). Leave empty "
 "for no grouping."
@@ -2263,11 +2267,11 @@ msgstr ""
 "Η ομάδα του μπλοκ στην επιλογή μπλοκ (π.χ. 'Blog', 'Media'). Αφήστε το κενό "
 "αν δεν ανήκει σε ομάδα."
 
-#: streams/models.py:102
+#: streams/models.py:106
 msgid "group"
 msgstr "ομάδα"
 
-#: streams/models.py:107
+#: streams/models.py:111
 msgid ""
 "If checked, this block's content is defined once per site/locale (in Shared "
 "Blocks) and shared across pages. In page editors, only the variant chooser "
@@ -2277,11 +2281,11 @@ msgstr ""
 "γλώσσα (στα Κοινόχρηστα μπλοκ) και μοιράζεται σε όλες τις σελίδες. Στον "
 "επεξεργαστή σελίδων εμφανίζεται μόνο η επιλογή παραλλαγής."
 
-#: streams/models.py:111
+#: streams/models.py:115
 msgid "shared"
 msgstr "κοινόχρηστο"
 
-#: streams/models.py:119
+#: streams/models.py:123
 msgid ""
 "Render this block automatically at this position on every page of a site "
 "that has filled in its shared content. A page that places the block itself "
@@ -2293,21 +2297,21 @@ msgstr ""
 "τοποθετεί η ίδια το μπλοκ υπερισχύει σε εκείνη τη σελίδα. Απαιτεί το "
 "'is_shared'. Αφήστε το κενό για κανονική τοποθέτηση ανά σελίδα."
 
-#: streams/models.py:124
+#: streams/models.py:128
 msgid "site slot"
 msgstr "θέση στον ιστότοπο"
 
-#: streams/models.py:128
+#: streams/models.py:132
 msgid ""
 "Render order among blocks pinned to the same slot (lower renders first)."
 msgstr ""
 "Η σειρά ανάμεσα στα μπλοκ της ίδιας θέσης (το μικρότερο εμφανίζεται πρώτο)."
 
-#: streams/models.py:129
+#: streams/models.py:133
 msgid "slot order"
 msgstr "σειρά στη θέση"
 
-#: streams/models.py:134
+#: streams/models.py:138
 msgid ""
 "Whether the site-wide render includes this block in the Wagtail preview "
 "panel and Studio screenshots. Uncheck for analytics and tracking scripts."
@@ -2315,11 +2319,11 @@ msgstr ""
 "Αν το μπλοκ εμφανίζεται στην προεπισκόπηση του Wagtail και στα στιγμιότυπα "
 "του Studio. Αποεπιλέξτε το για κώδικα analytics και παρακολούθησης."
 
-#: streams/models.py:138
+#: streams/models.py:142
 msgid "render in preview"
 msgstr "εμφάνιση στην προεπισκόπηση"
 
-#: streams/models.py:145
+#: streams/models.py:149
 msgid ""
 "Django app label that owns this block (e.g. 'phoxtail_blog'). Set "
 "automatically by populate_streams. Blank means no app dependency — the block "
@@ -2329,15 +2333,15 @@ msgstr ""
 "'phoxtail_blog'). Ορίζεται αυτόματα από το populate_streams. Κενό σημαίνει "
 "ότι δεν εξαρτάται από εφαρμογή — το μπλοκ είναι διαθέσιμο σε κάθε έργο."
 
-#: streams/models.py:149
+#: streams/models.py:153
 msgid "source app"
 msgstr "εφαρμογή προέλευσης"
 
-#: streams/models.py:155
+#: streams/models.py:159
 msgid "Page Types"
 msgstr "Τύποι σελίδων"
 
-#: streams/models.py:157
+#: streams/models.py:161
 msgid ""
 "Restrict this block to specific page types. Leave empty to make it available "
 "on all pages."
@@ -2345,11 +2349,11 @@ msgstr ""
 "Περιορίστε το μπλοκ σε συγκεκριμένους τύπους σελίδων. Αφήστε το κενό για να "
 "είναι διαθέσιμο σε όλες τις σελίδες."
 
-#: streams/models.py:163
+#: streams/models.py:167
 msgid "Categories"
 msgstr "Κατηγορίες"
 
-#: streams/models.py:164
+#: streams/models.py:168
 msgid ""
 "Broad purpose groupings (e.g. Marketing, Ecommerce). Keep the vocabulary "
 "small and governed."
@@ -2357,22 +2361,22 @@ msgstr ""
 "Γενικές ομάδες ανά σκοπό (π.χ. Marketing, Ηλεκτρονικό εμπόριο). Κρατήστε τις "
 "λίγες και σταθερές."
 
-#: streams/models.py:210
+#: streams/models.py:214
 msgid ""
 "Define the structure of this block using field schema blocks, nested "
 "structures, lists, and streams"
 msgstr "Ορίστε τη δομή του μπλοκ με πεδία, ένθετες δομές, λίστες και ροές"
 
-#: streams/models.py:213
+#: streams/models.py:217
 msgid "schema"
 msgstr "σχήμα"
 
-#: streams/models.py:225
+#: streams/models.py:229
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:42
 msgid "Block"
 msgstr "Μπλοκ"
 
-#: streams/models.py:235
+#: streams/models.py:239
 msgid ""
 "Only shared blocks can be pinned to a site-wide slot — enable 'is_shared' "
 "first."
@@ -2380,52 +2384,52 @@ msgstr ""
 "Μόνο τα κοινόχρηστα μπλοκ μπαίνουν σε θέση του ιστότοπου — ενεργοποιήστε "
 "πρώτα το 'is_shared'."
 
-#: streams/models.py:249
+#: streams/models.py:253
 msgid "Collection name (e.g., 'Material Design', 'Minimalist')"
 msgstr "Όνομα συλλογής (π.χ. 'Material Design', 'Minimalist')"
 
-#: streams/models.py:255
+#: streams/models.py:259
 msgid "Unique identifier (e.g., 'material_design_3')"
 msgstr "Μοναδικό αναγνωριστικό (π.χ. 'material_design_3')"
 
-#: streams/models.py:259
+#: streams/models.py:263
 msgid "Short description of this collection's purpose"
 msgstr "Σύντομη περιγραφή του σκοπού της συλλογής"
 
-#: streams/models.py:271
+#: streams/models.py:275
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:35
 #: streams/views.py:54 streams/views.py:106
 msgid "Collection"
 msgstr "Συλλογή"
 
-#: streams/models.py:272 streams/viewsets.py:170 streams/viewsets.py:171
+#: streams/models.py:276 streams/viewsets.py:170 streams/viewsets.py:171
 msgid "Collections"
 msgstr "Συλλογές"
 
-#: streams/models.py:282 streams/models.py:438
+#: streams/models.py:286 streams/models.py:442
 msgid "block"
 msgstr "μπλοκ"
 
-#: streams/models.py:289
+#: streams/models.py:293
 msgid ""
 "Optional design-system label for this variant (e.g. 'Material Design 3')."
 msgstr ""
 "Προαιρετικό όνομα συστήματος σχεδίασης για αυτή την παραλλαγή (π.χ. "
 "'Material Design 3')."
 
-#: streams/models.py:290
+#: streams/models.py:294
 msgid "collection"
 msgstr "συλλογή"
 
-#: streams/models.py:294
+#: streams/models.py:298
 msgid "Variant name for identification (e.g., 'Centered', 'With Background')"
 msgstr "Όνομα παραλλαγής για αναγνώριση (π.χ. 'Στο κέντρο', 'Με φόντο')"
 
-#: streams/models.py:299
+#: streams/models.py:303
 msgid "Identifier for this variant (e.g., 'centered_dark', 'split_layout')"
 msgstr "Αναγνωριστικό παραλλαγής (π.χ. 'centered_dark', 'split_layout')"
 
-#: streams/models.py:303
+#: streams/models.py:307
 msgid ""
 "Design rationale and approach. Explain why this variant exists and what "
 "makes it different."
@@ -2433,7 +2437,7 @@ msgstr ""
 "Η σχεδιαστική σκέψη πίσω από την παραλλαγή. Εξηγήστε γιατί υπάρχει και σε τι "
 "διαφέρει."
 
-#: streams/models.py:308
+#: streams/models.py:312
 msgid ""
 "Whether this is the default variant for its block. Only one default per "
 "block."
@@ -2441,105 +2445,105 @@ msgstr ""
 "Αν αυτή είναι η προεπιλεγμένη παραλλαγή του μπλοκ. Μόνο μία προεπιλογή ανά "
 "μπλοκ."
 
-#: streams/models.py:309
+#: streams/models.py:313
 msgid "default"
 msgstr "προεπιλογή"
 
-#: streams/models.py:313
+#: streams/models.py:317
 msgid "HTML template with DTL/Jinja2 tags."
 msgstr "Πρότυπο HTML με ετικέτες DTL/Jinja2."
 
-#: streams/models.py:313
+#: streams/models.py:317
 msgid "HTML"
 msgstr "HTML"
 
-#: streams/models.py:314
+#: streams/models.py:318
 msgid "CSS styles for this variant."
 msgstr "Στυλ CSS για αυτή την παραλλαγή."
 
-#: streams/models.py:314
+#: streams/models.py:318
 msgid "CSS"
 msgstr "CSS"
 
-#: streams/models.py:316
+#: streams/models.py:320
 msgid "JavaScript code for this variant."
 msgstr "Κώδικας JavaScript για αυτή την παραλλαγή."
 
-#: streams/models.py:316
+#: streams/models.py:320
 msgid "JavaScript"
 msgstr "JavaScript"
 
-#: streams/models.py:324
+#: streams/models.py:328
 msgid "Desktop (light mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε υπολογιστή (φωτεινό θέμα)."
 
-#: streams/models.py:325
+#: streams/models.py:329
 msgid "preview image desktop"
 msgstr "εικόνα προεπισκόπησης υπολογιστή"
 
-#: streams/models.py:333
+#: streams/models.py:337
 msgid "Desktop (dark mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε υπολογιστή (σκούρο θέμα)."
 
-#: streams/models.py:334
+#: streams/models.py:338
 msgid "preview image desktop dark"
 msgstr "εικόνα προεπισκόπησης υπολογιστή, σκούρο"
 
-#: streams/models.py:342
+#: streams/models.py:346
 msgid "Tablet (light mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε tablet (φωτεινό θέμα)."
 
-#: streams/models.py:343
+#: streams/models.py:347
 msgid "preview image tablet"
 msgstr "εικόνα προεπισκόπησης tablet"
 
-#: streams/models.py:351
+#: streams/models.py:355
 msgid "Tablet (dark mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε tablet (σκούρο θέμα)."
 
-#: streams/models.py:352
+#: streams/models.py:356
 msgid "preview image tablet dark"
 msgstr "εικόνα προεπισκόπησης tablet, σκούρο"
 
-#: streams/models.py:360
+#: streams/models.py:364
 msgid "Mobile (light mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε κινητό (φωτεινό θέμα)."
 
-#: streams/models.py:361
+#: streams/models.py:365
 msgid "preview image mobile"
 msgstr "εικόνα προεπισκόπησης κινητού"
 
-#: streams/models.py:369
+#: streams/models.py:373
 msgid "Mobile (dark mode) preview screenshot."
 msgstr "Στιγμιότυπο προεπισκόπησης σε κινητό (σκούρο θέμα)."
 
-#: streams/models.py:370
+#: streams/models.py:374
 msgid "preview image mobile dark"
 msgstr "εικόνα προεπισκόπησης κινητού, σκούρο"
 
-#: streams/models.py:399
+#: streams/models.py:403
 #: streams/templates/phoxtail_streams/admin/sync/partials/variant_detail.html:29
 msgid "Variant"
 msgstr "Παραλλαγή"
 
-#: streams/models.py:400 streams/viewsets.py:123 streams/viewsets.py:124
+#: streams/models.py:404 streams/viewsets.py:123 streams/viewsets.py:124
 msgid "Variants"
 msgstr "Παραλλαγές"
 
-#: streams/models.py:437
+#: streams/models.py:441
 msgid "The shared block this content belongs to."
 msgstr "Το κοινόχρηστο μπλοκ στο οποίο ανήκει αυτό το περιεχόμενο."
 
-#: streams/models.py:444
+#: streams/models.py:448
 msgctxt "website"
 msgid "site"
 msgstr "ιστότοπος"
 
-#: streams/models.py:447
+#: streams/models.py:451
 msgid "locale"
 msgstr "γλώσσα"
 
-#: streams/models.py:456
+#: streams/models.py:460
 msgid ""
 "Variant used when this block renders site-wide (and the fallback for per-"
 "page placements that don't choose one). Leave empty to use the block's "
@@ -2549,15 +2553,15 @@ msgstr ""
 "ιστότοπο (και όταν μια σελίδα δεν επιλέγει δική της). Αφήστε το κενό για την "
 "προεπιλεγμένη παραλλαγή του μπλοκ."
 
-#: streams/models.py:460
+#: streams/models.py:464
 msgid "variant"
 msgstr "παραλλαγή"
 
-#: streams/models.py:478
+#: streams/models.py:482
 msgid "Shared Block"
 msgstr "Κοινόχρηστο μπλοκ"
 
-#: streams/models.py:479 streams/viewsets.py:97 streams/viewsets.py:98
+#: streams/models.py:483 streams/viewsets.py:97 streams/viewsets.py:98
 msgid "Shared Blocks"
 msgstr "Κοινόχρηστα μπλοκ"
 
@@ -2810,23 +2814,23 @@ msgstr "Ανακλήθηκε"
 msgid "User"
 msgstr "Χρήστης"
 
-#: tokens/models.py:20
+#: tokens/models.py:24
 msgid "token type"
 msgstr "τύπος διακριτικού"
 
-#: tokens/models.py:28
+#: tokens/models.py:32
 msgid "prefix"
 msgstr "πρόθεμα"
 
-#: tokens/models.py:32
+#: tokens/models.py:36
 msgid "suffix"
 msgstr "κατάληξη"
 
-#: tokens/models.py:37
+#: tokens/models.py:41
 msgid "digest"
 msgstr "σύνοψη"
 
-#: tokens/models.py:48
+#: tokens/models.py:52
 msgid ""
 "Let this token do anything its owner can do, including capabilities added to "
 "this site in future. Convenient on your own machine; too broad for anything "
@@ -2837,11 +2841,11 @@ msgstr ""
 "υπολογιστή· υπερβολικά ευρύ για οτιδήποτε δίνετε σε άλλο σύστημα. Αφήστε το "
 "απενεργοποιημένο και επιλέξτε δικαιώματα."
 
-#: tokens/models.py:53
+#: tokens/models.py:57
 msgid "unrestricted"
 msgstr "χωρίς περιορισμούς"
 
-#: tokens/models.py:63
+#: tokens/models.py:67
 msgid ""
 "The permissions this token may use, as codenames such as "
 "phoxtail_streams.change_blockvariant. Scopes only ever narrow: a token can "
@@ -2853,27 +2857,27 @@ msgstr ""
 "περιορίζουν: ένα διακριτικό δεν μπορεί ποτέ να κάνει κάτι που δεν μπορεί ο "
 "κάτοχός του. Υποχρεωτικό, εκτός αν το διακριτικό είναι χωρίς περιορισμούς."
 
-#: tokens/models.py:68
+#: tokens/models.py:72
 msgid "scopes"
 msgstr "δικαιώματα"
 
-#: tokens/models.py:71
+#: tokens/models.py:75
 msgid "expires at"
 msgstr "λήξη"
 
-#: tokens/models.py:73
+#: tokens/models.py:77
 msgid "last used at"
 msgstr "τελευταία χρήση"
 
-#: tokens/models.py:74
+#: tokens/models.py:78
 msgid "revoked at"
 msgstr "ανάκληση"
 
-#: tokens/models.py:94
+#: tokens/models.py:98
 msgid "API token"
 msgstr "διακριτικό API"
 
-#: tokens/models.py:95
+#: tokens/models.py:99
 msgid "API tokens"
 msgstr "διακριτικά API"
 

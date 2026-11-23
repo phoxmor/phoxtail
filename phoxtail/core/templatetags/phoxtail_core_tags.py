@@ -1,5 +1,10 @@
+from uuid import uuid4
+
 from django import template
 from django.conf import settings
+from django.template.base import token_kwargs
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext
 
 from phoxtail.core.fields import render_control, render_field
@@ -174,3 +179,68 @@ def setting_enabled(name):
         {% setting_enabled 'PHOXTAIL_ALLOW_SIGNUP' as signup_allowed %}
     """
     return bool(getattr(settings, name, False))
+
+
+# Where an overflow menu may open beside its ⋮ (popover.js): the side, then
+# the button edge it lines up with.
+POPOVER_PLACEMENTS = frozenset(
+    f"{side}-{align}" for side in ("top", "bottom", "left", "right") for align in ("start", "end")
+)
+
+
+class OverflowMenuNode(template.Node):
+    def __init__(self, nodelist, options):
+        self.nodelist = nodelist
+        self.options = options
+
+    def render(self, context):
+        items = self.nodelist.render(context)
+        if not items.strip():
+            return ""
+        options = {name: value.resolve(context) for name, value in self.options.items()}
+        placement = options.get("placement") or "bottom-end"
+        if placement not in POPOVER_PLACEMENTS:
+            raise template.TemplateSyntaxError(
+                f"overflow_menu placement {placement!r} is not one of {sorted(POPOVER_PLACEMENTS)}"
+            )
+        return render_to_string(
+            "phoxtail_core/overflow_menu.html",
+            {
+                "id": options.get("id") or f"phx-overflow-menu-{uuid4().hex[:12]}",
+                "label": options.get("label") or gettext("More actions"),
+                "placement": placement,
+                "items": mark_safe(items),
+            },
+        )
+
+
+@register.tag
+def overflow_menu(parser, token):
+    """The actions that have no room of their own, behind a round ⋮ button: a
+    popover beside it (popover.js), one row per action. The rows are the
+    tag's content, each a link or button with class phx-overflow-menu__item,
+    an icon before its name; choosing one closes the menu. Content that
+    renders nothing (every row left out) renders no ⋮ either.
+
+    Options: label (the button's name for assistive technology; "More
+    actions" by default, better naming what the actions act on), placement
+    (where it opens: "bottom-end" by default, see POPOVER_PLACEMENTS) and id
+    (the menu's, unique by default).
+
+    Usage:
+        {% overflow_menu label=_("More actions") %}
+            <button type="button" class="phx-overflow-menu__item" hx-get="...">
+                {% icon "edit" %}<span>{% translate "Edit" %}</span>
+            </button>
+        {% endoverflow_menu %}
+    """
+    bits = token.split_contents()[1:]
+    options = token_kwargs(bits, parser)
+    if bits:
+        raise template.TemplateSyntaxError(f"overflow_menu takes only named options, not {bits[0]!r}")
+    unknown = set(options) - {"label", "placement", "id"}
+    if unknown:
+        raise template.TemplateSyntaxError(f"overflow_menu has no option {sorted(unknown)[0]!r}")
+    nodelist = parser.parse(("endoverflow_menu",))
+    parser.delete_first_token()
+    return OverflowMenuNode(nodelist, options)

@@ -19,6 +19,7 @@ sidebar, the current language marked.
     <div id="dash-language-flyout"
          class="dash-flyout phx-popover"
          popover
+         data-popover-placement="right-start"
          aria-label="{% translate 'Language' %}">
         {% for language in languages %}
             {# Posted, not followed: set_language stores the choice, then redirects to `next`. #}

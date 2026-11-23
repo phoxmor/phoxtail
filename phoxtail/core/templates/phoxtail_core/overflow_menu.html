@@ -1,0 +1,19 @@
+{% comment %}
+An overflow menu ({% overflow_menu %} in phoxtail_core_tags): a round ⋮
+button and the menu it opens, a popover placed beside it (popover.js).
+{% endcomment %}
+{% load phoxtail_design_tags %}
+<div class="phx-overflow-menu">
+    <button type="button"
+            class="phx-overflow-menu__button"
+            popovertarget="{{ id }}"
+            aria-label="{{ label }}">
+        {% icon "more_vert" %}
+    </button>
+    <div id="{{ id }}"
+         class="phx-overflow-menu__list phx-popover"
+         popover
+         data-popover-placement="{{ placement }}">
+        {{ items }}
+    </div>
+</div>

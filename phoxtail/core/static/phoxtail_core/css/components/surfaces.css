@@ -133,6 +133,24 @@ html:has(> body.phx-ground) {
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
+/* One beside its button (data-popover-placement): popover.js sets where,
+   --phx-popover-offset from the button, set on it or on anything around it,
+   as every --phx token. Registered as a length, so the script reads it in
+   pixels whatever unit sets it. */
+@property --phx-popover-offset {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 6px;
+}
+
+.phx-popover[popover][data-popover-placement] {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    border: none;
+    color: inherit;
+}
+
 @media (prefers-color-scheme: dark) {
     .phx-card--clickable:hover,
     .phx-card--clickable:focus-visible,

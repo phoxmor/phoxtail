@@ -116,28 +116,16 @@
         };
 
     // A flyout opens beside the sidebar card, level with its row, and stays
-    // inside the window. A click opens it and keeps it open; with a mouse,
-    // hovering opens it too, and it closes a moment after the pointer has
-    // left both the row and the card (long enough to cross the gap).
+    // inside the window (core's popover.js places it). A click opens it and
+    // keeps it open; with a mouse, hovering opens it too, and it closes a
+    // moment after the pointer has left both the row and the card (long
+    // enough to cross the gap).
         const canHover = window.matchMedia('(hover: hover)').matches;
         sidebar.querySelectorAll('.dash-flyout').forEach((flyout) => {
             const row = sidebar.querySelector(`[popovertarget="${flyout.id}"]`);
             let closeTimer = null;
             let openedByHover = false;
 
-            const place = () => {
-                const top = row.getBoundingClientRect().top;
-                const limit = window.innerHeight - flyout.offsetHeight - 12;
-                flyout.style.left = `${sidebar.getBoundingClientRect().right + 8}px`;
-                flyout.style.top = `${Math.max(12, Math.min(top, limit))}px`;
-            };
-            // Placed once before it shows (its height is not known yet) and
-            // again before its first paint, once it is.
-            flyout.addEventListener('beforetoggle', (e) => {
-                if (e.newState !== 'open') return;
-                place();
-                requestAnimationFrame(place);
-            });
             flyout.addEventListener('toggle', (e) => {
                 if (e.newState !== 'open') openedByHover = false;
             });

@@ -14,6 +14,7 @@ sidebar. A dropdown's label heads its links.
     <nav id="dash-website-flyout"
          class="dash-flyout phx-popover"
          popover
+         data-popover-placement="right-start"
          aria-label="{% translate 'Website' %}">
         {% for entry in dashboard_menu.items %}
             {% if entry.block_type == 'dropdown' %}

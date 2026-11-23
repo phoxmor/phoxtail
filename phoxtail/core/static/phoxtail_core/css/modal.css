@@ -203,7 +203,11 @@
     gap: 0.75rem;
 }
 
-.phoxtail-close-btn {
+/* The round button beside a drawer's title: its close button, and an
+   overflow menu's ⋮ (components/overflow_menu.css), which looks the same
+   wherever it sits. */
+.phoxtail-close-btn,
+.phx-overflow-menu__button {
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -223,17 +227,20 @@
     transition: background-color 150ms ease, color 150ms ease, box-shadow 200ms ease;
 }
 
-.phoxtail-close-btn:hover {
+.phoxtail-close-btn:hover,
+.phx-overflow-menu__button:hover {
     background-color: var(--phx-control-background-hover);
     box-shadow: var(--phx-control-shadow-hover);
 }
 
-.phoxtail-close-btn:focus-visible {
+.phoxtail-close-btn:focus-visible,
+.phx-overflow-menu__button:focus-visible {
     outline: 2px solid rgb(var(--color-surface-400) / 0.5);
     outline-offset: 2px;
 }
 
-.phoxtail-close-btn svg {
+.phoxtail-close-btn svg,
+.phx-overflow-menu__button svg {
     width: var(--phx-size-small-icon);
     height: var(--phx-size-small-icon);
     display: block;
@@ -309,11 +316,13 @@
         color: rgb(var(--color-surface-100));
     }
 
-    .phoxtail-close-btn {
+    .phoxtail-close-btn,
+    .phx-overflow-menu__button {
         color: rgb(var(--color-surface-300, 212 212 216));
     }
 
-    .phoxtail-close-btn:hover {
+    .phoxtail-close-btn:hover,
+    .phx-overflow-menu__button:hover {
         color: rgb(var(--color-surface-200, 228 228 231));
     }
 }
