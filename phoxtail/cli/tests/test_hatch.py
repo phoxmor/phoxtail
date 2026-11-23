@@ -326,8 +326,8 @@ class TestHatchCommand:
         mock_run.return_value.returncode = 0
         mock_select.return_value.ask.return_value = "development"
 
-        # Accept wizard, skip configure, skip database, accept superuser, skip launch
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\nn\n")
+        # Accept wizard, skip configure, set up the database, accept superuser, skip launch
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\ny\nn\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert any("verify_email" in c and "--all-superusers" in c for c in calls)
@@ -537,9 +537,56 @@ class TestHatchStopsWhatItStarted:
         mock_run.return_value.returncode = 0
         mock_select.return_value.ask.return_value = "development"
 
-        # Skip everything but the launch.
-        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\ny\n")
+        # Skip everything but the launch; the admin account is not asked
+        # for without a database.
+        runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\ny\n")
 
         calls = [c.args[0] for c in mock_run.call_args_list]
         assert ["docker", "compose", "down"] not in calls
         assert calls[-1][-3:] == ["docker", "up", "--build"]
+
+
+class TestHatchStepsThatNeedTheDatabase:
+    """The admin account lives in the database, so it waits on that step."""
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_failed_database_skips_the_admin_account_and_keeps_its_reason(
+        self, mock_select, mock_run, tmp_path, monkeypatch
+    ):
+        monkeypatch.chdir(tmp_path)
+        mock_select.return_value.ask.return_value = "development"
+
+        def run(args, **kwargs):
+            return MagicMock(returncode=1 if args[-2:] == ["manage", "migrate"] else 0)
+
+        mock_run.side_effect = run
+
+        # Wizard, skip configuration, set up the database (fails), Enter past
+        # the failure, skip the launch.
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\nn\ny\n\nn\n")
+
+        assert result.exit_code == 0, result.output
+        assert "Create an admin account?" not in result.output
+        assert "needs the database first" in result.output
+        assert "migrate failed" in result.output
+        assert not any("createsuperuser" in c.args[0] for c in mock_run.call_args_list)
+        # Listed as what comes after the retry, not as a failure of its own.
+        out = result.output
+        assert out.index("Failed (retry):") < out.index("phoxtail manage migrate") < out.index("Then:")
+        assert out.index("Then:") < out.index("phoxtail manage createsuperuser")
+
+    @patch("phoxtail.cli.hatch.subprocess.run")
+    @patch("questionary.select")
+    def test_skipped_database_skips_the_admin_account(self, mock_select, mock_run, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        mock_run.return_value.returncode = 0
+        mock_select.return_value.ask.return_value = "development"
+
+        result = runner.invoke(app, ["hatch", "myproject"], input="y\nn\nn\nn\n")
+
+        assert result.exit_code == 0, result.output
+        assert "Create an admin account?" not in result.output
+        assert "needs the database first" in result.output
+        # Still listed, after the database it waits on.
+        assert result.output.index("phoxtail manage migrate") < result.output.index("phoxtail manage createsuperuser")

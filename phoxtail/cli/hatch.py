@@ -312,8 +312,10 @@ def _run_wizard(
         steps["configure"] = "skipped"
         prev_failed = False
 
-    # Clear sub-step detail so the panel is clean when the next step renders.
-    details.pop("configure", None)
+    # Clear the transient sub-step text; a failure keeps its reason for the
+    # final panel.
+    if steps["configure"] != "failed":
+        details.pop("configure", None)
 
     if docker_problem is not None:
         for key in DOCKER_STEPS:
@@ -421,8 +423,10 @@ def _run_wizard(
             steps["setup_db"] = "skipped"
             prev_failed = False
 
-        # Clear sub-step detail so the panel is clean when the next step renders.
-        details.pop("setup_db", None)
+        # Clear the transient sub-step text; a failure keeps its reason for the
+        # final panel.
+        if steps["setup_db"] != "failed":
+            details.pop("setup_db", None)
 
         # --- Step: Create Admin Account ---
         _clear_and_show_progress(
@@ -434,7 +438,13 @@ def _run_wizard(
             current_index=step_idx["superuser"],
             pause=prev_failed,
         )
-        if Confirm.ask("  Create an admin account?", default=True):
+        # The account is a row in the database: without a migrated one there
+        # is nowhere to put it, so the question is not asked.
+        if steps["setup_db"] != "done":
+            steps["superuser"] = "skipped"
+            details["superuser"] = "needs the database first"
+            prev_failed = False
+        elif Confirm.ask("  Create an admin account?", default=True):
             console.print()
             ran_containers = True
             if _run_step(target_dir, ["manage", "createsuperuser"]):
@@ -735,6 +745,11 @@ def hatch(
             all_steps.append("  [bold red]Failed (retry):[/bold red]")
             all_steps.extend(failed_steps)
         if next_steps:
+            # Under their own heading, or a step skipped for a failed one
+            # would read as failed too.
+            if failed_steps:
+                all_steps.append("")
+                all_steps.append("  [bold]Then:[/bold]")
             all_steps.extend(next_steps)
 
         if not failed_steps and not next_steps:
