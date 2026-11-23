@@ -13,6 +13,7 @@ from rich.prompt import Confirm
 
 from phoxtail.cli.install import _step_line
 from phoxtail.cli.utils import tools
+from phoxtail.cli.utils.docker import docker_env
 from phoxtail.cli.utils.packages import (
     declared_requirement,
     entry_versions,
@@ -287,7 +288,7 @@ def upgrade(
             ssh_sock = os.environ.get("SSH_AUTH_SOCK")
             if ssh_sock:
                 build_cmd += ["--ssh", f"default={ssh_sock}"]
-            rc = subprocess.call(build_cmd)
+            rc = subprocess.call(build_cmd, env=docker_env())
             if rc != 0:
                 steps["build"] = "failed"
                 _redraw(package, steps, details)
@@ -302,6 +303,7 @@ def upgrade(
             _redraw(package, steps, details, step_idx["migrate"])
             rc = subprocess.call(
                 ["docker", "compose", "run", "--rm", "-T", "web", "python", "manage.py", "migrate"],
+                env=docker_env(),
             )
             if rc != 0:
                 steps["migrate"] = "failed"
@@ -314,7 +316,7 @@ def upgrade(
         if no_build:
             steps["launch"] = "skipped"
         else:
-            rc = subprocess.call(["docker", "compose", "up", "-d"])
+            rc = subprocess.call(["docker", "compose", "up", "-d"], env=docker_env())
             if rc == 0:
                 steps["launch"] = "done"
             else:

@@ -1,4 +1,5 @@
-"""Tests for `phoxtail install` and `phoxtail upgrade` meeting a missing program.
+"""Tests for `phoxtail install` and `phoxtail upgrade` meeting a missing program,
+and running their containers as the user.
 
 Both edit pyproject.toml, lock, sync, then build, migrate and start through
 Docker. A program found missing halfway would leave the dependency locked
@@ -101,3 +102,41 @@ class TestPreflight:
         assert result.exit_code == 1
         assert no_uv.reason in result.output
         assert Path("pyproject.toml").read_text() == PYPROJECT
+
+
+class TestContainersRunAsYou:
+    """Every compose call carries HOST_UID, so files the containers write are yours.
+
+    The compose file sets each service's user from HOST_UID and HOST_GID,
+    falling back to 1000:1000 when they are not set.
+    """
+
+    @pytest.mark.parametrize(
+        ("command", "args"),
+        [(install, ["taggit", "--no-app"]), (upgrade, ["wagtail"])],
+        ids=["install", "upgrade"],
+    )
+    def test_every_compose_call_sets_the_host_user(self, command, args):
+        def run(cmd, **kwargs):
+            if cmd[:2] == ["uv", "lock"]:
+                # A newer wagtail, so upgrade has something to build.
+                Path("uv.lock").write_text(
+                    'version = 1\n\n[[package]]\nname = "wagtail"\nversion = "7.4.3"\n'
+                    '\n[[package]]\nname = "taggit"\nversion = "1.0"\n'
+                )
+            return MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("subprocess.run", side_effect=run) as run_mock,
+            patch("subprocess.call", return_value=0) as call_mock,
+            patch("phoxtail.cli.install.preflight", return_value=(True, "")),
+        ):
+            result = runner.invoke(_app(command), args)
+
+        compose = [
+            c for c in [*run_mock.call_args_list, *call_mock.call_args_list] if c.args[0][:2] == ["docker", "compose"]
+        ]
+        assert compose, result.output
+        assert all("HOST_UID" in (c.kwargs.get("env") or {}) for c in compose), compose
+        # It got as far as building, migrating and starting, so those are pinned.
+        assert {c.args[0][2] for c in compose} >= {"build", "run", "up"}, compose

@@ -220,6 +220,12 @@ class TestLint:
         shell_cmd = cmd[-1]
         assert "djlint" not in shell_cmd
 
+    @patch("phoxtail.cli.lint.subprocess.call", return_value=0)
+    def test_runs_as_the_host_user(self, mock_call):
+        """Ruff rewrites files in the project; they must stay the user's."""
+        runner.invoke(lint_app, [])
+        assert "HOST_UID" in mock_call.call_args.kwargs["env"]
+
 
 class TestSslObtain:
     @patch("phoxtail.cli.ssl.read_env_value")

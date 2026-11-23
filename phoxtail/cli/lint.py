@@ -7,6 +7,7 @@ import typer
 from rich.console import Console
 
 from phoxtail.cli.utils import tools
+from phoxtail.cli.utils.docker import docker_env
 
 app = typer.Typer(
     add_completion=False,
@@ -51,4 +52,4 @@ def lint(
         "-c",
         ruff_cmd,
     ]
-    sys.exit(subprocess.call(cmd))
+    sys.exit(subprocess.call(cmd, env=docker_env()))

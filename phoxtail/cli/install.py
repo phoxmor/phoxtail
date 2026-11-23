@@ -16,7 +16,7 @@ from rich.prompt import Confirm, Prompt
 from phoxtail.cli.hatch import INSTALL_MARKER
 from phoxtail.cli.utils import tools
 from phoxtail.cli.utils.config import get_project_name, slugify
-from phoxtail.cli.utils.docker import collect_package_compose_fragments
+from phoxtail.cli.utils.docker import collect_package_compose_fragments, docker_env
 from phoxtail.cli.utils.packages import is_declared, module_guess
 from phoxtail.cli.utils.sources import (
     InvalidSource,
@@ -447,7 +447,7 @@ def install(
             ssh_sock = os.environ.get("SSH_AUTH_SOCK")
             if ssh_sock:
                 build_cmd += ["--ssh", f"default={ssh_sock}"]
-            rc = subprocess.call(build_cmd)
+            rc = subprocess.call(build_cmd, env=docker_env())
             if rc != 0:
                 steps["build"] = "failed"
                 _redraw(package, steps, details)
@@ -462,6 +462,7 @@ def install(
             _redraw(package, steps, details, step_idx["migrate"])
             rc = subprocess.call(
                 ["docker", "compose", "run", "--rm", "-T", "web", "python", "manage.py", "migrate"],
+                env=docker_env(),
             )
             if rc != 0:
                 steps["migrate"] = "failed"
@@ -492,6 +493,7 @@ def install(
                     "--app",
                     django_label,
                 ],
+                env=docker_env(),
             )
             steps["populate"] = "done" if rc == 0 else "failed"
 
@@ -501,7 +503,7 @@ def install(
         if no_build:
             steps["launch"] = "skipped"
         else:
-            rc = subprocess.call(["docker", "compose", "up", "-d"])
+            rc = subprocess.call(["docker", "compose", "up", "-d"], env=docker_env())
             if rc == 0:
                 steps["launch"] = "done"
             else:
