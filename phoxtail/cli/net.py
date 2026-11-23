@@ -451,9 +451,10 @@ def attach() -> None:
         )
         raise typer.Exit(code=1)
 
+    # The refusal comes before the network, so a refused attach leaves
+    # Docker as it found it.
     try:
         other = slug_in_use_elsewhere(slug, root)
-        ensure_network()
     except RuntimeError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(code=1) from exc
@@ -463,6 +464,11 @@ def attach() -> None:
             f"[bold]{other}[/bold]. Set a different, unique \\[project] name in phoxtail.toml."
         )
         raise typer.Exit(code=1)
+    try:
+        ensure_network()
+    except RuntimeError as exc:
+        console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
 
     # The fragment re-addresses the base file's `mcp` service; a project
     # hatched before that service existed would make Compose fail with

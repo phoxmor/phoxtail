@@ -122,11 +122,12 @@ class TestAttach:
         with (
             patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
             patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=Path("/elsewhere")),
-            # Left real, this would ask the host's own Docker for the network.
-            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.ensure_network") as ensure_network,
         ):
             result = runner.invoke(net_app, ["attach"])
         assert result.exit_code == 1
+        # Refused before anything is created.
+        ensure_network.assert_not_called()
         assert "/elsewhere" in result.output
 
     def test_writes_net_compose_and_wires_env(self, tmp_path):
@@ -138,11 +139,12 @@ class TestAttach:
         with (
             patch("phoxtail.cli.net.check_compose_version", return_value=(True, "2.29.0")),
             patch("phoxtail.cli.net.slug_in_use_elsewhere", return_value=None),
-            patch("phoxtail.cli.net.ensure_network"),
+            patch("phoxtail.cli.net.ensure_network") as ensure_network,
         ):
             result = runner.invoke(net_app, ["attach"])
 
         assert result.exit_code == 0, result.output
+        ensure_network.assert_called_once()
 
         net_file = tmp_path / "docker-compose.net.yaml"
         assert net_file.exists()
