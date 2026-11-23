@@ -13,6 +13,149 @@ migrating into it. Any release that does so says so here.
 
 <!-- towncrier release notes start -->
 
+## [0.6.0] — 2026-11-23
+
+This release makes the development Docker image build again with Playwright
+1.65, makes `phoxtail db pull` back up your local database before replacing
+it, and makes the CLI say which program is missing, and how to get it,
+before it changes anything, instead of failing halfway or with a traceback.
+Core drawers gain an overflow menu, and no longer close on a click or an
+Escape meant for what is open inside them.
+
+Upgrading from 0.5.0 — read this first:
+
+- **Pull nginx on every server deployed from a phoxtail compose.** nginx up
+  to 1.31.8, and stable before 1.30.7, is affected by NGINX2Root
+  (CVE-2026-123007 and CVE-2026-123633, through HTTP/2). The generated
+  compose's `nginx:1.31` now resolves to 1.31.9, but a running server keeps
+  its cached image until it pulls. On the server, run
+  `docker compose pull nginx && docker compose up -d --no-deps nginx`, then
+  check that `docker compose exec nginx nginx -v` prints 1.31.9 (or 1.30.7)
+  or later. If you are deploying anyway, `phoxtail server deploy <ip>` pulls
+  every service, nginx included.
+- **Regenerate the `Dockerfile`** of a project whose development image fails
+  with `libatomic.so.1` (see Fixed): `phoxtail docker create dockerfile`, then
+  `phoxtail docker up --build`. It asks before replacing the file, and edits
+  of your own in it are lost.
+- **`phoxtail server ssl --skip-dns-check` needs `--www` or `--no-www`.**
+- **On Wagtail 8.1, do not apply a migration that deletes phoxtail's
+  permission tables** (remotes, streams and access tokens). If
+  `makemigrations` generated one, delete it.
+- **Drawer scripts of your own:** a script's `click()` on a core drawer's
+  overlay no longer closes it (use `closeModal(el)`), and a script that kept
+  Escape from the drawer with `stopPropagation()` on keyup must use
+  `preventDefault()` on keydown.
+
+### Added
+
+- An overflow menu for the actions that have no room of their own: a round ⋮
+  button and a menu beside it, from the `{% overflow_menu %}` tag
+  (`phoxtail_core_tags`), with one `phx-overflow-menu__item` link or button
+  per row. Content that renders no rows renders no button.
+
+  Under it, a `.phx-popover` with the `popover` attribute and
+  `data-popover-placement` (`bottom-end`, `right-start`, …) now opens beside
+  the button that names it (`popovertarget`): on that side, or on the other
+  where there is no room, and kept inside the window. Its alignment follows
+  the text direction, as CSS's start and end do. `--phx-popover-offset` sets
+  the gap. It is placed again on a resize (closed if that hides its button),
+  and closes on a choice (a link or button inside it) and on a scroll that
+  moves its button. A `.phx-popover` without the attribute is unchanged. The
+  dashboard sidebar's Website and language cards now open this way.
+- A core drawer (`phoxtail_core/modal_drawer.html`) has an `overflow_menu`
+  block beside its close button, for an `{% overflow_menu %}` of actions on
+  what is related to the drawer's subject. The footer keeps the actions on
+  the subject itself. The ⋮ shows only when the menu has rows. With the menu
+  open, a click on the overlay around the drawer closes the menu alone, as
+  Escape does; the next click there closes the drawer.
+- `phoxtail.core.htmx.changed()` takes `close=False` for an action taken in
+  place, from a modal that stays open (a button on a row of the list the
+  change redraws): the change and the toast are sent as before, and the modal
+  is left open. `close` is keyword-only and defaults to `True`, so existing
+  callers are unchanged.
+
+### Fixed
+
+- The development Docker image builds again with Playwright 1.65 and later,
+  which fails with `libatomic.so.1: cannot open shared object file`. The
+  generated `Dockerfile` now installs `libatomic1` before the browser. On an
+  affected project, run `phoxtail docker create dockerfile` (it replaces the
+  file, edits of your own included), then `phoxtail docker up --build`.
+- `phoxtail db pull` backs up your local database before it dumps or
+  downloads anything from the server, and stops if it cannot. Before, a
+  failed backup printed "Safety backup skipped" and the pull went on to
+  replace your local database with no copy of it.
+- A command that needs a program you have not installed (Docker, the Docker
+  Compose v2 plugin, uv, git, ssh, scp or rsync) now says which one and how
+  to get it, instead of failing with a Python traceback. It checks before it
+  changes anything: `phoxtail db pull`, for one, stops before it reaches the
+  server when local Docker is missing. `phoxtail net status` reports Docker
+  as unknown instead of crashing, `phoxtail docker create compose` still
+  writes the file without uv, and `phoxtail docker build`, `push` and
+  `release` tag the image `:latest` only, saying why, when git is missing.
+  `phoxtail docker release` now refuses to start without uv, rather than
+  building an image from a lockfile it could not refresh.
+- `phoxtail hatch` checks for uv before it writes anything, so an existing
+  directory it was asked to overwrite is no longer deleted first. The setup
+  wizard checks Docker once, up front, including whether it is running and
+  this user may use it. Without it the wizard still generates the project
+  configuration, skips the steps that need Docker, and lists what to install
+  or start first. Before, it went on to offer each step that needs Docker,
+  and each one it ran failed without saying why. The wizard also stops the
+  database container its database step starts, when you skip creating the
+  admin account or interrupt it with Ctrl-C.
+- The `phoxtail hatch` wizard no longer offers to create the admin account
+  when the database step failed or was skipped, since the account has
+  nowhere to go; it is listed as a next step instead. A step that failed
+  also keeps its reason, such as "migrate failed", in the final summary.
+- `phoxtail install` and `phoxtail upgrade` check for uv, and for a running
+  Docker unless `--no-build` is given, before they edit `pyproject.toml`.
+  They no longer stop halfway, with the dependency locked in but the image
+  never built or migrated.
+- `phoxtail server provision` checks for ssh and ssh-keygen before it asks
+  the provider for anything, so a missing program no longer surfaces after a
+  paid server already exists. `phoxtail server deploy` and `phoxtail server
+  ssl` check for ssh and scp before they change anything on the server. Both
+  also generate their configuration with the running phoxtail itself, not
+  whichever `phoxtail` comes first on `PATH`: that could be another install,
+  or none at all when it was started as `python -m phoxtail`.
+- `phoxtail server ssl` now puts `www.<domain>` on the certificate whenever it
+  points at the server, so `https://www.<domain>` no longer shows a browser
+  certificate warning. `--www` and `--no-www` override the choice, and one of
+  them is required with `--skip-dns-check`. A rerun adds any name the
+  certificate is missing and never removes one. The generated `nginx.conf`
+  serves `https://www.<domain>` only when the certificate covers it
+  (`phoxtail nginx create production --no-www` leaves it out). On a site whose
+  `https://www.<domain>` shows a warning, rerun `phoxtail server ssl <ip>`.
+- `phoxtail net attach` refuses a project name another project already uses
+  before it creates the shared Docker network, so a refused attach no longer
+  leaves a new network behind.
+- `phoxtail lint`, `phoxtail install` and `phoxtail upgrade` now run their
+  containers as you, as every other command that starts containers already
+  did. Files they wrote into the project, such as those `lint` reformats,
+  could end up owned by user 1000 instead of you.
+- Upgrading to Wagtail 8.1 no longer makes `makemigrations` offer to delete
+  three phoxtail permission tables (remotes, streams and access tokens). If
+  you already generated such a migration, delete it; do not apply it.
+- A core drawer (`phoxtail_core/modal_drawer.html`) no longer stops clicks
+  inside it from reaching the page, so a page's own listeners on the document
+  (a menu that closes on a click elsewhere, say) hear them. Its overlay
+  closes it only when a click is pressed and released on the overlay itself:
+  a text selection dragged from inside the drawer and released outside it no
+  longer closes the drawer and loses what was typed. `dismissModal(el, event)`
+  takes the click for that check; called without one it behaves as before. A
+  script's `click()` on the overlay, with no press behind it, no longer closes
+  the drawer: close it with `closeModal(el)`.
+  The access tokens' Filters drawer follows the same rule.
+- Escape in a core drawer closes only what is open inside it first: a
+  popover or a modal `<dialog>`, a field's open panel (single select search),
+  the language menu. Before, the same press also closed the drawer. A held
+  Escape closes one drawer, not every level. The modal now listens for the key
+  going down on the window and leaves alone any Escape a listener has already
+  taken with `preventDefault()`, which is how a page's own script keeps a press
+  for itself (a script that relied on `stopPropagation()` on keyup must move to
+  keydown). The variant drawer's image viewer does this now.
+
 ## [0.5.0] — 2026-10-31
 
 This release stops a missing icon from breaking a page: a block variant that
@@ -921,6 +1064,7 @@ log:
 
 - [0.1.0...0.1.1](https://github.com/phoxmor/phoxtail/compare/v0.1.0...v0.1.1)
 
+[0.6.0]: https://github.com/phoxmor/phoxtail/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/phoxmor/phoxtail/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/phoxmor/phoxtail/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/phoxmor/phoxtail/compare/v0.2.0...v0.3.0
