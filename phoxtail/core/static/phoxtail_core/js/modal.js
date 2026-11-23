@@ -34,11 +34,15 @@ window.closeModal = function(el) {
 // when both ends were on it. A click goes to the nearest element holding both
 // ends, so a press inside a drawer released outside it (a text selection
 // dragged past its edge), or the other way round, is dispatched to the
-// drawer's backdrop, and must not close it.
+// drawer's backdrop, and must not close it. A press while a popover is open
+// (a menu) closes the popover alone: the browser closes it as the press ends,
+// so it is still open here, as the press begins.
 var _pressedOn = null;
 var _releasedOn = null;
+var _pressClosesPopover = false;
 document.addEventListener('pointerdown', function(e) {
     _pressedOn = e.target;
+    _pressClosesPopover = !!document.querySelector('[popover]:not([popover="manual"]):popover-open');
 }, true);
 document.addEventListener('pointerup', function(e) {
     _releasedOn = e.target;
@@ -50,12 +54,13 @@ document.addEventListener('pointerup', function(e) {
  * (data-modal-dismiss="button", modal_drawer.html's dismiss block).
  * Given the click on a backdrop (modal_drawer.html's overlay, which holds the
  * drawer), only a click on the backdrop itself, pressed and released there,
- * dismisses: what lands inside the drawer bubbles up to it and is ignored.
+ * dismisses: what lands inside the drawer bubbles up to it and is ignored,
+ * and so is a click that closes an open popover.
  * @param {Element} [el] - An element inside the modal to dismiss
  * @param {Event} [event] - The click on the backdrop *el*
  */
 window.dismissModal = function(el, event) {
-    if (event && (event.target !== el || _pressedOn !== el || _releasedOn !== el)) return;
+    if (event && (event.target !== el || _pressedOn !== el || _releasedOn !== el || _pressClosesPopover)) return;
     const modal = el instanceof Element ? el.closest('#base-modal, #base-modal-level-1') : null;
     const target = modal || document.getElementById('base-modal');
     if (!target || target.querySelector('[data-modal-dismiss="button"]')) return;

@@ -45,9 +45,18 @@ def test_a_click_inside_the_drawer_reaches_the_page():
 
 def test_only_a_click_pressed_and_released_on_the_overlay_dismisses():
     script = _script("modal.js")
-    assert "if (event && (event.target !== el || _pressedOn !== el || _releasedOn !== el)) return;" in script
-    assert "document.addEventListener('pointerdown', function(e) {\n    _pressedOn = e.target;\n}, true);" in script
+    assert "event.target !== el || _pressedOn !== el || _releasedOn !== el" in script
+    assert "document.addEventListener('pointerdown', function(e) {\n    _pressedOn = e.target;" in script
     assert "document.addEventListener('pointerup', function(e) {\n    _releasedOn = e.target;\n}, true);" in script
+
+
+def test_a_click_that_closes_a_popover_leaves_the_drawer():
+    """The browser closes an open menu on a click outside it, as the press
+    ends; that click, on the overlay, closes the menu alone."""
+    script = _script("modal.js")
+    open_popover = '[popover]:not([popover="manual"]):popover-open'
+    assert f"_pressClosesPopover = !!document.querySelector('{open_popover}');" in script
+    assert "_releasedOn !== el || _pressClosesPopover)) return;" in script
 
 
 def test_modal_drawer_sits_on_the_right_and_closes_any_way_by_default():
