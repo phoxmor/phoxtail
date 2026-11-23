@@ -7,6 +7,11 @@ which scrolls, and the footer: Close, then the drawer's own actions (block
 actions), or a footer of its own (block footer). It stands on the ground, so
 what sits in it rises, 480px wide (block width).
 
+The footer's actions act on what the drawer shows. Actions on something
+related to it go in an overflow menu beside the close button (block
+overflow_menu, filled with {% overflow_menu %}), each named after what it
+acts on. Left empty, or with no rows, the header shows no ⋮.
+
 Where it sits (block side): right (the default) or left, sliding in from that
 edge, or center, fading in; core decides the motion from the side (modal.js),
 never the caller. How it closes (block dismiss): by a click outside it (on
@@ -30,6 +35,7 @@ Closing it closes that modal, whichever level it is on.
                 {% block header %}
                     <div class="phoxtail-drawer__title-row">
                         <h2 class="phoxtail-drawer__title">{% block title %}{% endblock %}</h2>
+                        {% block overflow_menu %}{% endblock %}
                         <button class="phoxtail-close-btn"
                                 onclick="closeModal(this)"
                                 aria-label="{% translate "Close" %}"

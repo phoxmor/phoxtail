@@ -66,6 +66,27 @@ def test_modal_drawer_side_and_dismiss_are_the_callers():
     assert 'data-modal-dismiss="button"' in html
 
 
+def test_an_overflow_menu_sits_between_the_title_and_the_close_button():
+    html = render(
+        '{% extends "phoxtail_core/modal_drawer.html" %}{% load phoxtail_core_tags %}'
+        "{% block title %}Yoga{% endblock %}"
+        '{% block overflow_menu %}{% overflow_menu label="More actions" %}'
+        '<button type="button" class="phx-overflow-menu__item">Edit</button>'
+        "{% endoverflow_menu %}{% endblock %}"
+    )
+
+    assert html.index("Yoga</h2>") < html.index("phx-overflow-menu__button") < html.index("phoxtail-close-btn")
+    assert 'aria-label="More actions"' in html
+    assert 'data-popover-placement="bottom-end"' in html
+
+
+def test_no_overflow_menu_no_button():
+    empty = "{% block overflow_menu %}{% overflow_menu %} {% endoverflow_menu %}{% endblock %}"
+    for fill in ("", "{% load phoxtail_core_tags %}" + empty):
+        html = render('{% extends "phoxtail_core/modal_drawer.html" %}' + fill)
+        assert "phx-overflow-menu" not in html
+
+
 def test_modal_drawer_header_can_be_replaced_whole():
     html = render(
         '{% extends "phoxtail_core/modal_drawer.html" %}{% block header %}<span id="own">Mine</span>{% endblock %}'

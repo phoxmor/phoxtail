@@ -185,6 +185,16 @@
     flex-shrink: 0;
 }
 
+/* An overflow menu (block overflow_menu) keeps to the close button's side,
+   the two round buttons a pair. */
+.phoxtail-drawer__title-row > .phx-overflow-menu {
+    margin-left: auto;
+}
+
+.phoxtail-drawer__title-row > .phx-overflow-menu + .phoxtail-close-btn {
+    margin-left: -0.5rem;
+}
+
 .phoxtail-drawer__body {
     flex: 1;
     padding: 1rem;
