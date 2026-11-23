@@ -30,13 +30,32 @@ window.closeModal = function(el) {
     _closeModalGeneric(modal ? modal.id : 'base-modal');
 };
 
+// Where the last press began and ended: a click on a backdrop counts only
+// when both ends were on it. A click goes to the nearest element holding both
+// ends, so a press inside a drawer released outside it (a text selection
+// dragged past its edge), or the other way round, is dispatched to the
+// drawer's backdrop, and must not close it.
+var _pressedOn = null;
+var _releasedOn = null;
+document.addEventListener('pointerdown', function(e) {
+    _pressedOn = e.target;
+}, true);
+document.addEventListener('pointerup', function(e) {
+    _releasedOn = e.target;
+}, true);
+
 /**
  * Dismiss a modal the way a click outside it or Escape does: close it,
  * unless its content asks to be closed only by its own buttons
  * (data-modal-dismiss="button", modal_drawer.html's dismiss block).
+ * Given the click on a backdrop (modal_drawer.html's overlay, which holds the
+ * drawer), only a click on the backdrop itself, pressed and released there,
+ * dismisses: what lands inside the drawer bubbles up to it and is ignored.
  * @param {Element} [el] - An element inside the modal to dismiss
+ * @param {Event} [event] - The click on the backdrop *el*
  */
-window.dismissModal = function(el) {
+window.dismissModal = function(el, event) {
+    if (event && (event.target !== el || _pressedOn !== el || _releasedOn !== el)) return;
     const modal = el instanceof Element ? el.closest('#base-modal, #base-modal-level-1') : null;
     const target = modal || document.getElementById('base-modal');
     if (!target || target.querySelector('[data-modal-dismiss="button"]')) return;

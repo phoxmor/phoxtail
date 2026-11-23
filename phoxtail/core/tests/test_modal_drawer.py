@@ -32,8 +32,22 @@ def test_modal_drawer_leaves_the_dialog_to_its_modal():
 def test_modal_drawer_closes_the_modal_it_is_in_at_either_level():
     html = render('{% extends "phoxtail_core/modal_drawer.html" %}')
     assert html.count('onclick="closeModal(this)"') == 2  # close button, Close
-    assert html.count('onclick="dismissModal(this)"') == 1  # click outside
+    assert html.count('onclick="dismissModal(this, event)"') == 1  # click outside
     assert "closeModal()" not in html
+
+
+def test_a_click_inside_the_drawer_reaches_the_page():
+    """Nothing in the drawer stops a click: the page's own listeners (an
+    overflow menu's, a field's) hear it, and the overlay ignores it."""
+    html = render('{% extends "phoxtail_core/modal_drawer.html" %}')
+    assert "stopPropagation" not in html
+
+
+def test_only_a_click_pressed_and_released_on_the_overlay_dismisses():
+    script = _script("modal.js")
+    assert "if (event && (event.target !== el || _pressedOn !== el || _releasedOn !== el)) return;" in script
+    assert "document.addEventListener('pointerdown', function(e) {\n    _pressedOn = e.target;\n}, true);" in script
+    assert "document.addEventListener('pointerup', function(e) {\n    _releasedOn = e.target;\n}, true);" in script
 
 
 def test_modal_drawer_sits_on_the_right_and_closes_any_way_by_default():

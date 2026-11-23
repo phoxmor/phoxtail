@@ -9,8 +9,9 @@ what sits in it rises, 480px wide (block width).
 
 Where it sits (block side): right (the default) or left, sliding in from that
 edge, or center, fading in; core decides the motion from the side (modal.js),
-never the caller. How it closes (block dismiss): by a click outside it,
-Escape, its close button and Close; "button" leaves only its own buttons, for
+never the caller. How it closes (block dismiss): by a click outside it (on
+the overlay around it, pressed and released there: modal.js), Escape, its
+close button and Close; "button" leaves only its own buttons, for
 what must not be lost to a stray click (a secret shown once).
 
 The modal around it is the dialog, named by the drawer's title (modal.js).
@@ -18,13 +19,12 @@ Closing it closes that modal, whichever level it is on.
 {% endcomment %}
 {% load i18n phoxtail_design_tags %}
 <div class="phoxtail-modal-overlay"
-     onclick="dismissModal(this)"
+     onclick="dismissModal(this, event)"
      data-modal-side="{% block side %}right{% endblock %}"
      data-modal-dismiss="{% block dismiss %}{% endblock %}"
      data-animation-duration="300ms">
     <div class="phoxtail-modal-drawer phoxtail-drawer--glass phx-ground"
-         style="--phoxtail-drawer-width: {% block width %}480px{% endblock %};"
-         onclick="event.stopPropagation()">
+         style="--phoxtail-drawer-width: {% block width %}480px{% endblock %};">
         <div class="phoxtail-drawer__scroll">
             <div class="phoxtail-drawer__header">
                 {% block header %}

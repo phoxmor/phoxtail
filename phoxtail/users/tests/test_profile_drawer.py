@@ -30,7 +30,7 @@ def test_the_drawer_is_cores(html):
     assert '<h2 class="phoxtail-drawer__title">Edit profile</h2>' in html
     assert "phx-ground" in html
     assert html.count('onclick="closeModal(this)"') == 2  # close button, Close
-    assert html.count('onclick="dismissModal(this)"') == 1  # click outside
+    assert html.count('onclick="dismissModal(this, event)"') == 1  # click outside
     assert "closeModal()" not in html
 
 

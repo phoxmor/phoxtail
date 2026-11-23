@@ -65,6 +65,13 @@ class TestFilters:
 
         assert "Show 2 tokens" in html
 
+    def test_the_drawer_closes_on_a_click_outside_it_only(self, superuser):
+        """Core's backdrop rule (modal.js): clicks inside reach the page."""
+        html = call("admin_tokens_filters_form_view", superuser).content.decode()
+
+        assert 'onclick="dismissModal(this, event)"' in html
+        assert "stopPropagation" not in html
+
     def test_only_the_viewers_own_tokens_are_counted(self, user, other_user):
         AccessTokenFactory(user=user)
         AccessTokenFactory.create_batch(3, user=other_user)

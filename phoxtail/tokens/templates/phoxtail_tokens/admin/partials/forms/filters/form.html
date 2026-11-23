@@ -3,13 +3,12 @@ The Filters drawer: each change redraws the list, these fields and the
 footer, which counts the matches and closes the drawer.
 {% endcomment %}
 <div class="phoxtail-modal-overlay"
-     onclick="closeModal(this)"
+     onclick="dismissModal(this, event)"
      data-modal-animation="slide-right"
      data-animation-duration="300ms"
      id="modal-filters-content">
     <div class="phoxtail-modal-drawer phoxtail-drawer--glass phx-ground"
-         style="--phoxtail-drawer-width: 480px;"
-         onclick="event.stopPropagation()">
+         style="--phoxtail-drawer-width: 480px;">
         <div class="phoxtail-drawer__scroll">
             <form id="tokens-filters-form"
                   hx-include="#tokens-search-form, #tokens-filters-form">

@@ -2,9 +2,10 @@
  * Field behaviour shared by core's field templates.
  *
  * One listener on the document, so fields swapped in by htmx work without
- * running any script of their own. It listens in the capture phase: modal
- * drawers stopPropagation() on clicks inside them, which would hide the
- * click from a listener waiting for it to bubble up.
+ * running any script of their own. It listens in the capture phase, on the
+ * way down: a field works wherever it sits, even inside something that keeps
+ * its clicks from bubbling up (an app's own drawer or row, with
+ * stopPropagation()).
  */
 
 document.addEventListener('click', function (event) {
