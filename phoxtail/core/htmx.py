@@ -4,6 +4,8 @@ How an htmx action answers once it went through.
 Usually 204 with three client events (changed): the change (what shows the
 thing listens for it and redraws itself), closeModal (modal.js closes the
 modal the request came from) and showToast (messages.js says what was done).
+An action taken in place, from a modal that stays open (a row's button in a
+list the change redraws), leaves closeModal out (close=False).
 An action whose result is a modal of its own (a secret shown once) answers
 with it in place of the modal it came from (replace_modal). Actions know no
 page ids.
@@ -39,17 +41,19 @@ def change_event(model):
     return f"{model._meta.label_lower}:changed"
 
 
-def changed(model, message, toast_type="success", response=None):
+def changed(model, message, toast_type="success", response=None, *, close=True):
     """
     Answer an action that went through: 204, a change to *model* announced
     (change_event), the modal the action came from closed, and *message* as a
     toast of *toast_type*. A *response* of the action's own carries the events
-    instead of the 204.
+    instead of the 204. With *close* False the modal stays open: the change
+    still redraws what shows the thing, the modal's own content with it.
     """
     if response is None:
         response = HttpResponse(status=204)
     trigger_client_event(response, change_event(model))
-    trigger_client_event(response, "closeModal")
+    if close:
+        trigger_client_event(response, "closeModal")
     return trigger_client_event(response, "showToast", {"message": message, "type": toast_type})
 
 

@@ -45,6 +45,21 @@ def test_changed_answers_204_with_the_change_close_and_toast():
     }
 
 
+def test_changed_in_place_leaves_the_modal_open():
+    response = changed(Group, "Saved.", close=False)
+
+    assert response.status_code == 204
+    assert json.loads(response["HX-Trigger"]) == {
+        "auth.group:changed": {},
+        "showToast": {"message": "Saved.", "type": "success"},
+    }
+
+
+def test_close_is_named_never_positional():
+    with pytest.raises(TypeError):
+        changed(Group, "Saved.", "success", None, False)
+
+
 def test_changed_carries_the_events_on_a_response_of_its_own():
     response = changed(Group, "Gone.", "error", response=HttpResponse("<p>below</p>"))
 
