@@ -351,42 +351,6 @@ def ssh_live(
 
 
 # ------------------------------------------------------------------
-# Git helpers
-# ------------------------------------------------------------------
-
-
-def detect_repo_url() -> str | None:
-    """Auto-detect from local git origin remote."""
-    result = subprocess.run(
-        ["git", "remote", "get-url", "origin"],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        return None
-    return result.stdout.strip()
-
-
-def to_ssh_url(url: str) -> str:
-    """Convert HTTPS GitHub/GitLab URL to SSH format."""
-    for host in ("github.com", "gitlab.com"):
-        prefix = f"https://{host}/"
-        if url.startswith(prefix):
-            path = url.removeprefix(prefix)
-            if not path.endswith(".git"):
-                path += ".git"
-            return f"git@{host}:{path}"
-    return url
-
-
-def git_host(url: str) -> str:
-    """Extract host from git@host:path URL."""
-    if "@" in url and ":" in url:
-        return url.split("@", 1)[1].split(":", 1)[0]
-    return "github.com"
-
-
-# ------------------------------------------------------------------
 # Cloud-init
 # ------------------------------------------------------------------
 
