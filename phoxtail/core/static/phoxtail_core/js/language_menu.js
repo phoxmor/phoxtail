@@ -1,6 +1,8 @@
 /**
  * The language menu (phoxtail_core/language_menu.html): its button opens and
- * closes the list; a click outside the menu or Escape closes it.
+ * closes the list; a click outside the menu or Escape closes it. An Escape
+ * that closes a list is taken (preventDefault()), so a drawer around it stays
+ * open (modal.js).
  *
  * One listener on the document, so it needs no element when it loads and
  * works for every menu on the page.
@@ -33,6 +35,7 @@
         document.querySelectorAll(MENU + '.' + OPEN).forEach(function (menu) {
             setOpen(menu, false);
             menu.querySelector('.phx-language-menu__button').focus();
+            event.preventDefault();
         });
     });
 })();

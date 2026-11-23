@@ -297,7 +297,8 @@ document.addEventListener('click', function (event) {
 })();
 
 /* Single select search: its button opens and closes the panel it controls; a
-   click outside the field or Escape closes it. */
+   click outside the field or Escape closes it. An Escape that closes a panel
+   is taken (preventDefault()), so the drawer around it stays open (modal.js). */
 (function () {
     function setSearchPanel(trigger, open) {
         var panel = document.getElementById(trigger.getAttribute('aria-controls'));
@@ -329,6 +330,7 @@ document.addEventListener('click', function (event) {
         if (event.key === 'Escape') {
             document.querySelectorAll('[data-single-select-search-trigger][aria-expanded="true"]').forEach(function (trigger) {
                 setSearchPanel(trigger, false);
+                event.preventDefault();
             });
         } else if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-single-select-search-trigger]')) {
             event.preventDefault();

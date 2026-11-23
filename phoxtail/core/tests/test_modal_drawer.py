@@ -118,5 +118,25 @@ def test_a_click_outside_or_escape_spares_a_modal_closed_only_by_its_buttons():
         assert 'onclick="dismissModal(this)"' in render_to_string(shell)  # the backdrop
 
 
+def test_escape_closes_one_modal_and_only_when_nothing_inside_took_it():
+    """Heard on the window as the key goes down, after the page's own
+    listeners: a held key closes one level, and an Escape that closed a
+    popover, a modal dialog or anything that took it leaves the drawer."""
+    script = _script("modal.js")
+    assert "window.addEventListener('keydown', function(e) {" in script
+    assert "addEventListener('keyup'" not in script
+    assert "e.defaultPrevented || e.repeat || e.isComposing" in script
+    assert '[popover]:not([popover="manual"]):popover-open, dialog:modal' in script
+
+
+def test_core_menus_take_the_escape_they_use():
+    """A field's open panel and the language menu close on Escape and take
+    it, so the drawer around them stays open."""
+    for name in ("fields.js", "language_menu.js"):
+        script = _script(name)
+        escape = script[script.index("Escape') {") :]
+        assert "event.preventDefault();" in escape[: escape.index("});")]
+
+
 def test_the_side_decides_the_motion():
     assert "{right: 'slide-right', left: 'slide-left', center: 'fade'}" in _script("modal.js")

@@ -157,11 +157,11 @@ answers with the reason instead.
                         var walk = images.length > 1;
                         document.getElementById('sync-lightbox-prev').hidden = !walk;
                         document.getElementById('sync-lightbox-next').hidden = !walk;
-                        // Escape closes the picture, not the drawer behind it (modal.js closes
-                        // the drawer on keyup), so the dialog handles it on keyup itself.
+                        // Escape closes the picture, not the drawer behind it: the dialog takes
+                        // the key (preventDefault(), which modal.js leaves alone).
                         lightbox.addEventListener('cancel', function (e) { e.preventDefault(); });
-                        lightbox.addEventListener('keyup', function (e) {
-                            if (e.key === 'Escape') { e.stopPropagation(); lightbox.close(); }
+                        lightbox.addEventListener('keydown', function (e) {
+                            if (e.key === 'Escape') { e.preventDefault(); lightbox.close(); }
                             if (e.key === 'ArrowLeft' && walk) show(shown - 1);
                             if (e.key === 'ArrowRight' && walk) show(shown + 1);
                         });

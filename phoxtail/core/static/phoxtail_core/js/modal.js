@@ -120,12 +120,18 @@ function _labelModal(modalId, placeholderId) {
  */
 (function() {
     // Escape dismisses the topmost modal (dismissModal: not one that is
-    // closed only by its own buttons).
-    document.addEventListener('keyup', function(e) {
-        if (e.key === 'Escape') {
-            const top = document.getElementById('base-modal-level-1') || document.getElementById('base-modal');
-            if (top) window.dismissModal(top);
-        }
+    // closed only by its own buttons), one modal per press. An Escape meant
+    // for something open inside it closes that alone: a popover or a modal
+    // <dialog> (the browser closes them once the key's listeners have run,
+    // so here they are still open), or anything whose own listener took the
+    // key (preventDefault(): a field's open panel, a menu). Heard on the window as the key goes down,
+    // after every listener on the page and its elements, whatever order the
+    // scripts load in.
+    window.addEventListener('keydown', function(e) {
+        if (e.key !== 'Escape' || e.defaultPrevented || e.repeat || e.isComposing) return;
+        const top = document.getElementById('base-modal-level-1') || document.getElementById('base-modal');
+        if (!top || top.querySelector('[popover]:not([popover="manual"]):popover-open, dialog:modal')) return;
+        window.dismissModal(top);
     });
 
     // The closeModal client event (an HX-Trigger from the server) closes the
