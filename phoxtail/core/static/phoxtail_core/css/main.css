@@ -235,6 +235,8 @@ body {
                            0 6px 16px -4px rgb(0 0 0 / 0.08);
     --phx-floating-shadow-up: 0 -1px 2px rgb(0 0 0 / 0.04),
                               0 -6px 16px -4px rgb(0 0 0 / 0.08);
+    /* What floats above everything, opened by a button (surfaces.css). */
+    --phx-popover-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
 }
 
 /* The small size's height: every pill that sits beside a title or a list —
@@ -288,6 +290,7 @@ body {
                                0 6px 16px -4px rgb(0 0 0 / 0.4);
         --phx-floating-shadow-up: inset 0 1px 0 rgb(255 255 255 / 0.06),
                                   0 -6px 16px -4px rgb(0 0 0 / 0.4);
+        --phx-popover-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
         --phx-drawer-shadow-color: rgb(0 0 0 / 0.5);
     }
 

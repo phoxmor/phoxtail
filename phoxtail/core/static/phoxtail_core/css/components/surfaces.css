@@ -130,7 +130,7 @@ html:has(> body.phx-ground) {
    risen thing, with the deepest shadow. */
 .phx-popover {
     background: var(--phx-raised-background);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+    box-shadow: var(--phx-popover-shadow);
 }
 
 /* One beside its button (data-popover-placement): popover.js sets where,
@@ -170,9 +170,5 @@ html:has(> body.phx-ground) {
 
     .phx-card__icon {
         color: rgb(var(--color-primary-400));
-    }
-
-    .phx-popover {
-        box-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
     }
 }
