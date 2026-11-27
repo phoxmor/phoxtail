@@ -609,10 +609,35 @@
             (!_releasePath || _onPage(_releasePath, also));
     }
 
+    // A menu is a popover: a click anywhere but on it or its button closes
+    // it; one elsewhere in the chat closes it alone. A press or
+    // release inside it (a selection in its search) keeps it, as does using
+    // a message, which floats above everything.
+    function _touches(path, els) {
+        return path.some(function (n) {
+            return els.indexOf(n) !== -1 || (n.matches && n.matches('.phx-toast-container'));
+        });
+    }
+
+    function _clickTouches(e, els) {
+        if (_touches(e.composedPath(), els)) return true;
+        if (!e.detail) return false;
+        return (!!_pressPath && _touches(_pressPath, els)) ||
+            (!!_releasePath && _touches(_releasePath, els));
+    }
+
+    var _menus = [
+        [blocks, blocksPanel, blocksBtn],
+        [modelPicker, modelPickerPanel, modelPickerBtn],
+        [menu, menuPanel, menuBtn],
+    ];
+
     document.addEventListener('click', function (e) {
         if (document.getElementById('base-modal') || document.getElementById('base-modal-level-1')) return;
+        _menus.forEach(function (m) {
+            if (m[0] && m[0].isOpen() && !_clickTouches(e, [m[1], m[2]])) m[0].close();
+        });
         if (!_clickOnPage(e)) return;
-        if (menu && menu.isOpen()) menu.close();
         if (chat.isOpen()) chat.close();
     });
 
