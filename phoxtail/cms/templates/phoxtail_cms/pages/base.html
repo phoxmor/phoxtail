@@ -39,7 +39,7 @@
         {% block extra_css %}{% endblock %}
         {% block_site_slot "head_end" %}
     </head>
-    <body>
+    <body class="{% block bodyclass %}phx-ground{% endblock %}">
         {% block_site_slot "body_start" %}
         {% include "account/messages_static.html" %}
         {% include "account/messages.html" %}
