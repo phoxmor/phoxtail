@@ -90,6 +90,7 @@
     var editBtn = document.getElementById('phoxtail-bar-edit-btn');
     var adminBtn = document.getElementById('phoxtail-bar-admin-btn');
     var dashboardBtn = document.getElementById('phoxtail-bar-dashboard-btn');
+    var signoutBtn = document.getElementById('phoxtail-bar-signout-btn');
 
     // ── Generic panel toggle factory ────────────────────────────────────────
 
@@ -577,11 +578,40 @@
     })();
 
     // ── Click-outside: close any open panel ─────────────────────────────────
+    // "Outside" is decided from the event's path, which the browser fixes
+    // when the click starts: a handler that replaces the clicked button (New
+    // chat swaps the whole conversation) or removes it (a dismissed message)
+    // has already detached it by the time the click reaches the document,
+    // and contains() would then call it outside. A click also counts only
+    // if it was pressed and released on the page: a drag across the chat's
+    // edge (a text selection, either way) fires its click on an ancestor
+    // holding both ends, which looks like the page. As core's modals do.
+
+    var _pressPath = null;
+    var _releasePath = null;
+    document.addEventListener('pointerdown', function (e) { _pressPath = e.composedPath(); }, true);
+    document.addEventListener('pointerup', function (e) { _releasePath = e.composedPath(); }, true);
+
+    // Messages float above everything, the chat included: using one is not
+    // a click on the page.
+    function _onPage(path, also) {
+        return !path.some(function (n) {
+            return n === bar || n === chatbotDrawer || (also && n === also) ||
+                (n.matches && n.matches('.phx-toast-container'));
+        });
+    }
+
+    // A click from the keyboard (detail 0) has no press of its own.
+    function _clickOnPage(e, also) {
+        if (!_onPage(e.composedPath(), also)) return false;
+        if (!e.detail) return true;
+        return (!_pressPath || _onPage(_pressPath, also)) &&
+            (!_releasePath || _onPage(_releasePath, also));
+    }
 
     document.addEventListener('click', function (e) {
         if (document.getElementById('base-modal') || document.getElementById('base-modal-level-1')) return;
-        if (bar.contains(e.target)) return;
-        if (chatbotDrawer && chatbotDrawer.contains(e.target)) return;
+        if (!_clickOnPage(e)) return;
         if (menu && menu.isOpen()) menu.close();
         if (chat.isOpen()) chat.close();
     });
@@ -741,6 +771,10 @@
         if ((e.key === 'u' || e.key === 'U') && menu && menu.isOpen() && unpublishBtn) {
             menu.close();
             _pageAction('unpublish');
+        }
+        if ((e.key === 'o' || e.key === 'O') && menu && menu.isOpen() && signoutBtn) {
+            menu.close();
+            signoutBtn.form.requestSubmit();
         }
     });
 
@@ -1839,9 +1873,7 @@
 
     document.addEventListener('click', function (e) {
         if (!_hlTarget) return;
-        if (bar.contains(e.target)) return;
-        if (chatbotDrawer && chatbotDrawer.contains(e.target)) return;
-        if (_hlTarget.contains(e.target)) return;
+        if (!_clickOnPage(e, _hlTarget)) return;
         dismissHighlight();
     });
 

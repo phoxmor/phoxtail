@@ -1,7 +1,7 @@
 {% load i18n phoxtail_design_tags %}
 <div class="phoxtail-media-picker-overlay"
      data-modal-animation="slide-left">
-    <div class="phoxtail-media-picker-drawer phoxtail-modal-drawer">
+    <div class="phoxtail-media-picker-drawer phoxtail-modal-drawer phx-raised">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">{% translate "Menu &amp; Media" %}</span>
             <button type="button"
@@ -84,7 +84,7 @@
                 <span id="phoxtail-media-picker-collection-label">{{ selected_collection_name|default:"All collections" }}</span>
                 {% icon "chevron_down" class="phoxtail-bar-btn-icon phoxtail-media-picker-collection-chevron" %}
             </button>
-            <div class="phoxtail-media-picker-collection-panel"
+            <div class="phoxtail-media-picker-collection-panel phx-popover"
                  id="phoxtail-media-picker-collection-panel"
                  aria-hidden="true">
                 <div class="phoxtail-media-picker-collection-search-wrap">
@@ -192,13 +192,13 @@
                 </div>
                 <div class="phoxtail-media-picker-lightbox-actions">
                     <button type="button"
-                            class="phoxtail-media-picker-lightbox-close-btn"
+                            class="phx-button phx-button--secondary phoxtail-media-picker-lightbox-close-btn"
                             id="phoxtail-media-picker-lightbox-dismiss">
                         {% icon "close" class="phoxtail-bar-btn-icon" %}
                         {% translate "Close" %}
                     </button>
                     <button type="button"
-                            class="phoxtail-media-picker-lightbox-add-btn"
+                            class="phx-button phx-button--primary phoxtail-media-picker-lightbox-add-btn"
                             id="phoxtail-media-picker-lightbox-add">
                         {% icon "plus" class="phoxtail-bar-btn-icon" %}
                         {% translate "Add to chat" %}

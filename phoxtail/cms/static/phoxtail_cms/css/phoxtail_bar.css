@@ -75,26 +75,17 @@ html.phoxtail-bar-active {
 }
 #phoxtail-bar * { box-sizing: border-box; }
 
-/* ── Dock ── */
+/* ── Dock ──
+   Floats above the page, so it is a popover (phx-popover in the template):
+   core paints its color and shadow, and its buttons are cut into it. */
 .phoxtail-bar-dock {
     position: relative;
     display: flex;
     align-items: center;
     padding: 0.25rem 0.375rem;
+    border-radius: calc(infinity * 1px);
     pointer-events: auto;
     white-space: nowrap;
-}
-.phoxtail-bar-dock::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: calc(infinity * 1px);
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.93);
-    backdrop-filter: blur(24px) saturate(1.8);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    border: 1px solid rgb(0 0 0 / 0.06);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
 }
 
 /* ── Page info ── */
@@ -117,8 +108,8 @@ html.phoxtail-bar-active {
 .phoxtail-bar-badge {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: rgb(var(--color-primary-700, 67 56 202));
-    background-color: rgb(var(--color-primary-50, 238 242 255));
+    color: rgb(var(--color-surface-700, 63 63 70));
+    background-color: rgb(var(--color-surface-500, 113 113 122) / 0.12);
     padding: 0.0625rem 0.375rem;
     border-radius: 100px;
     letter-spacing: 0.01em;
@@ -174,7 +165,7 @@ html.phoxtail-bar-active {
 .phoxtail-bar-divider {
     width: 1px;
     height: 1.25rem;
-    background-color: rgb(0 0 0 / 0.1);
+    background-color: var(--phx-control-background-hover);
     margin: 0 0.5rem;
     flex-shrink: 0;
 }
@@ -188,31 +179,40 @@ html.phoxtail-bar-active {
     justify-content: center;
     width: 2.0625rem;
     height: 2.0625rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
+    border: none;
     border-radius: 50%;
-    background-color: rgb(0 0 0 / 0.03);
+    background-color: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
     color: rgb(var(--color-surface-600, 82 82 91));
     cursor: pointer;
     text-decoration: none;
     font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, box-shadow 200ms ease, color 150ms ease;
     flex-shrink: 0;
     padding: 0;
 }
 .phoxtail-bar-btn:hover {
-    background-color: rgb(0 0 0 / 0.07);
-    border-color: rgb(0 0 0 / 0.14);
+    background-color: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
     color: rgb(var(--color-surface-900, 9 9 11));
 }
-.phoxtail-bar-btn--active,
+.phoxtail-bar-btn:focus-visible {
+    outline: 2px solid rgb(var(--color-surface-400) / 0.5);
+    outline-offset: 2px;
+}
+/* Brand means on: the button of what is open. */
+.phoxtail-bar-btn--active {
+    background-color: rgb(var(--color-primary-700));
+    color: #fff;
+}
 .phoxtail-bar-btn--active:hover {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-700, 67 56 202));
+    background-color: rgb(var(--color-primary-800));
+    color: #fff;
 }
 .phoxtail-bar-btn-icon { width: 0.9375rem; height: 0.9375rem; }
 
-/* ── Panel — hidden by default; .phoxtail-bar-panel--open reveals it ── */
+/* ── Panel — hidden by default; .phoxtail-bar-panel--open reveals it ──
+   Each is a popover (phx-popover in the template), which paints it. */
 .phoxtail-bar-panel {
     position: absolute;
     bottom: calc(100% + 0.625rem);
@@ -222,11 +222,6 @@ html.phoxtail-bar-active {
     max-height: 60vh;
     display: flex;
     flex-direction: column;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.93);
-    backdrop-filter: blur(24px) saturate(1.8);
-    -webkit-backdrop-filter: blur(24px) saturate(1.8);
-    border: 1px solid rgb(0 0 0 / 0.06);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
     border-radius: 1.25rem;
     overflow: hidden;
     opacity: 0;
@@ -244,7 +239,6 @@ html.phoxtail-bar-active {
     align-items: center;
     justify-content: space-between;
     padding: 0.625rem 0.625rem 0.625rem 1rem;
-    border-bottom: 1px solid rgb(0 0 0 / 0.06);
     flex-shrink: 0;
 }
 .phoxtail-bar-panel-title {
@@ -273,8 +267,12 @@ html.phoxtail-bar-active {
     transition: background-color 150ms ease, color 150ms ease;
 }
 .phoxtail-bar-panel-close:hover {
-    background-color: rgb(0 0 0 / 0.06);
+    background-color: var(--phx-control-background-hover);
     color: rgb(var(--color-surface-700, 63 63 70));
+}
+.phoxtail-bar-panel-close:focus-visible {
+    outline: 2px solid rgb(var(--color-surface-400) / 0.5);
+    outline-offset: 2px;
 }
 .phoxtail-bar-panel-close .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
 
@@ -294,27 +292,25 @@ html.phoxtail-bar-active {
     gap: 0.5rem;
     padding: 0.4375rem 0.375rem 0.4375rem 0.625rem;
     border-radius: 0.875rem;
-    transition: background-color 100ms ease;
+    transition: background-color 150ms ease;
 }
 .phoxtail-bar-page-row { cursor: default; }
 .phoxtail-bar-block-row { cursor: pointer; }
-.phoxtail-bar-block-row--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    outline: 1px solid rgb(var(--color-primary-200, 199 210 254));
-    outline-offset: -1px;
-}
-.phoxtail-bar-page-row:hover  { background-color: rgb(0 0 0 / 0.03); }
-.phoxtail-bar-block-row:hover { background-color: rgb(0 0 0 / 0.05); }
+.phoxtail-bar-page-row:hover,
+.phoxtail-bar-block-row:hover { background-color: var(--phx-control-background); }
+/* The row the keyboard is on: the hover's gray, stronger. */
+.phoxtail-bar-block-row--active { background-color: var(--phx-control-background-hover); }
 .phoxtail-bar-sep-line {
     height: 1px;
-    background-color: rgb(0 0 0 / 0.06);
+    background-color: var(--phx-control-background);
     margin: 0.25rem 0.25rem;
 }
 .phoxtail-bar-row-icon {
     width: 0.875rem;
     height: 0.875rem;
-    color: rgb(var(--color-surface-300, 212 212 216));
+    color: rgb(var(--color-surface-500, 113 113 122));
     flex-shrink: 0;
+    transition: color 150ms ease;
 }
 .phoxtail-bar-row-info { flex: 1; min-width: 0; }
 .phoxtail-bar-row-type {
@@ -326,6 +322,7 @@ html.phoxtail-bar-active {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 150ms ease;
 }
 .phoxtail-bar-row-meta {
     display: block;
@@ -345,30 +342,31 @@ html.phoxtail-bar-active {
     justify-content: center;
     width: 1.625rem;
     height: 1.625rem;
-    border: 1px solid transparent;
+    border: none;
     border-radius: 0.5rem;
     background: none;
-    color: rgb(var(--color-surface-300, 212 212 216));
+    color: rgb(var(--color-surface-400, 161 161 170));
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
     font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, color 150ms ease;
 }
-.phoxtail-bar-copy-btn:focus,
 .phoxtail-bar-copy-btn:focus-visible,
-.phoxtail-bar-add-btn:focus,
-.phoxtail-bar-add-btn:focus-visible { outline: none; }
-.phoxtail-bar-copy-btn:hover {
-    background-color: rgb(0 0 0 / 0.05);
-    border-color: rgb(0 0 0 / 0.1);
-    color: rgb(var(--color-surface-600, 82 82 91));
+.phoxtail-bar-add-btn:focus-visible {
+    outline: 2px solid rgb(var(--color-surface-400) / 0.5);
+    outline-offset: 1px;
+}
+.phoxtail-bar-copy-btn:hover,
+.phoxtail-bar-add-btn:hover {
+    background-color: var(--phx-control-background-hover);
+    color: rgb(var(--color-surface-700, 63 63 70));
 }
 .phoxtail-bar-copy-btn .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
-.phoxtail-bar-copy-btn--copied {
-    color: rgb(var(--color-success-600, 22 163 74)) !important;
-    border-color: rgb(var(--color-success-300, 134 239 172)) !important;
-    background-color: rgb(var(--color-success-50, 240 253 244)) !important;
+.phoxtail-bar-copy-btn--copied,
+.phoxtail-bar-copy-btn--copied:hover {
+    color: rgb(var(--color-success-700, 21 128 61));
+    background-color: rgb(var(--color-success-500, 34 197 94) / 0.12);
 }
 
 /* ── Actions panel — narrower; inherits the base centering on the dock ── */
@@ -383,28 +381,20 @@ html.phoxtail-bar-active {
     justify-content: center;
     width: 1.625rem;
     height: 1.625rem;
-    border: 1px solid transparent;
+    border: none;
     border-radius: 0.5rem;
     background: none;
-    color: rgb(var(--color-surface-300, 212 212 216));
+    color: rgb(var(--color-surface-400, 161 161 170));
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
     font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, color 150ms ease;
 }
-.phoxtail-bar-add-btn:hover {
-    background-color: rgb(0 0 0 / 0.05);
-    border-color: rgb(0 0 0 / 0.1);
-    color: rgb(var(--color-surface-600, 82 82 91));
-}
-.phoxtail-bar-add-btn--active {
-    color: rgb(var(--color-surface-600, 82 82 91));
-}
+/* In the chat already: brand means on. */
+.phoxtail-bar-add-btn--active,
 .phoxtail-bar-add-btn--active:hover {
-    background-color: rgb(0 0 0 / 0.08);
-    border-color: rgb(0 0 0 / 0.15);
-    color: rgb(var(--color-surface-700, 63 63 70));
+    color: rgb(var(--color-primary-600));
 }
 .phoxtail-bar-add-btn .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
 .phoxtail-bar-add-btn .phoxtail-add-btn-icon-remove { display: none; }
@@ -419,16 +409,25 @@ html.phoxtail-bar-active {
     border-radius: 0.875rem;
     text-decoration: none;
     color: inherit;
-    transition: background-color 100ms ease;
+    transition: background-color 150ms ease;
     cursor: pointer;
 }
-.phoxtail-bar-actions-item:hover { background-color: rgb(0 0 0 / 0.05); }
-.phoxtail-bar-actions-item.phoxtail-bar-actions-item--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    outline: 1px solid rgb(var(--color-primary-200, 199 210 254));
-    outline-offset: -1px;
-}
+.phoxtail-bar-actions-item:hover { background-color: var(--phx-control-background); }
+.phoxtail-bar-actions-item.phoxtail-bar-actions-item--active { background-color: var(--phx-control-background-hover); }
+.phoxtail-bar-actions-item:focus-visible { outline: 2px solid rgb(var(--color-surface-400) / 0.5); outline-offset: -2px; }
 button.phoxtail-bar-actions-item { background: none; border: none; font: inherit; width: 100%; text-align: left; }
+/* Sign out posts, so its item sits in a form that adds no box of its own. */
+.phoxtail-bar-actions-form { display: contents; }
+/* Leaving is no harm done, so it rests like the rest; pointed at, it takes
+   the destructive tone, as the dashboard's sign-out does. */
+.phoxtail-bar-actions-item--signout:hover,
+.phoxtail-bar-actions-item--signout.phoxtail-bar-actions-item--active {
+    background-color: rgb(var(--color-destructive-500) / 0.12);
+}
+.phoxtail-bar-actions-item--signout:hover :is(.phoxtail-bar-row-icon, .phoxtail-bar-row-type),
+.phoxtail-bar-actions-item--signout.phoxtail-bar-actions-item--active :is(.phoxtail-bar-row-icon, .phoxtail-bar-row-type) {
+    color: rgb(var(--color-destructive-700));
+}
 
 
 /* ── Block wrapper (in page.html) ── */
@@ -477,7 +476,9 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     border-right: 2px solid rgb(var(--color-primary-500, 99 102 241));
 }
 
-/* ── Shared search bar (model picker, reused by media picker) ── */
+/* ── Shared search bar (model picker, reused by media picker) ──
+   A field cut into the risen panel it sits in: the control fill, no edge,
+   the fields' focus ring (core's search). */
 .phoxtail-bar-search-wrap {
     position: relative;
     display: flex;
@@ -490,17 +491,18 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     padding: 0.4rem 0.625rem 0.4rem 1.75rem;
     font-size: 0.8125rem;
     font-family: inherit;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 0.5rem;
-    background: rgb(0 0 0 / 0.03);
+    border: none;
+    border-radius: 999px;
+    background: var(--phx-control-background);
     color: rgb(var(--color-surface-800, 24 24 27));
     outline: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: background-color 150ms ease;
 }
-.phoxtail-bar-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
-.phoxtail-bar-search-input:focus {
-    border-color: rgb(var(--color-primary-400, 129 140 248));
-    background: rgb(0 0 0 / 0.01);
+.phoxtail-bar-search-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
+.phoxtail-bar-search-input:hover { background: var(--phx-control-background-hover); }
+.phoxtail-bar-search-input:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-600));
+    outline-offset: 2px;
 }
 .phoxtail-bar-search-icon {
     position: absolute;
@@ -519,14 +521,14 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     justify-content: center;
     padding: 0.2rem;
     border: none;
-    border-radius: 0.25rem;
+    border-radius: 50%;
     background: transparent;
     color: rgb(var(--color-surface-400, 161 161 170));
     cursor: pointer;
     transition: color 0.1s, background 0.1s;
 }
 .phoxtail-bar-search-clear:hover {
-    background: rgb(0 0 0 / 0.06);
+    background: var(--phx-control-background-hover);
     color: rgb(var(--color-surface-700, 63 63 70));
 }
 .phoxtail-bar-search-clear .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
@@ -534,75 +536,36 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
 
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
-    .phoxtail-bar-dock::before {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.75);
-        border-color: rgb(255 255 255 / 0.08);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
-    }
     .phoxtail-bar-page-title { color: rgb(var(--color-surface-50, 250 250 250)); }
-    .phoxtail-bar-badge {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.8);
-        color: rgb(var(--color-primary-300, 165 180 252));
-    }
+    .phoxtail-bar-badge { color: rgb(var(--color-surface-300, 212 212 216)); background-color: rgb(var(--color-surface-400, 161 161 170) / 0.15); }
     .phoxtail-bar-sep { color: rgb(255 255 255 / 0.15); }
     .phoxtail-bar-type, .phoxtail-bar-locale { color: rgb(var(--color-surface-400, 161 161 170)); }
-    .phoxtail-bar-divider { background-color: rgb(255 255 255 / 0.1); }
-    .phoxtail-bar-btn {
-        border-color: rgb(255 255 255 / 0.1);
-        background-color: rgb(255 255 255 / 0.06);
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
-    .phoxtail-bar-btn:hover {
-        background-color: rgb(255 255 255 / 0.12);
-        border-color: rgb(255 255 255 / 0.2);
-        color: white;
-    }
-    .phoxtail-bar-btn--active,
-    .phoxtail-bar-btn--active:hover {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
-        border-color: rgb(var(--color-primary-700, 67 56 202));
-        color: rgb(var(--color-primary-300, 165 180 252));
-    }
-.phoxtail-bar-panel {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-        border-color: rgb(255 255 255 / 0.08);
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), inset 0 0.5px 0 rgb(255 255 255 / 0.07);
-    }
-    .phoxtail-bar-panel-header { border-bottom-color: rgb(255 255 255 / 0.07); }
+    .phoxtail-bar-btn { color: rgb(var(--color-surface-300, 212 212 216)); }
+    .phoxtail-bar-btn:hover { color: white; }
     .phoxtail-bar-panel-close { color: rgb(var(--color-surface-500, 113 113 122)); }
-    .phoxtail-bar-panel-close:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        color: white;
-    }
-    .phoxtail-bar-sep-line { background-color: rgb(255 255 255 / 0.07); }
-    .phoxtail-bar-page-row:hover  { background-color: rgb(255 255 255 / 0.04); }
-    .phoxtail-bar-block-row:hover { background-color: rgb(255 255 255 / 0.06); }
-    .phoxtail-bar-block-row--active {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
-        outline-color: rgb(var(--color-primary-700, 67 56 202));
-    }
+    .phoxtail-bar-panel-close:hover { color: white; }
     .phoxtail-bar-row-icon  { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-bar-row-type  { color: rgb(var(--color-surface-100, 244 244 245)); }
     .phoxtail-bar-row-meta  { color: rgb(var(--color-surface-500, 113 113 122)); }
-    .phoxtail-bar-copy-btn  { color: rgb(var(--color-surface-600, 82 82 91)); }
+    .phoxtail-bar-copy-btn,
+    .phoxtail-bar-add-btn   { color: rgb(var(--color-surface-500, 113 113 122)); }
     .phoxtail-bar-copy-btn:hover,
-    .phoxtail-bar-add-btn:hover,
-    .phoxtail-bar-add-btn--active:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        border-color: rgb(255 255 255 / 0.12);
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
-    .phoxtail-bar-add-btn--active { color: rgb(var(--color-surface-600, 82 82 91)); }
-    .phoxtail-bar-copy-btn--copied {
-        color: rgb(var(--color-success-400, 74 222 128)) !important;
-        border-color: rgb(var(--color-success-700, 21 128 61) / 0.6) !important;
-        background-color: rgb(var(--color-success-900, 20 83 45) / 0.4) !important;
+    .phoxtail-bar-add-btn:hover { color: rgb(var(--color-surface-200, 228 228 231)); }
+    .phoxtail-bar-add-btn--active,
+    .phoxtail-bar-add-btn--active:hover { color: rgb(var(--color-primary-400)); }
+    .phoxtail-bar-copy-btn--copied,
+    .phoxtail-bar-copy-btn--copied:hover {
+        color: rgb(var(--color-success-300, 134 239 172));
+        background-color: rgb(var(--color-success-400, 74 222 128) / 0.15);
     }
     .phoxtail-bar-actions-item { color: rgb(var(--color-surface-100, 244 244 245)); }
-    .phoxtail-bar-actions-item:hover { background-color: rgb(255 255 255 / 0.06); }
-    .phoxtail-bar-actions-item.phoxtail-bar-actions-item--active {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
-        outline-color: rgb(var(--color-primary-700, 67 56 202));
+    .phoxtail-bar-actions-item--signout:hover,
+    .phoxtail-bar-actions-item--signout.phoxtail-bar-actions-item--active {
+        background-color: rgb(var(--color-destructive-400) / 0.15);
+    }
+    .phoxtail-bar-actions-item--signout:hover :is(.phoxtail-bar-row-icon, .phoxtail-bar-row-type),
+    .phoxtail-bar-actions-item--signout.phoxtail-bar-actions-item--active :is(.phoxtail-bar-row-icon, .phoxtail-bar-row-type) {
+        color: rgb(var(--color-destructive-300));
     }
 
     .phoxtail-bar-highlight-corner--tl,
@@ -611,16 +574,10 @@ body.phoxtail-chat-open .phoxtail-block[draggable="true"] { cursor: grab; }
     .phoxtail-bar-highlight-corner--br {
         border-color: rgb(var(--color-primary-400, 129 140 248));
     }
-    .phoxtail-bar-search-input {
-        border-color: rgb(255 255 255 / 0.08);
-        background: rgb(255 255 255 / 0.04);
-        color: rgb(var(--color-surface-100, 244 244 245));
-    }
-    .phoxtail-bar-search-input:focus { background: rgb(255 255 255 / 0.06); }
-    .phoxtail-bar-search-clear:hover {
-        background: rgb(255 255 255 / 0.08);
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
+    .phoxtail-bar-search-input { color: rgb(var(--color-surface-100, 244 244 245)); }
+    .phoxtail-bar-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
+    .phoxtail-bar-search-input:focus-visible { outline-color: rgb(var(--color-primary-400)); }
+    .phoxtail-bar-search-clear:hover { color: rgb(var(--color-surface-200, 228 228 231)); }
 }
 
 /* ── Per-block refresh indicator ── */

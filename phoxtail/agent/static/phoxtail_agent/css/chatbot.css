@@ -1,11 +1,6 @@
 /* ── Blocks and Inference panels anchored above the compose bar ──────────────
-   Both read as the compose bar's own surface, lifted upward: same fill token
-   and hairline, same rounding, a shadow that floats up rather than down.
-   The fill is opaque where the compose bar's is translucent, because these
-   panels live INSIDE the compose bar — an ancestor with backdrop-filter is a
-   backdrop root, so a nested backdrop-filter has only its ancestor's group to
-   sample and never sees the chat behind. Glass here would not frost anything;
-   it would just leave the conversation legible through the panel. */
+   Popovers (phx-popover in the template), as every bar panel; this only
+   places them above the compose bar. */
 .phoxtail-chatbot-blocks-panel,
 .phoxtail-chatbot-model-panel {
     bottom: calc(100% + 0.625rem);
@@ -13,12 +8,6 @@
     right: 0;
     width: auto;
     transform: translateY(8px) scale(0.97);
-    background-color: rgb(var(--color-surface-50, 255 255 255));
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06), 0 8px 32px rgba(0, 0, 0, 0.1),
-                inset 0 0.5px 0 rgb(255 255 255 / 0.85), inset 0 -0.5px 0 rgb(0 0 0 / 0.04);
-    border-color: rgb(0 0 0 / 0.08);
 }
 .phoxtail-chatbot-blocks-panel.phoxtail-bar-panel--open,
 .phoxtail-chatbot-model-panel.phoxtail-bar-panel--open {
@@ -70,64 +59,72 @@
     margin-right: auto;
 }
 
-.phoxtail-chatbot-compose-action-btn {
+/* ── Round icon buttons ──
+   The topbar's, the compose bar's and the drawers' header buttons: controls
+   cut into the risen drawer (main.css), compact beside the conversation.
+   Brand means on: an open panel's button, a message ready to send. */
+.phoxtail-chatbot-compose-action-btn,
+.phoxtail-chatbot-topbar-history,
+.phoxtail-chatbot-topbar-close,
+.phoxtail-chatbot-send-btn,
+.phoxtail-chatbot-stop-btn,
+.phoxtail-media-picker-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close,
+.phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close {
     position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
+    border: none;
     border-radius: 50%;
-    background: none;
-    color: rgb(var(--color-surface-400, 161 161 170));
+    background-color: var(--phx-control-background);
+    box-shadow: var(--phx-control-shadow);
+    color: rgb(var(--color-surface-600, 82 82 91));
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
     font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, box-shadow 200ms ease, color 150ms ease;
 }
-.phoxtail-chatbot-compose-action-btn:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
+.phoxtail-chatbot-compose-action-btn:hover,
+.phoxtail-chatbot-topbar-history:hover,
+.phoxtail-chatbot-topbar-close:hover,
+.phoxtail-chatbot-send-btn:hover,
+.phoxtail-chatbot-stop-btn:hover,
+.phoxtail-media-picker-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover,
+.phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover {
+    background-color: var(--phx-control-background-hover);
+    box-shadow: var(--phx-control-shadow-hover);
+    color: rgb(var(--color-surface-800, 39 39 42));
 }
-.phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-600, 79 70 229));
+.phoxtail-chatbot-compose-action-btn:focus-visible,
+.phoxtail-chatbot-topbar-history:focus-visible,
+.phoxtail-chatbot-topbar-close:focus-visible,
+.phoxtail-chatbot-send-btn:focus-visible,
+.phoxtail-chatbot-stop-btn:focus-visible,
+.phoxtail-media-picker-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:focus-visible,
+.phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:focus-visible {
+    outline: 2px solid rgb(var(--color-surface-400) / 0.5);
+    outline-offset: 2px;
 }
-.phoxtail-chatbot-compose-action-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
-
-/* Keep old class as alias for JS that still references it */
-.phoxtail-chatbot-compose-blocks-btn {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 50%;
-    background: none;
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-    font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+.phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active,
+.phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active,
+.phoxtail-chatbot-send-btn--active {
+    background-color: rgb(var(--color-primary-700));
+    color: #fff;
 }
-.phoxtail-chatbot-compose-blocks-btn:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
+.phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active:hover,
+.phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active:hover,
+.phoxtail-chatbot-send-btn--active:hover {
+    background-color: rgb(var(--color-primary-800));
+    color: #fff;
 }
-.phoxtail-chatbot-compose-blocks-btn.phoxtail-bar-btn--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-600, 79 70 229));
-}
-.phoxtail-chatbot-compose-blocks-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-chatbot-compose-action-btn .phoxtail-bar-btn-icon,
+.phoxtail-chatbot-topbar-history .phoxtail-bar-btn-icon,
+.phoxtail-chatbot-topbar-close .phoxtail-bar-btn-icon,
+.phoxtail-chatbot-send-btn .phoxtail-bar-btn-icon,
+.phoxtail-chatbot-stop-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
 
 /* ── Chatbot drawer ── */
 #phoxtail-chatbot-drawer {
@@ -141,11 +138,9 @@
     z-index: 9950;
     display: flex;
     flex-direction: column;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.88);
-    backdrop-filter: blur(28px) saturate(1.6);
-    -webkit-backdrop-filter: blur(28px) saturate(1.6);
-    border-left: 1px solid rgb(0 0 0 / 0.07);
-    box-shadow: -8px 0 48px rgba(0, 0, 0, 0.1), inset 0.5px 0 0 rgb(255 255 255 / 0.6);
+    /* Risen (phx-raised in the template), so it stands out from the page's
+       ground; a drawer's edge is its shadow alone. */
+    box-shadow: -8px 0 48px var(--phx-drawer-shadow-color);
     transform: translateX(100%);
     visibility: hidden;
     transition: transform 500ms cubic-bezier(0.45, 0, 0.2, 1),
@@ -246,57 +241,6 @@ body.phoxtail-chatbot-resizing {
     align-items: center;
     gap: 0.375rem;
 }
-.phoxtail-chatbot-topbar-history {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 50%;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    padding: 0;
-    font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chatbot-topbar-history:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
-}
-.phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-600, 79 70 229));
-}
-.phoxtail-chatbot-topbar-history .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
-.phoxtail-chatbot-topbar-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 50%;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    padding: 0;
-    font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chatbot-topbar-close:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
-}
-.phoxtail-chatbot-topbar-close .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
 
 /* Messages area — full height, scrollable (topbar scrolls as its first item).
    Side padding grows into a gutter once the drawer is wider than the 48rem
@@ -354,8 +298,8 @@ body.phoxtail-chatbot-resizing {
 .phoxtail-chatbot-message p + p { margin-top: 0.375rem; }
 .phoxtail-chatbot-message--assistant {
     align-self: flex-start;
-    background-color: rgb(0 0 0 / 0.04);
-    border: 1px solid rgb(0 0 0 / 0.06);
+    /* Cut into the risen drawer: the controls' gray, no edge. */
+    background-color: var(--phx-control-background);
     border-bottom-left-radius: 0.25rem;
 }
 /* Chat-emitted stream blocks: the block brings its own styling, so drop
@@ -376,12 +320,9 @@ body.phoxtail-chatbot-resizing {
 }
 .phoxtail-chatbot-message--user {
     align-self: flex-end;
-    /* The system-wide active-chip recipe (media picker tabs, compose chips,
-       send button), glassed with a blur — the primary-tinted sibling of the
-       assistant bubble's translucent fill + hairline border. */
-    background-color: rgb(var(--color-primary-50, 238 242 255) / 0.75);
-    backdrop-filter: blur(16px) saturate(1.5);
-    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    /* The compose chips' brand tint: the brand sibling of the assistant
+       bubble's gray. */
+    background-color: rgb(var(--color-primary-50, 238 242 255));
     border: 1px solid rgb(var(--color-primary-200, 199 210 254));
     color: rgb(var(--color-surface-800, 24 24 27));
     border-bottom-right-radius: 0.25rem;
@@ -498,7 +439,7 @@ body.phoxtail-chatbot-resizing {
     color: rgb(var(--color-surface-500, 113 113 122));
     cursor: pointer;
 }
-.phoxtail-chatbot-toolgroup-head:hover { background-color: rgb(0 0 0 / 0.04); }
+.phoxtail-chatbot-toolgroup-head:hover { background-color: var(--phx-control-background); }
 .phoxtail-chatbot-toolgroup-spinner {
     display: none;
     width: 0.65rem;
@@ -550,7 +491,9 @@ body.phoxtail-chatbot-resizing {
 }
 .phoxtail-chatbot-toolgroup-item--running { color: rgb(var(--color-surface-700, 63 63 70)); }
 
-/* Floating compose bar — glassy rounded bar anchored to the bottom */
+/* Floating compose bar, anchored to the bottom: the conversation scrolls
+   under it, so it is a floating layer — risen, opaque, the popover's
+   shadow, no edge. */
 .phoxtail-chatbot-compose {
     position: absolute;
     bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
@@ -564,17 +507,14 @@ body.phoxtail-chatbot-resizing {
     flex-direction: column;
     gap: 0;
     padding: 0.75rem 0.75rem 0.625rem 0.875rem;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.82);
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    border: 1px solid rgb(0 0 0 / 0.08);
+    background-color: var(--phx-raised-background);
     border-radius: 1.25rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 0.5px 0 rgb(255 255 255 / 0.6);
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    box-shadow: var(--phx-popover-shadow);
+    transition: box-shadow 150ms ease;
 }
+/* Something dragged over it: the clickable card's ring. */
 .phoxtail-chatbot-compose--drop-target {
-    border-color: rgb(var(--color-primary-400, 129 140 248));
-    box-shadow: 0 0 0 3px rgb(var(--color-primary-200, 199 210 254)), 0 4px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 2px rgb(var(--color-primary-500)), var(--phx-popover-shadow);
 }
 .phoxtail-chatbot-compose-actions {
     display: flex;
@@ -704,82 +644,44 @@ body.phoxtail-chatbot-resizing {
 .phoxtail-chatbot-input::-webkit-scrollbar-thumb { background-color: rgb(0 0 0 / 0.12); border-radius: 100px; }
 .phoxtail-chatbot-input::-webkit-scrollbar-thumb:hover { background-color: rgb(0 0 0 / 0.2); }
 .phoxtail-chatbot-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
-.phoxtail-chatbot-send-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 50%;
-    background: none;
-    color: rgb(var(--color-surface-400, 161 161 170));
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-    font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chatbot-send-btn:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
-}
-.phoxtail-chatbot-send-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
-.phoxtail-chatbot-send-btn--active {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-600, 79 70 229));
-}
 .phoxtail-chatbot-compose--busy .phoxtail-chatbot-send-btn { display: none; }
 
 /* ── Stop button — same shape as send, only visible while a request is running ── */
-.phoxtail-chatbot-stop-btn {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(var(--color-surface-200, 228 228 231));
-    border-radius: 50%;
-    background: none;
-    color: rgb(var(--color-surface-600, 82 82 91));
-    cursor: pointer;
-    padding: 0;
-    flex-shrink: 0;
-    font-family: inherit;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chatbot-stop-btn .phoxtail-bar-btn-icon { width: 0.875rem; height: 0.875rem; }
+.phoxtail-chatbot-stop-btn { display: none; }
 .phoxtail-chatbot-compose--busy .phoxtail-chatbot-stop-btn { display: inline-flex; }
-.phoxtail-chatbot-stop-btn:hover {
-    background-color: rgb(var(--color-surface-50, 250 250 250));
-    border-color: rgb(var(--color-surface-300, 212 212 216));
-    color: rgb(var(--color-surface-800, 39 39 42));
-}
 
 /* ── Dark mode ── */
 @media (prefers-color-scheme: dark) {
-    #phoxtail-chatbot-drawer {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.88);
-        border-left-color: rgb(255 255 255 / 0.08);
-        box-shadow: -8px 0 48px rgba(0, 0, 0, 0.5), inset 0.5px 0 0 rgb(255 255 255 / 0.06);
+    /* On the dark drawer the popover's full shadow reads as a smudge: the
+       compose bar and the menus it holds take a lighter one. */
+    .phoxtail-chatbot-compose {
+        --phx-popover-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
     }
+    .phoxtail-chatbot-compose-action-btn,
+    .phoxtail-chatbot-topbar-history,
     .phoxtail-chatbot-topbar-close,
-    .phoxtail-chatbot-topbar-history {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.7);
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
+    .phoxtail-chatbot-send-btn,
+    .phoxtail-chatbot-stop-btn,
+    .phoxtail-media-picker-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close,
+    .phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close {
+        color: rgb(var(--color-surface-300, 212 212 216));
     }
+    .phoxtail-chatbot-compose-action-btn:hover,
+    .phoxtail-chatbot-topbar-history:hover,
     .phoxtail-chatbot-topbar-close:hover,
-    .phoxtail-chatbot-topbar-history:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        color: white;
+    .phoxtail-chatbot-send-btn:hover,
+    .phoxtail-chatbot-stop-btn:hover,
+    .phoxtail-media-picker-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover,
+    .phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover {
+        color: rgb(var(--color-surface-200, 228 228 231));
     }
-    .phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
-        border-color: rgb(var(--color-primary-700, 67 56 202));
-        color: rgb(var(--color-primary-300, 165 180 252));
+    .phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active,
+    .phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active,
+    .phoxtail-chatbot-send-btn--active,
+    .phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active:hover,
+    .phoxtail-chatbot-topbar-history.phoxtail-bar-btn--active:hover,
+    .phoxtail-chatbot-send-btn--active:hover {
+        color: #fff;
     }
     .phoxtail-chatbot-drawer-messages {
         scrollbar-color: rgb(255 255 255 / 0.12) transparent;
@@ -791,16 +693,6 @@ body.phoxtail-chatbot-resizing {
         background-color: rgb(255 255 255 / 0.2);
     }
     .phoxtail-chatbot-message { color: rgb(var(--color-surface-100, 244 244 245)); }
-    .phoxtail-chatbot-message--assistant {
-        background-color: rgb(255 255 255 / 0.05);
-        border-color: rgb(255 255 255 / 0.08);
-    }
-    /* Re-drop the bubble chrome the --assistant dark rule above just
-       re-applied: emitted blocks bring their own styling. */
-    .phoxtail-chatbot-message--block {
-        background: none;
-        border: none;
-    }
     .phoxtail-chatbot-message--user {
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
         border-color: rgb(var(--color-primary-700, 67 56 202));
@@ -823,18 +715,11 @@ body.phoxtail-chatbot-resizing {
     .phoxtail-chatbot-message--assistant th,
     .phoxtail-chatbot-message--assistant td { border-color: rgb(255 255 255 / 0.12); }
     .phoxtail-chatbot-thinking span { background-color: rgb(var(--color-surface-500, 113 113 122)); }
-    .phoxtail-chatbot-toolgroup-head:hover { background-color: rgb(255 255 255 / 0.06); }
     .phoxtail-chatbot-toolgroup-count { background-color: rgb(255 255 255 / 0.08); }
     .phoxtail-chatbot-toolgroup-item--running { color: rgb(var(--color-surface-300, 212 212 216)); }
     .phoxtail-chatbot-resize-handle::after { background-color: rgb(255 255 255 / 0.25); }
-    .phoxtail-chatbot-compose {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.82);
-        border-color: rgb(255 255 255 / 0.1);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 0.5px 0 rgb(255 255 255 / 0.06);
-    }
     .phoxtail-chatbot-compose--drop-target {
-        border-color: rgb(var(--color-primary-500, 99 102 241));
-        box-shadow: 0 0 0 3px rgb(var(--color-primary-950, 30 27 75) / 0.6), 0 4px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 0 2px rgb(var(--color-primary-400)), var(--phx-popover-shadow);
     }
     .phoxtail-chatbot-input { color: rgb(var(--color-surface-50, 250 250 250)); scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
     .phoxtail-chatbot-input::-webkit-scrollbar-track { background: transparent; }
@@ -852,44 +737,6 @@ body.phoxtail-chatbot-resizing {
         background-color: rgb(var(--color-primary-800, 55 48 163));
         color: rgb(var(--color-primary-200, 199 210 254));
     }
-    .phoxtail-chatbot-compose-action-btn,
-    .phoxtail-chatbot-compose-blocks-btn {
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
-    }
-    .phoxtail-chatbot-compose-action-btn:hover,
-    .phoxtail-chatbot-compose-blocks-btn:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        color: white;
-    }
-    .phoxtail-chatbot-compose-action-btn.phoxtail-bar-btn--active,
-    .phoxtail-chatbot-compose-blocks-btn.phoxtail-bar-btn--active {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
-        border-color: rgb(var(--color-primary-700, 67 56 202));
-        color: rgb(var(--color-primary-300, 165 180 252));
-    }
-    .phoxtail-chatbot-send-btn {
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
-    }
-    .phoxtail-chatbot-send-btn:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        color: white;
-    }
-    .phoxtail-chatbot-send-btn--active {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
-        border-color: rgb(var(--color-primary-700, 67 56 202));
-        color: rgb(var(--color-primary-300, 165 180 252));
-    }
-    .phoxtail-chatbot-stop-btn {
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-400, 161 161 170));
-    }
-    .phoxtail-chatbot-stop-btn:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        border-color: rgb(255 255 255 / 0.2);
-        color: white;
-    }
     .phoxtail-bar-add-btn { color: rgb(var(--color-surface-600, 82 82 91)); }
     .phoxtail-bar-add-btn:hover,
     .phoxtail-bar-add-btn--active:hover {
@@ -898,13 +745,6 @@ body.phoxtail-chatbot-resizing {
         color: rgb(var(--color-surface-300, 212 212 216));
     }
     .phoxtail-bar-add-btn--active { color: rgb(var(--color-surface-600, 82 82 91)); }
-    .phoxtail-chatbot-blocks-panel,
-    .phoxtail-chatbot-model-panel {
-        background-color: rgb(var(--color-surface-950, 12 12 16));
-        border-color: rgb(255 255 255 / 0.1);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 0, 0, 0.5),
-                    inset 0 0.5px 0 rgb(255 255 255 / 0.09), inset 0 -0.5px 0 rgb(0 0 0 / 0.2);
-    }
     .phoxtail-model-row--selected {
         background-color: rgb(var(--color-primary-950, 30 27 75) / 0.5);
         outline-color: rgb(var(--color-primary-700, 67 56 202));
@@ -932,40 +772,24 @@ body.phoxtail-chatbot-resizing {
 }
 
 /* Geometry (position/edge/width/height) comes from the shared
-   .phoxtail-modal-drawer primitive in modal.css — this only styles the
-   visible box. */
+   .phoxtail-modal-drawer primitive in modal.css; the color from phx-raised
+   in the template. This styles the rest of the box: a drawer's edge is its
+   shadow alone. */
 .phoxtail-chat-history-drawer {
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.9);
-    backdrop-filter: blur(24px) saturate(1.5);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    border-right: 1px solid rgb(0 0 0 / 0.07); /* matches chatbot drawer edge */
-    box-shadow: 8px 0 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 8px 0 48px var(--phx-drawer-shadow-color);
     font-family: var(--font-ui, system-ui, -apple-system, sans-serif);
     overflow: hidden;
 }
 
-/* Drawer header: close button matches the chatbot topbar close (same chrome,
-   same 0.75rem-from-top / 1rem-from-edge position). */
+/* Drawer header: no edge below it (as core's drawers); its close button is
+   the chatbot topbar's (same chrome, same 0.75rem-from-top /
+   1rem-from-edge position). */
 .phoxtail-chat-history-drawer > .phoxtail-bar-panel-header {
     padding: 0.75rem 1rem 0.625rem 1rem;
-}
-.phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close {
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    background-color: rgb(var(--color-surface-50, 255 255 255) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    color: rgb(var(--color-surface-400, 161 161 170));
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover {
-    background-color: rgb(0 0 0 / 0.06);
-    border-color: rgb(0 0 0 / 0.14);
-    color: rgb(var(--color-surface-700, 63 63 70));
+    border-bottom: none;
 }
 
 .phoxtail-chat-history-search {
@@ -978,28 +802,6 @@ body.phoxtail-chatbot-resizing {
     gap: 0.125rem;
 }
 
-.phoxtail-chat-history-new-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3125rem;
-    padding: 0.3rem 0.625rem 0.3rem 0.5rem;
-    border: 1px solid rgb(0 0 0 / 0.1);
-    border-radius: 999px;
-    background: rgb(0 0 0 / 0.03);
-    color: rgb(var(--color-surface-600, 82 82 91));
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-.phoxtail-chat-history-new-btn:hover {
-    background-color: rgb(var(--color-primary-50, 238 242 255));
-    border-color: rgb(var(--color-primary-200, 199 210 254));
-    color: rgb(var(--color-primary-600, 79 70 229));
-}
-.phoxtail-chat-history-new-btn .phoxtail-bar-btn-icon { width: 0.75rem; height: 0.75rem; flex-shrink: 0; }
-
 .phoxtail-chat-history-search-wrap {
     position: relative;
     display: flex;
@@ -1011,17 +813,19 @@ body.phoxtail-chatbot-resizing {
     padding: 0.4rem 0.625rem 0.4rem 1.75rem;
     font-size: 0.8125rem;
     font-family: inherit;
-    border: 1px solid rgb(0 0 0 / 0.08);
-    border-radius: 0.5rem;
-    background: rgb(0 0 0 / 0.03);
+    border: none;
+    border-radius: 999px;
+    background: var(--phx-control-background);
     color: rgb(var(--color-surface-800, 24 24 27));
     outline: none;
-    transition: border-color 0.15s, background 0.15s;
+    transition: background-color 150ms ease;
 }
-.phoxtail-chat-history-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
-.phoxtail-chat-history-search-input:focus {
-    border-color: rgb(var(--color-primary-400, 129 140 248));
-    background: rgb(0 0 0 / 0.01);
+.phoxtail-chat-history-search-input::placeholder { color: rgb(var(--color-surface-500, 113 113 122)); }
+.phoxtail-chat-history-search-input:hover { background: var(--phx-control-background-hover); }
+/* The fields' focus ring (core's search). */
+.phoxtail-chat-history-search-input:focus-visible {
+    outline: 2px solid rgb(var(--color-primary-600));
+    outline-offset: 2px;
 }
 
 .phoxtail-chat-history-search-icon {
@@ -1042,14 +846,14 @@ body.phoxtail-chatbot-resizing {
     justify-content: center;
     padding: 0.2rem;
     border: none;
-    border-radius: 0.25rem;
+    border-radius: 50%;
     background: transparent;
     color: rgb(var(--color-surface-400, 161 161 170));
     cursor: pointer;
     transition: color 0.1s, background 0.1s;
 }
 .phoxtail-chat-history-clear:hover {
-    background: rgb(0 0 0 / 0.06);
+    background: var(--phx-control-background-hover);
     color: rgb(var(--color-surface-700, 63 63 70));
 }
 .phoxtail-chat-history-clear .phoxtail-bar-btn-icon { width: 0.8125rem; height: 0.8125rem; }
@@ -1083,7 +887,7 @@ body.phoxtail-chatbot-resizing {
     font-family: inherit;
     transition: background 0.1s;
 }
-.phoxtail-chat-history-item:hover { background: rgb(0 0 0 / 0.04); }
+.phoxtail-chat-history-item:hover { background: var(--phx-control-background); }
 
 .phoxtail-chat-history-item-title {
     flex: 1;
@@ -1110,45 +914,13 @@ body.phoxtail-chatbot-resizing {
 }
 
 @media (prefers-color-scheme: dark) {
-    .phoxtail-chat-history-drawer {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.92);
-        /* left-anchored drawer: its edge border is border-right, shadow casts right */
-        border-right-color: rgb(255 255 255 / 0.08);
-        box-shadow: 8px 0 40px rgba(0, 0, 0, 0.5);
-    }
-    .phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close {
-        background-color: rgb(var(--color-surface-950, 12 12 16) / 0.7);
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-500, 113 113 122));
-    }
-    .phoxtail-chat-history-drawer > .phoxtail-bar-panel-header .phoxtail-bar-panel-close:hover {
-        background-color: rgb(255 255 255 / 0.08);
-        color: white;
-    }
-    .phoxtail-chat-history-search-input {
-        border-color: rgb(255 255 255 / 0.08);
-        background: rgb(255 255 255 / 0.04);
-        color: rgb(var(--color-surface-100, 244 244 245));
-    }
-    .phoxtail-chat-history-search-input:focus { background: rgb(255 255 255 / 0.06); }
-    .phoxtail-chat-history-item:hover { background: rgb(255 255 255 / 0.05); }
+    .phoxtail-chat-history-search-input { color: rgb(var(--color-surface-100, 244 244 245)); }
+    .phoxtail-chat-history-search-input::placeholder { color: rgb(var(--color-surface-400, 161 161 170)); }
+    .phoxtail-chat-history-search-input:focus-visible { outline-color: rgb(var(--color-primary-400)); }
     .phoxtail-chat-history-item-title { color: rgb(var(--color-surface-100, 244 244 245)); }
     .phoxtail-chat-history-list { scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
     .phoxtail-chat-history-list::-webkit-scrollbar-thumb {
         background-color: rgb(255 255 255 / 0.12);
     }
-    .phoxtail-chat-history-clear:hover {
-        background: rgb(255 255 255 / 0.08);
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
-    .phoxtail-chat-history-new-btn {
-        background: rgb(255 255 255 / 0.04);
-        border-color: rgb(255 255 255 / 0.1);
-        color: rgb(var(--color-surface-300, 212 212 216));
-    }
-    .phoxtail-chat-history-new-btn:hover {
-        background-color: rgb(var(--color-primary-950, 30 27 75) / 0.6);
-        border-color: rgb(var(--color-primary-700, 67 56 202));
-        color: rgb(var(--color-primary-300, 165 180 252));
-    }
+    .phoxtail-chat-history-clear:hover { color: rgb(var(--color-surface-200, 228 228 231)); }
 }

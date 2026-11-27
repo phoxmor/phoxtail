@@ -1,0 +1,1 @@
+The Phoxtail bar and its drawers are solid surfaces: the dock and its Actions, Blocks and Inference menus are popovers, and the chatbot, Menu & Media and chat history drawers rise from the page in the risen color, parted from it by a shadow alone. Their buttons and fields share the platform's control colors, and the button of whatever is open turns the brand color.

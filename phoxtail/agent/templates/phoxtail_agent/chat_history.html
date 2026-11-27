@@ -1,12 +1,12 @@
 {% load i18n phoxtail_design_tags %}
 <div class="phoxtail-chat-history-overlay"
      data-modal-animation="slide-left">
-    <div class="phoxtail-chat-history-drawer phoxtail-modal-drawer">
+    <div class="phoxtail-chat-history-drawer phoxtail-modal-drawer phx-raised">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">{% translate "Chats" %}</span>
             <div class="phoxtail-chat-history-header-actions">
                 <button type="button"
-                        class="phoxtail-chat-history-new-btn"
+                        class="phx-button phx-button--secondary phx-button--xsmall"
                         onclick="window.phoxtailChat && window.phoxtailChat.newChat(); closeModalLevel1();"
                         title="{% translate "New Chat (N)" %}">
                     {% icon "plus" class="phoxtail-bar-btn-icon" %}

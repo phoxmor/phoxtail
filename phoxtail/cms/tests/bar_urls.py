@@ -7,7 +7,8 @@ raising when a route is missing — so the media button is absent for every
 user, whatever their permissions, and a test asserting it is withheld
 would pass without the check existing.
 
-Mounting them here is what makes the permission the reason.
+Mounting them here is what makes the permission the reason. Accounts are
+mounted for the same reason: without them the bar has no sign-out to offer.
 """
 
 from django.urls import include, path
@@ -20,6 +21,7 @@ from phoxtail.core import urls as core_urls
 urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("agent/", include(agent_urls)),
+    path("accounts/", include("allauth.urls")),
     path("", include(core_urls)),
     path("", include(wagtail_urls)),
 ]

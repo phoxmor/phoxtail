@@ -18,6 +18,7 @@
 {% url 'wagtailadmin_home' as admin_home %}
 {% url 'phoxtail_core:modal_level_1' as chat_history_modal_url %}
 {% url 'dashboard:index' as site_dashboard_url %}
+{% url 'account_logout' as logout_url %}
 {% url 'phoxtail_agent:chat_history' as chat_history_url %}
 {% url 'phoxtail_agent:media_picker' as media_picker_url %}
 {% url 'phoxtail_agent:model_picker_panel' as model_picker_url %}
@@ -35,7 +36,7 @@
 
 <div id="phoxtail-bar"
      {% if media_picker_url and user.is_superuser %}data-media-picker-url="{{ media_picker_url }}" data-media-picker-modal-url="{{ chat_history_modal_url }}"{% endif %}>
-    <div class="phoxtail-bar-dock">
+    <div class="phoxtail-bar-dock phx-popover">
         {% if page and user.is_superuser %}
         <div class="phoxtail-bar-page-info">
             <span class="phoxtail-bar-page-title" title="{{ page.title }}">{{ page.title|truncatechars:22 }}</span>
@@ -81,7 +82,7 @@
     </div>
 
     {% if user.is_superuser %}
-    <div class="phoxtail-bar-panel phoxtail-bar-actions-panel" id="phoxtail-bar-actions-panel">
+    <div class="phoxtail-bar-panel phoxtail-bar-actions-panel phx-popover" id="phoxtail-bar-actions-panel">
         <div class="phoxtail-bar-panel-header">
             <span class="phoxtail-bar-panel-title">{% translate "Actions" %}</span>
             <button type="button" id="phoxtail-bar-actions-close" class="phoxtail-bar-panel-close" title="{% translate "Close" %}">
@@ -152,6 +153,23 @@
                 </div>
             </a>
             {% endif %}
+            {% if logout_url %}
+            <div class="phoxtail-bar-sep-line"></div>
+            <form method="post" action="{{ logout_url }}" class="phoxtail-bar-actions-form">
+                {% csrf_token %}
+                <button type="submit"
+                        id="phoxtail-bar-signout-btn"
+                        class="phoxtail-bar-actions-item phoxtail-bar-actions-item--signout"
+                        role="menuitem"
+                        title="{% translate "Sign out (O)" %}">
+                    {% icon "signout" class="phoxtail-bar-row-icon" %}
+                    <div class="phoxtail-bar-row-info">
+                        <span class="phoxtail-bar-row-type">{% translate "Sign out" %}</span>
+                        <span class="phoxtail-bar-row-meta">{% translate "End this session" %}</span>
+                    </div>
+                </button>
+            </form>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -159,6 +177,7 @@
 
 {% if perms.phoxtail_agent.access_chatbot %}
 <div id="phoxtail-chatbot-drawer"
+     class="phx-raised"
      aria-label="{% translate "Chatbot" %}"
      role="complementary"
      data-chat-history-url="{{ chat_history_url }}"
@@ -175,7 +194,7 @@
                         class="phoxtail-chatbot-topbar-history"
                         title="{% translate "Chat history (H)" %}"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleHistory()">
-                    {% icon "menu" class="phoxtail-bar-btn-icon" %}
+                    {% icon "history" class="phoxtail-bar-btn-icon" %}
                 </button>
                 <button type="button"
                         id="phoxtail-chatbot-newchat-btn"
@@ -203,7 +222,7 @@
         </div>
     </div>
     <form class="phoxtail-chatbot-compose" id="phoxtail-chatbot-form" autocomplete="off">
-        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel phoxtail-chatbot-model-panel" id="phoxtail-model-picker-panel">
+        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel phoxtail-chatbot-model-panel phx-popover" id="phoxtail-model-picker-panel">
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
                     {% icon "cognition" class="phoxtail-bar-btn-icon" %}
@@ -239,7 +258,7 @@
             <div class="phoxtail-bar-panel-body" id="phoxtail-model-picker-body"></div>
         </div>
         {% if page %}
-        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel" id="phoxtail-bar-blocks-panel">
+        <div class="phoxtail-bar-panel phoxtail-chatbot-blocks-panel phx-popover" id="phoxtail-bar-blocks-panel">
             <div class="phoxtail-bar-panel-header">
                 <span class="phoxtail-bar-panel-title">
                     {% translate "Blocks" %}
@@ -301,15 +320,6 @@
             aria-label="{% translate "Message" %}"></textarea>
         <div class="phoxtail-chatbot-compose-actions">
             <div class="phoxtail-chatbot-compose-actions-left">
-                {% if page %}
-                <button type="button"
-                        id="phoxtail-bar-blocks-btn"
-                        class="phoxtail-chatbot-compose-action-btn"
-                        title="{% translate "Blocks (B)" %}"
-                        aria-expanded="false">
-                    {% icon "layers" class="phoxtail-bar-btn-icon" %}
-                </button>
-                {% endif %}
                 {% if media_picker_url and user.is_superuser %}
                 <button type="button"
                         id="phoxtail-chatbot-media-btn"
@@ -317,6 +327,15 @@
                         title="{% translate "Menu &amp; Media (M)" %}"
                         onclick="window.phoxtailChat && window.phoxtailChat.toggleMedia()">
                     {% icon "menu" class="phoxtail-bar-btn-icon" %}
+                </button>
+                {% endif %}
+                {% if page %}
+                <button type="button"
+                        id="phoxtail-bar-blocks-btn"
+                        class="phoxtail-chatbot-compose-action-btn"
+                        title="{% translate "Blocks (B)" %}"
+                        aria-expanded="false">
+                    {% icon "layers" class="phoxtail-bar-btn-icon" %}
                 </button>
                 {% endif %}
                 <button type="button"
