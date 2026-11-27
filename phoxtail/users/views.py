@@ -1,6 +1,10 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.utils.translation import pgettext
 from django_htmx.http import trigger_client_event
@@ -9,8 +13,19 @@ from .forms import UserProfileForm
 
 
 def redirect_to_allauth_login(request):
-    """Redirect the Django admin login URL to the allauth login page."""
-    return redirect("account_login")
+    """Redirect the Django admin login URL to the allauth login page.
+
+    For a logged-out visitor the ``next`` parameter travels with it, and
+    allauth's login view decides whether it is safe to follow. The admin
+    also sends a logged-in user here when it refuses them, and allauth sends
+    a logged-in user straight on to ``next``; carrying it for them would
+    bounce them between the admin and the login page, so it is dropped.
+    """
+    url = reverse("account_login")
+    next_url = request.GET.get(REDIRECT_FIELD_NAME)
+    if next_url and not request.user.is_authenticated:
+        url += "?" + urlencode({REDIRECT_FIELD_NAME: next_url})
+    return redirect(url)
 
 
 @login_required

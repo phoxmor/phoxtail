@@ -84,6 +84,28 @@ class TestLogin:
         assert response.status_code == 302
         assert response["Location"] == "/x/"
 
+    @pytest.mark.parametrize("next_url", ["https://evil.example/", "//evil.example/"])
+    def test_a_good_login_refuses_an_external_next(self, rf, django_user_model, settings, next_url):
+        django_user_model.objects.create_user(email="reader@example.com", password="right-password")
+
+        response = _call(
+            rf,
+            LoginView,
+            "post",
+            data={"login": "reader@example.com", "password": "right-password", "next": next_url},
+        )
+
+        assert response.status_code == 302
+        assert response["Location"] == settings.LOGIN_REDIRECT_URL
+
+    def test_a_logged_in_user_is_sent_on_to_next(self, rf, django_user_model):
+        user = django_user_model.objects.create_user(email="reader@example.com", password="right-password")
+
+        response = _call(rf, LoginView, path="/accounts/login/?next=/admin/", user=user)
+
+        assert response.status_code == 302
+        assert response["Location"] == "/admin/"
+
     def test_the_fields_are_drawn_in_core_frames(self, rf):
         html = _html(_call(rf, LoginView))
 
