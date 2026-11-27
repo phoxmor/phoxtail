@@ -161,7 +161,7 @@
 
 {% elif tab == "menu" %}
 {% if offset == 0 %}<div class="phoxtail-media-picker-menu-tree{% if query %} phoxtail-media-picker-menu-tree--flat{% endif %}">{% endif %}
-    {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=results flat=query active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids %}
+    {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=results flat=query active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids show_locale_labels=show_locale_labels %}
     {% if has_more %}
     <button type="button"
             class="phoxtail-media-picker-load-more"

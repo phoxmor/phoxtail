@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
@@ -63,6 +64,7 @@ def media_picker(request):
     page_id_param = request.GET.get("page_id", "").strip()
     active_page_id = int(page_id_param) if page_id_param.isdigit() else None
     active_ancestor_ids = set()
+    show_locale_labels = False
     s = get_search_backend()
     results = []
 
@@ -134,6 +136,9 @@ def media_picker(request):
             qs = Page.objects.exclude(depth=1).select_related("content_type", "locale")
             qs = _explorable_pages(qs, request.user)
             results = list(s.autocomplete(query, qs)[offset : offset + fetch])
+            # As the Wagtail admin labels them: every search result, since
+            # matches from each locale sit side by side.
+            show_locale_labels = getattr(settings, "WAGTAIL_I18N_ENABLED", False)
         else:
             from wagtail.permissions import page_permission_policy
 
@@ -147,6 +152,9 @@ def media_picker(request):
                 qs = root.get_children().select_related("content_type", "locale").order_by("path")
                 qs = _explorable_pages(qs, request.user)
                 results = list(qs[offset : offset + fetch])
+                # As the Wagtail admin explorer labels them: the children of
+                # the tree's root are the locales' home pages, alike by title.
+                show_locale_labels = getattr(settings, "WAGTAIL_I18N_ENABLED", False) and root.is_root()
             if results and active_page_id:
                 try:
                     active_ancestor_ids = set(
@@ -172,6 +180,7 @@ def media_picker(request):
         "collection_id": collection_id,
         "active_page_id": active_page_id,
         "active_ancestor_ids": active_ancestor_ids,
+        "show_locale_labels": show_locale_labels,
     }
 
     if request.htmx and (request.htmx.target == "phoxtail-media-picker-results" or offset > 0):

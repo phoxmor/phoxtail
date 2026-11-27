@@ -34,7 +34,7 @@
             <a class="phoxtail-media-picker-menu-row-title"
                draggable="false"
                href="{% if p.live and p.url %}{{ p.url }}{% else %}{{ admin_home }}pages/{{ p.pk }}/view_draft/{% endif %}"
-               title="{% if p.live %}View live: {% else %}View draft: {% endif %}{{ p.title }}"><span class="phoxtail-media-picker-menu-row-title-text">{{ p.title|truncatechars:32 }}</span></a>
+               title="{% if p.live %}View live: {% else %}View draft: {% endif %}{{ p.title }}"><span class="phoxtail-media-picker-menu-row-title-text">{{ p.title|truncatechars:32 }}</span>{% if show_locale_labels %}<span class="phoxtail-media-picker-menu-row-locale">({{ p.locale.language_code|language_name_local }})</span>{% endif %}</a>
             <span class="phoxtail-media-picker-menu-row-status phoxtail-media-picker-menu-row-status--{% if p.live %}live{% else %}draft{% endif %}"
                   title="{% if p.live %}Live{% else %}Draft{% endif %}"></span>
             {% if flat %}
@@ -50,7 +50,7 @@
             {% if on_trail %}
             {% page_children p active_ancestor_ids as trail %}
             <div class="phoxtail-media-picker-menu-children" id="phoxtail-menu-children-{{ p.pk }}" data-loaded="1">
-                {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=trail.pages flat=False active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids %}
+                {% include "phoxtail_agent/partials/menu_picker_nodes.html" with pages=trail.pages flat=False active_page_id=active_page_id active_ancestor_ids=active_ancestor_ids show_locale_labels=False %}
                 {% if trail.has_more %}
                 <button type="button"
                         class="phoxtail-media-picker-load-more"
